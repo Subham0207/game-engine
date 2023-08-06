@@ -1,3 +1,4 @@
+#pragma once
 // Preprocessor Directives
 #ifndef GLITTER
 #define GLITTER
