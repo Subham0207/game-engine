@@ -3,8 +3,8 @@
 #include "glitter.hpp"
 
 // System Headers
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glad/glad.h>
 
 // Standard Headers
 #include <cstdio>
@@ -14,6 +14,9 @@
 #include "camera.hpp"
 
 #include <shader.hpp>
+
+#include <imgui.h>
+#include <useimgui.hpp>
 
 #define WINDOW_WIDTH  2560
 #define WINDOW_HEIGHT 1440
@@ -38,7 +41,8 @@ int main(int argc, char * argv[]) {
     // Create Context and Load OpenGL Functions
     glfwMakeContextCurrent(mWindow);
     gladLoadGL();
-    fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
+    // commenting this becauase GL_VERSION macro is defined at two places namely glad.h and imgui_loader.h
+    //fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
 
     //Init
 
@@ -46,15 +50,18 @@ int main(int argc, char * argv[]) {
     shader->CompileShaders();
     
     BasicMesh* mesh = new BasicMesh();
-    mesh->LoadMesh("E:/OpenGL/4BarrelGunTianglulated.fbx");
+    mesh->LoadMesh("E:/OpenGL/4barrel.fbx");
 
-    PersProjInfo perspProjInfo{ 45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 100.0f, 1000.0f };
+    PersProjInfo perspProjInfo{ 45.0f, WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 1000000000.0f };
 
-    Vector3f CameraPos(0.0f, 0.0f, -1.0f);
+    Vector3f CameraPos(0.0f, 0.0f, -500.0f);
     Vector3f CameraTarget(0.0f, 0.0f, 1.0f);
     Vector3f CameraUp(0.0f, 1.0f, 0.0f);
 
     Camera* pGameCamera = new Camera(WINDOW_WIDTH, WINDOW_HEIGHT, CameraPos, CameraTarget, CameraUp);
+
+    auto myGUI = new UseImGui();
+    myGUI->Init(mWindow, "#version 400");
 
     // Init end...
 
@@ -80,7 +87,9 @@ int main(int argc, char * argv[]) {
         Projection.InitPersProjTransform(perspProjInfo);
 
         Matrix4f WVP = Projection * View * World;
-        glUniformMatrix4fv(shader->WVPLocation, 1, GL_TRUE, &WVP.m[0][0]);
+        glUniformMatrix4fv(shader->Model, 1, GL_FALSE, &World.m[0][0]);
+        glUniformMatrix4fv(shader->View, 1, GL_FALSE, &View.m[0][0]);
+        glUniformMatrix4fv(shader->Projection, 1, GL_FALSE, &Projection.m[0][0]);
         glUniform1i(shader->SamplerLocation, 0);
 
         pGameCamera->OnRender();
@@ -88,10 +97,15 @@ int main(int argc, char * argv[]) {
 
         mesh->Render();
 
+        myGUI->NewFrame();
+        myGUI->Update();
+        myGUI->Render();
+
 
         // Flip Buffers and Draw
         glfwSwapBuffers(mWindow);
         glfwPollEvents();
     }   glfwTerminate();
+    myGUI->Shutdown();
     return EXIT_SUCCESS;
 }

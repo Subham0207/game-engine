@@ -33,10 +33,13 @@ include_directories(Glitter/Headers/
                     Glitter/Vendor/glad/include/
                     Glitter/Vendor/glfw/include/
                     Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/)
+                    Glitter/Vendor/stb/
+                    Glitter/Vendor/imgui/)
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
-file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
+file(GLOB PROJECT_HEADERS_HPP Glitter/Headers/*.hpp)
+file(GLOB PROJECT_HEADERS_H Glitter/Headers/*.h)
+set(PROJECT_HEADERS ${PROJECT_HEADERS_HPP} ${PROJECT_HEADERS_H})
 file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag

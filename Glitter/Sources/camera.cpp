@@ -114,11 +114,11 @@ void Camera::OnKeyboard(unsigned char Key)
     }
     break;
 
-    case GLFW_KEY_PAGE_UP:
+    case GLFW_KEY_W:
         m_pos.y += m_speed;
         break;
 
-    case GLFW_KEY_PAGE_DOWN:
+    case GLFW_KEY_S:
         m_pos.y -= m_speed;
         break;
 

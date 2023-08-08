@@ -71,17 +71,30 @@ void Shader::CompileShaders()
         exit(1);
     }
 
-    WVPLocation = glGetUniformLocation(ShaderProgram, "gWVP");
-    if (WVPLocation == -1) {
-        printf("Error getting uniform location of 'gWVP'\n");
+    Model = glGetUniformLocation(ShaderProgram, "model");
+    if (Model == -1) {
+        printf("Error getting uniform location of 'model'\n");
         exit(1);
     }
 
-    SamplerLocation = glGetUniformLocation(ShaderProgram, "gSampler");
-    if (SamplerLocation == -1) {
-        printf("Error getting uniform location of 'gSampler'\n");
+    View = glGetUniformLocation(ShaderProgram, "view");
+    if (View == -1) {
+        printf("Error getting uniform location of 'view'\n");
         exit(1);
     }
+
+    Projection = glGetUniformLocation(ShaderProgram, "projection");
+    if (Projection == -1) {
+        printf("Error getting uniform location of 'projection'\n");
+        exit(1);
+    }
+
+
+    //SamplerLocation = glGetUniformLocation(ShaderProgram, "gSampler");
+    //if (SamplerLocation == -1) {
+    //    printf("Error getting uniform location of 'gSampler'\n");
+    //    exit(1);
+    //}
 
     glValidateProgram(ShaderProgram);
     glGetProgramiv(ShaderProgram, GL_VALIDATE_STATUS, &Success);
