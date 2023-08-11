@@ -45,6 +45,9 @@ int main(int argc, char * argv[]) {
     gladLoadGL();
     fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
 
+    unsigned int mouseState = GLFW_CURSOR_DISABLED;
+    glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
+
     //Init clienthandler
     clientHandler.camera = new Camera();
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
@@ -53,6 +56,8 @@ int main(int argc, char * argv[]) {
     //Load modal
     auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
     auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
+
+    glEnable(GL_DEPTH_TEST);
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {

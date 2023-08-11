@@ -1,6 +1,8 @@
 #version 330
 
-in vec2 TexCoord0;
+in vec3 Normal;
+in vec3 FragPos;
+in vec2 TexCoords;
 
 out vec4 FragColor;
 
@@ -8,5 +10,6 @@ uniform sampler2D gSampler;
 
 void main()
 {
-    FragColor = texture2D(gSampler, TexCoord0);
+    vec3 norm = normalize(Normal);
+    FragColor = texture2D(gSampler, TexCoords);
 }
