@@ -14,6 +14,8 @@
 #include <Input.hpp>
 #include <Camera.hpp>
 
+#include <stb_image.h>
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -47,6 +49,7 @@ int main(int argc, char * argv[]) {
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
+    stbi_set_flip_vertically_on_load(true);
 
     //Init clienthandler
     clientHandler.camera = new Camera();
