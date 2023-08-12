@@ -13,6 +13,7 @@
 #include <shader.hpp>
 #include <Input.hpp>
 #include <Camera.hpp>
+#include <light.hpp>
 
 #include <stb_image.h>
 
@@ -56,9 +57,25 @@ int main(int argc, char * argv[]) {
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
 
+
     //Load modal
     auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
     auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
+
+    //Lights setup
+    auto lights = new Lights();
+    lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f)));
+
+    glm::vec3 pointLightPositions[] = {
+        glm::vec3(0.7f,  0.2f,  2.0f),
+        glm::vec3(2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3(0.0f,  0.0f, -3.0f)
+    };
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        lights->pointLights.push_back(PointLight(pointLightPositions[i]));
+    }
 
     glEnable(GL_DEPTH_TEST);
 
@@ -86,7 +103,11 @@ int main(int argc, char * argv[]) {
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1i(glGetUniformLocation(shader->ID, "gSampler"), 0);
+        glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
+        glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shader->ID, "material.specular"), 1);
+        glUniform1f(glGetUniformLocation(shader->ID, "material.shininess"), 32.0f);
+        lights->Render(shader->ID);
         model3d->Draw(shader);
 
         // Flip Buffers and Draw
