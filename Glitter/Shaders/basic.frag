@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 struct Material
 {
@@ -56,7 +56,7 @@ uniform Material material;
 
 // This will have to do until I find a better solution
 #define numberOfDirectionalLights 2
-#define numberOfSpotLights 2
+#define numberOfSpotLights 1
 #define numberOfPointLights 4
 
 uniform DirLight dirLights[numberOfDirectionalLights];
@@ -77,14 +77,14 @@ void main()
     // phase 1: Directional lighting
     for (int i = 0; i < numberOfDirectionalLights; i++)
         result += CalcDirLight(dirLights[i], norm, viewDir);
-    // phase 2: Spot light
-    for (int i = 0; i < numberOfSpotLights; i++)
-        result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
-    // phase 3: Point lights
+    // phase 2: Point lights
     for (int i = 0; i < numberOfPointLights; i++)
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+    // phase 3: Spot light
+    for (int i = 0; i < numberOfSpotLights; i++)
+        result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
 
-    FragColor = FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, 1.0);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
@@ -118,9 +118,9 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
-    ambient *= attenuation;
-    diffuse *= attenuation;
-    specular *= attenuation;
+    ambient *= attenuation * 0.3;
+    diffuse *= attenuation * 0.3;
+    specular *= attenuation * 0.3;
     return (ambient + diffuse + specular);
 }
 

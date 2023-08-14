@@ -15,7 +15,7 @@ public:
 
 	DirectionalLight(
 		glm::vec3 direction,
-		glm::vec3 lightColor    = glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3 lightColor,
 		glm::vec3 diffuseColor  = glm::vec3(0.5f),
 		glm::vec3 ambientColor  = glm::vec3(0.2f),
 		glm::vec3 specularColor = glm::vec3(1.0f))
@@ -54,10 +54,10 @@ public:
 
 	SpotLight(
 		glm::vec3 position,
-		glm::vec3 direction = glm::vec3(1.0f,0.0f,0.0f),
-		float innerCutOffRadius = glm::cos(glm::radians(12.5f)),
+		glm::vec3 lightColor,
+		glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f),
+		float innerCutOffRadius = glm::cos(glm::radians(10.5f)),
 		float outerCutOffRadius = glm::cos(glm::radians(17.5f)),
-		glm::vec3 lightColor = glm::vec3(1.0f,1.0f,1.0f),
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
 		glm::vec3 specularColor = glm::vec3(1.0f))
@@ -115,7 +115,7 @@ public:
 
 	PointLight(
 		glm::vec3 position,
-		glm::vec3 lightColor = glm::vec3(1.0f),
+		glm::vec3 lightColor,
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
 		glm::vec3 specularColor = glm::vec3(1.0f))
@@ -214,7 +214,7 @@ private:
 			std::stringstream pointLightQuadraticTerm_ss;
 			pointLightLinearTerm_ss << "pointLights[" << i << "].quadraticTerm";
 
-			glUniform1i(glGetUniformLocation(ShaderId, "numberOfSpotLights"), spotLights.size());
+			glUniform1i(glGetUniformLocation(ShaderId, "numberOfPointLights"), spotLights.size());
 
 			//For each light call attachShaderUniforms
 			pointLights[i].attachShaderUniforms(

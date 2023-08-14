@@ -64,7 +64,7 @@ int main(int argc, char * argv[]) {
 
     //Lights setup
     auto lights = new Lights();
-    lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f)));
+    lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f)));
 
     glm::vec3 pointLightPositions[] = {
         glm::vec3(0.7f,  0.2f,  2.0f),
@@ -74,8 +74,15 @@ int main(int argc, char * argv[]) {
     };
     for (unsigned int i = 0; i < 4; i++)
     {
-        lights->pointLights.push_back(PointLight(pointLightPositions[i]));
+        lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(1.0f,0.7f,0.0f)));
     }
+
+    //Something wrong with spotlights only then; 
+    // So right now I don't know how to pass dynamic array sizes to the shader. This caused an issue where if I statically
+    // allocated memory for 4 spotlights and passed less  than 4 spotlights. The ones which is not passed makes the result 0
+    lights->spotLights = {
+        SpotLight(glm::vec3(0.0f,0.0f,3.0f), glm::vec3(0.0f,0.4f,0.8f))
+    };
 
     glEnable(GL_DEPTH_TEST);
 
@@ -107,6 +114,8 @@ int main(int argc, char * argv[]) {
         glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
         glUniform1i(glGetUniformLocation(shader->ID, "material.specular"), 1);
         glUniform1f(glGetUniformLocation(shader->ID, "material.shininess"), 32.0f);
+        lights->spotLights[0].position = clientHandler.camera->getPosition();
+        lights->spotLights[0].direction = clientHandler.camera->getFront();
         lights->Render(shader->ID);
         model3d->Draw(shader);
 
