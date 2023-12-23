@@ -11,3 +11,11 @@ Loading a 3d model is possible with limitation that only obj format is supported
 
 ## How to start the application
 1. you need to use cmake.
+2. X Y Z
+
+
+
+## Dealing with errors
+
+1. Use RenderDoc.
+2. Error  "no vertex shader bound at draw" means probably the type of the layout in vertex is wrong or one of the value is not passed.

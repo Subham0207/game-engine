@@ -48,6 +48,7 @@ struct SpotLight {
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoords;
+in vec4 Color;
 
 out vec4 FragColor;
 
@@ -70,21 +71,22 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {
-    vec3 norm = normalize(Normal);
-    vec3 viewDir = normalize(viewPos - FragPos);
+    // vec3 norm = normalize(Normal);
+    // vec3 viewDir = normalize(viewPos - FragPos);
 
-    vec3 result = vec3(0.0);
-    // phase 1: Directional lighting
-    for (int i = 0; i < numberOfDirectionalLights; i++)
-        result += CalcDirLight(dirLights[i], norm, viewDir);
-    // phase 2: Point lights
-    for (int i = 0; i < numberOfPointLights; i++)
-        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
-    // phase 3: Spot light
-    for (int i = 0; i < numberOfSpotLights; i++)
-        result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
+    // vec3 result = vec3(0.0);
+    // // phase 1: Directional lighting
+    // for (int i = 0; i < numberOfDirectionalLights; i++)
+    //     result += CalcDirLight(dirLights[i], norm, viewDir);
+    // // phase 2: Point lights
+    // for (int i = 0; i < numberOfPointLights; i++)
+    //     result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+    // // phase 3: Spot light
+    // for (int i = 0; i < numberOfSpotLights; i++)
+    //     result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
 
-    FragColor = vec4(result, 1.0);
+    // FragColor = vec4(result, 1.0);
+    FragColor = Color;
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

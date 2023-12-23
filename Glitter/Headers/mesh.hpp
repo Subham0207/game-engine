@@ -16,6 +16,8 @@
         glm::vec3 Normal;
         // texCoords
         glm::vec2 TexCoords;
+        // vertex color
+        glm::vec4 Color;
         // tangent
         glm::vec3 Tangent;
         // bitangent

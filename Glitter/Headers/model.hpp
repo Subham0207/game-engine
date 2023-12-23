@@ -21,15 +21,19 @@ public:
         loadModel(path);
     }
     void Draw(Shader* shader);
+    aiAABB* GetBoundingBox();
 private:
     // model data
     std::vector<Texture> textures_loaded;
     std::vector<Mesh> meshes;
     std::string directory;
+    aiAABB* boundingBox;
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         std::string typeName);
+    void Model::calculateBoundingBox(const aiScene* scene);
+    
 };

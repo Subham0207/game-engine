@@ -9,13 +9,14 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <model.hpp>
 #include <shader.hpp>
 #include <Input.hpp>
 #include <Camera.hpp>
 #include <light.hpp>
 
 #include <stb_image.h>
+
+#include "model.hpp"
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -50,7 +51,7 @@ int main(int argc, char * argv[]) {
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
 
     //Init clienthandler
     clientHandler.camera = new Camera();
@@ -60,7 +61,7 @@ int main(int argc, char * argv[]) {
 
     //Load modal
     auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
-    auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
+    // auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
 
     //Lights setup
     auto lights = new Lights();
@@ -86,6 +87,10 @@ int main(int argc, char * argv[]) {
 
     glEnable(GL_DEPTH_TEST);
 
+    //Start loading a 3D model here ?
+    auto model3d = new Model("E:/OpenGL/4barrel.fbx");
+    // clientHandler.camera->FrameModel(*model3d->GetBoundingBox());
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -107,8 +112,8 @@ int main(int argc, char * argv[]) {
         shader->use();
         clientHandler.camera->updateMVP(shader->ID);
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
+        model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
         glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
