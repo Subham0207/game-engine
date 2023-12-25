@@ -8,12 +8,20 @@ Loading a 3d model is possible with limitation that only obj format is supported
 **I should try to first load a fbx file instead since that is format I could be using most often.
 ** approach is delete the currently loading logic which the mesh and model files and try to write it again but consider loading a fbx file probably lots of reading to do from Assimp documentation and take help from other's code on github.
 ** deadline --  15 days - write now day 1
+1. I can load load FBX or any other file format I understand the code and how its done: 1 VAO is allocated to each 3Model.
+I have given the model a default vertex color if none exists. Now we need to figure out how to load textures and if no texture is found go with vertex color and if no vertex color is found put a default vertex color.
+2. Tried to create a frame model function so that the camera could frame a 3d model but didnot succeed. I think the camera is facing the -180deg but not sure.
 
 ## How to start the application
 1. you need to use cmake.
-2. X Y Z
+2. X(+ve right) Y(+ve up) Z(+ve outside of screen)
 
 
+##TODOs
+1. Gizmo to transform the loaded 3d model. This way we might not need frame function immidiatly.
+2. Loading Textures:
+    1. Interpret from the Assimp data.
+    2. Load explicitly. Or Later we could create a PBR material.
 
 ## Dealing with errors
 

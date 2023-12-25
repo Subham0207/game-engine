@@ -29,8 +29,11 @@
     };
 
     struct Texture {
+        //Id of the allocated Texture buffer
         unsigned int id;
+        //Type of the texture like diffuse, normal, etc.
         std::string type;
+        //
         std::string path;
     };
 

@@ -22,6 +22,7 @@ public:
     }
     void Draw(Shader* shader);
     aiAABB* GetBoundingBox();
+    void LoadTexture(std::string texturePath, std::string typeName);
 private:
     // model data
     std::vector<Texture> textures_loaded;
