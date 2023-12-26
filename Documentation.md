@@ -17,11 +17,13 @@ I have given the model a default vertex color if none exists. Now we need to fig
 2. X(+ve right) Y(+ve up) Z(+ve outside of screen)
 
 
-##TODOs
+## TODOs
 1. Gizmo to transform the loaded 3d model. This way we might not need frame function immidiatly.
 2. Loading Textures:
-    1. Interpret from the Assimp data.
-    2. Load explicitly. Or Later we could create a PBR material.
+    1. Interpret from the Assimp data - not done.
+    2. Load explicitly. Or Later we could create a PBR material - Done.
+    3. Default color for when texture or vertex color is not provided - partially done I defaulted the vertex color to be red.
+    4. Need to default frag color on a model if no texture is provided. Don't use vertex color as base color and instead provide a default color. This way a boolean useTexture would suffice - Done
 
 ## Dealing with errors
 

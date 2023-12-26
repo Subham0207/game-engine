@@ -88,7 +88,9 @@ int main(int argc, char * argv[]) {
     //Start loading a 3D model here ?
     auto model3d = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
     // clientHandler.camera->FrameModel(*model3d->GetBoundingBox());
-    model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+    // model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {

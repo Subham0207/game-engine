@@ -99,6 +99,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
      );
     }
     else{
+        std::cout << "Vertex Color set to red" << std::endl;
         vertex.Color = glm::vec4(1.0f,0.0f,0.0f,1.0f);
     }
 
@@ -131,6 +132,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+    std::cout << "textures size " << textures.size() << std::endl;
 
     return Mesh(vertices, indices, textures);
 }

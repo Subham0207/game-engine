@@ -11,6 +11,14 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 
 void Mesh::Draw(Shader* shader)
 {
+    if(textures.size() == 0)
+    {
+        shader->setBool("useTexture", false);
+    }
+    else{
+    shader->setBool("useTexture", true);
+    }
+    
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     for (unsigned int i = 0; i < textures.size(); i++)
