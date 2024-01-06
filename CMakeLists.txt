@@ -33,7 +33,9 @@ include_directories(Glitter/Headers/
                     Glitter/Vendor/glad/include/
                     Glitter/Vendor/glfw/include/
                     Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/)
+                    Glitter/Vendor/stb/
+                    Glitter/Vendor/imgui/
+                    Glitter/Vendor/imgui/backends/)
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
@@ -48,6 +50,19 @@ file(GLOB PROJECT_CONFIGS CMakeLists.txt
                          .gitignore
                          .gitmodules)
 
+file(GLOB IMGUI_IMPL_HEADERS 
+Glitter/Vendor/imgui/*.h
+Glitter/Vendor/imgui/backends/imgui_impl_glfw.h
+Glitter/Vendor/imgui/backends/imgui_impl_opengl3.h
+)
+
+file(GLOB IMGUI_IMPL_SOURCES
+Glitter/Vendor/imgui/*.cpp
+Glitter/Vendor/imgui/backends/imgui_impl_glfw.cpp
+Glitter/Vendor/imgui/backends/imgui_impl_opengl3.cpp
+)
+                    
+
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
@@ -57,7 +72,7 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES})
+                               ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)

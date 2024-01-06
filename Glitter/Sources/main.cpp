@@ -16,6 +16,10 @@
 
 #include "model.hpp"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -92,6 +96,25 @@ int main(int argc, char * argv[]) {
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
+    //imgui
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+
+    ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your GLSL version
+
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    // Setup Platform/Renderer backends
+ 
+
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -124,6 +147,18 @@ int main(int argc, char * argv[]) {
         lights->spotLights[0].direction = clientHandler.camera->getFront();
         lights->Render(shader->ID);
         model3d->Draw(shader);
+
+        //Thinking imgui should be last in call chain to show up last on screen ??
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        ImGui::SetNextWindowSize(ImVec2(200, 300));
+        ImGui::Begin("Hello, world!"); 
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Flip Buffers and Draw
         glfwSwapBuffers(mWindow);

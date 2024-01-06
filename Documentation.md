@@ -12,13 +12,15 @@ Loading a 3d model is possible with limitation that only obj format is supported
 I have given the model a default vertex color if none exists. Now we need to figure out how to load textures and if no texture is found go with vertex color and if no vertex color is found put a default vertex color.
 2. Tried to create a frame model function so that the camera could frame a 3d model but didnot succeed. I think the camera is facing the -180deg but not sure.
 
+3. I need to create a Gizmo - lets have a separate shader to handle this. Lets try out the package called ImGizmo ( it requries imGui as dependency which we need in future tbh )
+
 ## How to start the application
 1. you need to use cmake.
 2. X(+ve right) Y(+ve up) Z(+ve outside of screen)
 
 
 ## TODOs
-1. Gizmo to transform the loaded 3d model. This way we might not need frame function immidiatly.
+1. Gizmo to transform the loaded 3d model. This way we might not need frame function immidiatly -- Do it ASAP.
 2. Loading Textures:
     1. Interpret from the Assimp data - not done.
     2. Load explicitly. Or Later we could create a PBR material - Done.
