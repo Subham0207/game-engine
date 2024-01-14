@@ -92,7 +92,7 @@ int main(int argc, char * argv[]) {
     //Start loading a 3D model here ?
     auto model3d = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
     // clientHandler.camera->FrameModel(*model3d->GetBoundingBox());
-    // model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+    model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
@@ -101,7 +101,7 @@ int main(int argc, char * argv[]) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
 
     ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
     ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your GLSL version
@@ -113,13 +113,10 @@ int main(int argc, char * argv[]) {
 
     // Setup Platform/Renderer backends
  
-
+    bool isFirstFrame = true;
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
-        if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(mWindow, true);
-
         //delta time -- making things time dependent
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -154,7 +151,11 @@ int main(int argc, char * argv[]) {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::SetNextWindowSize(ImVec2(200, 300));
-        ImGui::Begin("Hello, world!"); 
+        ImGui::Begin("Hello, world!");
+        if(isFirstFrame){
+        ImGui::SetWindowFocus(false);
+        isFirstFrame = false;
+        }
         ImGui::End();
 
         ImGui::Render();

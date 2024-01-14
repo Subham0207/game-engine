@@ -1,4 +1,6 @@
 #include "Input.hpp"
+#include <iostream>
+#include "imgui.h"
 
 InputHandler* InputHandler::currentInputHandler = nullptr;
 
@@ -13,12 +15,39 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
 void InputHandler::handleInput(float deltaTime)
 {
     handleBasicMovement(deltaTime);
+    if (glfwGetKey(m_Window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        if (!controlKeyPressed)
+        {
+            controlKeyPressed = true;  // Set the flag to indicate the key was processed
+            if (mouseState == GLFW_CURSOR_NORMAL)
+            {
+                mouseState = GLFW_CURSOR_DISABLED;
+            }
+            else
+            {
+                mouseState = GLFW_CURSOR_NORMAL;
+            }
+
+            glfwSetInputMode(m_Window, GLFW_CURSOR, mouseState);
+        }
+    }
+    else
+    {
+        controlKeyPressed = false;  // Reset the flag when the key is released
+    }
+
     glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
+
 }
 
 void InputHandler::handleBasicMovement(float deltaTime)
 {
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureKeyboard)
+    return;
+
     if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(m_Window, true);
@@ -37,6 +66,13 @@ void InputHandler::handleBasicMovement(float deltaTime)
 
 void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    //First process inputs for imgui
+    ImGuiIO& io = ImGui::GetIO();
+    io.MousePos = ImVec2((float)xpos, (float)ypos);
+    if (io.WantCaptureMouse)
+    return;
+
+    //Once we know imgui is not processing that input; process the input.
     if (currentInputHandler->firstMouse) // initially set to true
     {
         currentInputHandler->lastX = xpos;
@@ -48,6 +84,9 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     float yoffset = currentInputHandler->lastY - ypos; // reversed since y-coordinates range from bottom to top
     currentInputHandler->lastX = xpos;
     currentInputHandler->lastY = ypos;
+
+    if(currentInputHandler->mouseState == GLFW_CURSOR_NORMAL)
+        return;
 
     const float sensitivity = 0.05f;
     xoffset *= sensitivity;

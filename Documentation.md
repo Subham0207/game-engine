@@ -13,6 +13,15 @@ I have given the model a default vertex color if none exists. Now we need to fig
 2. Tried to create a frame model function so that the camera could frame a 3d model but didnot succeed. I think the camera is facing the -180deg but not sure.
 
 3. I need to create a Gizmo - lets have a separate shader to handle this. Lets try out the package called ImGizmo ( it requries imGui as dependency which we need in future tbh )
+4. I have integrated Imgui succesfully. Now I will try to get imGizmo to work.
+
+5. I have the mouse visibility toggling using left ctrl. Bug: when the mouse is disabled I cannot move the Imgui UI. Also you can pan around the scene using movement keys which is fine I guess. There was a popping issue when toggling mouse visibility but I fixed it ( basically we were moving back to old position of some internal values which tracked mouse position ).
+
+6. imgui handles i/o on it own and it recommends to use its interface to handle them. And right now we are overriding the input handling from imgui to handle it in our application code and therefore the imgui frame didnot move. I need to handle mouse inputs from imgui now... lots of changes needs to be done now.
+https://github.com/ocornut/imgui/issues/4664
+Solved: We need to first pass input values to imgui then you can check if imgui is using that input and then process the input in your application.
+
+7. I think its time for imGizmo ?
 
 ## How to start the application
 1. you need to use cmake.
@@ -26,6 +35,9 @@ I have given the model a default vertex color if none exists. Now we need to fig
     2. Load explicitly. Or Later we could create a PBR material - Done.
     3. Default color for when texture or vertex color is not provided - partially done I defaulted the vertex color to be red.
     4. Need to default frag color on a model if no texture is provided. Don't use vertex color as base color and instead provide a default color. This way a boolean useTexture would suffice - Done
+
+3. building binaries for my game; game engine will be used as a library I think
+    1. Lua scripting language integration https://gamedev.stackexchange.com/questions/421/how-do-you-add-a-scripting-language-to-a-game
 
 ## Dealing with errors
 

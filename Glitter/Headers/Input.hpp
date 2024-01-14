@@ -8,6 +8,7 @@ public:
 	InputHandler(Camera* camera, GLFWwindow* m_Window,float screenWidth, float screenHeight);
 	void handleInput(float deltaTime);
 	static InputHandler* currentInputHandler;
+	unsigned int mouseState = GLFW_CURSOR_DISABLED;
 private:
 	void handleBasicMovement(float deltaTime);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -18,6 +19,8 @@ private:
 	float lastX,lastY;
 	float yaw = -90.0f;
 	float pitch = 0.0f;
+
+	bool controlKeyPressed = false;
 
 	GLFWwindow* m_Window;
 };
