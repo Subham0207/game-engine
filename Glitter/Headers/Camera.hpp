@@ -15,6 +15,14 @@ public:
 	glm::vec3 getFront();
 	void Camera::FrameModel(const aiAABB& boundingBox);
 
+	glm::mat4 viewMatrix(){
+		return view;
+	}
+
+	glm::mat4 projectionMatrix(){
+		return projection;
+	}
+
 protected:
 private:
 	void setupView();
@@ -26,5 +34,8 @@ private:
 	unsigned int viewLoc;
 	unsigned int projectionLoc;
 	float fov = 45.0f;
+
+	glm::mat4 view;
+	 glm::mat4 projection = glm::mat4(1.0f);
 };
 

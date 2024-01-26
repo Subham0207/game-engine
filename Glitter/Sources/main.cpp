@@ -20,6 +20,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "ImGuizmo.h"
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -115,6 +117,10 @@ int main(int argc, char * argv[]) {
  
     bool isFirstFrame = true;
 
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -128,13 +134,9 @@ int main(int argc, char * argv[]) {
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
         // render the model
         shader->use();
         clientHandler.camera->updateMVP(shader->ID);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
         glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
@@ -150,6 +152,18 @@ int main(int argc, char * argv[]) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        ImGuizmo::BeginFrame();
+
+        // Set the window and matrix for ImGuizmo
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+
+        // Manipulate the matrix
+        ImGuizmo::Manipulate(
+            glm::value_ptr(clientHandler.camera->viewMatrix()),
+            glm::value_ptr(clientHandler.camera->projectionMatrix()), ImGuizmo::OPERATION::SCALE, ImGuizmo::MODE::LOCAL, glm::value_ptr(model));
+        
         ImGui::SetNextWindowSize(ImVec2(200, 300));
         ImGui::Begin("Hello, world!");
         if(isFirstFrame){

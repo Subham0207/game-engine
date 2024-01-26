@@ -35,7 +35,9 @@ include_directories(Glitter/Headers/
                     Glitter/Vendor/glm/
                     Glitter/Vendor/stb/
                     Glitter/Vendor/imgui/
-                    Glitter/Vendor/imgui/backends/)
+                    Glitter/Vendor/imgui/backends/
+                    Glitter/Vendor/imguizmo/
+                    )
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
@@ -61,6 +63,14 @@ Glitter/Vendor/imgui/*.cpp
 Glitter/Vendor/imgui/backends/imgui_impl_glfw.cpp
 Glitter/Vendor/imgui/backends/imgui_impl_opengl3.cpp
 )
+
+file(GLOB IMGUIZMO_IMPL_HEADERS 
+Glitter/Vendor/imguizmo/*.h
+)
+file(GLOB IMGUIZMO_IMPL_SOURCES
+Glitter/Vendor/imguizmo/*.cpp
+)
+
                     
 
 source_group("Headers" FILES ${PROJECT_HEADERS})
@@ -72,7 +82,7 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES})
+                               ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_HEADERS} ${IMGUIZMO_IMPL_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)
