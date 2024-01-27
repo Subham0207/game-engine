@@ -20,6 +20,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include <vector>
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -90,9 +92,15 @@ int main(int argc, char * argv[]) {
     glEnable(GL_DEPTH_TEST);
 
     //Start loading a 3D model here ?
+    auto models = new std::vector<Model*>();
+
     auto model3d = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
-    // clientHandler.camera->FrameModel(*model3d->GetBoundingBox());
     model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+    models->push_back(model3d);
+
+    auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
+    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+    models->push_back(model3d2);
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
@@ -129,17 +137,22 @@ int main(int argc, char * argv[]) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // render the model
-        shader->use();
-        clientHandler.camera->updateMVP(shader->ID);
-        glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model3d->model));
-        glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
-        glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
-        glUniform1i(glGetUniformLocation(shader->ID, "material.specular"), 1);
-        glUniform1f(glGetUniformLocation(shader->ID, "material.shininess"), 32.0f);
-        lights->spotLights[0].position = clientHandler.camera->getPosition();
-        lights->spotLights[0].direction = clientHandler.camera->getFront();
-        lights->Render(shader->ID);
-        model3d->Draw(shader, mWindow);
+        for(int i=0;i<models->size();i++)
+        {
+            glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
+            std::cout << i << "th model rendered at " << position.x << " " << position.y << " " << position.z << std::endl;
+            shader->use();
+            clientHandler.camera->updateMVP(shader->ID);
+            glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
+            glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
+            glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
+            glUniform1i(glGetUniformLocation(shader->ID, "material.specular"), 1);
+            glUniform1f(glGetUniformLocation(shader->ID, "material.shininess"), 32.0f);
+            lights->spotLights[0].position = clientHandler.camera->getPosition();
+            lights->spotLights[0].direction = clientHandler.camera->getFront();
+            lights->Render(shader->ID);
+            (*models)[i]->Draw(shader, mWindow);
+        }
 
         //Thinking imgui should be last in call chain to show up last on screen ??
         // Start the Dear ImGui frame
@@ -148,13 +161,15 @@ int main(int argc, char * argv[]) {
         ImGui::NewFrame();
 
         ImGuizmo::BeginFrame();
-
         // Set the window and matrix for ImGuizmo
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
-        // Manipulate the matrix
-        model3d->imguizmoManipulate(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix());
+        for(int i=0;i<models->size();i++)
+        {
+            ImGuizmo::SetID(i);
+            (*models)[i]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
+        }
 
         ImGui::SetNextWindowSize(ImVec2(200, 300));
         ImGui::Begin("Hello, world!");

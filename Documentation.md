@@ -24,6 +24,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 7. I think its time for imGizmo ?
 8. We have imguizmo almost. Need to abstract the code but for some reason there is some error in cmakelist: I cannot include ImGuizmo.h in any other file other than main.cpp. Alright fixed this imguizmo also requires imgui to be included when used.
 9. Gizmo is working. We can switch between translate, rotate, scale using 1,2, and 3 key. Although we are missing a dedicated input handling system and tracking which model is selected because right now 1,2 and 3 key would effect all the models. So maybe next thing is to handle multiple models or defining a input handling system.
+10. Loading multiple models -- Loading and saving models to be loaded and thier related textures in a .yml file. Maybe later in future we want to read/write the binary data representing the object containing these data into a file directly for faster load times. First step is to render multiple models then we do the yml file thing.
 
 ## How to start the application
 1. you need to use cmake.

@@ -35,7 +35,7 @@ public:
     {
             ImGuizmo::Manipulate(
             glm::value_ptr(viewMatrix),
-            glm::value_ptr(projMatrix), whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(model));
+            glm::value_ptr(projMatrix), whichTransformActive, ImGuizmo::MODE::WORLD, glm::value_ptr(model));
     }
 private:
     // model data
