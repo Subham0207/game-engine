@@ -20,8 +20,6 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "ImGuizmo.h"
-
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -117,10 +115,6 @@ int main(int argc, char * argv[]) {
  
     bool isFirstFrame = true;
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -137,7 +131,7 @@ int main(int argc, char * argv[]) {
         // render the model
         shader->use();
         clientHandler.camera->updateMVP(shader->ID);
-        glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model3d->model));
         glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
         glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
         glUniform1i(glGetUniformLocation(shader->ID, "material.specular"), 1);
@@ -145,7 +139,7 @@ int main(int argc, char * argv[]) {
         lights->spotLights[0].position = clientHandler.camera->getPosition();
         lights->spotLights[0].direction = clientHandler.camera->getFront();
         lights->Render(shader->ID);
-        model3d->Draw(shader);
+        model3d->Draw(shader, mWindow);
 
         //Thinking imgui should be last in call chain to show up last on screen ??
         // Start the Dear ImGui frame
@@ -160,10 +154,8 @@ int main(int argc, char * argv[]) {
         ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
         // Manipulate the matrix
-        ImGuizmo::Manipulate(
-            glm::value_ptr(clientHandler.camera->viewMatrix()),
-            glm::value_ptr(clientHandler.camera->projectionMatrix()), ImGuizmo::OPERATION::SCALE, ImGuizmo::MODE::LOCAL, glm::value_ptr(model));
-        
+        model3d->imguizmoManipulate(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix());
+
         ImGui::SetNextWindowSize(ImVec2(200, 300));
         ImGui::Begin("Hello, world!");
         if(isFirstFrame){

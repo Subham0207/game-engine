@@ -185,8 +185,22 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     return textures;
 }
 
-void Model::Draw(Shader* shader)
+void Model::Draw(Shader* shader, GLFWwindow* window)
 {
+    //Probably this should happen if the model is selected but its fine as a start
+    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    {
+        this->whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
+    }
+    if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    {
+        this->whichTransformActive = ImGuizmo::OPERATION::ROTATE;
+    }
+    if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    {
+        this->whichTransformActive = ImGuizmo::OPERATION::SCALE;
+    }
+
 	for (unsigned int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader);
 }
