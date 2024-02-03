@@ -25,6 +25,8 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 8. We have imguizmo almost. Need to abstract the code but for some reason there is some error in cmakelist: I cannot include ImGuizmo.h in any other file other than main.cpp. Alright fixed this imguizmo also requires imgui to be included when used.
 9. Gizmo is working. We can switch between translate, rotate, scale using 1,2, and 3 key. Although we are missing a dedicated input handling system and tracking which model is selected because right now 1,2 and 3 key would effect all the models. So maybe next thing is to handle multiple models or defining a input handling system.
 10. Loading multiple models -- Loading and saving models to be loaded and thier related textures in a .yml file. Maybe later in future we want to read/write the binary data representing the object containing these data into a file directly for faster load times. First step is to render multiple models then we do the yml file thing.
+11. Now that we can almost render multiple models. We need to tidy this: Only show gizmo when a model is selected and only for that selected model. Selection of model is not implemented right now. We can select the model from IMGUI UI basically create a simple outliner. And later worry about selecting and show the UI feedback which I think needs to first have a bounding box of sorts ( define something in code on CPU side which hugs the object and when the mouse is within this and click event occured we selected the object). I have decided to create an outliner class which will keep track of all the models that are there in the scene.
+12. outliner is working.
 
 ## How to start the application
 1. you need to use cmake.

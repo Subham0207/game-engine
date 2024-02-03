@@ -22,6 +22,8 @@
 
 #include <vector>
 
+#include "outliner.hpp"
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -120,8 +122,8 @@ int main(int argc, char * argv[]) {
     //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
- 
-    bool isFirstFrame = true;
+
+    auto outliner = new Outliner(models);
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
@@ -140,7 +142,6 @@ int main(int argc, char * argv[]) {
         for(int i=0;i<models->size();i++)
         {
             glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
-            std::cout << i << "th model rendered at " << position.x << " " << position.y << " " << position.z << std::endl;
             shader->use();
             clientHandler.camera->updateMVP(shader->ID);
             glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
@@ -165,18 +166,13 @@ int main(int argc, char * argv[]) {
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
-        for(int i=0;i<models->size();i++)
-        {
-            ImGuizmo::SetID(i);
-            (*models)[i]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
-        }
+        auto getSelectedIndex = outliner->GetSelectedIndex();
+        if(getSelectedIndex > -1)
+        (*models)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 
-        ImGui::SetNextWindowSize(ImVec2(200, 300));
-        ImGui::Begin("Hello, world!");
-        if(isFirstFrame){
-        ImGui::SetWindowFocus(false);
-        isFirstFrame = false;
-        }
+        //Render the outliner
+        outliner->Render();
+
         ImGui::End();
 
         ImGui::Render();

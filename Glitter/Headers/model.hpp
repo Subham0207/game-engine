@@ -37,6 +37,9 @@ public:
             glm::value_ptr(viewMatrix),
             glm::value_ptr(projMatrix), whichTransformActive, ImGuizmo::MODE::WORLD, glm::value_ptr(model));
     }
+    std::string getName(){
+        return directory;
+    }
 private:
     // model data
     std::vector<Texture> textures_loaded;
