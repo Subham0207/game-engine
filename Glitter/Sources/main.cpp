@@ -24,6 +24,8 @@
 
 #include "outliner.hpp"
 
+#include "objectSelection.hpp"
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -125,6 +127,8 @@ int main(int argc, char * argv[]) {
 
     auto outliner = new Outliner(models);
 
+    PickingTexture pickTexture();
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -183,4 +187,26 @@ int main(int argc, char * argv[]) {
         glfwPollEvents();
     }   glfwTerminate();
     return EXIT_SUCCESS;
+}
+
+void PickingPhase(PickingTexture* pickingTexture, PickingTechnique* pickingEffect, Camera* camera, glm::mat4 model)
+{
+    pickingTexture->EnableWriting();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    pickingEffect->Enable();
+
+    glm::mat4 View = camera->viewMatrix();
+    glm::mat4 Projection = camera->projectionMatrix();
+
+    //Render you objects in picking phase
+    for (unsigned int i = 0 ; i < 2 ; i++) {
+        pickingEffect->SetObjectIndex(i + 1);
+        glm::mat4 WVP = Projection * View * model;
+        pickingEffect->SetWVP(WVP);
+        //Model needs to have another method which will use picking Effect shader and write to pickingTexture buffer.
+    }
+
+    pickingTexture->DisableWriting();
 }

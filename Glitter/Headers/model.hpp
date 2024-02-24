@@ -15,6 +15,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "objectSelection.hpp"
+
 unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 class Model
@@ -27,6 +29,7 @@ public:
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     }
     void Draw(Shader* shader, GLFWwindow* window);
+    void Draw(IRenderCallbacks* pRenderCallbacks);
     aiAABB* GetBoundingBox();
     void LoadTexture(std::string texturePath, std::string typeName);
     glm::mat4 model = glm::mat4(1.0f);
