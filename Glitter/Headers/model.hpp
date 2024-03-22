@@ -27,6 +27,7 @@ public:
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     }
     void Draw(Shader* shader, GLFWwindow* window);
+    void Model::Draw(Shader* shader);
     aiAABB* GetBoundingBox();
     void LoadTexture(std::string texturePath, std::string typeName);
     glm::mat4 model = glm::mat4(1.0f);
@@ -40,6 +41,7 @@ public:
     std::string getName(){
         return directory;
     }
+    unsigned char pickColor[4] = {0};
 private:
     // model data
     std::vector<Texture> textures_loaded;
@@ -55,5 +57,4 @@ private:
     std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         std::string typeName);
     void Model::calculateBoundingBox(const aiScene* scene);
-    
 };

@@ -33,6 +33,8 @@ struct ClientHandler {
 
 } clientHandler;
 
+void SelectionBuffer(std::vector<Model *> *models, unsigned int FBO, Shader *shader, Outliner *outliner);
+
 int main(int argc, char * argv[]) {
 
     // Load GLFW and Create a Window
@@ -67,6 +69,10 @@ int main(int argc, char * argv[]) {
 
     //Load modal
     auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
+    //Picking shader
+    auto pickingShader =  new Shader(
+        "E:/OpenGL/Glitter/Glitter/Shaders/pickingShader/pickingShader.vert",
+        "E:/OpenGL/Glitter/Glitter/Shaders/pickingShader/pickingShader.frag");
     // auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
 
     //Lights setup
@@ -98,9 +104,17 @@ int main(int argc, char * argv[]) {
 
     auto model3d = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
     model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+    model3d->pickColor[0] = 0;
+    model3d->pickColor[1] = 1;
+    model3d->pickColor[2] = 0;
+    model3d->pickColor[3] = 0;
     models->push_back(model3d);
 
     auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
+    model3d2->pickColor[0] = 0;
+    model3d2->pickColor[1] = 0;
+    model3d2->pickColor[2] = 1;
+    model3d2->pickColor[3] = 0;
     model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
     models->push_back(model3d2);
 
@@ -124,6 +138,10 @@ int main(int argc, char * argv[]) {
     // Setup Platform/Renderer backends
 
     auto outliner = new Outliner(models);
+
+    //FrameBuffer for selection
+    unsigned int FBO;
+    glGenFramebuffers(1, &FBO);
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
@@ -170,6 +188,8 @@ int main(int argc, char * argv[]) {
         if(getSelectedIndex > -1)
         (*models)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 
+        SelectionBuffer(models, FBO, pickingShader, outliner);
+
         //Render the outliner
         outliner->Render();
 
@@ -183,4 +203,86 @@ int main(int argc, char * argv[]) {
         glfwPollEvents();
     }   glfwTerminate();
     return EXIT_SUCCESS;
+}
+
+
+
+void SelectionBuffer(std::vector<Model *> *models, unsigned int FBO, Shader *shader, Outliner *outliner)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Set the texture's data store (adjust width, height, and format as necessary)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    // Texture parameters - these can be adjusted as needed
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
+
+    // Attach the texture to the framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+    GLuint depthRenderbuffer;
+    glGenRenderbuffers(1, &depthRenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mWidth, mHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+
+    // Check for completeness
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glViewport(0, 0, mWidth, mHeight);
+
+    unsigned char pixel[4] = {0};
+
+    // Clear the framebuffer
+    glClearColor(0.0, 0.0, 0.0, 0.0); // Assuming black (or another color) means "no pick"
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    for(int i=0;i<models->size();i++)
+    {
+        glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
+        shader->use();
+        clientHandler.camera->updateMVP(shader->ID);
+        glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
+        unsigned char* color = (*models)[i]->pickColor;
+        GLfloat tempColor[4] = {
+            color[0] / 255.0f, // R
+            color[1] / 255.0f, // G
+            color[2] / 255.0f, // B
+            color[3] / 255.0f  // A
+        };
+        glUniform4fv(glGetUniformLocation(shader->ID, "pickColor"), 1, tempColor);
+        (*models)[i]->Draw(shader);
+    }
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImVec2 mousePos = io.MousePos;
+
+    glReadPixels(mousePos.x, mousePos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel);
+
+    // Interpret the pixel as an object ID
+
+    for(int i=0;i<models->size();i++)
+    {
+        // std::cout << "pickColor: " << (*models)[i]->pickColor << " and pixel color: "<< pixel << std::endl;
+        if((*models)[i]->pickColor == pixel)
+        {
+            outliner->setSelectedIndex(i);
+            std::cout << "Selected index: " << i << std::endl;
+        }
+    }
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error: " << err << std::endl;
+    }
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

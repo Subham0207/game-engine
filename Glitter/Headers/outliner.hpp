@@ -34,6 +34,10 @@ public:
     int GetSelectedIndex() const {
         return selectedIndex;
     }
+    void setSelectedIndex(int index){
+        selectedIndex = index;
+
+    }
 
 private:
     std::vector<Model *> *mModels;
