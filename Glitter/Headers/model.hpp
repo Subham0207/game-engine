@@ -31,6 +31,16 @@ public:
     void LoadTexture(std::string texturePath, std::string typeName);
     glm::mat4 model = glm::mat4(1.0f);
 
+    double getX(){return model[3][0];}
+    double getY(){return model[3][1];}
+    double getZ(){return model[3][2];}
+
+    double getScaleX(){return model[0][0];}
+    double getScaleY(){return model[1][1];}
+    double getScaleZ(){return model[2][2];}
+
+
+
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
     {
             ImGuizmo::Manipulate(

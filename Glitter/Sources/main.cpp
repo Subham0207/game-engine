@@ -24,6 +24,8 @@
 
 #include "outliner.hpp"
 
+#include "raypicking.hpp"
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -125,6 +127,8 @@ int main(int argc, char * argv[]) {
 
     auto outliner = new Outliner(models);
 
+    RayPick rayPick((*models));
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -167,6 +171,9 @@ int main(int argc, char * argv[]) {
         ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
         auto getSelectedIndex = outliner->GetSelectedIndex();
+        rayPick.rayTestObjects(InputHandler::currentInputHandler->getMouseX(), InputHandler::currentInputHandler->getMouseY());
+        auto getMouseSelectedModelIndex = rayPick.returnIndexOfSelectedObject();
+        std::cout << getMouseSelectedModelIndex << std::endl;
         if(getSelectedIndex > -1)
         (*models)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 

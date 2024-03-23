@@ -9,6 +9,8 @@ public:
 	void handleInput(float deltaTime);
 	static InputHandler* currentInputHandler;
 	unsigned int mouseState = GLFW_CURSOR_DISABLED;
+	float getMouseX(){return lastX;}
+	float getMouseY(){return lastY;}
 private:
 	void handleBasicMovement(float deltaTime);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);

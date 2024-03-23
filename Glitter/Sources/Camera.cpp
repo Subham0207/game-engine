@@ -31,7 +31,7 @@ void Camera::setupView()
 
 void Camera::setupProjection()
 {
-    projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, nearDepth, farDepth);
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 

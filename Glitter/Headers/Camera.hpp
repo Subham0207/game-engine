@@ -34,6 +34,8 @@ private:
 	unsigned int viewLoc;
 	unsigned int projectionLoc;
 	float fov = 45.0f;
+	float nearDepth = 0.1f;
+	float farDepth = 100.0f;
 
 	glm::mat4 view;
 	 glm::mat4 projection = glm::mat4(1.0f);
