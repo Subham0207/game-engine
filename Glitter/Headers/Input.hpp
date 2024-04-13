@@ -9,14 +9,14 @@ public:
 	void handleInput(float deltaTime);
 	static InputHandler* currentInputHandler;
 	unsigned int mouseState = GLFW_CURSOR_DISABLED;
+	float lastX,lastY;
+	Camera* m_Camera;
 private:
 	void handleBasicMovement(float deltaTime);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-	Camera* m_Camera;
 	bool firstMouse = true;
-	float lastX,lastY;
 	float yaw = -90.0f;
 	float pitch = 0.0f;
 

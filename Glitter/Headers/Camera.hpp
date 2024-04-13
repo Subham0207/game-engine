@@ -22,6 +22,10 @@ public:
 	glm::mat4 projectionMatrix(){
 		return projection;
 	}
+	
+	glm::vec3 getCameraLookAtDirectionVector(){
+		return cameraFront;
+	}
 
 protected:
 private:
@@ -38,4 +42,3 @@ private:
 	glm::mat4 view;
 	 glm::mat4 projection = glm::mat4(1.0f);
 };
-

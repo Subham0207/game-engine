@@ -40,6 +40,10 @@ public:
     std::string getName(){
         return directory;
     }
+    std::vector<Mesh>* getMeshes(){
+        return &meshes;
+    }
+
 private:
     // model data
     std::vector<Texture> textures_loaded;

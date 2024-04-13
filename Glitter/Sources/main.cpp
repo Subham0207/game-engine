@@ -24,6 +24,8 @@
 
 #include "outliner.hpp"
 
+#include "raypicking.hpp"
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -67,6 +69,9 @@ int main(int argc, char * argv[]) {
 
     //Load modal
     auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
+    auto rayCastshader =  new Shader(
+        "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
+        "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
     // auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
 
     //Lights setup
@@ -166,7 +171,19 @@ int main(int argc, char * argv[]) {
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
+        
         auto getSelectedIndex = outliner->GetSelectedIndex();
+        rayCastshader->use();
+        clientHandler.camera->updateMVP(rayCastshader->ID);
+        handlePicking(
+            InputHandler::currentInputHandler->lastX,
+            InputHandler::currentInputHandler->lastY,
+            *models,
+            InputHandler::currentInputHandler->m_Camera->viewMatrix(),
+            InputHandler::currentInputHandler->m_Camera->projectionMatrix(),
+            rayCastshader->ID,
+            InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
+        );
         if(getSelectedIndex > -1)
         (*models)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 
