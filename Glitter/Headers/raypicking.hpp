@@ -14,6 +14,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <Input.hpp>
+
+#include <glitter.hpp>
+
 void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int shaderId){
 
     glBindFragDataLocation(shaderId, 0, "fragColor");
@@ -84,18 +88,18 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const std::
                         if (distance < closestDistance) {
                             if (distance > 0 && baryPosition.x >= 0 && baryPosition.y >= 0 && (baryPosition.x + baryPosition.y) <= 1) {
                                 // Valid intersection
-                                std::cout << "Intersection detected!!" << std::endl;
+                                // std::cout << "Intersection Detected " << baryPosition.x << " " << baryPosition.y << std::endl; 
+                                closestDistance = distance;
+                                closestModelIndex = i;
+                                closestIntersectionPoint = intersectionPoint;
                             }
-                            std::cout << "Distance Low!!!" << std::endl;
-                            closestDistance = distance;
-                            closestModelIndex = i;
-                            closestIntersectionPoint = intersectionPoint;
                         }
                     }
             }
         }
     }
         // std::cout << "Selected Model index " << closestModelIndex << std::endl;
+        // return -1;
         return closestModelIndex;
 }
 
@@ -108,57 +112,46 @@ glm::vec3 getNormalizedCoordinateForDepth(double winX, double winY, double scree
 
 void setRay(double winX, double winY, glm::vec3& rayOrigin, glm::vec3& rayDir, glm::mat4 &glmModelView, glm::mat4 &glmProjection, glm::vec3 cameraDirection)
 {
-    // glm::vec3 ndc = getNormalizedCoordinateForDepth(winX, winY,800,600,0);
-    // glm::vec3 rayOriginNDC(ndc.x, ndc.y, 0.0f);
-    // glm::vec3 rayEndNDC(ndc.x, ndc.y, 1.0f); 
+    float mouseX = (winX / float(mWidth)) * 2.0f - 1.0f;
+    float mouseY = (winY / float(mHeight)) * 2.0f - 1.0f;
+    mouseY = -mouseY;  // Invert Y coordinate because OpenGL's origin is at the bottom left
 
-    // std::cout << "Near plane: " << rayOriginNDC.x << "  " << rayOriginNDC.y << "  " << rayOriginNDC.z << std::endl;
-    // std::cout << "Far plane: " << rayEndNDC.x << "  " << rayEndNDC.y << "  " << rayEndNDC.z << std::endl;
+    // Assuming glmProjection is your projection matrix and glmModelView is your model-view matrix
+    glm::mat4 invVP = glm::inverse(glmProjection * glmModelView);
+    glm::vec4 nearScreenPos = glm::vec4(mouseX, mouseY, -1.0f, 1.0f); // Near plane
+    glm::vec4 farScreenPos = glm::vec4(mouseX, mouseY, 1.0f, 1.0f); // Far plane
 
-    // rayOrigin = unProject(rayOriginNDC, glmModelView, glmProjection, glm::vec4(0.0f, 0.0f, 800, 600));
-    // glm::vec3 rayEnd = unProject(rayEndNDC, glmModelView, glmProjection, glm::vec4(0.0f, 0.0f, 800, 600));
+    // Transform the screen positions to world coordinates
+    glm::vec4 nearWorldPos = invVP * nearScreenPos;
+    glm::vec4 farWorldPos = invVP * farScreenPos;
 
-    // //Ray direction and length
-    // rayDir = glm::vec3(rayEnd.x - rayOrigin.x, rayEnd.y - rayOrigin.y, rayEnd.z - rayOrigin.z);
+    // Normalize w component to get correct x, y, z values
+    nearWorldPos /= nearWorldPos.w;
+    farWorldPos /= farWorldPos.w;
 
-    float x = (2.0f * winX) / 1280 - 1.0f;
-    float y = 1.0f - (2.0f * winY) / 800;
-    float z = 1.0f;
+    // Define the ray origin and direction
+    rayOrigin = glm::vec3(nearWorldPos);  
+    rayDir = glm::normalize(glm::vec3(farWorldPos - nearWorldPos));
 
-    // Normalized device space
-    glm::vec3 ray_nds(x, y, z);
-
-    // Clip space
-    glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0f, 1.0f);
-
-    // Eye space
-    glm::mat4 invProjMat = glm::inverse(glmProjection);
-    glm::vec4 ray_eye = invProjMat * ray_clip;
-    ray_eye.z = -1.0f;
-    ray_eye.w = 0.0f;
-
-    // World space
-    glm::mat4 invViewMat = glm::inverse(glmModelView);
-    rayOrigin = glm::vec3(invViewMat * ray_eye);
-
-    // Normalize the vector
-    rayOrigin = glm::normalize(rayOrigin);
-
-    rayDir = glm::normalize(cameraDirection);
-
-    // glm::vec3 cameraPos = glm::vec3(glm::inverse(glmModelView)[3]);
-    // rayDir = glm::normalize(rayOrigin - cameraPos);
 }
 
-void handlePicking(double mouseX, double mouseY, const std::vector<Model*>& models, glm::mat4 &view, glm::mat4 &projection, unsigned int rayShader, glm::vec3 cameraDirection) {
-    // std::cout << "Mouse Position" << mouseX << " " << mouseY << std::endl;
-    glm::vec3 rayOrigin, rayDir;
-    setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
+void handlePicking(
+    double mouseX,
+    double mouseY,
+    const std::vector<Model*>& models,
+    glm::mat4 &view,
+    glm::mat4 &projection,
+    unsigned int rayShader,
+    glm::vec3 &rayOrigin,
+    glm::vec3 &rayDir,
+    glm::vec3 cameraDirection) {
+    if(InputHandler::currentInputHandler->leftClickPressed)
+    {
+        setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
+        // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
+        // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
+        int selectedModelIndex = selectModel(rayOrigin, rayDir, models);
+        std::cout << "Intersected Model index: " << selectedModelIndex << std::endl;
+    }
     renderRay(rayOrigin, rayDir, rayShader); 
-    // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
-    // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-    int selectedModelIndex = selectModel(rayOrigin, rayDir, models);
-    std::cout << "Index: " << selectedModelIndex << std::endl;
-    // if (selectedModel != nullptr) {
-    // }
 }

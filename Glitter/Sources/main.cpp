@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
     // auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
-
+    
     //Lights setup
     auto lights = new Lights();
     lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f)));
@@ -130,6 +130,8 @@ int main(int argc, char * argv[]) {
 
     auto outliner = new Outliner(models);
 
+    glm::vec3 rayOrigin, rayDir;
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -182,6 +184,8 @@ int main(int argc, char * argv[]) {
             InputHandler::currentInputHandler->m_Camera->viewMatrix(),
             InputHandler::currentInputHandler->m_Camera->projectionMatrix(),
             rayCastshader->ID,
+            rayOrigin,
+            rayDir,
             InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
         );
         if(getSelectedIndex > -1)

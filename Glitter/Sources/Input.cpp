@@ -1,6 +1,7 @@
 #include "Input.hpp"
 #include <iostream>
 #include "imgui.h"
+#include "imgui_impl_glfw.h"
 
 InputHandler* InputHandler::currentInputHandler = nullptr;
 
@@ -38,6 +39,7 @@ void InputHandler::handleInput(float deltaTime)
     }
 
     glfwSetCursorPosCallback(m_Window, mouse_callback);
+    glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
 
 }
@@ -105,6 +107,20 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     direction.y = sin(glm::radians(currentInputHandler->pitch));
     direction.z = sin(glm::radians(currentInputHandler->yaw)) * cos(glm::radians(currentInputHandler->pitch));
     currentInputHandler->m_Camera->cameraFront = glm::normalize(direction);
+}
+
+void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+        return; // Optional: return here if you don't want to process clicks further when ImGui uses them
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        InputHandler::currentInputHandler->leftClickPressed = true;
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+        InputHandler::currentInputHandler->leftClickPressed = false;
 }
 
 void InputHandler::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

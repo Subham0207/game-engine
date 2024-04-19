@@ -11,10 +11,12 @@ public:
 	unsigned int mouseState = GLFW_CURSOR_DISABLED;
 	float lastX,lastY;
 	Camera* m_Camera;
+	bool leftClickPressed = false;
 private:
 	void handleBasicMovement(float deltaTime);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 	bool firstMouse = true;
 	float yaw = -90.0f;
@@ -23,5 +25,6 @@ private:
 	bool controlKeyPressed = false;
 
 	GLFWwindow* m_Window;
+
 };
 

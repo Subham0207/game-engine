@@ -48,3 +48,4 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 
 1. Use RenderDoc.
 2. Error  "no vertex shader bound at draw" means probably the type of the layout in vertex is wrong or one of the value is not passed.
+3. How does Input system work: I have a InputHandler static class just get the static member and access the buttons that you want to know the state of.
