@@ -26,6 +26,8 @@
 
 #include "raypicking.hpp"
 
+#include <state.hpp>
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -34,6 +36,9 @@ struct ClientHandler {
     Camera* camera;
 
 } clientHandler;
+
+
+State* State::state = new State();
 
 int main(int argc, char * argv[]) {
 
@@ -102,10 +107,12 @@ int main(int argc, char * argv[]) {
     auto models = new std::vector<Model*>();
 
     auto model3d = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
+    // model3d->model = glm::translate(model3d->model, glm::vec3(10,0,10));
     model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
     models->push_back(model3d);
 
     auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
+    // model3d2->model = glm::translate(model3d2->model, glm::vec3(0,0,20));
     model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
     models->push_back(model3d2);
 

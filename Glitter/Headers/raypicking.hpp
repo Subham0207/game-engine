@@ -18,6 +18,8 @@
 
 #include <glitter.hpp>
 
+#include <state.hpp>
+
 void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int shaderId){
 
     glBindFragDataLocation(shaderId, 0, "fragColor");
@@ -58,8 +60,46 @@ void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int
     glDeleteVertexArrays(1, &VAO);
 
 }
+void renderRayWithIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayEnd, unsigned int shaderId){
 
-int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const std::vector<Model*>& models) {
+    glBindFragDataLocation(shaderId, 0, "fragColor");
+
+    GLuint rayColorUniform = glGetUniformLocation(shaderId, "rayColor");
+
+    // Set ray color (e.g., green)
+    glUniform3f(rayColorUniform, 0.0f, 1.0f, 0.0f);
+    // std::cout << "Ray End " << rayEnd.x << " " << rayEnd.y << " " << rayEnd.z << std::endl;
+    GLfloat lineVertices[] = {
+        rayOrigin.x, rayOrigin.y, rayOrigin.z,
+        rayEnd.x, rayEnd.y, rayEnd.z
+    };
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_LINES, 0, 2);
+    glBindVertexArray(0);
+
+    // Don't forget to delete the VAO and VBO when you're done
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
+
+}
+
+int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<Model*>& models) {
     int closestModelIndex = -1;
     float closestDistance = std::numeric_limits<float>::max();
     glm::vec3 closestIntersectionPoint;
@@ -74,6 +114,8 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const std::
                 unsigned int index1 = mesh.indices.at(k + 1);
                 unsigned int index2 = mesh.indices.at(k + 2);
 
+                //You see here you have v0,v1,v2 in model's local space :D
+                //And that is why you will get intersections assuming the model is at 0,0,0 in world space
                 glm::vec3 v0 = mesh.vertices.at(index0).Position;
                 glm::vec3 v1 = mesh.vertices.at(index1).Position;
                 glm::vec3 v2 = mesh.vertices.at(index2).Position;
@@ -81,9 +123,19 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const std::
                 float distance = std::numeric_limits<float>::max();
                 glm::vec2 baryPosition;
 
-                    if ( glm::intersectRayTriangle(rayOrigin, rayDir, v0, v1, v2, baryPosition, distance)) {
+                //convert rayorigin and direction into model's local space
+                glm::mat4 inverseModelMatrix = glm::inverse(models.at(i)->model);
+
+                // Transform ray to object space
+                glm::vec4 homogenousRayOrigin = glm::vec4(rayOrigin, 1.0); // Make ray origin homogeneous
+                glm::vec4 homogenousRayDirection = glm::vec4(rayDir, 0.0); // Direction vector, w = 0 to avoid translation
+
+                glm::vec3 localRayOrigin = glm::vec3(inverseModelMatrix * homogenousRayOrigin);
+                glm::vec3 localRayDirection = glm::normalize(glm::vec3(inverseModelMatrix * homogenousRayDirection)); // Normalize to correct for any scaling
+
+                    if ( glm::intersectRayTriangle(localRayOrigin, localRayDirection, v0, v1, v2, baryPosition, distance)) {
                         // Calculate the distance from the camera to the intersection point
-                        glm::vec3 intersectionPoint = rayOrigin + rayDir * distance;
+                        rayEnd = rayOrigin + rayDir * distance;
                         // std::cout << "Distance " << distance << std::endl;
                         if (distance < closestDistance) {
                             if (distance > 0 && baryPosition.x >= 0 && baryPosition.y >= 0 && (baryPosition.x + baryPosition.y) <= 1) {
@@ -91,7 +143,13 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const std::
                                 // std::cout << "Intersection Detected " << baryPosition.x << " " << baryPosition.y << std::endl; 
                                 closestDistance = distance;
                                 closestModelIndex = i;
-                                closestIntersectionPoint = intersectionPoint;
+                                closestIntersectionPoint = rayEnd;
+
+                                //the intersection point is in local space convert it into world
+                                rayEnd = glm::vec3(models.at(i)->model * glm::vec4(rayEnd,1.0));                                
+                                State::state->v0 = glm::vec3(models.at(i)->model * glm::vec4(v0,1.0));
+                                State::state->v1 = glm::vec3(models.at(i)->model * glm::vec4(v1,1.0));
+                                State::state->v2 = glm::vec3(models.at(i)->model * glm::vec4(v2,1.0));
                             }
                         }
                     }
@@ -150,8 +208,13 @@ void handlePicking(
         setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
         // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-        int selectedModelIndex = selectModel(rayOrigin, rayDir, models);
+        int selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, models);
         std::cout << "Intersected Model index: " << selectedModelIndex << std::endl;
     }
     renderRay(rayOrigin, rayDir, rayShader); 
+    // renderRayWithIntersection(rayOrigin, State::state->rayEnd, rayShader); 
+
+    renderRayWithIntersection(State::state->v0, State::state->v1, rayShader); 
+    renderRayWithIntersection(State::state->v1, State::state->v2, rayShader); 
+    renderRayWithIntersection(State::state->v2, State::state->v0, rayShader); 
 }
