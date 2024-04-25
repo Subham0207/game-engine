@@ -114,13 +114,21 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
     if (ImGui::GetIO().WantCaptureMouse)
     {
         ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+        InputHandler::currentInputHandler->leftClickPressed = false;
         return; // Optional: return here if you don't want to process clicks further when ImGui uses them
     }
 
+    // When the mouse was clicked at IMGUI released did not help so setting mouseClickPressedTo false
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
         InputHandler::currentInputHandler->leftClickPressed = true;
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+        std::cout << "clicked" << std::endl;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+    {
         InputHandler::currentInputHandler->leftClickPressed = false;
+        std::cout << "released" << std::endl;
+    }
 }
 
 void InputHandler::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

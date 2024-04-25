@@ -27,6 +27,9 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 10. Loading multiple models -- Loading and saving models to be loaded and thier related textures in a .yml file. Maybe later in future we want to read/write the binary data representing the object containing these data into a file directly for faster load times. First step is to render multiple models then we do the yml file thing.
 11. Now that we can almost render multiple models. We need to tidy this: Only show gizmo when a model is selected and only for that selected model. Selection of model is not implemented right now. We can select the model from IMGUI UI basically create a simple outliner. And later worry about selecting and show the UI feedback which I think needs to first have a bounding box of sorts ( define something in code on CPU side which hugs the object and when the mouse is within this and click event occured we selected the object). I have decided to create an outliner class which will keep track of all the models that are there in the scene.
 12. outliner is working.
+13. Now CPU raypicking for object selection is also working. Just need to make it visually clear.
+14. There is a bug with the mouse click where it is detected even when I leave the left click. fixed them.
+15. 
 
 ## How to start the application
 1. you need to use cmake.
@@ -34,13 +37,14 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 
 
 ## TODOs
-1. Gizmo to transform the loaded 3d model. This way we might not need frame function immidiatly -- Do it ASAP.
+1. (Done)Gizmo to transform the loaded 3d model. This way we might not need frame function immidiatly -- Do it ASAP.
 2. Loading Textures:
     1. Interpret from the Assimp data - not done.
     2. Load explicitly. Or Later we could create a PBR material - Done.
     3. Default color for when texture or vertex color is not provided - partially done I defaulted the vertex color to be red.
     4. Need to default frag color on a model if no texture is provided. Don't use vertex color as base color and instead provide a default color. This way a boolean useTexture would suffice - Done
-
+2.1. Load animations
+2.2 Collisions  
 3. building binaries for my game; game engine will be used as a library I think
     1. Lua scripting language integration https://gamedev.stackexchange.com/questions/421/how-do-you-add-a-scripting-language-to-a-game
 
@@ -49,3 +53,6 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 1. Use RenderDoc.
 2. Error  "no vertex shader bound at draw" means probably the type of the layout in vertex is wrong or one of the value is not passed.
 3. How does Input system work: I have a InputHandler static class just get the static member and access the buttons that you want to know the state of.
+4. To convert a point from world space to local space -> inverse(modelMatrix) * vec4(pointInWorldSpace, 1.0);
+5. To convert a point from local space to world space -> modelMatrix * vec4(pointInLocalSpace);
+6. returning after imgui want to capture means that your mouse is probably over a imgui. Note setting leftClick to false when imgui is using inputs helped a ton.

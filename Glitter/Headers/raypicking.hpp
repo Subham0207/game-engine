@@ -193,7 +193,7 @@ void setRay(double winX, double winY, glm::vec3& rayOrigin, glm::vec3& rayDir, g
 
 }
 
-void handlePicking(
+int handlePicking(
     double mouseX,
     double mouseY,
     const std::vector<Model*>& models,
@@ -203,18 +203,22 @@ void handlePicking(
     glm::vec3 &rayOrigin,
     glm::vec3 &rayDir,
     glm::vec3 cameraDirection) {
+    // -2 means no mouse click; -1 means mouse click but no selection detected; >-1 means index of the selected model
+    int selectedModelIndex = -2;
     if(InputHandler::currentInputHandler->leftClickPressed)
     {
         setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
         // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-        int selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, models);
-        std::cout << "Intersected Model index: " << selectedModelIndex << std::endl;
+        selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, models);
+        // std::cout << "Intersected Model index: " << selectedModelIndex << std::endl;
     }
-    renderRay(rayOrigin, rayDir, rayShader); 
+    // renderRay(rayOrigin, rayDir, rayShader); 
     // renderRayWithIntersection(rayOrigin, State::state->rayEnd, rayShader); 
 
-    renderRayWithIntersection(State::state->v0, State::state->v1, rayShader); 
-    renderRayWithIntersection(State::state->v1, State::state->v2, rayShader); 
-    renderRayWithIntersection(State::state->v2, State::state->v0, rayShader); 
+    // renderRayWithIntersection(State::state->v0, State::state->v1, rayShader); 
+    // renderRayWithIntersection(State::state->v1, State::state->v2, rayShader); 
+    // renderRayWithIntersection(State::state->v2, State::state->v0, rayShader);
+
+    return selectedModelIndex;
 }

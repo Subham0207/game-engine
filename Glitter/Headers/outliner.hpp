@@ -34,6 +34,9 @@ public:
     int GetSelectedIndex() const {
         return selectedIndex;
     }
+    void setSelectedIndex(int newSelectedIndex){
+       selectedIndex = newSelectedIndex;
+    }
 
 private:
     std::vector<Model *> *mModels;

@@ -179,12 +179,11 @@ int main(int argc, char * argv[]) {
         // Set the window and matrix for ImGuizmo
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
-
         
         auto getSelectedIndex = outliner->GetSelectedIndex();
         rayCastshader->use();
         clientHandler.camera->updateMVP(rayCastshader->ID);
-        handlePicking(
+        auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             InputHandler::currentInputHandler->lastX,
             InputHandler::currentInputHandler->lastY,
             *models,
@@ -195,6 +194,10 @@ int main(int argc, char * argv[]) {
             rayDir,
             InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
         );
+        if(getSelectedIndexFromMouseCurrentFrame > -2)
+        outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);
+
+
         if(getSelectedIndex > -1)
         (*models)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 
