@@ -24,6 +24,18 @@ public:
             // Optionally, pop style changes here if you made any
         }
 
+        //Show transformation of the selected model
+        ImGui::Text("Translation");
+        ImGui::PushItemWidth(40);
+        if(selectedIndex > -1)
+        {
+            ImGui::DragFloat("X", &(*mModels)[selectedIndex]->model[3][0], 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", 0);
+            ImGui::SameLine();
+            ImGui::DragFloat("Y", &(*mModels)[selectedIndex]->model[3][1], 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", 0);
+            ImGui::SameLine();
+            ImGui::DragFloat("Z", &(*mModels)[selectedIndex]->model[3][2], 0.005f, -FLT_MAX, +FLT_MAX, "%.3f", 0);
+        }
+
         if(isFirstFrame){
         ImGui::SetWindowFocus(false);
         isFirstFrame = false;
@@ -39,7 +51,8 @@ public:
     }
 
 private:
+    float m = 0;
     std::vector<Model *> *mModels;
-    int selectedIndex;  // Index of the currently selected radio button
+    int selectedIndex = -1;  // Index of the currently selected radio button
     bool isFirstFrame = true;
 };

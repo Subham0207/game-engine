@@ -106,8 +106,9 @@ int main(int argc, char * argv[]) {
     //Start loading a 3D model here ?
     auto models = new std::vector<Model*>();
 
-    auto model3d = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
-    // model3d->model = glm::translate(model3d->model, glm::vec3(10,0,10));
+    auto model3d = new Model("E:/OpenGL/Models/Paladin J Nordstrom.fbx");
+    //Add ability to manage transformation in imgui. It will make debuggin adding animation feature easier
+    model3d->model = glm::scale(model3d->model, glm::vec3(.03,.03,.03));
     model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
     models->push_back(model3d);
 

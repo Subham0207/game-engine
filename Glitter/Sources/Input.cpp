@@ -1,6 +1,7 @@
 #include "Input.hpp"
 #include <iostream>
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "imgui_impl_glfw.h"
 
 InputHandler* InputHandler::currentInputHandler = nullptr;
@@ -118,17 +119,13 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
         return; // Optional: return here if you don't want to process clicks further when ImGui uses them
     }
 
+    ImGui::SetWindowFocus(false);
+
     // When the mouse was clicked at IMGUI released did not help so setting mouseClickPressedTo false
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    {
-        InputHandler::currentInputHandler->leftClickPressed = true;
-        std::cout << "clicked" << std::endl;
-    }
+    InputHandler::currentInputHandler->leftClickPressed = true;
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-    {
-        InputHandler::currentInputHandler->leftClickPressed = false;
-        std::cout << "released" << std::endl;
-    }
+    InputHandler::currentInputHandler->leftClickPressed = false;
 }
 
 void InputHandler::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
