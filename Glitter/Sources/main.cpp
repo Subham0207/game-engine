@@ -8,6 +8,7 @@
 // Standard Headers
 #include <cstdio>
 #include <cstdlib>
+#include <windows.h>
 
 #include <shader.hpp>
 #include <Input.hpp>
@@ -37,10 +38,16 @@ struct ClientHandler {
 
 } clientHandler;
 
-
 State* State::state = new State();
 
 int main(int argc, char * argv[]) {
+
+    char cwd[MAX_PATH];
+    if (GetCurrentDirectory(MAX_PATH, cwd)) {
+        std::cout << "Current working dir: " << cwd << std::endl;
+    } else {
+        std::cerr << "Failed to get current working directory." << std::endl;
+    }
 
     // Load GLFW and Create a Window
     glfwInit();
@@ -107,14 +114,12 @@ int main(int argc, char * argv[]) {
     auto models = new std::vector<Model*>();
 
     auto model3d = new Model("E:/OpenGL/Models/Paladin J Nordstrom.fbx");
-    //Add ability to manage transformation in imgui. It will make debuggin adding animation feature easier
     model3d->model = glm::scale(model3d->model, glm::vec3(.03,.03,.03));
-    model3d->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
     models->push_back(model3d);
 
     auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
     // model3d2->model = glm::translate(model3d2->model, glm::vec3(0,0,20));
-    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", "texture_diffuse");
+    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_DIFFUSE);
     models->push_back(model3d2);
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );

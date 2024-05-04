@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <assimp/scene.h>
+
 #include <shader.hpp>
 
 #define MAX_BONE_INFLUENCE 4
@@ -29,12 +31,11 @@
     };
 
     struct Texture {
-        //Id of the allocated Texture buffer
-        unsigned int id;
-        //Type of the texture like diffuse, normal, etc.
-        std::string type;
-        //
-        std::string path;
+    unsigned int id;
+    aiTextureType type;
+
+    Texture(unsigned int textureId, aiTextureType textureType)
+        : id(textureId), type(textureType) {}
     };
 
     class Mesh {
@@ -42,9 +43,9 @@
         // mesh data
         std::vector<Vertex>       vertices;
         std::vector<unsigned int> indices;
-        std::vector<Texture>      textures;
+        std::vector<Texture> *textureIds;
 
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> *textureIds);
         void Draw(Shader* shader);
     private:
         //  render data

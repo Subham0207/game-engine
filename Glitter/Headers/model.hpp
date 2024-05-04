@@ -15,7 +15,9 @@
 
 #include <GLFW/glfw3.h>
 
-unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
+
+unsigned int TextureFromFile(const char* path);
+unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
 
 class Model
 {
@@ -28,7 +30,7 @@ public:
     }
     void Draw(Shader* shader, GLFWwindow* window);
     aiAABB* GetBoundingBox();
-    void LoadTexture(std::string texturePath, std::string typeName);
+    void LoadTexture(std::string texturePath, aiTextureType typeName);
     glm::mat4 model = glm::mat4(1.0f);
 
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
@@ -46,7 +48,8 @@ public:
 
 private:
     // model data
-    std::vector<Texture> textures_loaded;
+    std::vector<Texture> textureIds;
+    std::vector<aiTextureType> textureTypes;
     std::vector<Mesh> meshes;
     std::string directory;
     aiAABB* boundingBox;
@@ -55,9 +58,10 @@ private:
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
+    void processTexture(const aiScene *scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type,
-        std::string typeName);
+    void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
+    void loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
     void Model::calculateBoundingBox(const aiScene* scene);
     
 };

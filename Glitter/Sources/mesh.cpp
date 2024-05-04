@@ -1,17 +1,17 @@
 #include "mesh.hpp"
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> *textureIds)
 {
     this->vertices = vertices;
     this->indices = indices;
-    this->textures = textures;
+    this->textureIds = textureIds;
 
     setupMesh();
 }
 
 void Mesh::Draw(Shader* shader)
 {
-    if(textures.size() == 0)
+    if(textureIds->size() == 0)
     {
         shader->setBool("useTexture", false);
     }
@@ -21,19 +21,19 @@ void Mesh::Draw(Shader* shader)
     
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
-    for (unsigned int i = 0; i < textures.size(); i++)
+    for (unsigned int i = 0; i < textureIds->size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        std::string name = textures[i].type;
-        if (name == "texture_diffuse")
+        aiTextureType name = textureIds->at(i).type;
+        if (name == aiTextureType_DIFFUSE)
             number = std::to_string(diffuseNr++);
-        else if (name == "texture_specular")
+        else if (name == aiTextureType_SPECULAR)
             number = std::to_string(specularNr++);
 
         shader->setInt(("material." + name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
     }
     glActiveTexture(GL_TEXTURE0);
 
