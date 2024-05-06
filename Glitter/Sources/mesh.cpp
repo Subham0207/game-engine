@@ -28,11 +28,16 @@ void Mesh::Draw(Shader* shader)
         std::string number;
         aiTextureType name = textureIds->at(i).type;
         if (name == aiTextureType_DIFFUSE)
+        {
             number = std::to_string(diffuseNr++);
+            shader->setInt("material.diffuse", i);
+        }
         else if (name == aiTextureType_SPECULAR)
+        {
             number = std::to_string(specularNr++);
+            shader->setInt("material.specular", i);
+        }
 
-        shader->setInt(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
     }
     glActiveTexture(GL_TEXTURE0);
