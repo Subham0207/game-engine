@@ -4,6 +4,7 @@ struct Material
 {
     sampler2D diffuse; // this is the texture 
 	sampler2D specular;
+	sampler2D normal;
     //sampler2D emission;
 	float shininess; // I think how much specular highlight
 };
@@ -78,16 +79,19 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
+    vec3 normal = texture(material.normal, TexCoords).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
+
     vec3 result = vec3(0.0);
     // phase 1: Directional lighting
     for (int i = 0; i < numberOfDirectionalLights; i++)
-        result += CalcDirLight(dirLights[i], norm, viewDir);
+        result += CalcDirLight(dirLights[i], normal, viewDir);
     // phase 2: Point lights
     for (int i = 0; i < numberOfPointLights; i++)
-        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+        result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
     // phase 3: Spot light
     for (int i = 0; i < numberOfSpotLights; i++)
-        result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
+        result += CalcSpotLight(spotLights[i], normal, FragPos, viewDir);
 
     FragColor = vec4(result, 1.0);
 }

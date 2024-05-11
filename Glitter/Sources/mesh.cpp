@@ -37,6 +37,12 @@ void Mesh::Draw(Shader* shader)
             number = std::to_string(specularNr++);
             shader->setInt("material.specular", i);
         }
+        else if (name == aiTextureType_NORMALS)
+        {
+            number = std::to_string(specularNr++);
+            shader->setInt("material.normal", i);
+
+        }
 
         glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
     }
