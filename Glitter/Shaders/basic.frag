@@ -59,6 +59,7 @@ out vec4 FragColor;
 uniform Material material;
 
 uniform bool useTexture;
+uniform bool useNormalMap;
 
 // This will have to do until I find a better solution
 #define numberOfDirectionalLights 2
@@ -83,15 +84,30 @@ void main()
     normal = normalize(normal * 2.0 - 1.0);
 
     vec3 result = vec3(0.0);
-    // phase 1: Directional lighting
-    for (int i = 0; i < numberOfDirectionalLights; i++)
-        result += CalcDirLight(dirLights[i], normal, viewDir);
-    // phase 2: Point lights
-    for (int i = 0; i < numberOfPointLights; i++)
-        result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
-    // phase 3: Spot light
-    for (int i = 0; i < numberOfSpotLights; i++)
-        result += CalcSpotLight(spotLights[i], normal, FragPos, viewDir);
+    if(useNormalMap)
+    {
+        // phase 1: Directional lighting
+        for (int i = 0; i < numberOfDirectionalLights; i++)
+            result += CalcDirLight(dirLights[i], normal, viewDir);
+        // phase 2: Point lights
+        for (int i = 0; i < numberOfPointLights; i++)
+            result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
+        // phase 3: Spot light
+        for (int i = 0; i < numberOfSpotLights; i++)
+            result += CalcSpotLight(spotLights[i], normal, FragPos, viewDir);
+    }
+    else
+    {
+        // phase 1: Directional lighting
+        for (int i = 0; i < numberOfDirectionalLights; i++)
+            result += CalcDirLight(dirLights[i], norm, viewDir);
+        // phase 2: Point lights
+        for (int i = 0; i < numberOfPointLights; i++)
+            result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+        // phase 3: Spot light
+        for (int i = 0; i < numberOfSpotLights; i++)
+            result += CalcSpotLight(spotLights[i], norm, FragPos, viewDir);
+    }
 
     FragColor = vec4(result, 1.0);
 }

@@ -19,33 +19,62 @@ void Mesh::Draw(Shader* shader)
     shader->setBool("useTexture", true);
     }
     
-    unsigned int diffuseNr = 1;
-    unsigned int specularNr = 1;
-    for (unsigned int i = 0; i < textureIds->size(); i++)
+    unsigned int diffuseNr = 0;
+    unsigned int specularNr = 0;
+    unsigned int normalNr = 0;    
+    std::cout << "---START---" << std::endl;
+    
+    const std::vector<aiTextureType> textureTypes = {
+    aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS
+    };
+
+    for (unsigned int i = 0; i < 3; i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+        glBindTexture(GL_TEXTURE_2D, 0);
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        aiTextureType name = textureIds->at(i).type;
+        aiTextureType name = textureTypes.at(i);
         if (name == aiTextureType_DIFFUSE)
         {
-            number = std::to_string(diffuseNr++);
-            shader->setInt("material.diffuse", i);
+            diffuseNr++;
+            std::cout << "Diffuse" << std::endl;
+            if (i >= 0 && i < textureIds->size())
+            {
+                shader->setInt("material.diffuse", i);
+            }
         }
         else if (name == aiTextureType_SPECULAR)
         {
-            number = std::to_string(specularNr++);
-            shader->setInt("material.specular", i);
+            specularNr++;
+            std::cout << "Specular" << std::endl;
+            if (i >= 0 && i < textureIds->size())
+            {
+                shader->setInt("material.specular", i);
+            }
         }
         else if (name == aiTextureType_NORMALS)
         {
-            number = std::to_string(specularNr++);
-            shader->setInt("material.normal", i);
-
+            normalNr++;
+            std::cout << "Normals" << std::endl;
+            if (i >= 0 && i < textureIds->size())
+            {
+                shader->setInt("material.normal", i);
+                shader->setBool("useNormalMap", true);
+            }
+            else
+            {
+                shader->setBool("useNormalMap", false);
+            }
         }
-
-        glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
+        
+        if (i >= 0 && i < textureIds->size())
+        {
+            glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
+        }
     }
+
+    std::cout << "---END---" << std::endl;
     glActiveTexture(GL_TEXTURE0);
 
     // draw meshs

@@ -80,7 +80,9 @@ int main(int argc, char * argv[]) {
 
 
     //Load modal
-    auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
+    auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
+    auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
+    std::vector<Shader*> shaders = {shader1, shader2};
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
@@ -162,17 +164,17 @@ int main(int argc, char * argv[]) {
         for(int i=0;i<models->size();i++)
         {
             glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
-            shader->use();
-            clientHandler.camera->updateMVP(shader->ID);
-            glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
-            glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
-            glUniform1i(glGetUniformLocation(shader->ID, "material.diffuse"), 0);
-            glUniform1i(glGetUniformLocation(shader->ID, "material.specular"), 1);
-            glUniform1f(glGetUniformLocation(shader->ID, "material.shininess"), 32.0f);
+            shaders.at(i)->use();
+            clientHandler.camera->updateMVP(shaders.at(i)->ID);
+            glUniformMatrix4fv(glGetUniformLocation(shaders.at(i)->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
+            glUniform3f(glGetUniformLocation(shaders.at(i)->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
+            glUniform1i(glGetUniformLocation(shaders.at(i)->ID, "material.diffuse"), 0);
+            glUniform1i(glGetUniformLocation(shaders.at(i)->ID, "material.specular"), 1);
+            glUniform1f(glGetUniformLocation(shaders.at(i)->ID, "material.shininess"), 32.0f);
             lights->spotLights[0].position = clientHandler.camera->getPosition();
             lights->spotLights[0].direction = clientHandler.camera->getFront();
-            lights->Render(shader->ID);
-            (*models)[i]->Draw(shader, mWindow);
+            lights->Render(shaders.at(i)->ID);
+            (*models)[i]->Draw(shaders.at(i), mWindow);
         }
 
         //Thinking imgui should be last in call chain to show up last on screen ??
