@@ -10,4 +10,6 @@ public:
     glm::vec3 v2;
 
     glm::vec3 rayEnd;
+
+    bool isWorldSpace = true;
 };

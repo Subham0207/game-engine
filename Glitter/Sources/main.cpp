@@ -120,8 +120,11 @@ int main(int argc, char * argv[]) {
     models->push_back(model3d);
 
     auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
-    // model3d2->model = glm::translate(model3d2->model, glm::vec3(0,0,20));
+    model3d2->model = glm::translate(model3d2->model, glm::vec3(2,0.4,0));
+    //Try to add some default transformation so the scene looks presentable
     model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_DIFFUSE);
+    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_normal.png", aiTextureType_NORMALS);
+    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_SPECULAR);
     models->push_back(model3d2);
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -175,6 +178,12 @@ int main(int argc, char * argv[]) {
             lights->spotLights[0].direction = clientHandler.camera->getFront();
             lights->Render(shaders.at(i)->ID);
             (*models)[i]->Draw(shaders.at(i), mWindow);
+        }
+
+        GLenum err;
+        while((err = glGetError()) != GL_NO_ERROR)
+        {
+            std::cout << "Opengl Error" << err << std::endl;
         }
 
         //Thinking imgui should be last in call chain to show up last on screen ??
