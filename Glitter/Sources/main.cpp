@@ -120,11 +120,14 @@ int main(int argc, char * argv[]) {
     models->push_back(model3d);
 
     auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
-    model3d2->model = glm::translate(model3d2->model, glm::vec3(2,0.4,0));
-    //Try to add some default transformation so the scene looks presentable
+    model3d2->model = glm::translate(model3d2->model, glm::vec3(3,0.4,0));
+    //Order of rotation matters but how to know which will result in correct rotation ??
+    model3d2->model = glm::rotate(model3d2->model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model3d2->model = glm::rotate(model3d2->model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model3d2->model = glm::scale(model3d2->model, glm::vec3(1,1.4,0.6));
     model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_DIFFUSE);
     model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_normal.png", aiTextureType_NORMALS);
-    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_SPECULAR);
+    // model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_SPECULAR);
     models->push_back(model3d2);
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );

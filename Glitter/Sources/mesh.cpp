@@ -11,13 +11,13 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
 
 void Mesh::Draw(Shader* shader)
 {
-    if(textureIds->size() == 0)
-    {
-        shader->setBool("useTexture", false);
-    }
-    else{
-    shader->setBool("useTexture", true);
-    }
+    // if(textureIds->size() == 0)
+    // {
+    //     shader->setBool("useTexture", false);
+    // }
+    // else{
+    // shader->setBool("useTexture", true);
+    // }
     
     unsigned int diffuseNr = 0;
     unsigned int specularNr = 0;
@@ -27,7 +27,9 @@ void Mesh::Draw(Shader* shader)
     aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS
     };
 
+    shader->setBool("useDiffuseMap", false);
     shader->setBool("useNormalMap", false);
+    shader->setBool("useSpecularMap", false);
     for (unsigned int i = 0; i < textureIds->size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
@@ -39,12 +41,14 @@ void Mesh::Draw(Shader* shader)
         {
             diffuseNr++;
             shader->setInt("material.diffuse", i);
+            shader->setBool("useDiffuseMap", true);
 
         }
         else if (name == aiTextureType_SPECULAR)
         {
             specularNr++;
             shader->setInt("material.specular", i);
+            shader->setBool("useSpecularMap", true);
         }
         else if (name == aiTextureType_NORMALS)
         {

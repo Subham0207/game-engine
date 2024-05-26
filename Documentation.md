@@ -29,7 +29,8 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 12. outliner is working.
 13. Now CPU raypicking for object selection is also working. Just need to make it visually clear.
 14. There is a bug with the mouse click where it is detected even when I leave the left click. fixed them.
-15. 
+15. implmented changing transformation from outliner as well
+16. Next should be - Solving shader issues ( probably start PBR ), Implmenting Level so I can save the position of the objects. Then it should be loading animations.
 
 ## How to start the application
 1. you need to use cmake.
