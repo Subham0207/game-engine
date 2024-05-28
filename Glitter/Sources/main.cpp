@@ -40,6 +40,10 @@ struct ClientHandler {
 
 State* State::state = new State();
 
+void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
+    std::cerr << "GL Callback: " << message << std::endl;
+}
+
 int main(int argc, char * argv[]) {
 
     char cwd[MAX_PATH];
@@ -80,17 +84,17 @@ int main(int argc, char * argv[]) {
 
 
     //Load modal
-    auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
-    auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
-    std::vector<Shader*> shaders = {shader1, shader2};
+    auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    // auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
+    std::vector<Shader*> shaders = {shader1};
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
     // auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
     
     //Lights setup
-    auto lights = new Lights();
-    lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f)));
+    auto lights = new Lights(); //for PBR removing directional lights and spotlight; Set them back up later.
+    // lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f)));
 
     glm::vec3 pointLightPositions[] = {
         glm::vec3(0.7f,  0.2f,  2.0f),
@@ -100,34 +104,32 @@ int main(int argc, char * argv[]) {
     };
     for (unsigned int i = 0; i < 4; i++)
     {
-        lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(1.0f,0.7f,0.0f)));
+        lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(1.0f,0.7f,0.7f)));
     }
 
     //Something wrong with spotlights only then; 
     // So right now I don't know how to pass dynamic array sizes to the shader. This caused an issue where if I statically
     // allocated memory for 4 spotlights and passed less  than 4 spotlights. The ones which is not passed makes the result 0
-    lights->spotLights = {
-        SpotLight(glm::vec3(0.0f,0.0f,3.0f), glm::vec3(0.0f,0.4f,0.8f))
-    };
+    // lights->spotLights = {
+    //     SpotLight(glm::vec3(0.0f,0.0f,3.0f), glm::vec3(0.0f,0.4f,0.8f))
+    // };
 
     glEnable(GL_DEPTH_TEST);
 
     //Start loading a 3D model here ?
     auto models = new std::vector<Model*>();
 
-    auto model3d = new Model("E:/OpenGL/Models/Paladin J Nordstrom.fbx");
-    model3d->model = glm::scale(model3d->model, glm::vec3(.03,.03,.03));
-    models->push_back(model3d);
+    // auto model3d = new Model("E:/OpenGL/Models/Paladin J Nordstrom.fbx");
+    // model3d->model = glm::scale(model3d->model, glm::vec3(.03,.03,.03));
+    // models->push_back(model3d);
 
-    auto model3d2 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
-    model3d2->model = glm::translate(model3d2->model, glm::vec3(3,0.4,0));
-    //Order of rotation matters but how to know which will result in correct rotation ??
-    model3d2->model = glm::rotate(model3d2->model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    model3d2->model = glm::rotate(model3d2->model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    model3d2->model = glm::scale(model3d2->model, glm::vec3(1,1.4,0.6));
-    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_DIFFUSE);
-    model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_normal.png", aiTextureType_NORMALS);
-    // model3d2->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_SPECULAR);
+    auto model3d2 = new Model("E:/OpenGL/Models/sphere.fbx");
+    // E:\OpenGL\Models\rustediron1-alt2-Unreal-Engine\rustediron1-alt2-Unreal-Engine
+    model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/rustediron2_basecolor.png", aiTextureType_DIFFUSE);
+    model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/rustediron2_normal.png", aiTextureType_NORMALS);
+    model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/rustediron2_metallic.png", aiTextureType_METALNESS);
+    model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/rustediron2_roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/whiteAO.png", aiTextureType_AMBIENT_OCCLUSION);
     models->push_back(model3d2);
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -153,6 +155,10 @@ int main(int argc, char * argv[]) {
 
     glm::vec3 rayOrigin, rayDir;
 
+    //GPULogger
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(glDebugOutput, nullptr);
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -174,19 +180,13 @@ int main(int argc, char * argv[]) {
             clientHandler.camera->updateMVP(shaders.at(i)->ID);
             glUniformMatrix4fv(glGetUniformLocation(shaders.at(i)->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
             glUniform3f(glGetUniformLocation(shaders.at(i)->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
-            glUniform1i(glGetUniformLocation(shaders.at(i)->ID, "material.diffuse"), 0);
-            glUniform1i(glGetUniformLocation(shaders.at(i)->ID, "material.specular"), 1);
-            glUniform1f(glGetUniformLocation(shaders.at(i)->ID, "material.shininess"), 32.0f);
-            lights->spotLights[0].position = clientHandler.camera->getPosition();
-            lights->spotLights[0].direction = clientHandler.camera->getFront();
+
+            // This is a spotlight attached to the client's camera
+            // lights->spotLights[0].position = clientHandler.camera->getPosition();
+            // lights->spotLights[0].direction = clientHandler.camera->getFront();
+            
             lights->Render(shaders.at(i)->ID);
             (*models)[i]->Draw(shaders.at(i), mWindow);
-        }
-
-        GLenum err;
-        while((err = glGetError()) != GL_NO_ERROR)
-        {
-            std::cout << "Opengl Error" << err << std::endl;
         }
 
         //Thinking imgui should be last in call chain to show up last on screen ??

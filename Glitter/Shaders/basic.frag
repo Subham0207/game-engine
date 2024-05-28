@@ -88,14 +88,14 @@ void main()
     if(useNormalMap)
     {
         // phase 1: Directional lighting
-        for (int i = 0; i < numberOfDirectionalLights; i++)
-            result += CalcDirLight(dirLights[i], normal, viewDir);
+        // for (int i = 0; i < numberOfDirectionalLights; i++)
+        //     result += CalcDirLight(dirLights[i], normal, viewDir);
         // phase 2: Point lights
         for (int i = 0; i < numberOfPointLights; i++)
             result += CalcPointLight(pointLights[i], normal, FragPos, viewDir);
         // phase 3: Spot light
-        for (int i = 0; i < numberOfSpotLights; i++)
-            result += CalcSpotLight(spotLights[i], normal, FragPos, viewDir);
+        // for (int i = 0; i < numberOfSpotLights; i++)
+        //     result += CalcSpotLight(spotLights[i], normal, FragPos, viewDir);
     }
     else
     {

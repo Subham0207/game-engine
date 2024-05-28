@@ -31,6 +31,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 14. There is a bug with the mouse click where it is detected even when I leave the left click. fixed them.
 15. implmented changing transformation from outliner as well
 16. Next should be - Solving shader issues ( probably start PBR ), Implmenting Level so I can save the position of the objects. Then it should be loading animations.
+17. PBR progress following opengl lighting tutorial: I need to send Material textures from mesh.cpp. Also load correct ones to disk. Update the shader program with pbr.frag. UPDATE: PBR basic is working with point lights.
 
 ## How to start the application
 1. you need to use cmake.

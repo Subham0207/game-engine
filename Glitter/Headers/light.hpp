@@ -129,20 +129,10 @@ public:
 	void attachShaderUniforms(
 		GLuint shaderId,
 		std::string positionUniform,
-		std::string ambientUniform,
-		std::string diffuseUniform,
-		std::string specularUniform,
-		std::string constantTermUniform,
-		std::string linearTermUniform,
-		std::string quadraticUniform)
+		std::string diffuseUniform)
 	{
 		glUniform3f(glGetUniformLocation(shaderId, positionUniform.c_str()), position.x, position.y, position.z);
-		glUniform3f(glGetUniformLocation(shaderId, ambientUniform.c_str()), ambientColor.x, ambientColor.y, ambientColor.z);
 		glUniform3f(glGetUniformLocation(shaderId, diffuseUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform3f(glGetUniformLocation(shaderId, specularUniform.c_str()), specularColor.x, specularColor.y, specularColor.z);
-		glUniform1f(glGetUniformLocation(shaderId, constantTermUniform.c_str()), constantTerm);
-		glUniform1f(glGetUniformLocation(shaderId, linearTermUniform.c_str()), linearTerm);
-		glUniform1f(glGetUniformLocation(shaderId, quadraticUniform.c_str()), quadraticTerm);
 	}
 };
 
@@ -195,37 +185,14 @@ private:
 			std::stringstream pointLightPosition_ss;
 			pointLightPosition_ss << "pointLights[" << i << "].position";
 
-			std::stringstream pointLightAmbient_ss;
-			pointLightAmbient_ss << "pointLights[" << i << "].ambient";
-
 			std::stringstream pointLightDiffuse_ss;
 			pointLightDiffuse_ss << "pointLights[" << i << "].diffuse";
-
-
-			std::stringstream pointLightSpecular_ss;
-			pointLightSpecular_ss << "pointLights[" << i << "].specular";
-
-			std::stringstream pointLightConstantTerm_ss;
-			pointLightConstantTerm_ss << "pointLights[" << i << "].constantTerm";
-
-			std::stringstream pointLightLinearTerm_ss;
-			pointLightLinearTerm_ss << "pointLights[" << i << "].linearTerm";
-
-			std::stringstream pointLightQuadraticTerm_ss;
-			pointLightLinearTerm_ss << "pointLights[" << i << "].quadraticTerm";
-
-			glUniform1i(glGetUniformLocation(ShaderId, "numberOfPointLights"), spotLights.size());
 
 			//For each light call attachShaderUniforms
 			pointLights[i].attachShaderUniforms(
 				ShaderId,
 				pointLightPosition_ss.str(),
-				pointLightAmbient_ss.str(),
-				pointLightDiffuse_ss.str(),
-				pointLightSpecular_ss.str(),
-				pointLightConstantTerm_ss.str(),
-				pointLightLinearTerm_ss.str(),
-				pointLightQuadraticTerm_ss.str());
+				pointLightDiffuse_ss.str());
 		}
 	}
 

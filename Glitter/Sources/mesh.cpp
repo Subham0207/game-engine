@@ -19,17 +19,6 @@ void Mesh::Draw(Shader* shader)
     // shader->setBool("useTexture", true);
     // }
     
-    unsigned int diffuseNr = 0;
-    unsigned int specularNr = 0;
-    unsigned int normalNr = 0;    
-    
-    const std::vector<aiTextureType> textureTypes = {
-    aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS
-    };
-
-    shader->setBool("useDiffuseMap", false);
-    shader->setBool("useNormalMap", false);
-    shader->setBool("useSpecularMap", false);
     for (unsigned int i = 0; i < textureIds->size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
@@ -37,26 +26,26 @@ void Mesh::Draw(Shader* shader)
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
         aiTextureType name = textureIds->at(i).type;
-        if (name == aiTextureType_DIFFUSE)
+        if (name == aiTextureType_DIFFUSE)// albedoMap
         {
-            diffuseNr++;
-            shader->setInt("material.diffuse", i);
-            shader->setBool("useDiffuseMap", true);
-
+            shader->setInt("albedoMap", i);
         }
-        else if (name == aiTextureType_SPECULAR)
+        else if (name == aiTextureType_NORMALS)//normalMap
         {
-            specularNr++;
-            shader->setInt("material.specular", i);
-            shader->setBool("useSpecularMap", true);
+            shader->setInt("normalMap", i);
         }
-        else if (name == aiTextureType_NORMALS)
+        else if (name == aiTextureType_METALNESS)//metallicMap
         {
-            normalNr++;
-            shader->setInt("material.normal", i);
-            shader->setBool("useNormalMap", true);
+            shader->setInt("metallicMap", i);
         }
-        
+        else if (name == aiTextureType_DIFFUSE_ROUGHNESS)//roughnessMap
+        {
+            shader->setInt("roughnessMap", i);
+        }
+        else if (name == aiTextureType_AMBIENT_OCCLUSION)//AO
+        {
+            shader->setInt("aoMap", i);
+        }
         glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
     }
     // I don't need to active texture 0 again ?? Why was I doing this ?
