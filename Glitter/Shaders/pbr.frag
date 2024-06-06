@@ -1,9 +1,11 @@
-#version 330 core
+#version 420 core
 
 out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 FragPos;
 // in vec3 Normal;
+
+
 
 // material parameters
 // uniform vec3  albedo;
@@ -11,11 +13,14 @@ in vec3 FragPos;
 // uniform float roughness;
 // uniform float ao;
 
-uniform sampler2D albedoMap;
-uniform sampler2D normalMap;
-uniform sampler2D metallicMap;
-uniform sampler2D roughnessMap;
-uniform sampler2D aoMap;
+layout(binding = 1) uniform sampler2D albedoMap;
+layout(binding = 2) uniform sampler2D normalMap;
+layout(binding = 3) uniform sampler2D metallicMap;
+layout(binding = 4) uniform sampler2D roughnessMap;
+layout(binding = 5) uniform sampler2D aoMap;
+
+//IBL
+layout(binding = 6) uniform samplerCube irradianceMap;
 
 struct PointLight {
     vec3 position;
@@ -78,8 +83,14 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL; 
     }   
   
-    vec3 ambient = vec3(0.03) * albedo * ao;
-    vec3 color = ambient + Lo;
+    vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse      = irradiance * albedo;
+    vec3 ambient = (kD * diffuse) * ao;
+
+    vec3 color = Lo;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  

@@ -18,34 +18,11 @@ void Mesh::Draw(Shader* shader)
     // else{
     // shader->setBool("useTexture", true);
     // }
-    
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     for (unsigned int i = 0; i < textureIds->size(); i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-        glBindTexture(GL_TEXTURE_2D, 0);
-        // retrieve texture number (the N in diffuse_textureN)
-        std::string number;
-        aiTextureType name = textureIds->at(i).type;
-        if (name == aiTextureType_DIFFUSE)// albedoMap
-        {
-            shader->setInt("albedoMap", i);
-        }
-        else if (name == aiTextureType_NORMALS)//normalMap
-        {
-            shader->setInt("normalMap", i);
-        }
-        else if (name == aiTextureType_METALNESS)//metallicMap
-        {
-            shader->setInt("metallicMap", i);
-        }
-        else if (name == aiTextureType_DIFFUSE_ROUGHNESS)//roughnessMap
-        {
-            shader->setInt("roughnessMap", i);
-        }
-        else if (name == aiTextureType_AMBIENT_OCCLUSION)//AO
-        {
-            shader->setInt("aoMap", i);
-        }
+        glActiveTexture(GL_TEXTURE0 + i + 1);
         glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
     }
     // I don't need to active texture 0 again ?? Why was I doing this ?

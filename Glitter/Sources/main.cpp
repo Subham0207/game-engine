@@ -28,6 +28,7 @@
 #include "raypicking.hpp"
 
 #include <state.hpp>
+#include "cubemap.hpp"
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -82,9 +83,18 @@ int main(int argc, char * argv[]) {
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
 
+    //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
+    auto cubeMap = new CubeMap("E:/OpenGL/Models/quarry_cloudy_4k.hdr");
+    auto equirectangularToCubemapShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/equirectanglular_to_cubemap.frag");
+    auto irradianceShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/irradiance_convolution.frag");
+    auto backgroundShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/background.vert","E:/OpenGL/Glitter/Glitter/Shaders/background.frag");
+    cubeMap->setup(mWindow,
+    *equirectangularToCubemapShader, *irradianceShader);
 
     //Load modal
     auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    shader1->use();
+    shader1->setInt("irradianceMap", 0);
     // auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
     std::vector<Shader*> shaders = {shader1};
     auto rayCastshader =  new Shader(
@@ -115,6 +125,7 @@ int main(int argc, char * argv[]) {
     // };
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     //Start loading a 3D model here ?
     auto models = new std::vector<Model*>();
@@ -185,9 +196,15 @@ int main(int argc, char * argv[]) {
             // lights->spotLights[0].position = clientHandler.camera->getPosition();
             // lights->spotLights[0].direction = clientHandler.camera->getFront();
             
+            //Passing values required by the shader for the lights present in the scene
             lights->Render(shaders.at(i)->ID);
             (*models)[i]->Draw(shaders.at(i), mWindow);
         }
+
+        // equirectangularToCubemapShader->use();
+        // equirectangularToCubemapShader->setMat4("view", clientHandler.camera->viewMatrix());
+        // equirectangularToCubemapShader->setMat4("projection", clientHandler.camera->projectionMatrix());
+        cubeMap->Draw(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix(), *backgroundShader);
 
         //Thinking imgui should be last in call chain to show up last on screen ??
         // Start the Dear ImGui frame
