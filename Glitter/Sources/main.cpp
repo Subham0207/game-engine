@@ -99,10 +99,9 @@ int main(int argc, char * argv[]) {
 
     //Load modal
     auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
-    shader1->use();
-    shader1->setInt("irradianceMap", 0);
-    // auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/basic.frag");
-    std::vector<Shader*> shaders = {shader1};
+    // shader1->use();
+    auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    std::vector<Shader*> shaders = {shader1, shader2};
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
@@ -133,11 +132,16 @@ int main(int argc, char * argv[]) {
     //Start loading a 3D model here ?
     auto models = new std::vector<Model*>();
 
-    // auto model3d = new Model("E:/OpenGL/Models/Paladin J Nordstrom.fbx");
-    // model3d->model = glm::scale(model3d->model, glm::vec3(.03,.03,.03));
-    // models->push_back(model3d);
+    auto model3d = new Model("E:/OpenGL/Models/sphere1.fbx");
+    model3d->model = glm::translate(model3d->model, glm::vec3(1.0,0.0,0.0));
+    model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_albedo.png", aiTextureType_DIFFUSE);
+    model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_normal-dx.png", aiTextureType_NORMALS);
+    model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_metallic.png", aiTextureType_METALNESS);
+    model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_ao.png", aiTextureType_AMBIENT_OCCLUSION);
+    models->push_back(model3d);
 
-    auto model3d2 = new Model("E:/OpenGL/Models/sphere.fbx");
+    auto model3d2 = new Model("E:/OpenGL/Models/sphere1.fbx");
     // E:\OpenGL\Models\rustediron1-alt2-Unreal-Engine\rustediron1-alt2-Unreal-Engine
     model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/rustediron2_basecolor.png", aiTextureType_DIFFUSE);
     model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/rustediron2_normal.png", aiTextureType_NORMALS);

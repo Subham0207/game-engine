@@ -3,7 +3,7 @@
 out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 FragPos;
-// in vec3 Normal;
+in vec3 Normal;
 
 
 
@@ -42,16 +42,16 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
+vec3 getNormalFromMap();
 
 void main()
 {
     vec3 albedo     =  pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
-    vec3 normal     = normalize(2.0 * texture(normalMap, TexCoords).rgb - 1.0);
     float metallic  = texture(metallicMap, TexCoords).r;
     float roughness = texture(roughnessMap, TexCoords).r;
     float ao        = texture(aoMap, TexCoords).r;
 
-    vec3 N = normalize(normal);
+    vec3 N = getNormalFromMap();
     vec3 V = normalize(viewPos - FragPos);
     vec3 R = reflect(-V, N); 
 
@@ -149,7 +149,23 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-} 
+}
+vec3 getNormalFromMap()
+{
+    vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(FragPos);
+    vec3 Q2  = dFdy(FragPos);
+    vec2 st1 = dFdx(TexCoords);
+    vec2 st2 = dFdy(TexCoords);
+
+    vec3 N   = normalize(Normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
 
 
 //https://github.com/Nadrin/PBR/blob/master/data/shaders/glsl
