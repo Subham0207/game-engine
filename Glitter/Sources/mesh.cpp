@@ -18,12 +18,24 @@ void Mesh::Draw(Shader* shader)
     // else{
     // shader->setBool("useTexture", true);
     // }
+
+    const std::vector<aiTextureType> textureTypes = {
+        aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_METALNESS,
+        aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_AMBIENT_OCCLUSION
+    };
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    for (unsigned int i = 0; i < textureIds->size(); i++)
+    for(unsigned int i = 0;i < textureTypes.size(); i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i + 1);
-        glBindTexture(GL_TEXTURE_2D, textureIds->at(i).id);
+        for (unsigned int j = 0; j < textureIds->size(); j++)
+        {
+            if(textureIds->at(j).type == textureTypes[i])
+            {
+                glActiveTexture(GL_TEXTURE0 + i + 1);
+                glBindTexture(GL_TEXTURE_2D, textureIds->at(j).id);
+            }
+        }   
     }
     // I don't need to active texture 0 again ?? Why was I doing this ?
     // glActiveTexture(GL_TEXTURE0);

@@ -101,7 +101,11 @@ int main(int argc, char * argv[]) {
     auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
     // shader1->use();
     auto shader2 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
-    std::vector<Shader*> shaders = {shader1, shader2};
+    auto shader3 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    auto shader4 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    auto shader5 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    auto shader6 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+    std::vector<Shader*> shaders = {shader1, shader2, shader3, shader4, shader5, shader6};
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
@@ -133,7 +137,7 @@ int main(int argc, char * argv[]) {
     auto models = new std::vector<Model*>();
 
     auto model3d = new Model("E:/OpenGL/Models/sphere1.fbx");
-    model3d->model = glm::translate(model3d->model, glm::vec3(1.0,0.0,0.0));
+    model3d->model = glm::translate(model3d->model, glm::vec3(2.3,0.0,0.0));
     model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_albedo.png", aiTextureType_DIFFUSE);
     model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_normal-dx.png", aiTextureType_NORMALS);
     model3d->LoadTexture("E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_metallic.png", aiTextureType_METALNESS);
@@ -150,6 +154,46 @@ int main(int argc, char * argv[]) {
     model3d2->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/whiteAO.png", aiTextureType_AMBIENT_OCCLUSION);
     models->push_back(model3d2);
 
+
+    auto model3d3 = new Model("E:/OpenGL/Models/sphere1.fbx");
+    model3d3->model = glm::translate(model3d3->model, glm::vec3(4.5,0.0,0.0));
+    // E:\OpenGL\Models\rustediron1-alt2-Unreal-Engine\rustediron1-alt2-Unreal-Engine
+    model3d3->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-albedo.png", aiTextureType_DIFFUSE);
+    model3d3->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-normal.png", aiTextureType_NORMALS);
+    model3d3->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-metal.png", aiTextureType_METALNESS);
+    model3d3->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    model3d3->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-ao.png", aiTextureType_AMBIENT_OCCLUSION);
+    models->push_back(model3d3);
+
+    auto model3d4 = new Model("E:/OpenGL/Models/sphere1.fbx");
+    model3d4->model = glm::translate(model3d4->model, glm::vec3(6.6,0.0,0.0));
+    // E:\OpenGL\Models\rustediron1-alt2-Unreal-Engine\rustediron1-alt2-Unreal-Engine
+    model3d4->LoadTexture("E:/OpenGL/Models/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_basecolor.png", aiTextureType_DIFFUSE);
+    model3d4->LoadTexture("E:/OpenGL/Models/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_normal.png", aiTextureType_NORMALS);
+    model3d4->LoadTexture("E:/OpenGL/Models/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_metallic.png", aiTextureType_METALNESS);
+    model3d4->LoadTexture("E:/OpenGL/Models/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    model3d4->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/whiteAO.png", aiTextureType_AMBIENT_OCCLUSION);
+    models->push_back(model3d4);
+
+    auto model3d5 = new Model("E:/OpenGL/Models/Paladin J Nordstrom.fbx");
+    model3d5->model = glm::translate(model3d5->model, glm::vec3(9.7,-4.7,0.0));
+    model3d5->model = glm::scale(model3d5->model, glm::vec3(0.05,0.05,0.05));
+    model3d5->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/whiteAO.png", aiTextureType_AMBIENT_OCCLUSION);
+    model3d5->LoadTexture("E:/OpenGL/Models/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_Unreal-Engine/Iron-Scuffed_metallic.png", aiTextureType_METALNESS);
+    models->push_back(model3d5);
+
+    auto model3d6 = new Model("E:/OpenGL/Models/Cottage/cottage_fbx.fbx");
+    model3d6->model = glm::translate(model3d6->model, glm::vec3(16,0.0,0.0));
+    model3d6->model = glm::rotate(model3d6->model, glm::radians(-90.0f), glm::vec3(1,0,0));
+    model3d6->model = glm::rotate(model3d6->model, glm::radians(90.0f), glm::vec3(0,0,1));
+    model3d6->model = glm::scale(model3d6->model, glm::vec3(2,2,1));
+    model3d6->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_diffuse.png", aiTextureType_DIFFUSE);
+    model3d6->LoadTexture("E:/OpenGL/Models/Cottage/cottage_textures/cottage_normal.png", aiTextureType_NORMALS);
+    model3d6->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-metal.png", aiTextureType_METALNESS);
+    model3d6->LoadTexture("E:/OpenGL/Models/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-Unreal-Engine/bamboo-wood-semigloss-roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    model3d6->LoadTexture("E:/OpenGL/Models/rustediron1-alt2-Unreal-Engine/rustediron1-alt2-Unreal-Engine/whiteAO.png", aiTextureType_AMBIENT_OCCLUSION);
+    models->push_back(model3d6);
+    
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     //imgui

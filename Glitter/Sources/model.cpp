@@ -35,8 +35,7 @@ void Model::loadModel(std::string path)
 
         // Check for different texture types
         const std::vector<aiTextureType> textureTypes = {
-            aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS,
-            aiTextureType_HEIGHT, aiTextureType_OPACITY, aiTextureType_EMISSIVE
+            aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_AMBIENT_OCCLUSION
         };
 
         for (aiTextureType type : textureTypes) {
@@ -54,6 +53,8 @@ void Model::loadModel(std::string path)
                         std::cout << "Compressed texture format: " << embeddedTexture->achFormatHint << std::endl;
                         std::cout << "Size: " << embeddedTexture->mWidth << " bytes" << std::endl;
                         if(embeddedTexture->pcData)
+                        if(type == aiTextureType_SPECULAR)
+                            loadEmbeddedTexture(embeddedTexture, aiTextureType_DIFFUSE_ROUGHNESS);
                         loadEmbeddedTexture(embeddedTexture, type);
                         } else {
                             std::cout << "Uncompressed texture" << std::endl;
