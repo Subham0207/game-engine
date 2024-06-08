@@ -83,13 +83,19 @@ int main(int argc, char * argv[]) {
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
     //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
     auto cubeMap = new CubeMap("E:/OpenGL/Models/quarry_cloudy_4k.hdr");
     auto equirectangularToCubemapShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/equirectanglular_to_cubemap.frag");
     auto irradianceShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/irradiance_convolution.frag");
+    auto prefilterShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/prefilter.frag");
+    auto brdfShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/brdf.vert","E:/OpenGL/Glitter/Glitter/Shaders/brdf.frag");
     auto backgroundShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/background.vert","E:/OpenGL/Glitter/Glitter/Shaders/background.frag");
     cubeMap->setup(mWindow,
-    *equirectangularToCubemapShader, *irradianceShader);
+    *equirectangularToCubemapShader, *irradianceShader, *prefilterShader, *brdfShader);
 
     //Load modal
     auto shader1 =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
@@ -123,9 +129,6 @@ int main(int argc, char * argv[]) {
     // lights->spotLights = {
     //     SpotLight(glm::vec3(0.0f,0.0f,3.0f), glm::vec3(0.0f,0.4f,0.8f))
     // };
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
 
     //Start loading a 3D model here ?
     auto models = new std::vector<Model*>();
@@ -188,6 +191,14 @@ int main(int argc, char * argv[]) {
         {
             glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
             shaders.at(i)->use();
+
+            glActiveTexture(GL_TEXTURE0+6);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->irradianceMap);
+            glActiveTexture(GL_TEXTURE0+7);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->prefilterMap);
+            glActiveTexture(GL_TEXTURE0+8);
+            glBindTexture(GL_TEXTURE_2D, cubeMap->brdfLUTTexture);
+            
             clientHandler.camera->updateMVP(shaders.at(i)->ID);
             glUniformMatrix4fv(glGetUniformLocation(shaders.at(i)->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
             glUniform3f(glGetUniformLocation(shaders.at(i)->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
