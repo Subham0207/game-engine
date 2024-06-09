@@ -15,6 +15,13 @@
 
 #include <GLFW/glfw3.h>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/access.hpp>
+#include <serializer.hpp>
 
 unsigned int TextureFromFile(const char* path);
 unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
@@ -22,6 +29,7 @@ unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int 
 class Model
 {
 public:
+    Model()=default;
     Model(char* path)
     {
         loadModel(path);
@@ -63,5 +71,15 @@ private:
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
     void loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
     void Model::calculateBoundingBox(const aiScene* scene);
+
+
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & meshes;
+        ar & model;
+        ar & whichTransformActive;
+    }
     
 };

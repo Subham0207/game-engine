@@ -2,3 +2,4 @@
 .vscode/
 imgui.ini
 Glitter/Vendor/*
+Glitter/DepsHeaderAndLibs/*

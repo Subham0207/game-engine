@@ -37,6 +37,8 @@ include_directories(Glitter/Headers/
                     Glitter/Vendor/imgui/
                     Glitter/Vendor/imgui/backends/
                     Glitter/Vendor/imguizmo/
+                    Glitter/DepsHeaderAndLibs/Headers/
+                    Glitter/serializations/
                     )
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
@@ -85,7 +87,11 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_HEADERS} ${IMGUIZMO_IMPL_SOURCES})
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-                      BulletDynamics BulletCollision LinearMath)
+                      BulletDynamics BulletCollision LinearMath
+                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-gd-x64-1_85.lib
+                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
+                  
+                      )
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 

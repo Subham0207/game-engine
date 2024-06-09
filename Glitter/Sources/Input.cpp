@@ -130,6 +130,11 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 
 void InputHandler::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    if(ImGui::GetIO().WantCaptureMouse)
+    {
+        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+        return;
+    }
     currentInputHandler->m_Camera->fov -= (float)yoffset;
     if (currentInputHandler->m_Camera->fov < 1.0f)
         currentInputHandler->m_Camera->fov = 1.0f;

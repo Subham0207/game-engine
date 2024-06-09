@@ -9,6 +9,13 @@
 
 #include <shader.hpp>
 
+#include <serializer.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/access.hpp>
+
 #define MAX_BONE_INFLUENCE 4
 
     struct Vertex {
@@ -28,14 +35,39 @@
         int m_BoneIDs[MAX_BONE_INFLUENCE];
         //weights from each bone
         float m_Weights[MAX_BONE_INFLUENCE];
+
+    private:
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void serialize(Archive &ar, const unsigned int version) {
+            ar & Position;
+            ar & Normal;
+            ar & TexCoords;
+            ar & Color;
+            ar & Tangent;
+            ar & Bitangent;
+            ar & m_BoneIDs;
+            ar & m_Weights;
+        }
     };
 
     struct Texture {
     unsigned int id;
     aiTextureType type;
 
+    Texture()=default;
     Texture(unsigned int textureId, aiTextureType textureType)
         : id(textureId), type(textureType) {}
+
+    private:
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void serialize(Archive &ar, const unsigned int version) {
+            ar & id;
+            ar & type;
+        }
     };
 
     class Mesh {
@@ -45,6 +77,7 @@
         std::vector<unsigned int> indices;
         std::vector<Texture> *textureIds;
 
+        Mesh()=default;
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> *textureIds);
         void Draw(Shader* shader);
     private:
@@ -52,4 +85,13 @@
         unsigned int VAO, VBO, EBO;
 
         void setupMesh();
+
+        friend class boost::serialization::access;
+
+        template<class Archive>
+        void serialize(Archive &ar, const unsigned int version) {
+            ar & vertices;
+            ar & indices;
+            ar & textureIds;
+        }
     };
