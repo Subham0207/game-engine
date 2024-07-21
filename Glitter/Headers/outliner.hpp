@@ -13,15 +13,15 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-enum FileTypeToLoad {
-    lvlFile, modelFile, albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture
+enum FileTypeOperation {
+    lvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel
 };
 
 class Outliner 
 {
 public:
     // Constructor
-    Outliner(std::vector<Model *> *models) : mModels(models), selectedIndex(-1) {
+    Outliner(std::vector<Model *> *models) : mModels(models), selectedModelIndex(-1) {
         // Initialize the items array or any other setup needed
     }
 
@@ -39,7 +39,7 @@ public:
             //POP up another window to give the lvl file a name and save perhaps ?
             //give level a name
             //choose the directory
-            saveLevelAsName = "";
+            saveAsFileName = "";
             showFileDialog = true;
             showOpenButton = false;
         }
@@ -61,7 +61,7 @@ public:
             // The label for each button could be customized further if needed
             std::string name = (*mModels)[i]->getName();
             name+=std::to_string(i);
-            if (ImGui::RadioButton( name.c_str(), &selectedIndex, i)) {
+            if (ImGui::RadioButton( name.c_str(), &selectedModelIndex, i)) {
             }
             // Optionally, pop style changes here if you made any
         }
@@ -70,9 +70,9 @@ public:
 
         //Show transformation of the selected model
         ImGui::PushItemWidth(40);
-        if(selectedIndex > -1)
+        if(selectedModelIndex > -1)
         {
-            glm::mat4& modelMatrix = (*mModels)[selectedIndex]->model;
+            glm::mat4& modelMatrix = (*mModels)[selectedModelIndex]->model;
             glm::vec3 scale, rotation, translation, skew;
             glm::vec4 perspective;
             glm::quat orientation;
@@ -120,9 +120,24 @@ public:
             showOpenButton = true;
             fileExtension = ".lvl";
         }
-        if(ImGui::Button("Load a Model"))
+        if(ImGui::Button("Import a Model"))
         {
             loadModelWindow = true;
+        }
+        if(ImGui::Button("Save a Model"))
+        {
+            //Get selected index of the model
+            //open UI to enter name of the model
+            //call saveModel function
+            showFileDialog = true;
+            showOpenButton = false;
+            fileTypeOperation = FileTypeOperation::saveModel;
+        }
+        if(ImGui::Button("Load a Model"))
+        {
+            showFileDialog = true;
+            showOpenButton = true;
+            fileTypeOperation = FileTypeOperation::loadModel;
         }
         ImGui::End();
         
@@ -144,10 +159,10 @@ public:
 
     // Get the index of the currently selected radio button
     int GetSelectedIndex() const {
-        return selectedIndex;
+        return selectedModelIndex;
     }
     void setSelectedIndex(int newSelectedIndex){
-    selectedIndex = newSelectedIndex;
+    selectedModelIndex = newSelectedIndex;
     }
 
     void applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, bool isLocal) 
@@ -201,6 +216,11 @@ public:
 
             // Display the current path
             ImGui::Text("Current Path: %s", currentPath.c_str());
+            
+            if(ImGui::Button("Go to Root of project"))
+            {
+               currentPath = projectRootLocation;
+            }
 
             if(error != "")
             ImGui::TextColored(ImVec4(1,0,0,1), error.c_str());
@@ -242,15 +262,15 @@ public:
                 {
                     if (!fs::is_directory(filePath))
                     {
-                        switch (fileTypeToLoad)
+                        switch (fileTypeOperation)
                         {
-                            case FileTypeToLoad::lvlFile:
+                            case FileTypeOperation::lvlFile:
                                 {
                                     Level::loadFromFile(filePath, level);
                                     showFileDialog = false;
                                 }
                                 break;
-                            case FileTypeToLoad::modelFile:
+                            case FileTypeOperation::importModelFile:
                                 {
                                     modelfileName = filePath;
                                     model = new Model(const_cast<char*>(filePath.c_str()));
@@ -258,38 +278,46 @@ public:
                                     showFileDialog = false;                       
                                 }
                                 break;
-                            case FileTypeToLoad::albedoTexture:
+                            case FileTypeOperation::albedoTexture:
                                 {
                                     albedo = filePath;
                                     model->LoadTexture(filePath, aiTextureType_DIFFUSE);
                                     showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeToLoad::normalTexture:
+                            case FileTypeOperation::normalTexture:
                                 {
                                     normal = filePath;
                                     model->LoadTexture(filePath, aiTextureType_NORMALS);
                                     showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeToLoad::metalnessTexture:
+                            case FileTypeOperation::metalnessTexture:
                                 {
                                     metalness = filePath;
                                     model->LoadTexture(filePath, aiTextureType_METALNESS);
                                     showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeToLoad::roughnessTexture:
+                            case FileTypeOperation::roughnessTexture:
                                 {
                                     roughness = filePath;
                                     model->LoadTexture(filePath, aiTextureType_DIFFUSE_ROUGHNESS);
                                     showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeToLoad::aoTexture:
+                            case FileTypeOperation::aoTexture:
                                 {
                                     ao = filePath;
                                     model->LoadTexture(filePath, aiTextureType_AMBIENT_OCCLUSION);
+                                    showFileDialog = false;                      
+                                }
+                                break;
+                            case FileTypeOperation::loadModel:
+                                {
+                                    model = new Model();
+                                    Model::loadFromFile(filePath, *model);
+                                    level.addModel(model);
                                     showFileDialog = false;                      
                                 }
                                 break;
@@ -304,13 +332,31 @@ public:
 
             if(!showOpenButton)
             {
-                InputText("##Filename", saveLevelAsName);
-                if (ImGui::Button("Save"))
+                switch(fileTypeOperation)
                 {
-                    level.levelname = saveLevelAsName;
-                    Level::saveToFile(saveLevelAsName, level);
-                    showFileDialog = false;
-                }
+                    case FileTypeOperation::saveLevel: {
+                        InputText("##Filename", saveAsFileName);
+                        if (ImGui::Button("Save"))
+                        {
+                            level.levelname = saveAsFileName;
+                            Level::saveToFile(saveAsFileName, level);
+                            showFileDialog = false;
+                        }
+                    }
+                    break;
+
+                    case FileTypeOperation::saveModel: {
+                        InputText("##Filename", saveAsFileName);
+                        if (ImGui::Button("Save"))
+                        {
+                            auto model = mModels->at(selectedModelIndex);
+                            model->saveSerializedModel(saveAsFileName);
+                            //Recurrsively call save texture on the texture method ?
+                            showFileDialog = false;
+                        }
+                    }
+                    break;
+                };
             }
 
             ImGui::End();
@@ -329,7 +375,7 @@ public:
             {
                 showFileDialog = true;
                 showOpenButton = true;
-                fileTypeToLoad = FileTypeToLoad::modelFile;
+                fileTypeOperation = FileTypeOperation::importModelFile;
             }
 
             ImGui::Text("Albedo");
@@ -340,7 +386,7 @@ public:
             {
                 showFileDialog = true;
                 showOpenButton = true;
-                fileTypeToLoad = FileTypeToLoad::albedoTexture;
+                fileTypeOperation = FileTypeOperation::albedoTexture;
             }
 
             ImGui::Text("Normal");
@@ -351,7 +397,7 @@ public:
             {
                 showFileDialog = true;
                 showOpenButton = true;
-                fileTypeToLoad = FileTypeToLoad::normalTexture;
+                fileTypeOperation = FileTypeOperation::normalTexture;
             }
 
             ImGui::Text("Metalness");
@@ -362,7 +408,7 @@ public:
             {
                 showFileDialog = true;
                 showOpenButton = true;
-                fileTypeToLoad = FileTypeToLoad::metalnessTexture;
+                fileTypeOperation = FileTypeOperation::metalnessTexture;
             }
 
             ImGui::Text("Roughness");
@@ -373,7 +419,7 @@ public:
             {
                 showFileDialog = true;
                 showOpenButton = true;
-                fileTypeToLoad = FileTypeToLoad::roughnessTexture;
+                fileTypeOperation = FileTypeOperation::roughnessTexture;
             }
 
             ImGui::Text("AO");
@@ -384,7 +430,7 @@ public:
             {
                 showFileDialog = true;
                 showOpenButton = true;
-                fileTypeToLoad = FileTypeToLoad::aoTexture;
+                fileTypeOperation = FileTypeOperation::aoTexture;
             }
 
             ImGui::End();
@@ -394,7 +440,7 @@ public:
 private:
     float m = 0;
     std::vector<Model *> *mModels;
-    int selectedIndex = -1;  // Index of the currently selected radio button
+    int selectedModelIndex = -1;
     int coordinateSpace = -1;
     bool isFirstFrame = true;
 
@@ -405,7 +451,7 @@ private:
     std::string fileExtension;
     std::string filePath;
 
-    FileTypeToLoad fileTypeToLoad;
+    FileTypeOperation fileTypeOperation;
 
     Model* model;
 
@@ -415,7 +461,9 @@ private:
     std::string metalness="";
     std::string roughness="";
     std::string ao="";
-    std::string saveLevelAsName = "";
+    std::string saveAsFileName = "";
+
+    std::string projectRootLocation = fs::current_path().string();
 
 
     std::string error="";

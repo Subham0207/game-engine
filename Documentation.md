@@ -32,6 +32,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 15. implmented changing transformation from outliner as well
 16. Next should be - Solving shader issues ( probably start PBR ), Implmenting Level so I can save the position of the objects. Then it should be loading animations.
 17. PBR progress following opengl lighting tutorial: I need to send Material textures from mesh.cpp. Also load correct ones to disk. Update the shader program with pbr.frag. UPDATE: PBR basic is working with point lights.
+18. Working with files. First try storing model in a custom file and try loading model instances using this file.
 
 ## How to start the application
 1. you need to use cmake.
@@ -58,3 +59,19 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 4. To convert a point from world space to local space -> inverse(modelMatrix) * vec4(pointInWorldSpace, 1.0);
 5. To convert a point from local space to world space -> modelMatrix * vec4(pointInLocalSpace);
 6. returning after imgui want to capture means that your mouse is probably over a imgui. Note setting leftClick to false when imgui is using inputs helped a ton.
+
+
+## How does Level file works
+1. Model is saved in a custom format Reprensenting the model class (This is basically the serialized version of a model object). This is so that we can load the model instantly from this file since it has has all the data needed to render the model.
+2. Loading the model itself saves the model in the custom format.
+3. model textures -- they will need to be saved again -- we save them again during load -- saved them in different file (Yes for reusability purposes) ?
+4. In Level file we create instances of a model whose data is read from the above mentioned model file. For a model instance we store the location of the model from where we can construct this instance + transformation of the model instance in the level. We store an array of model instances and thier transformation in the level file.
+5. When you save a model in the engine you should probably show it in outliner so we can drag and drop to use it in the level.
+6. Try implmenting the importing/loading/saving workflow in a model. This will be the same way you need to do in a level.
+    1. Import a model works
+    2. Save a model works
+    3. Load a model doesnot work
+        i. we need to send the textures back to GPU
+        ii. save textures in another file done
+        iii. load a model
+        iv. updated saving model; also savig textureIds but the code is failing currently.

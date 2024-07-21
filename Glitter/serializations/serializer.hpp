@@ -34,6 +34,11 @@ void serialize(Archive &ar, glm::mat4 &mat, const unsigned int version) {
     ar & boost::serialization::make_array(&mat[0][0], 16);
 }
 
+template<class Archive>
+void serialize(Archive &ar, aiTextureType &type, const unsigned int version) {
+    ar & ar & boost::serialization::make_nvp("type", type);
+}
+
 }
 }
 

@@ -55,10 +55,11 @@
     struct Texture {
     unsigned int id;
     aiTextureType type;
+    std::string name;
 
     Texture()=default;
-    Texture(unsigned int textureId, aiTextureType textureType)
-        : id(textureId), type(textureType) {}
+    Texture(unsigned int textureId, aiTextureType textureType, std::string filename)
+        : id(textureId), type(textureType), name(filename) {}
 
     private:
         friend class boost::serialization::access;
@@ -67,6 +68,7 @@
         void serialize(Archive &ar, const unsigned int version) {
             ar & id;
             ar & type;
+            ar & name;
         }
     };
 
@@ -80,11 +82,11 @@
         Mesh()=default;
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> *textureIds);
         void Draw(Shader* shader);
+        void setupMesh();
     private:
         //  render data
         unsigned int VAO, VBO, EBO;
 
-        void setupMesh();
 
         friend class boost::serialization::access;
 
@@ -92,6 +94,5 @@
         void serialize(Archive &ar, const unsigned int version) {
             ar & vertices;
             ar & indices;
-            ar & textureIds;
         }
     };

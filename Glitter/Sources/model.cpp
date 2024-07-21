@@ -1,11 +1,13 @@
 #include "model.hpp"
 #include <iostream>
 #include <stb_image.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 #include <fstream>
 #include <vector>
-// #include <filesystem>
+#include <filesystem>
 // using namespace std;
-// namespace fs = std::filesystem;
+namespace fs = std::filesystem;
 
 void Model::loadModel(std::string path)
 {
@@ -69,6 +71,28 @@ void Model::loadModel(std::string path)
     processNode(scene->mRootNode, scene);
 }
 
+void Model::saveSerializedModel(std::string filename)
+{
+    fs::path dir = fs::path(filename).parent_path();
+    if (dir.empty()) {
+        // Set the directory to the current working directory
+        dir = fs::current_path();
+    }
+    if (!fs::exists(dir)) {
+        if (!fs::create_directories(dir)) {
+            std::cerr << "Failed to create directories: " << dir << std::endl;
+            return;
+        }
+    }
+    directory = filename;
+    std::ofstream ofs(filename);
+    boost::archive::text_oarchive oa(ofs);
+    oa << this;
+    
+    //Texture-ids needs to  generated again
+    //They will need to bound again to GPU
+}
+
 void Model::processTexture(const aiScene *scene)
 {
     if (scene->HasTextures()) {
@@ -101,8 +125,9 @@ void Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureT
 {
     int mWidth, mheight, nrComponents;
     unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData), texture->mWidth, &mWidth, &mheight, &nrComponents, 0);
+    stbi_write_png(texture->mFilename.C_Str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = sendTextureToGPU(data, mWidth, mheight, nrComponents);
-    Texture newTexture(textureID, textureType);
+    Texture newTexture(textureID, textureType, texture->mFilename.C_Str());
     textureIds.push_back(newTexture);
 }
 
@@ -257,10 +282,11 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
         aiString str;
         if (mat->GetTexture(type, i, &str) == AI_SUCCESS) {
             std::string absoluteTexturePath = GetAbsoluteTexturePath(directory, str);
-            unsigned int textureId = TextureFromFile(absoluteTexturePath.c_str());
+            unsigned int textureId = TextureFromFile(absoluteTexturePath.c_str(), absoluteTexturePath);
             // textureIds.push_back(textureId);
         }
     }
+    
 }
 
 void Model::Draw(Shader* shader, GLFWwindow* window)
@@ -315,8 +341,10 @@ void Model::calculateBoundingBox(const aiScene* scene) {
 
 void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 {
-    unsigned int id = TextureFromFile(texturePath.c_str());
-    Texture texture(id, typeName);
+    fs::path fsPath(texturePath);
+    std::string filename = fsPath.filename().string();
+    unsigned int id = TextureFromFile(texturePath.c_str(), filename);
+    Texture texture(id, typeName, filename);
     //Load Texture in GPU. Get the ID.
     // texture.path = texturePath.c_str();
 
@@ -327,10 +355,11 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 }
 
 
-unsigned int TextureFromFile(const char* path)
+unsigned int TextureFromFile(const char* path, std::string filename)
 {
     int width, height, nrComponents;
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
+    stbi_write_png(filename.c_str(), width, height, nrComponents, data, 0);
     unsigned int textureID = sendTextureToGPU(data, width, height, nrComponents);
     return textureID;
 }

@@ -43,7 +43,7 @@ struct ClientHandler {
 State* State::state = new State();
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
-    std::cerr << "GL Callback: " << message << std::endl;
+    // std::cerr << "GL Callback: " << message << std::endl;
 }
 
 int main(int argc, char * argv[]) {

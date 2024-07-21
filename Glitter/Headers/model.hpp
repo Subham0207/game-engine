@@ -21,9 +21,10 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/access.hpp>
+#include <boost/serialization/version.hpp>
 #include <serializer.hpp>
 
-unsigned int TextureFromFile(const char* path);
+unsigned int TextureFromFile(const char* path, std::string filename);
 unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
 
 class Model
@@ -53,6 +54,37 @@ public:
     std::vector<Mesh>* getMeshes(){
         return &meshes;
     }
+    
+    void saveSerializedModel(std::string filename);
+
+    void static loadFromFile(const std::string &filename, Model &model) {
+
+        try
+        {
+            std::ifstream ifs(filename);
+            boost::archive::text_iarchive ia(ifs);
+            ia >> model;
+        }
+        catch(std::exception &e)
+        {
+            std::cout << "Exception while opening the model file: " << e.what();
+        }
+
+        //Load textures to GPU
+        //Read from the filenames that need to be loaded
+        for (size_t i = 0; i < model.meshes.size(); i++)
+        {
+            //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
+            model.meshes[i].setupMesh();
+        }
+        for (size_t i = 0; i < model.textureIds.size(); i++)
+        {
+            //Just need to generate new textureIds for the texture
+            int width, height, nrComponents;
+            unsigned char* data = stbi_load(model.textureIds[i].name.c_str(), &width, &height, &nrComponents, 0);
+            model.textureIds[i].id = sendTextureToGPU(data, width, height, nrComponents);
+        }
+    }
 
 private:
     // model data
@@ -79,7 +111,10 @@ private:
     void serialize(Archive &ar, const unsigned int version) {
         ar & meshes;
         ar & model;
-        ar & whichTransformActive;
+        ar & textureIds;
+        ar & directory;
     }
     
 };
+
+BOOST_CLASS_VERSION(Model, 0);
