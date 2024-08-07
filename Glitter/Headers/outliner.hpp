@@ -350,7 +350,7 @@ public:
                         if (ImGui::Button("Save"))
                         {
                             auto model = mModels->at(selectedModelIndex);
-                            model->saveSerializedModel(saveAsFileName);
+                            Model::saveSerializedModel(saveAsFileName, *model);
                             //Recurrsively call save texture on the texture method ?
                             showFileDialog = false;
                         }

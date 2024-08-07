@@ -21,8 +21,8 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/access.hpp>
-#include <boost/serialization/version.hpp>
 #include <serializer.hpp>
+using boost::archive::archive_flags;
 
 unsigned int TextureFromFile(const char* path, std::string filename);
 unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
@@ -55,7 +55,7 @@ public:
         return &meshes;
     }
     
-    void saveSerializedModel(std::string filename);
+    void static saveSerializedModel(std::string filename,  Model &model);
 
     void static loadFromFile(const std::string &filename, Model &model) {
 
@@ -93,6 +93,7 @@ private:
     std::vector<Mesh> meshes;
     std::string directory;
     aiAABB* boundingBox;
+    int ver=1;
 
     ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
 
@@ -109,12 +110,13 @@ private:
 
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version) {
-        ar & meshes;
-        ar & model;
-        ar & textureIds;
-        ar & directory;
+        // ar & meshes;
+        // ar & model;
+        // ar & textureIds;
+        // ar & directory;
+        ar & ver;
     }
     
 };
 
-BOOST_CLASS_VERSION(Model, 0);
+// BOOST_CLASS_VERSION(Model, 0);

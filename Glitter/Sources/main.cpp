@@ -31,6 +31,8 @@
 #include "cubemap.hpp"
 #include <Level.hpp>
 
+#include <test.hpp>
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -69,6 +71,13 @@ int main(int argc, char * argv[]) {
         fprintf(stderr, "Failed to Create OpenGL Context");
         return EXIT_FAILURE;
     }
+
+    //Testing saveing to file
+    auto testobj = new Test(10, "hello world");
+    Test::save("testfile", *testobj);
+    auto testObjLoad = new Test();
+    Test::loadFromFile("testfile", *testObjLoad);
+    testobj->printAge();
 
     // Create Context and Load OpenGL Functions
     glfwMakeContextCurrent(mWindow);

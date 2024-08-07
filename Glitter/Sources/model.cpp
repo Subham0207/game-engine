@@ -71,7 +71,7 @@ void Model::loadModel(std::string path)
     processNode(scene->mRootNode, scene);
 }
 
-void Model::saveSerializedModel(std::string filename)
+void Model::saveSerializedModel(std::string filename, Model &model)
 {
     fs::path dir = fs::path(filename).parent_path();
     if (dir.empty()) {
@@ -84,11 +84,11 @@ void Model::saveSerializedModel(std::string filename)
             return;
         }
     }
-    directory = filename;
+    model.directory = filename;
     std::ofstream ofs(filename);
     boost::archive::text_oarchive oa(ofs);
-    oa << this;
-    
+    oa << model;
+    ofs.close();
     //Texture-ids needs to  generated again
     //They will need to bound again to GPU
 }

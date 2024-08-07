@@ -36,7 +36,7 @@ void serialize(Archive &ar, glm::mat4 &mat, const unsigned int version) {
 
 template<class Archive>
 void serialize(Archive &ar, aiTextureType &type, const unsigned int version) {
-    ar & ar & boost::serialization::make_nvp("type", type);
+    ar & boost::serialization::make_nvp("type", type);
 }
 
 }
