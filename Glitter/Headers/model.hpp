@@ -76,6 +76,7 @@ public:
         {
             //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
             model.meshes[i].setupMesh();
+            model.meshes[i].textureIds = &model.textureIds;
         }
         for (size_t i = 0; i < model.textureIds.size(); i++)
         {
@@ -93,7 +94,6 @@ private:
     std::vector<Mesh> meshes;
     std::string directory;
     aiAABB* boundingBox;
-    int ver=1;
 
     ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
 
@@ -110,11 +110,10 @@ private:
 
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version) {
-        // ar & meshes;
-        // ar & model;
-        // ar & textureIds;
-        // ar & directory;
-        ar & ver;
+        ar & meshes;
+        ar & model;
+        ar & textureIds;
+        ar & directory;
     }
     
 };

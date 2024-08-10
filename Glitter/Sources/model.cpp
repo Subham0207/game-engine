@@ -125,9 +125,11 @@ void Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureT
 {
     int mWidth, mheight, nrComponents;
     unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData), texture->mWidth, &mWidth, &mheight, &nrComponents, 0);
-    stbi_write_png(texture->mFilename.C_Str(), mWidth, mheight, nrComponents, data, 0);
+    auto filename = fs::path(texture->mFilename.C_Str()).filename().string();
+    stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = sendTextureToGPU(data, mWidth, mheight, nrComponents);
-    Texture newTexture(textureID, textureType, texture->mFilename.C_Str());
+    auto filepath = fs::current_path().append(filename).string();
+    Texture newTexture(textureID, textureType, filepath);
     textureIds.push_back(newTexture);
 }
 
@@ -344,7 +346,8 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
     fs::path fsPath(texturePath);
     std::string filename = fsPath.filename().string();
     unsigned int id = TextureFromFile(texturePath.c_str(), filename);
-    Texture texture(id, typeName, filename);
+    auto filepath = fs::current_path().append(filename).string();
+    Texture texture(id, typeName, filepath);
     //Load Texture in GPU. Get the ID.
     // texture.path = texturePath.c_str();
 
