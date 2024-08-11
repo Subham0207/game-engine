@@ -12,6 +12,15 @@
 
 namespace fs = std::filesystem;
 
+struct LevelDetails
+{
+    std::string modelFilePath;
+    Model* modelFile;
+
+    LevelDetails(std::string _modelFilePath, Model* _modelFile)
+    : modelFilePath(_modelFilePath), modelFile(_modelFile) {}
+};
+
 class Level{
     public:
         Level()=default;
@@ -38,6 +47,13 @@ class Level{
             std::ifstream ifs(filename);
             boost::archive::text_iarchive ia(ifs);
             ia >> lvl;
+            for (size_t i = 0; i < lvl.modelFilePaths.size(); i++)
+            {
+                auto model = new Model();
+                Model::loadFromFile(lvl.modelFilePaths[i], *model);
+                lvl.models->push_back(model);
+            }
+            
             return lvl;
         }
 
@@ -50,8 +66,10 @@ class Level{
         }
 
         void addModel(Model *model){
+            modelFilePaths.push_back(model->getName());
             models->push_back(model);
         }
+        std::vector<std::string> modelFilePaths;
         std::vector<Model *> *models = new std::vector<Model *>();
         std::string levelname = "level1";
     private:
@@ -60,7 +78,7 @@ class Level{
 
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
-            ar & models;
+            ar & modelFilePaths;
             ar & levelname;
         }
 };

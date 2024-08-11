@@ -75,3 +75,16 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
         ii. save textures in another file done
         iii. load a model
         iv. updated saving model; also savig textureIds but the code is failing currently.
+        v. Texture loading works
+    4. Textures are bleeding between models when loaded using our custom model file
+        i. I think we are setting up textureIds that are not set. Because all the texture ids are constant.
+        ii. We can leave this issue since textureBleeding won't happen if all the material textures are provided.
+        iii. First implment Level saving, Then we should add ability to edit the material texture so we can fix this issue manually.
+    5. Saving Level
+        i. make sure that the model files are saved first. If not save them. Note now the model is saved in a file format that can be read by our program.
+        ii. store the modelFilePath in an array in the level.
+        iii. When loading the level load those models.
+        iv. What about the game loop that gets model referenced in LevelFile to render. I think this is why we need a map. And while saving the level file just save the names in an array.
+        v. Saving LvlAs working. What else
+            # Save the model locations.
+            # Save the camera position.

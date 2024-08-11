@@ -14,7 +14,7 @@
 namespace fs = std::filesystem;
 
 enum FileTypeOperation {
-    lvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel
+    LoadLvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs
 };
 
 class Outliner 
@@ -42,6 +42,7 @@ public:
             saveAsFileName = "";
             showFileDialog = true;
             showOpenButton = false;
+            fileTypeOperation = FileTypeOperation::saveLevelAs;
         }
 
 
@@ -119,6 +120,7 @@ public:
             showFileDialog = true;
             showOpenButton = true;
             fileExtension = ".lvl";
+            fileTypeOperation = FileTypeOperation::LoadLvlFile;
         }
         if(ImGui::Button("Import a Model"))
         {
@@ -264,7 +266,7 @@ public:
                     {
                         switch (fileTypeOperation)
                         {
-                            case FileTypeOperation::lvlFile:
+                            case FileTypeOperation::LoadLvlFile:
                                 {
                                     Level::loadFromFile(filePath, level);
                                     showFileDialog = false;
@@ -334,7 +336,7 @@ public:
             {
                 switch(fileTypeOperation)
                 {
-                    case FileTypeOperation::saveLevel: {
+                    case FileTypeOperation::saveLevelAs: {
                         InputText("##Filename", saveAsFileName);
                         if (ImGui::Button("Save"))
                         {
