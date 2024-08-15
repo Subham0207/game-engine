@@ -341,7 +341,7 @@ public:
                         if (ImGui::Button("Save"))
                         {
                             level.levelname = saveAsFileName;
-                            Level::saveToFile(saveAsFileName, level);
+                            Level::saveToFile("Assets/" + saveAsFileName, level);
                             showFileDialog = false;
                         }
                     }
@@ -352,7 +352,7 @@ public:
                         if (ImGui::Button("Save"))
                         {
                             auto model = mModels->at(selectedModelIndex);
-                            Model::saveSerializedModel(saveAsFileName, *model);
+                            Model::saveSerializedModel("Assets/" + saveAsFileName, *model);
                             //Recurrsively call save texture on the texture method ?
                             showFileDialog = false;
                         }

@@ -40,6 +40,7 @@ class Level{
 
             std::ofstream ofs(filename);
             boost::archive::text_oarchive oa(ofs);
+            // std::cout << "Location: " << lvl.modelTransformations.at(0)[0][0][0];
             oa << lvl;
         }
 
@@ -50,6 +51,7 @@ class Level{
             for (size_t i = 0; i < lvl.modelFilePaths.size(); i++)
             {
                 auto model = new Model();
+                model->model = *lvl.modelTransformations[i];
                 Model::loadFromFile(lvl.modelFilePaths[i], *model);
                 lvl.models->push_back(model);
             }
@@ -67,9 +69,11 @@ class Level{
 
         void addModel(Model *model){
             modelFilePaths.push_back(model->getName());
+            modelTransformations.push_back(&model->model);
             models->push_back(model);
         }
         std::vector<std::string> modelFilePaths;
+        std::vector<glm::mat4*> modelTransformations;
         std::vector<Model *> *models = new std::vector<Model *>();
         std::string levelname = "level1";
     private:
@@ -79,6 +83,7 @@ class Level{
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
             ar & modelFilePaths;
+            ar & modelTransformations;
             ar & levelname;
         }
 };
