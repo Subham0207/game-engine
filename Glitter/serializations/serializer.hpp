@@ -2,7 +2,13 @@
 #define SERIALIZATION_GLM_HPP
 
 #include <boost/serialization/serialization.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/array.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <glm/glm.hpp>
+#include <vector>
 
 namespace boost {
 namespace serialization {
@@ -38,6 +44,34 @@ template<class Archive>
 void serialize(Archive &ar, aiTextureType &type, const unsigned int version) {
     ar & boost::serialization::make_nvp("type", type);
 }
+
+template<class Archive>
+void save(Archive & ar, const std::vector<glm::mat4*> &matrices, const unsigned int version) {
+    size_t size = matrices.size();
+    ar & size;
+
+    for (size_t i = 0; i < size; ++i) {
+        ar & boost::serialization::make_array(&(*matrices[i])[0][0], 16);
+    }
+}
+
+template<class Archive>
+void load(Archive & ar, std::vector<glm::mat4*> &matrices, const unsigned int version) {
+    size_t size;
+    ar & size;
+
+    matrices.resize(size);
+    for (size_t i = 0; i < size; ++i) {
+        matrices[i] = new glm::mat4();
+        ar & boost::serialization::make_array(&(*matrices[i])[0][0], 16);
+    }
+}
+
+template<class Archive>
+void serialize(Archive & ar, std::vector<glm::mat4*> &matrices, const unsigned int version) {
+     boost::serialization::split_free(ar, matrices, version);
+}
+
 
 }
 }
