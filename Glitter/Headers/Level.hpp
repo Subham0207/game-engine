@@ -66,7 +66,19 @@ class Level{
                 delete lvl.modelTransformations[i];                 
                 lvl.modelTransformations[i] = &model->model;//point lvl's ModelMatrix back to Model's Matrix;
             }
-            
+
+            lvl.camera->cameraFront = *lvl.cameraFront;
+            lvl.camera->cameraPos = *lvl.cameraPos;
+            lvl.camera->cameraUp = *lvl.cameraUp;
+
+            delete lvl.cameraFront;
+            delete lvl.cameraPos;
+            delete lvl.cameraUp;
+
+            lvl.cameraFront = &lvl.camera->cameraFront;
+            lvl.cameraPos = &lvl.camera->cameraPos;
+            lvl.cameraUp = &lvl.camera->cameraUp;
+
             return lvl;
         }
 
@@ -87,6 +99,13 @@ class Level{
         std::vector<glm::mat4*> modelTransformations;
         std::vector<Model *> *models = new std::vector<Model *>();
         std::string levelname = "level1";
+
+        glm::vec3* cameraPos;
+    	glm::vec3* cameraFront;
+	    glm::vec3* cameraUp;
+
+        Camera* camera;
+
     private:
 
         friend class boost::serialization::access;
@@ -96,5 +115,9 @@ class Level{
             ar & modelFilePaths;
             ar & modelTransformations;
             ar & levelname;
+
+            ar & cameraPos;
+            ar & cameraFront;
+            ar & cameraUp;
         }
 };

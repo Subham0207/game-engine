@@ -27,14 +27,14 @@ public:
 		return cameraFront;
 	}
 
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 protected:
 private:
 	void setupView();
 	void setupProjection();
 	void lookAt(glm::vec3 whereToLook);
-	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	unsigned int viewLoc;
 	unsigned int projectionLoc;
 	float fov = 45.0f;

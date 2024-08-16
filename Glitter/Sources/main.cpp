@@ -99,6 +99,10 @@ int main(int argc, char * argv[]) {
 
     //Loading Level -- making .lvl as the extention of my levelfile
     auto lvl = new Level();
+    lvl->camera = clientHandler.camera;
+    lvl->cameraUp = &clientHandler.camera->cameraUp;
+    lvl->cameraFront = &clientHandler.camera->cameraFront;
+    lvl->cameraPos = &clientHandler.camera->cameraPos;
     // if(Level::checkIfLevelFileExists("Levels/Level1.lvl"))
     // {
     //     Level::loadFromFile("Levels/Level1.lvl", *lvl);
