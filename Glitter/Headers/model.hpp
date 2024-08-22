@@ -22,7 +22,10 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/access.hpp>
 #include <serializer.hpp>
+#include <map>
 using boost::archive::archive_flags;
+
+#define MAX_BONE_WEIGHTS 100
 
 unsigned int TextureFromFile(const char* path, std::string filename);
 unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
@@ -87,6 +90,9 @@ public:
         }
     }
 
+    auto& GetBoneInfoMap() { return m_BoneInfoMap; }
+    int& GetBoneCount() { return m_BoneCounter; }    
+
 private:
     // model data
     std::vector<Texture> textureIds;
@@ -104,6 +110,21 @@ private:
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
     void loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
     void Model::calculateBoundingBox(const aiScene* scene);
+    void SetVertexBoneData(Vertex& vertex, int boneID, float weight);
+    void ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
+
+    std::map<std::string, BoneInfo> m_BoneInfoMap;
+    int m_BoneCounter = 0;
+
+
+    void SetVertexBoneDataToDefault(Vertex& vertex)
+    {
+        for (int i = 0; i < MAX_BONE_WEIGHTS; i++)
+        {
+            vertex.m_BoneIDs[i] = -1;
+            vertex.m_Weights[i] = 0.0f;
+        }
+    }
 
 
     friend class boost::serialization::access;

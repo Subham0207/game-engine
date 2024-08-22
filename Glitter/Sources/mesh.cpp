@@ -74,5 +74,15 @@ void Mesh::setupMesh()
     glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Color));
 
+    //TODO: maybe we are missing tangents and bitangents binding here...
+
+    // ids
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
+
+    // weights
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),(void*)offsetof(Vertex, m_Weights));   
+
     glBindVertexArray(0);
 }

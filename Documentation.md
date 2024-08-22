@@ -86,5 +86,13 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
         iii. When loading the level load those models.
         iv. What about the game loop that gets model referenced in LevelFile to render. I think this is why we need a map. And while saving the level file just save the names in an array.
         v. Saving LvlAs working. What else
-            # Save the model locations.
-            # Save the camera position.
+            # Save the model locations. -- done
+            # Save the camera position. -- done
+        vi. create a scenery
+    6. Loading Animation
+        1. Updating our Data structure. Storeing animation data.
+            ## Bone over time applies transformation to vertices in a mesh that it influences.
+                i. Bone Animation and Bone influence of each vertices of a mesh is stored separatly.
+                ii. Bone OffsetMatrix. Vertex moved in bone space.
+            ## Inverse kinematics and Forward Kinematics.
+    7. Physics
