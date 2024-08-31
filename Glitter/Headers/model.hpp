@@ -9,6 +9,7 @@
 #include <assimp/postprocess.h>
 
 #include "stb_image.h"
+#include <AnimData.hpp>
 
 #include "imgui.h"
 #include "ImGuizmo.h"

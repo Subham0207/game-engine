@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 
 #include <shader.hpp>
+#include <Bone.hpp>
 
 #include <serializer.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -17,16 +18,6 @@
 #include <boost/serialization/access.hpp>
 
 #define MAX_BONE_INFLUENCE 4
-
-    struct BoneInfo
-    {
-        /*id is index in finalBoneMatrices*/
-        int id;
-
-        /*offset matrix transforms vertex from model space to bone space*/
-        glm::mat4 offset;
-
-    };
 
     struct Vertex {
         // position

@@ -1,11 +1,12 @@
+#pragma once
 #include "imgui.h"
 #include <vector>
-#include "model.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 #include "state.hpp"
+#include <Animator.hpp>
 
 #include <assimp/scene.h>
 #include <model.hpp>
@@ -14,7 +15,8 @@
 namespace fs = std::filesystem;
 
 enum FileTypeOperation {
-    LoadLvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs
+    LoadLvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs,
+    loadAnimation
 };
 
 class Outliner 
@@ -140,6 +142,17 @@ public:
             showFileDialog = true;
             showOpenButton = true;
             fileTypeOperation = FileTypeOperation::loadModel;
+        }
+        if(ImGui::Button("Load animation for model"))
+        {
+            showFileDialog = true;
+            showOpenButton = true;
+            fileTypeOperation = FileTypeOperation::loadAnimation;
+        }
+        if(ImGui::Button("Play Animation"))
+        {
+            animator.PlayAnimation(danceAnimation);
+            // we need to send the manipulation to mesh
         }
         ImGui::End();
         
@@ -323,6 +336,14 @@ public:
                                     showFileDialog = false;                      
                                 }
                                 break;
+                            case FileTypeOperation::loadAnimation:
+                                {
+                                    if(model != nullptr)
+                                    danceAnimation = new Animation(filePath, model);
+                                    animator = Animator(danceAnimation);
+                                    showFileDialog = false;                      
+                                }
+                                break;
                         
                         default:
                             break;
@@ -439,6 +460,18 @@ public:
         }
     }
 
+    void updateAnimator(float deltatime)
+    {
+        animator.UpdateAnimation(deltatime);
+    }
+
+    void updateFinalBoneMatrix(Shader ourShader)
+    {
+        auto transforms = animator.GetFinalBoneMatrices();
+        for (int i = 0; i < transforms.size(); ++i)
+            ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+    }
+
 private:
     float m = 0;
     std::vector<Model *> *mModels;
@@ -469,6 +502,9 @@ private:
 
 
     std::string error="";
+
+    Animation* danceAnimation;
+    Animator animator;
 
     bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0) {
         // Ensure the buffer is large enough to hold the text

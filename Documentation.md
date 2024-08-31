@@ -59,6 +59,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 4. To convert a point from world space to local space -> inverse(modelMatrix) * vec4(pointInWorldSpace, 1.0);
 5. To convert a point from local space to world space -> modelMatrix * vec4(pointInLocalSpace);
 6. returning after imgui want to capture means that your mouse is probably over a imgui. Note setting leftClick to false when imgui is using inputs helped a ton.
+7. Avoid circular includes or else you will get compile errors like no overload function found that takes n arg.
 
 
 ## How does Level file works

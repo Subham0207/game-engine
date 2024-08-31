@@ -6,11 +6,11 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <Animation.hpp>
-#include <Bone.hpp>
 
 class Animator
 {
 public:
+	Animator(){};
 	Animator(Animation* animation)
 	{
 		m_CurrentTime = 0.0;

@@ -9,6 +9,7 @@
 #include <boost/serialization/access.hpp>
 
 #include <model.hpp>
+#include <Camera.hpp>
 
 namespace fs = std::filesystem;
 

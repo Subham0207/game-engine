@@ -190,6 +190,8 @@ int main(int argc, char * argv[]) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        outliner->updateAnimator(deltaTime);
+
         clientHandler.inputHandler->handleInput(deltaTime);
 
         // Background Fill Color
@@ -227,6 +229,7 @@ int main(int argc, char * argv[]) {
             // lights->spotLights[0].direction = clientHandler.camera->getFront();
             
             //Passing values required by the shader for the lights present in the scene
+            outliner->updateFinalBoneMatrix(*shaders.at(i));
             lights->Render(shaders.at(i)->ID);
             (*models)[i]->Draw(shaders.at(i), mWindow);
         }

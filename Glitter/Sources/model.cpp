@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <filesystem>
-#include <AssimpGLMHelpers.h>
+#include <AssimpGLMHelpers.hpp>
 // using namespace std;
 namespace fs = std::filesystem;
 
@@ -252,8 +252,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vertex.Color = glm::vec4(1.0f,0.0f,0.0f,1.0f);
     }
 
-    ExtractBoneWeightForVertices(vertices,mesh,scene);
-
     vertices.push_back(vertex);
    }
 
@@ -271,6 +269,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // Sample color instead so that will be vertex color
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
+    ExtractBoneWeightForVertices(vertices,mesh,scene);
     return Mesh(vertices, indices, &textureIds);
 }
 

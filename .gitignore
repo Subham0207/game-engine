@@ -1,6 +1,6 @@
 [Bb]uild/
 .vscode/
 imgui.ini
-Glitter/Vendor/*
+Glitter/Vendor
 Glitter/DepsHeaderAndLibs/*
 Assets/
