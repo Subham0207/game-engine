@@ -68,6 +68,16 @@ public:
 
 	std::vector<glm::mat4> GetFinalBoneMatrices()
 	{
+		for (int i = 0; i < 100; i++) {
+		glm::mat4 matrix = m_FinalBoneMatrices[i];
+		std::cout <<"Bone " << i << " Matrix:" << std::endl;
+		for (int row = 0; row < 4; row++) {
+			for (int col = 0; col < 4; col++) {
+				std::cout << matrix[row][col] << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
 		return m_FinalBoneMatrices;
 	}
 

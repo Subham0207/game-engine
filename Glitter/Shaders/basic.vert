@@ -23,6 +23,7 @@ out vec4 Color;
 void main()
 {
     vec4 totalPosition = vec4(0.0f);
+    vec3 totalNormal = vec3(0.0f);
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
         if(aboneIds[i] == -1) 
@@ -35,11 +36,13 @@ void main()
         vec4 localPosition = finalBonesMatrices[aboneIds[i]] * vec4(apos,1.0f);
         totalPosition += localPosition * aWeights[i];
         vec3 localNormal = mat3(finalBonesMatrices[aboneIds[i]]) * aNormal;
+        totalNormal += localNormal * aWeights[i];
     }
 		
     mat4 viewModel = view * model;
     gl_Position =  projection * viewModel * totalPosition;
+	FragPos = vec3(model * totalPosition);
+	Normal = mat3(transpose(inverse(model))) * aNormal;
     TexCoords = aTexCoords;
-    Normal = mat3(transpose(inverse(model))) * aNormal;
 	Color = aColor;
 }

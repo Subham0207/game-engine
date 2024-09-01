@@ -151,7 +151,8 @@ public:
         }
         if(ImGui::Button("Play Animation"))
         {
-            animator.PlayAnimation(danceAnimation);
+            if(animator != nullptr)
+            animator->PlayAnimation(danceAnimation);
             // we need to send the manipulation to mesh
         }
         ImGui::End();
@@ -339,8 +340,9 @@ public:
                             case FileTypeOperation::loadAnimation:
                                 {
                                     if(model != nullptr)
+                                    std::cout << "Number of bones"<< model->GetBoneCount();
                                     danceAnimation = new Animation(filePath, model);
-                                    animator = Animator(danceAnimation);
+                                    animator = new Animator(danceAnimation);
                                     showFileDialog = false;                      
                                 }
                                 break;
@@ -462,14 +464,18 @@ public:
 
     void updateAnimator(float deltatime)
     {
-        animator.UpdateAnimation(deltatime);
+        if(danceAnimation != nullptr || animator != nullptr)
+        animator->UpdateAnimation(deltatime);
     }
 
     void updateFinalBoneMatrix(Shader ourShader)
     {
-        auto transforms = animator.GetFinalBoneMatrices();
-        for (int i = 0; i < transforms.size(); ++i)
-            ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+        if(animator != nullptr)
+        {
+            auto transforms = animator->GetFinalBoneMatrices();
+            for (int i = 0; i < transforms.size(); ++i)
+                ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+        }
     }
 
 private:
@@ -503,8 +509,8 @@ private:
 
     std::string error="";
 
-    Animation* danceAnimation;
-    Animator animator;
+    Animation* danceAnimation = nullptr;
+    Animator* animator = nullptr;
 
     bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0) {
         // Ensure the buffer is large enough to hold the text
