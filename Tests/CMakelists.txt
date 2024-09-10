@@ -1,0 +1,15 @@
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        release-1.11.0
+)
+FetchContent_MakeAvailable(googletest)
+
+# Add the test executable and link it to the GlitterLib library
+add_executable(Test test.cpp)
+
+target_link_libraries(Test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GlitterLib)
+
+# Add test target
+add_test(NAME GlitterTests COMMAND Test)

@@ -18,6 +18,8 @@ option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
 add_subdirectory(Glitter/Vendor/bullet)
 
+enable_testing()
+
 add_definitions(-DNOMINMAX)
 
 if(MSVC)
@@ -94,6 +96,21 @@ target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
                   
                       )
+
+list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/Sources/main.cpp)
+
+add_library(GlitterLib ${PROJECT_SOURCES} ${PROJECT_HEADERS}
+${PROJECT_SHADERS} ${PROJECT_CONFIGS}
+${IMGUI_IMPL_HEADERS} ${IMGUIZMO_IMPL_HEADERS} ${VENDORS_SOURCES})
+
+target_link_libraries(GlitterLib assimp glfw
+                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
+                      BulletDynamics BulletCollision LinearMath
+                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-gd-x64-1_85.lib
+                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
+                  
+                      )
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
@@ -101,3 +118,5 @@ add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Glitter/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})
+
+add_subdirectory(Tests)

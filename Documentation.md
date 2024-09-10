@@ -60,6 +60,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 5. To convert a point from local space to world space -> modelMatrix * vec4(pointInLocalSpace);
 6. returning after imgui want to capture means that your mouse is probably over a imgui. Note setting leftClick to false when imgui is using inputs helped a ton.
 7. Avoid circular includes or else you will get compile errors like no overload function found that takes n arg.
+8. ` error LNK2038: mismatch detected for 'RuntimeLibrary': value 'MTd_StaticDebug' doesn't match value 'MDd_DynamicDebug' in test.obj ( for lots obj against the test.obj ) ........and then at last I get fatal error LNK1169: one or more multiply defined symbols found.` -- The GlitterLib was being built with sources of deps whose libs were already being linked to it. So only the .cpp files for your projects are needed here rest comes from linker. Also make sure in build/cmakecache.txt -- `gtest_force_shared_crt:BOOL=ON`.
 
 
 ## How does Level file works
@@ -97,3 +98,6 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
                 ii. Bone OffsetMatrix. Vertex moved in bone space.
             ## Inverse kinematics and Forward Kinematics.
     7. Physics
+
+## Testing
+    1. Using GoogleTests: https://matgomes.com/integrate-google-test-into-cmake/
