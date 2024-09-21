@@ -1,11 +1,11 @@
-#version 330 core
+#version 420 core
 
 layout (location = 0) in vec3 apos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec4 aColor;
-layout(location = 6) in ivec4 aboneIds; 
-layout(location = 7) in vec4 aWeights;
+layout(location = 4) in ivec4 aboneIds; 
+layout(location = 5) in vec4 aWeights;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -20,10 +20,13 @@ out vec3 FragPos;
 out vec2 TexCoords;
 out vec4 Color;
 
+flat out ivec4 boneIds;
+out vec4 weights;
+
 void main()
 {
-    vec4 totalPosition = vec4(0.0f);
-    vec3 totalNormal = vec3(0.0f);
+    vec4 totalPosition = vec4(apos, 1.0f);
+    vec3 totalNormal = aNormal;
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
         if(aboneIds[i] == -1) 
@@ -45,4 +48,7 @@ void main()
 	Normal = mat3(transpose(inverse(model))) * aNormal;
     TexCoords = aTexCoords;
 	Color = aColor;
+
+    boneIds = aboneIds;
+    weights = aWeights;
 }

@@ -155,6 +155,20 @@ public:
             animator->PlayAnimation(danceAnimation);
             // we need to send the manipulation to mesh
         }
+        if(ImGui::Button("Increment selected bone"))
+        {
+            if(model != nullptr)
+            {
+                selectedBoneId++;
+            }
+        }
+        if(ImGui::Button("Reset selected bone"))
+        {
+            if(model != nullptr)
+            {
+                selectedBoneId = 0;
+            }
+        }
         ImGui::End();
         
         if(showFileDialog)
@@ -470,11 +484,16 @@ public:
 
     void updateFinalBoneMatrix(Shader ourShader)
     {
+        shaderOfSelectedModel = &ourShader;
         if(animator != nullptr)
         {
             auto transforms = animator->GetFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)
                 ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+        }
+        if(model != nullptr)
+        {
+            shaderOfSelectedModel->setInt("displayBoneIndex", selectedBoneId);
         }
     }
 
@@ -495,6 +514,8 @@ private:
     FileTypeOperation fileTypeOperation;
 
     Model* model;
+    Shader* shaderOfSelectedModel;
+    int selectedBoneId = 0;
 
     std::string modelfileName="";
     std::string albedo="";
