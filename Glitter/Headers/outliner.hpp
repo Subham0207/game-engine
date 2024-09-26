@@ -491,6 +491,11 @@ public:
             for (int i = 0; i < transforms.size(); ++i)
                 ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
         }
+        else{
+            //MAXBONES 100
+                for (int i = 0; i < 100; ++i)
+                ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", 1.0f);
+        }
         if(model != nullptr)
         {
             shaderOfSelectedModel->setInt("displayBoneIndex", selectedBoneId);

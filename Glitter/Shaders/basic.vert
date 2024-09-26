@@ -25,8 +25,8 @@ out vec4 weights;
 
 void main()
 {
-    vec4 totalPosition = vec4(apos, 1.0f);
-    vec3 totalNormal = aNormal;
+    vec4 totalPosition = vec4(0.0f);
+    vec3 totalNormal = vec3(0.0f);
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
         if(aboneIds[i] == -1) 
@@ -45,7 +45,7 @@ void main()
     mat4 viewModel = view * model;
     gl_Position =  projection * viewModel * totalPosition;
 	FragPos = vec3(model * totalPosition);
-	Normal = mat3(transpose(inverse(model))) * aNormal;
+	Normal = normalize(mat3(transpose(inverse(model))) * totalNormal);
     TexCoords = aTexCoords;
 	Color = aColor;
 
