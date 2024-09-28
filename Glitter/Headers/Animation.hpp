@@ -34,6 +34,9 @@ public:
 		globalTransformation = globalTransformation.Inverse();
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
 		ReadMissingBones(animation, *model);
+
+		animationName = animationPath.c_str();
+		hasMissingBones = true;
 	}
 
 	~Animation()
@@ -61,7 +64,9 @@ public:
 		return m_BoneInfoMap;
 	}
 
-private:
+	const char* animationName;
+	bool hasMissingBones;
+
 	void ReadMissingBones(const aiAnimation* animation, Model& model)
 	{
 		int size = animation->mNumChannels;
@@ -87,6 +92,7 @@ private:
 		m_BoneInfoMap = boneInfoMap;
 	}
 
+private:
 	void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
 	{
 		assert(src);

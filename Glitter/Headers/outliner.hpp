@@ -9,7 +9,7 @@
 #include <Animator.hpp>
 
 #include <assimp/scene.h>
-#include <model.hpp>
+#include <Character.hpp>
 #include <Level.hpp>
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -149,28 +149,46 @@ public:
             showOpenButton = true;
             fileTypeOperation = FileTypeOperation::loadAnimation;
         }
+        if (ImGui::Combo("Choose an option", &selectedAnimationIndex, animationNames.data(),animationNames.size())) {
+            // Action when the selection changes
+            // std::cout << "Selected: " << animationNames[current_item] << std::endl;
+        }
         if(ImGui::Button("Play Animation"))
         {
-            if(animator != nullptr)
-            animator->PlayAnimation(danceAnimation);
+            if(character->animator != nullptr)
+            character->animator->PlayAnimation(animations[selectedAnimationIndex]);
             // we need to send the manipulation to mesh
         }
         if(ImGui::Button("Increment selected bone"))
         {
-            if(model != nullptr)
+            if(character != nullptr)
             {
                 selectedBoneId++;
             }
         }
         if(ImGui::Button("Reset selected bone"))
         {
-            if(model != nullptr)
+            if(character != nullptr)
             {
                 selectedBoneId = 0;
             }
         }
+        
+        if (ImGui::BeginPopupModal("Warning", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text(errorMessage.c_str());
+            ImGui::Separator();
+
+            if (ImGui::Button("OK")) { 
+                errorMessage = "";
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+        if(errorMessage != "")
+        ImGui::OpenPopup("Warning");
         ImGui::End();
         
+
         if(showFileDialog)
         {
             selectAFile(lvl);
@@ -303,60 +321,67 @@ public:
                             case FileTypeOperation::importModelFile:
                                 {
                                     modelfileName = filePath;
-                                    model = new Model(const_cast<char*>(filePath.c_str()));
-                                    level.addModel(model);     
+                                    character = new Character();
+                                    character->model = new Model(const_cast<char*>(filePath.c_str()));
+                                    level.addModel(character->model);    
                                     showFileDialog = false;                       
                                 }
                                 break;
                             case FileTypeOperation::albedoTexture:
                                 {
                                     albedo = filePath;
-                                    model->LoadTexture(filePath, aiTextureType_DIFFUSE);
+                                    character->model->LoadTexture(filePath, aiTextureType_DIFFUSE);
                                     showFileDialog = false;                      
                                 }
                                 break;
                             case FileTypeOperation::normalTexture:
                                 {
                                     normal = filePath;
-                                    model->LoadTexture(filePath, aiTextureType_NORMALS);
+                                    character->model->LoadTexture(filePath, aiTextureType_NORMALS);
                                     showFileDialog = false;                      
                                 }
                                 break;
                             case FileTypeOperation::metalnessTexture:
                                 {
                                     metalness = filePath;
-                                    model->LoadTexture(filePath, aiTextureType_METALNESS);
+                                    character->model->LoadTexture(filePath, aiTextureType_METALNESS);
                                     showFileDialog = false;                      
                                 }
                                 break;
                             case FileTypeOperation::roughnessTexture:
                                 {
                                     roughness = filePath;
-                                    model->LoadTexture(filePath, aiTextureType_DIFFUSE_ROUGHNESS);
+                                    character->model->LoadTexture(filePath, aiTextureType_DIFFUSE_ROUGHNESS);
                                     showFileDialog = false;                      
                                 }
                                 break;
                             case FileTypeOperation::aoTexture:
                                 {
                                     ao = filePath;
-                                    model->LoadTexture(filePath, aiTextureType_AMBIENT_OCCLUSION);
+                                    character->model->LoadTexture(filePath, aiTextureType_AMBIENT_OCCLUSION);
                                     showFileDialog = false;                      
                                 }
                                 break;
                             case FileTypeOperation::loadModel:
                                 {
-                                    model = new Model();
-                                    Model::loadFromFile(filePath, *model);
-                                    level.addModel(model);
+                                    character->model = new Model();
+                                    Model::loadFromFile(filePath, *character->model);
+                                    level.addModel(character->model);
                                     showFileDialog = false;                      
                                 }
                                 break;
                             case FileTypeOperation::loadAnimation:
                                 {
-                                    if(model != nullptr)
-                                    std::cout << "Number of bones"<< model->GetBoneCount();
-                                    danceAnimation = new Animation(filePath, model);
-                                    animator = new Animator(danceAnimation);
+                                    if(character != NULL)
+                                    {
+                                        auto animation = new Animation(filePath, character->model);
+                                        animations.push_back(animation);
+                                        animationNames.push_back(animation->animationName);
+                                    }
+                                    else
+                                    {
+                                        errorMessage = "Please first Load a model and have it selected before loading an animation";
+                                    }
                                     showFileDialog = false;                      
                                 }
                                 break;
@@ -478,16 +503,16 @@ public:
 
     void updateAnimator(float deltatime)
     {
-        if(danceAnimation != nullptr || animator != nullptr)
-        animator->UpdateAnimation(deltatime);
+        if(selectedAnimationIndex != -1 && character != nullptr && animations.size() != 0)
+        character->animator->UpdateAnimation(deltatime);
     }
 
     void updateFinalBoneMatrix(Shader ourShader)
     {
         shaderOfSelectedModel = &ourShader;
-        if(animator != nullptr)
+        if(character->animator != nullptr)
         {
-            auto transforms = animator->GetFinalBoneMatrices();
+            auto transforms = character->animator->GetFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)
                 ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
         }
@@ -496,7 +521,7 @@ public:
                 for (int i = 0; i < 100; ++i)
                 ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", 1.0f);
         }
-        if(model != nullptr)
+        if(character->model != nullptr)
         {
             shaderOfSelectedModel->setInt("displayBoneIndex", selectedBoneId);
         }
@@ -518,7 +543,7 @@ private:
 
     FileTypeOperation fileTypeOperation;
 
-    Model* model;
+    Character* character = NULL;
     Shader* shaderOfSelectedModel;
     int selectedBoneId = 0;
 
@@ -535,8 +560,11 @@ private:
 
     std::string error="";
 
-    Animation* danceAnimation = nullptr;
-    Animator* animator = nullptr;
+    std::vector<Animation*> animations;
+    std::vector<const char*> animationNames;
+    int selectedAnimationIndex = -1;
+
+    std::string errorMessage = "";
 
     bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0) {
         // Ensure the buffer is large enough to hold the text

@@ -98,6 +98,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
                 i. Bone Animation and Bone influence of each vertices of a mesh is stored separatly.
                 ii. Bone OffsetMatrix. Vertex moved in bone space.
             ## Inverse kinematics and Forward Kinematics.
+    6.1. Character class. Playing different animation based on player input.
     7. Physics
 
 ## Testing

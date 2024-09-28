@@ -10,12 +10,10 @@
 class Animator
 {
 public:
-	Animator(){};
-	Animator(Animation* animation)
+	Animator()
 	{
 		m_CurrentTime = 0.0;
-		m_CurrentAnimation = animation;
-
+		m_CurrentAnimation = NULL;
 		m_FinalBoneMatrices.reserve(100);
 
 		for (int i = 0; i < 100; i++)
@@ -35,6 +33,7 @@ public:
 
 	void PlayAnimation(Animation* pAnimation)
 	{
+		if(pAnimation)
 		m_CurrentAnimation = pAnimation;
 		m_CurrentTime = 0.0f;
 	}
