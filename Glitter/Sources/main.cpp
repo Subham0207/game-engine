@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "outliner.hpp"
+#include <AssetBrowser.hpp>
 
 #include "raypicking.hpp"
 
@@ -176,6 +177,7 @@ int main(int argc, char * argv[]) {
     // Setup Platform/Renderer backends
 
     auto outliner = new Outliner(models);
+    auto assetBrowser = new ProjectAsset::AssetBrowser();
 
     glm::vec3 rayOrigin, rayDir;
 
@@ -191,6 +193,7 @@ int main(int argc, char * argv[]) {
         lastFrame = currentFrame;
 
         outliner->updateAnimator(deltaTime);
+
 
         clientHandler.inputHandler->handleInput(deltaTime);
 
@@ -273,6 +276,7 @@ int main(int argc, char * argv[]) {
 
         //Render the outliner
         outliner->Render(*lvl);
+        assetBrowser->RenderAssetBrowser();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <iostream>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 class State{
 public:
@@ -13,6 +15,8 @@ public:
     glm::vec3 rayEnd;
 
     bool isWorldSpace = true;
+
+    std::string projectRootLocation = fs::current_path().string();
 
     void printMat4(glm::mat4 mat)
     {

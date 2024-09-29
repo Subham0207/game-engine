@@ -267,7 +267,7 @@ public:
             
             if(ImGui::Button("Go to Root of project"))
             {
-               currentPath = projectRootLocation;
+               currentPath = State::state->projectRootLocation;
             }
 
             if(error != "")
@@ -555,16 +555,14 @@ private:
     std::string ao="";
     std::string saveAsFileName = "";
 
-    std::string projectRootLocation = fs::current_path().string();
-
-
     std::string error="";
 
     std::vector<Animation*> animations;
     std::vector<const char*> animationNames;
     int selectedAnimationIndex = -1;
 
-    std::string errorMessage = "";
+    std::string errorMessage = ""; //Duplicate error declaration on lie 588 and 564.
+    // Maybe we can have these at a common place to we can handle them better 
 
     bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0) {
         // Ensure the buffer is large enough to hold the text
