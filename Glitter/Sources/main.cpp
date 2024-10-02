@@ -49,6 +49,13 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severi
     // std::cerr << "GL Callback: " << message << std::endl;
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    // Adjust viewport when the window is resized
+    mWidth = width;
+    mHeight = height;
+    glViewport(0, 0, width, height);
+}
+
 int main(int argc, char * argv[]) {
 
     char cwd[MAX_PATH];
@@ -65,6 +72,13 @@ int main(int argc, char * argv[]) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    mWidth = mode->width;
+    mHeight = mode->height;
     auto mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
 
     // Check for Valid Context
@@ -84,6 +98,9 @@ int main(int argc, char * argv[]) {
     glfwMakeContextCurrent(mWindow);
     gladLoadGL();
     fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
+    
+
+    glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer

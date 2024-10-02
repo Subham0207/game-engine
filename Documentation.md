@@ -98,7 +98,13 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
                 i. Bone Animation and Bone influence of each vertices of a mesh is stored separatly.
                 ii. Bone OffsetMatrix. Vertex moved in bone space.
             ## Inverse kinematics and Forward Kinematics.
-    6.1. Character class. Playing different animation based on player input.
+    6.1. Character class. 
+    6.11. Asset Browser.
+        i. Hover bug: When mouse hover over Imgui UIs, UI elements are getting hovered even when mouse is hidden.
+    6.12. Material Manager.
+    6.2 Loading multiple characters. To manage and fix textures.
+    6.21. Saving Animations, character, etc...
+    6.3 Playing different animation based on player input.
     7. Physics
 
 ## Testing
