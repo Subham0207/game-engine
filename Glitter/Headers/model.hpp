@@ -7,8 +7,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#include "stb_image.h"
 #include <AnimData.hpp>
 
 #include "imgui.h"
@@ -27,9 +25,6 @@
 using boost::archive::archive_flags;
 
 #define MAX_BONE_WEIGHTS 100
-
-unsigned int TextureFromFile(const char* path, std::string filename);
-unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
 
 class Model
 {
@@ -61,35 +56,7 @@ public:
     
     void static saveSerializedModel(std::string filename,  Model &model);
 
-    void static loadFromFile(const std::string &filename, Model &model) {
-
-        try
-        {
-            std::ifstream ifs(filename);
-            boost::archive::text_iarchive ia(ifs);
-            ia >> model;
-        }
-        catch(std::exception &e)
-        {
-            std::cout << "Exception while opening the model file: " << e.what();
-        }
-
-        //Load textures to GPU
-        //Read from the filenames that need to be loaded
-        for (size_t i = 0; i < model.meshes.size(); i++)
-        {
-            //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
-            model.meshes[i].setupMesh();
-            model.meshes[i].textureIds = &model.textureIds;
-        }
-        for (size_t i = 0; i < model.textureIds.size(); i++)
-        {
-            //Just need to generate new textureIds for the texture
-            int width, height, nrComponents;
-            unsigned char* data = stbi_load(model.textureIds[i].name.c_str(), &width, &height, &nrComponents, 0);
-            model.textureIds[i].id = sendTextureToGPU(data, width, height, nrComponents);
-        }
-    }
+    void static loadFromFile(const std::string &filename, Model &model);
 
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
     int& GetBoneCount() { return m_BoneCounter; }    

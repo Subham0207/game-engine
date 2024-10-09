@@ -1,12 +1,13 @@
+#pragma once
 #include "model.hpp"
 #include <iostream>
-#include <stb_image.h>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
 #include <fstream>
 #include <vector>
 #include <filesystem>
 #include <AssimpGLMHelpers.hpp>
+#include <Shared.hpp>
+#include <stb_image.h>
+#include <stb_image_write.h>
 // using namespace std;
 namespace fs = std::filesystem;
 
@@ -128,44 +129,10 @@ void Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureT
     unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData), texture->mWidth, &mWidth, &mheight, &nrComponents, 0);
     auto filename = "Assets/" + fs::path(texture->mFilename.C_Str()).filename().string();
     stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
-    unsigned int textureID = sendTextureToGPU(data, mWidth, mheight, nrComponents);
+    unsigned int textureID = Shared::sendTextureToGPU(data, mWidth, mheight, nrComponents);
     auto filepath = fs::current_path().append(filename).string();
     Texture newTexture(textureID, textureType, filepath);
     textureIds.push_back(newTexture);
-}
-
-unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents){
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, mWidth, mheight, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-        // std::cout << "Opened and loaded " << path << std::endl;
-    }
-    else
-    {
-            std::cerr << "Failed to load texture: "
-              << ", Reason: " << stbi_failure_reason() << std::endl;
-        stbi_image_free(data);
-    }
-    return textureID;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -286,7 +253,7 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
         aiString str;
         if (mat->GetTexture(type, i, &str) == AI_SUCCESS) {
             std::string absoluteTexturePath = "Assets/"+GetAbsoluteTexturePath(directory, str);
-            unsigned int textureId = TextureFromFile(absoluteTexturePath.c_str(), absoluteTexturePath);
+            unsigned int textureId = Shared::TextureFromFile(absoluteTexturePath.c_str(), absoluteTexturePath);
             // textureIds.push_back(textureId);
         }
     }
@@ -347,7 +314,7 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 {
     fs::path fsPath(texturePath);
     std::string filename = "Assets/"+fsPath.filename().string();
-    unsigned int id = TextureFromFile(texturePath.c_str(), filename);
+    unsigned int id = Shared::TextureFromFile(texturePath.c_str(), filename);
     auto filepath = fs::current_path().append(filename).string();
     Texture texture(id, typeName, filepath);
     //Load Texture in GPU. Get the ID.
@@ -357,16 +324,6 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
     {
         textureIds.push_back(texture);
     }
-}
-
-
-unsigned int TextureFromFile(const char* path, std::string filename)
-{
-    int width, height, nrComponents;
-    unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-    stbi_write_png(filename.c_str(), width, height, nrComponents, data, 0);
-    unsigned int textureID = sendTextureToGPU(data, width, height, nrComponents);
-    return textureID;
 }
 
 void Model::SetVertexBoneData(Vertex& vertex, int boneID, float weight)
@@ -413,5 +370,35 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
             assert(vertexId <= vertices.size());
             SetVertexBoneData(vertices[vertexId], boneID, weight);
         }
+    }
+}
+
+void Model::loadFromFile(const std::string &filename, Model &model) {
+
+    try
+    {
+        std::ifstream ifs(filename);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> model;
+    }
+    catch(std::exception &e)
+    {
+        std::cout << "Exception while opening the model file: " << e.what();
+    }
+
+    //Load textures to GPU
+    //Read from the filenames that need to be loaded
+    for (size_t i = 0; i < model.meshes.size(); i++)
+    {
+        //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
+        model.meshes[i].setupMesh();
+        model.meshes[i].textureIds = &model.textureIds;
+    }
+    for (size_t i = 0; i < model.textureIds.size(); i++)
+    {
+        //Just need to generate new textureIds for the texture
+        int width, height, nrComponents;
+        unsigned char* data = stbi_load(model.textureIds[i].name.c_str(), &width, &height, &nrComponents, 0);
+        model.textureIds[i].id = Shared::sendTextureToGPU(data, width, height, nrComponents);
     }
 }

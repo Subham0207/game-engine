@@ -1,6 +1,9 @@
+#pragma once
 #include <AssetBrowser.hpp>
 #include <imgui.h>
 #include <state.hpp>
+#include <Shared.hpp>
+#include <glad/glad.h>
 
 namespace ProjectAsset
 {
@@ -35,28 +38,35 @@ namespace ProjectAsset
                 {
                     for (const auto& asset : assets)
                     {
-                        const bool isSelected = (selectedFile == asset.filename);
-                        if (ImGui::Selectable(asset.filename.c_str(), isSelected))
-                        {
-                            selectedFile = asset.filename;
+                        // const bool isSelected = (selectedFile == asset.filename);
+                        // if (ImGui::Selectable(asset.filename.c_str(), isSelected))
+                        // {
+                        //     selectedFile = asset.filename;
 
-                            // If a directory is selected, navigate into it
-                            if (fs::is_directory(asset.filename))
-                            {
-                                currentPath = asset.filename;
+                        //     // If a directory is selected, navigate into it
+                        //     if (fs::is_directory(asset.filename))
+                        //     {
+                        //         currentPath = asset.filename;
+                        //     }
+                        // }
+                        
+                        GLuint textureID = Shared::TextureFromFile(
+                            "E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_preview.jpg",
+                             "used-stainless-steel2_preview.jpg",
+                              false); // Load your texture from file
+                        ImGui::Image((void*)(intptr_t)textureID, ImVec2(64, 64)); // Display the texture as a thumbnail
+                        ImVec2 size = ImVec2(32.0f, 32.0f);                         // Size of the image we want to make visible
+                        ImVec2 uv0 = ImVec2(0.0f, 0.0f);                            // UV coordinates for lower-left
+                        ImVec2 uv1 = ImVec2(32.0f / 32.0f, 32.0f / 32.0f);    // UV coordinates for (32,32) in our texture
+                        ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);             // Black background
+                        ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);           // No tint
+                        if (ImGui::ImageButton((void*)(intptr_t)textureID, ImVec2(64, 64))) {
+                            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+                                ImGui::SetDragDropPayload("ASSET_PATH", asset.filename.c_str(),  asset.filename.size() + 1);
+                                ImGui::Text("Dragging %s", asset.filename.c_str());
+                                ImGui::EndDragDropSource();
                             }
                         }
-                        
-                        // ImVec2 size = ImVec2(32.0f, 32.0f);                         // Size of the image we want to make visible
-                        // ImVec2 uv0 = ImVec2(0.0f, 0.0f);                            // UV coordinates for lower-left
-                        // ImVec2 uv1 = ImVec2(32.0f / my_tex_w, 32.0f / my_tex_h);    // UV coordinates for (32,32) in our texture
-                        // ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);             // Black background
-                        // ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);           // No tint
-                        // if (ImGui::ImageButton("", my_tex_id, size, uv0, uv1, bg_col, tint_col))
-                        // {
-                            
-                        // }
-
                     }
                     ImGui::EndListBox();
                 }
