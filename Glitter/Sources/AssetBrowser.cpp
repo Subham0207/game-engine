@@ -10,69 +10,94 @@ namespace ProjectAsset
     AssetBrowser::AssetBrowser()
     {
         this->showAssetBrowser = true;
+        currentPath = fs::current_path().string();
+        LoadAssets();
     }
 
     void AssetBrowser::RenderAssetBrowser(){
             if (ImGui::Begin("Asset Browser", &showAssetBrowser))
             {
-                static std::string currentPath = fs::current_path().string();
-                for (const auto& entry : fs::directory_iterator(currentPath))
-                {
-                    auto asset = convertFilenameToAsset(entry);
-                    assets.push_back(*asset);
-                }
-                
                 if(ImGui::Button("Go to Root of project"))
                 {
                 currentPath = State::state->projectRootLocation;
+                LoadAssets();
                 }
 
                 // Up button to go to the parent directory
                 if (ImGui::Button("Up"))
                 {
                     currentPath = fs::path(currentPath).parent_path().string();
+                    LoadAssets();
                 }
 
+                ImVec2 availableSize = ImGui::GetContentRegionAvail();
+                int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
                 // List files and directories
-                if (ImGui::BeginListBox("##Assets", ImVec2(-FLT_MIN, 100)))
+                if (ImGui::BeginChild("AssetGridScrollable", ImVec2(availableSize.x, availableSize.y), false, ImGuiWindowFlags_HorizontalScrollbar))
                 {
-                    for (const auto& asset : assets)
+                    if (ImGui::BeginTable("AssetGridDynamic", itemsPerRow, ImGuiTableFlags_None))
                     {
-                        // const bool isSelected = (selectedFile == asset.filename);
-                        // if (ImGui::Selectable(asset.filename.c_str(), isSelected))
-                        // {
-                        //     selectedFile = asset.filename;
+                        for (int i = 0; i< assets.size();i++)
+                        {
+                            ImGui::TableNextColumn();
 
-                        //     // If a directory is selected, navigate into it
-                        //     if (fs::is_directory(asset.filename))
-                        //     {
-                        //         currentPath = asset.filename;
-                        //     }
-                        // }
-                        
-                        GLuint textureID = Shared::TextureFromFile(
-                            "E:/OpenGL/Models/used-stainless-steel2-ue/used-stainless-steel2-ue/used-stainless-steel2_preview.jpg",
-                             "used-stainless-steel2_preview.jpg",
-                              false); // Load your texture from file
-                        ImGui::Image((void*)(intptr_t)textureID, ImVec2(64, 64)); // Display the texture as a thumbnail
-                        ImVec2 size = ImVec2(32.0f, 32.0f);                         // Size of the image we want to make visible
-                        ImVec2 uv0 = ImVec2(0.0f, 0.0f);                            // UV coordinates for lower-left
-                        ImVec2 uv1 = ImVec2(32.0f / 32.0f, 32.0f / 32.0f);    // UV coordinates for (32,32) in our texture
-                        ImVec4 bg_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);             // Black background
-                        ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);           // No tint
-                        if (ImGui::ImageButton((void*)(intptr_t)textureID, ImVec2(64, 64))) {
-                            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-                                ImGui::SetDragDropPayload("ASSET_PATH", asset.filename.c_str(),  asset.filename.size() + 1);
-                                ImGui::Text("Dragging %s", asset.filename.c_str());
-                                ImGui::EndDragDropSource();
+                            RenderAsset(&assets[i]);
+                            if(ImGui::ImageButton((void*)(intptr_t)assets[i].textureId,
+                            ImVec2(itemSize, itemSize),ImVec2(0,0),ImVec2(1,1),
+                            -1, ImVec4(0,0,0,0),ImVec4(1,1,1,1)))
+                            {
+                                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
+                                    ImGui::SetDragDropPayload("ASSET_PATH", assets[i].filename.c_str(),  assets[i].filename.size() + 1);
+                                    ImGui::Text("Dragging %s", assets[i].filename.c_str());
+                                    ImGui::EndDragDropSource();
+                                }
                             }
+                            ImGui::TextWrapped("%s", assets[i].filename.c_str());
                         }
+                        ImGui::EndTable();
                     }
-                    ImGui::EndListBox();
+
+                    ImGui::EndChild();
                 }
 
                 ImGui::End();
             }
+    }
+    
+    void AssetBrowser::LoadAssets(){
+        for (const auto& entry : fs::directory_iterator(currentPath))
+        {
+            auto asset = convertFilenameToAsset(entry);
+            assets.push_back(*asset);
+        }
+    }
+
+    void AssetBrowser::RenderAsset(Asset* asset)
+    {
+        if(!asset->isTextureIdAssigned)
+        {
+            switch(asset->assetType)
+            {
+                case AssetType::Directory:
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "E:/OpenGL/Glitter/EngineAssets/folder.png",
+                        "folder.png",
+                        false);
+                        break;
+                }
+                default: 
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "E:/OpenGL/Glitter/EngineAssets/unknown.png",
+                        "unknown.png",
+                        false);
+                }
+
+            }
+
+            asset->isTextureIdAssigned = true;
+        }
     }
 
     Asset* convertFilenameToAsset(std::filesystem::directory_entry entry)

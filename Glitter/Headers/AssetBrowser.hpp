@@ -13,11 +13,16 @@ namespace ProjectAsset{
         Directory,
         Model,
         Animation,
+        png,
+        jpg,
+        Unknown
     };
 
     struct Asset{
-        AssetType assetType;
+        AssetType assetType = AssetType::Unknown;
         std::string filename;
+        bool isTextureIdAssigned = false;
+        unsigned int textureId;
     };
 
     Asset* convertFilenameToAsset(fs::directory_entry entry);
@@ -31,8 +36,16 @@ namespace ProjectAsset{
 
         std::vector<Asset> assets;
 
+        std::string currentPath;
+
     private:
         bool showAssetBrowser;
         std::string selectedFile;
+        int itemsPerRow = 4;
+        float padding = 10.0f;
+        float itemSize = 64.0f;
+
+        void LoadAssets();
+        void RenderAsset(Asset* asset);
     };
 }
