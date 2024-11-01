@@ -17,18 +17,25 @@ namespace ProjectAsset
     void AssetBrowser::RenderAssetBrowser(){
             if (ImGui::Begin("Asset Browser", &showAssetBrowser))
             {
+                if(refreshAssetBrowser)
+                {
+                    LoadAssets();
+                    refreshAssetBrowser = false;
+                }
+
                 if(ImGui::Button("Go to Root of project"))
                 {
-                currentPath = State::state->projectRootLocation;
-                LoadAssets();
+                    currentPath = State::state->projectRootLocation;
+                    refreshAssetBrowser = true;
                 }
 
                 // Up button to go to the parent directory
                 if (ImGui::Button("Up"))
                 {
                     currentPath = fs::path(currentPath).parent_path().string();
-                    LoadAssets();
+                    refreshAssetBrowser = true;
                 }
+
 
                 ImVec2 availableSize = ImGui::GetContentRegionAvail();
                 int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
@@ -46,9 +53,16 @@ namespace ProjectAsset
                             ImVec2(itemSize, itemSize),ImVec2(0,0),ImVec2(1,1),
                             -1, ImVec4(0,0,0,0),ImVec4(1,1,1,1)))
                             {
+                                if(assets[i].assetType == AssetType::Directory)
+                                {
+                                    std::cout << "Directory clicked" << std::endl;
+                                    currentPath = fs::path(assets[i].filepath).string();
+                                    refreshAssetBrowser = true;
+                                }
+
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
-                                    ImGui::SetDragDropPayload("ASSET_PATH", assets[i].filename.c_str(),  assets[i].filename.size() + 1);
-                                    ImGui::Text("Dragging %s", assets[i].filename.c_str());
+                                    ImGui::SetDragDropPayload("ASSET_PATH", assets[i].filepath.c_str(),  assets[i].filepath.size() + 1);
+                                    ImGui::Text("Dragging %s", assets[i].filepath.c_str());
                                     ImGui::EndDragDropSource();
                                 }
                             }
@@ -65,6 +79,7 @@ namespace ProjectAsset
     }
     
     void AssetBrowser::LoadAssets(){
+        assets.clear();
         for (const auto& entry : fs::directory_iterator(currentPath))
         {
             auto asset = convertFilenameToAsset(entry);
@@ -106,11 +121,14 @@ namespace ProjectAsset
         if(entry.is_directory())
         {
             asset->assetType = AssetType::Directory;
-            asset->filename = entry.path().string();
+            asset->filepath = entry.path().string();
+            asset->filename = entry.path().filename().string();
             return asset;
         }
 
-        asset->filename = entry.path().stem().string();
+        // asset->filename = entry.path().stem().string();
+        asset->filepath = entry.path().string();
+        asset->filename = entry.path().filename().string();
         auto extension = entry.path().extension().string();
         if(extension == "model")
         {

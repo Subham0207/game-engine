@@ -20,6 +20,7 @@ namespace ProjectAsset{
 
     struct Asset{
         AssetType assetType = AssetType::Unknown;
+        std::string filepath;
         std::string filename;
         bool isTextureIdAssigned = false;
         unsigned int textureId;
@@ -37,6 +38,7 @@ namespace ProjectAsset{
         std::vector<Asset> assets;
 
         std::string currentPath;
+        bool refreshAssetBrowser = false;
 
     private:
         bool showAssetBrowser;
