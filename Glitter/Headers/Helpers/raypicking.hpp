@@ -1,10 +1,10 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/intersect.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/intersect.hpp"
 #include <vector>
-#include "Model.hpp"
+#include "3DModel/model.hpp"
 #include "imgui.h"
 
 #ifdef max
@@ -12,14 +12,14 @@
 #endif
 #include <limits>
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 
-#include <Input.hpp>
+#include "Controls/Input.hpp"
 
-#include <glitter.hpp>
+#include "Helpers/glitter.hpp"
 
-#include <state.hpp>
+#include "state.hpp"
 
 void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int shaderId){
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include<glm/glm.hpp>
+#include"../../../Vendor/glm/glm/glm.hpp"
 
 struct BoneInfo
 {

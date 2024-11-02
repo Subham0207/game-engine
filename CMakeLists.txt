@@ -47,7 +47,7 @@ include_directories(Glitter/Headers/
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
-file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
+file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp Glitter/main.cpp)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
                           Glitter/Shaders/*.geom
@@ -97,7 +97,7 @@ target_link_libraries(${PROJECT_NAME} assimp glfw
                   
                       )
 
-list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/Sources/main.cpp)
+list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/main.cpp)
 
 add_library(GlitterLib ${PROJECT_SOURCES} ${PROJECT_HEADERS}
 ${PROJECT_SHADERS} ${PROJECT_CONFIGS}

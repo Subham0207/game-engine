@@ -1,4 +1,4 @@
-#include "shared.hpp"
+#include "Helpers/Shared.hpp"
 #include <iostream>
 #include <stb_image.h>
 #include <stb_image_write.h>

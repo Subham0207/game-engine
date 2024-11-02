@@ -1,11 +1,11 @@
 #pragma once
-#include "model.hpp"
+#include "3DModel/model.hpp"
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <filesystem>
-#include <AssimpGLMHelpers.hpp>
-#include <Shared.hpp>
+#include "Helpers/AssimpGLMHelpers.hpp"
+#include "Helpers/Shared.hpp"
 #include <stb_image.h>
 #include <stb_image_write.h>
 // using namespace std;

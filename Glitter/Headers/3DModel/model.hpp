@@ -1,26 +1,26 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <shader.hpp>
-#include <mesh.hpp>
+#include "Helpers/shader.hpp"
+#include "mesh.hpp"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <AnimData.hpp>
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
+#include "3DModel/Skeleton/AnimData.hpp"
 
 #include "imgui.h"
 #include "ImGuizmo.h"
 
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/access.hpp>
-#include <serializer.hpp>
+#include "boost/archive/text_oarchive.hpp"
+#include "boost/archive/text_iarchive.hpp"
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/string.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/access.hpp"
+#include "serializer.hpp"
 #include <map>
 using boost::archive::archive_flags;
 

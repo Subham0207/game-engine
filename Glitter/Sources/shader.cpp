@@ -1,4 +1,4 @@
-#include "shader.hpp"
+#include "Helpers/shader.hpp"
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {

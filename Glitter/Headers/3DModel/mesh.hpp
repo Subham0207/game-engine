@@ -1,21 +1,21 @@
 #pragma once 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include <string>
 #include <vector>
 
-#include <assimp/scene.h>
+#include "assimp/scene.h"
 
-#include <shader.hpp>
-#include <Bone.hpp>
+#include "Helpers/shader.hpp"
+#include "3DModel/Skeleton/Bone.hpp"
 
-#include <serializer.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/access.hpp>
+#include "serializer.hpp"
+#include "boost/archive/text_oarchive.hpp"
+#include "boost/archive/text_iarchive.hpp"
+#include "boost/serialization/serialization.hpp"
+#include "boost/serialization/string.hpp"
+#include "boost/serialization/access.hpp"
 
 #define MAX_BONE_INFLUENCE 4
 

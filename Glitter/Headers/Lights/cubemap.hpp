@@ -1,7 +1,7 @@
 #pragma once
 #include "stb_image.h"
 #include <iostream>
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 
 class CubeMap{
 public:

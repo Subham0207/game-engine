@@ -1,5 +1,5 @@
 // Local Headers
-#include "glitter.hpp"
+#include "Helpers/glitter.hpp"
 
 // System Headers
 #include <glad/glad.h>
@@ -10,27 +10,27 @@
 #include <cstdlib>
 #include <windows.h>
 
-#include <shader.hpp>
-#include <Input.hpp>
-#include <Camera.hpp>
-#include <light.hpp>
+#include "Helpers/shader.hpp"
+#include "Controls/Input.hpp"
+#include "Camera/Camera.hpp"
+#include "Lights/light.hpp"
 
-#include "model.hpp"
+#include "3DModel/model.hpp"
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include <vector>
 
-#include "outliner.hpp"
-#include <AssetBrowser.hpp>
+#include "UI/outliner.hpp"
+#include "UI/AssetBrowser.hpp"
 
-#include "raypicking.hpp"
+#include "Helpers/raypicking.hpp"
 
 #include <state.hpp>
-#include "cubemap.hpp"
-#include <Level.hpp>
+#include "Lights/cubemap.hpp"
+#include "Level/Level.hpp"
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame

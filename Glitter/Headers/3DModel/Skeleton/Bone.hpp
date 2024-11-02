@@ -3,12 +3,12 @@
 /* Container for bone data */
 
 #include <vector>
-#include <assimp/scene.h>
+#include "assimp/scene.h"
 #include <list>
-#include <glm/glm.hpp>
+#include "../../../Vendor/glm/glm/glm.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <AssimpGLMHelpers.hpp>
+#include "../../../Vendor/glm/glm/gtx/quaternion.hpp"
+#include "../../Helpers/AssimpGLMHelpers.hpp"
 
 struct KeyPosition
 {

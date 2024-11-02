@@ -1,8 +1,8 @@
 #pragma once
-#include <AssetBrowser.hpp>
+#include "UI/AssetBrowser.hpp"
 #include <imgui.h>
 #include <state.hpp>
-#include <Shared.hpp>
+#include "Helpers/Shared.hpp"
 #include <glad/glad.h>
 
 namespace ProjectAsset

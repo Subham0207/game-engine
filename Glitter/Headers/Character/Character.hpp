@@ -1,8 +1,8 @@
 #pragma once
-#include <model.hpp>
-#include <Animator.hpp>
-#include <Camera.hpp>
-#include <glm/glm.hpp>                                                                           
+#include "3DModel/model.hpp"
+#include "3DModel/Animation/Animator.hpp"
+#include "Camera/Camera.hpp"
+#include "glm/glm.hpp"
 
 class Character
 {

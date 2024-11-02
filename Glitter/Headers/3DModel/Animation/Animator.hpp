@@ -1,11 +1,11 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "../../../Vendor/glm/glm/glm.hpp"
 #include <map>
 #include <vector>
-#include <assimp/scene.h>
-#include <assimp/Importer.hpp>
-#include <Animation.hpp>
+#include "assimp/scene.h"
+#include "assimp/Importer.hpp"
+#include "Animation.hpp"
 
 class Animator
 {

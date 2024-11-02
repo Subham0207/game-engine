@@ -2,12 +2,12 @@
 
 #include <vector>
 #include <map>
-#include <glm/glm.hpp>
-#include <assimp/scene.h>
-#include <Bone.hpp>
+#include "../../../Vendor/glm/glm/glm.hpp"
+#include "assimp/scene.h"
+#include "3DModel/Skeleton/Bone.hpp"
 #include <functional>
-#include <AnimData.hpp>
-#include <model.hpp>
+#include "3DModel/Skeleton/AnimData.hpp"
+#include "../model.hpp"
 
 struct AssimpNodeData
 {

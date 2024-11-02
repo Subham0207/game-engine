@@ -1,16 +1,16 @@
 #pragma once
 #include "imgui.h"
 #include <vector>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/matrix_decompose.hpp>
+#include "glm/gtx/matrix_decompose.hpp"
 #include "state.hpp"
-#include <Animator.hpp>
+#include "3DModel/Animation/Animator.hpp"
 
-#include <assimp/scene.h>
-#include <Character.hpp>
-#include <Level.hpp>
+#include "assimp/scene.h"
+#include "Character/Character.hpp"
+#include "Level/Level.hpp"
 #include <filesystem>
 namespace fs = std::filesystem;
 
