@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <UIState/UIState.hpp>
 

@@ -35,6 +35,4 @@ public:
     ProjectAsset::UIState uiState;
 };
 
-ProjectAsset::UIState& getUIState(){
-    return State::state->uiState;
-}
+ProjectAsset::UIState& getUIState();

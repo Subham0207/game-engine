@@ -5,7 +5,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/matrix_decompose.hpp"
-#include "state.hpp"
+#include "EngineState.hpp"
 #include "3DModel/Animation/Animator.hpp"
 
 #include "assimp/scene.h"
@@ -122,11 +122,11 @@ public:
             getUIState().fileExtension = ".lvl";
             getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::LoadLvlFile;
         }
-        if(ImGui::Button("Import a ModelType"))
+        if(ImGui::Button("Import a Model"))
         {
             getUIState().loadModelWindow = true;
         }
-        if(ImGui::Button("Save a ModelType"))
+        if(ImGui::Button("Save a Model"))
         {
             //Get selected index of the model
             //open UI to enter name of the model
@@ -135,7 +135,7 @@ public:
             getUIState().showOpenButton = false;
             getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::saveModel;
         }
-        if(ImGui::Button("Load a ModelType"))
+        if(ImGui::Button("Load a Model"))
         {
             getUIState().showFileDialog = true;
             getUIState().showOpenButton = true;
@@ -182,7 +182,7 @@ public:
             }
             ImGui::EndPopup();
         }
-        if(State::state->errorStack.LastElement() != "")
+        if(State::state->errorStack.size() != 0)
         ImGui::OpenPopup("Warning");
         ImGui::End();
         
@@ -268,7 +268,7 @@ public:
                currentPath = State::state->projectRootLocation;
             }
 
-            if(State::state->errorStack.LastElement() != "")
+            if(State::state->errorStack.size() != 0)
             ImGui::TextColored(ImVec4(1,0,0,1), State::state->errorStack.LastElement().c_str());
 
             // Up button to go to the parent directory

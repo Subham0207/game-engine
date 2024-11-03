@@ -19,7 +19,7 @@
 
 #include "Helpers/glitter.hpp"
 
-#include "state.hpp"
+#include "EngineState.hpp"
 
 void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int shaderId){
 

@@ -1,6 +1,7 @@
+#pragma once
 #include "UI/FileExplorer.hpp"
 #include <imgui.h>
-#include "state.hpp"
+#include "EngineState.hpp"
 #include <filesystem>
 namespace fs = std::filesystem;
 

@@ -28,7 +28,7 @@
 
 #include "Helpers/raypicking.hpp"
 
-#include <state.hpp>
+#include <EngineState.hpp>
 #include "Lights/cubemap.hpp"
 #include "Level/Level.hpp"
 
@@ -184,7 +184,7 @@ int main(int argc, char * argv[]) {
 
     // Setup Platform/Renderer backends
 
-    auto outliner = new Outliner(models);
+    auto outliner = new Outliner(*models);
     auto assetBrowser = new ProjectAsset::AssetBrowser();
 
     glm::vec3 rayOrigin, rayDir;
