@@ -132,11 +132,11 @@ namespace ProjectAsset
         auto extension = entry.path().extension().string();
         if(extension == "model")
         {
-            asset->assetType = AssetType::Model;
+            asset->assetType = AssetType::ModelType;
         }
         if(extension == "anim")
         {
-            asset->assetType = AssetType::Animation;
+            asset->assetType = AssetType::AnimationType;
         }
 
         return asset;

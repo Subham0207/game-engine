@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <iostream>
+#include "Helpers/LimitedVector.hpp"
+#include "UIState/UIState.hpp"
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -25,4 +27,14 @@ public:
         std::cout << "mat[2]: " << mat[2][0] <<" "<< mat[2][1] <<" "<< mat[2][2] << " " << mat[2][3] << std::endl;
         std::cout << "mat[3]: " << mat[3][0] <<" "<< mat[3][1] <<" "<< mat[3][2] << " " << mat[3][3] << std::endl;
     }
+
+    LimitedVector<std::string> errorStack = LimitedVector<std::string>(1000);
+    LimitedVector<std::string> warningStack = LimitedVector<std::string>(1000);
+    LimitedVector<std::string> successStack = LimitedVector<std::string>(1000);
+
+    ProjectAsset::UIState uiState;
 };
+
+ProjectAsset::UIState& getUIState(){
+    return State::state->uiState;
+}

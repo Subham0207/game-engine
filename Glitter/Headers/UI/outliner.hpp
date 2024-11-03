@@ -14,17 +14,15 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-enum FileTypeOperation {
-    LoadLvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs,
-    loadAnimation
-};
 
 class Outliner 
 {
 public:
     // Constructor
-    Outliner(std::vector<Model *> *models) : mModels(models), selectedModelIndex(-1) {
+    Outliner(std::vector<Model *> models) {
         // Initialize the items array or any other setup needed
+        getUIState().models = models;
+        getUIState().selectedModelIndex = -1;
     }
 
     // Render the radio buttons
@@ -41,30 +39,30 @@ public:
             //POP up another window to give the lvl file a name and save perhaps ?
             //give level a name
             //choose the directory
-            saveAsFileName = "";
-            showFileDialog = true;
-            showOpenButton = false;
-            fileTypeOperation = FileTypeOperation::saveLevelAs;
+            getUIState().saveAsFileName = "";
+            getUIState().showFileDialog = true;
+            getUIState().showOpenButton = false;
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::saveLevelAs;
         }
 
 
         ImGui::Text("Coordinate space");
-        if (ImGui::RadioButton("World space",&coordinateSpace,0)) {
+        if (ImGui::RadioButton("World space",&getUIState().coordinateSpace,0)) {
             State::state->isWorldSpace = true;
         }
-        if (ImGui::RadioButton("Local space",&coordinateSpace,1)) {
+        if (ImGui::RadioButton("Local space",&getUIState().coordinateSpace,1)) {
             State::state->isWorldSpace = true;
         }
 
         ImGui::NewLine();
 
-        for (int i = 0; i < mModels->size(); ++i) {
+        for (int i = 0; i < getUIState().models.size(); ++i) {
             // Optionally, push style changes here if you want to customize appearance
             // Render the radio button
             // The label for each button could be customized further if needed
-            std::string name = (*mModels)[i]->getName();
+            std::string name = (getUIState().models)[i]->getName();
             name+=std::to_string(i);
-            if (ImGui::RadioButton( name.c_str(), &selectedModelIndex, i)) {
+            if (ImGui::RadioButton( name.c_str(), &getUIState().selectedModelIndex, i)) {
             }
             // Optionally, pop style changes here if you made any
         }
@@ -73,9 +71,9 @@ public:
 
         //Show transformation of the selected model
         ImGui::PushItemWidth(40);
-        if(selectedModelIndex > -1)
+        if(getUIState().selectedModelIndex > -1)
         {
-            glm::mat4& modelMatrix = (*mModels)[selectedModelIndex]->model;
+            glm::mat4& modelMatrix = (getUIState().models)[getUIState().selectedModelIndex]->model;
             glm::vec3 scale, rotation, translation, skew;
             glm::vec4 perspective;
             glm::quat orientation;
@@ -119,98 +117,98 @@ public:
         }
         if(ImGui::Button("Load a level"))
         {
-            showFileDialog = true;
-            showOpenButton = true;
-            fileExtension = ".lvl";
-            fileTypeOperation = FileTypeOperation::LoadLvlFile;
+            getUIState().showFileDialog = true;
+            getUIState().showOpenButton = true;
+            getUIState().fileExtension = ".lvl";
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::LoadLvlFile;
         }
-        if(ImGui::Button("Import a Model"))
+        if(ImGui::Button("Import a ModelType"))
         {
-            loadModelWindow = true;
+            getUIState().loadModelWindow = true;
         }
-        if(ImGui::Button("Save a Model"))
+        if(ImGui::Button("Save a ModelType"))
         {
             //Get selected index of the model
             //open UI to enter name of the model
             //call saveModel function
-            showFileDialog = true;
-            showOpenButton = false;
-            fileTypeOperation = FileTypeOperation::saveModel;
+            getUIState().showFileDialog = true;
+            getUIState().showOpenButton = false;
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::saveModel;
         }
-        if(ImGui::Button("Load a Model"))
+        if(ImGui::Button("Load a ModelType"))
         {
-            showFileDialog = true;
-            showOpenButton = true;
-            fileTypeOperation = FileTypeOperation::loadModel;
+            getUIState().showFileDialog = true;
+            getUIState().showOpenButton = true;
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::loadModel;
         }
         if(ImGui::Button("Load animation for model"))
         {
-            showFileDialog = true;
-            showOpenButton = true;
-            fileTypeOperation = FileTypeOperation::loadAnimation;
+            getUIState().showFileDialog = true;
+            getUIState().showOpenButton = true;
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::loadAnimation;
         }
-        if (ImGui::Combo("Choose an option", &selectedAnimationIndex, animationNames.data(),animationNames.size())) {
+        if (ImGui::Combo("Choose an option", &getUIState().selectedAnimationIndex, getUIState().animationNames.data(),getUIState().animationNames.size())) {
             // Action when the selection changes
             // std::cout << "Selected: " << animationNames[current_item] << std::endl;
         }
-        if(ImGui::Button("Play Animation"))
+        if(ImGui::Button("Play AnimationType"))
         {
-            if(character->animator != nullptr)
-            character->animator->PlayAnimation(animations[selectedAnimationIndex]);
+            if(getUIState().character->animator != nullptr)
+            getUIState().character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
             // we need to send the manipulation to mesh
         }
         if(ImGui::Button("Increment selected bone"))
         {
-            if(character != nullptr)
+            if(getUIState().character != nullptr)
             {
-                selectedBoneId++;
+                getUIState().selectedBoneId++;
             }
         }
         if(ImGui::Button("Reset selected bone"))
         {
-            if(character != nullptr)
+            if(getUIState().character != nullptr)
             {
-                selectedBoneId = 0;
+                getUIState().selectedBoneId = 0;
             }
         }
         
         if (ImGui::BeginPopupModal("Warning", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text(errorMessage.c_str());
+            ImGui::Text(State::state->errorStack.LastElement().c_str());
             ImGui::Separator();
 
             if (ImGui::Button("OK")) { 
-                errorMessage = "";
+                State::state->errorStack.LastElement() = "";
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
-        if(errorMessage != "")
+        if(State::state->errorStack.LastElement() != "")
         ImGui::OpenPopup("Warning");
         ImGui::End();
         
 
-        if(showFileDialog)
+        if(getUIState().showFileDialog)
         {
             selectAFile(lvl);
         }
 
-        if(loadModelWindow)
+        if(getUIState().loadModelWindow)
         {
             ModelAndTextureSelectionWindow();
         }
 
-        if(isFirstFrame){
+        if(getUIState().isFirstFrame){
         ImGui::SetWindowFocus(false);
-        isFirstFrame = false;
+        getUIState().isFirstFrame = false;
         }
     }
 
     // Get the index of the currently selected radio button
     int GetSelectedIndex() const {
-        return selectedModelIndex;
+        return getUIState().selectedModelIndex;
     }
     void setSelectedIndex(int newSelectedIndex){
-    selectedModelIndex = newSelectedIndex;
+    getUIState().selectedModelIndex = newSelectedIndex;
     }
 
     void applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, bool isLocal) 
@@ -254,7 +252,7 @@ public:
         static std::string currentPath = fs::current_path().string();
 
         
-        if (ImGui::Begin("File Dialog", &showFileDialog))
+        if (ImGui::Begin("File Dialog", &getUIState().showFileDialog))
         {
 
             for (const auto& entry : fs::directory_iterator(currentPath))
@@ -270,8 +268,8 @@ public:
                currentPath = State::state->projectRootLocation;
             }
 
-            if(error != "")
-            ImGui::TextColored(ImVec4(1,0,0,1), error.c_str());
+            if(State::state->errorStack.LastElement() != "")
+            ImGui::TextColored(ImVec4(1,0,0,1), State::state->errorStack.LastElement().c_str());
 
             // Up button to go to the parent directory
             if (ImGui::Button("Up"))
@@ -284,10 +282,10 @@ public:
             {
                 for (const auto& file : fileNames)
                 {
-                    const bool isSelected = (filePath == file);
+                    const bool isSelected = (getUIState().filePath == file);
                     if (ImGui::Selectable(file.c_str(), isSelected))
                     {
-                        filePath = file;
+                        getUIState().filePath = file;
 
                         // If a directory is selected, navigate into it
                         if (fs::is_directory(file))
@@ -300,89 +298,89 @@ public:
             }
 
             // Show selected file path
-            if(showOpenButton)
-            ImGui::Text("Selected File: %s", filePath.c_str());
+            if(getUIState().showOpenButton)
+            ImGui::Text("Selected File: %s", getUIState().filePath.c_str());
 
             // Open file button
-            if(showOpenButton)
+            if(getUIState().showOpenButton)
             {
                 if (ImGui::Button("Open"))
                 {
-                    if (!fs::is_directory(filePath))
+                    if (!fs::is_directory(getUIState().filePath))
                     {
-                        switch (fileTypeOperation)
+                        switch (getUIState().fileTypeOperation)
                         {
-                            case FileTypeOperation::LoadLvlFile:
+                            case ProjectAsset::FileTypeOperation::LoadLvlFile:
                                 {
-                                    Level::loadFromFile(filePath, level);
-                                    showFileDialog = false;
+                                    Level::loadFromFile(getUIState().filePath, level);
+                                    getUIState().showFileDialog = false;
                                 }
                                 break;
-                            case FileTypeOperation::importModelFile:
+                            case ProjectAsset::FileTypeOperation::importModelFile:
                                 {
-                                    modelfileName = filePath;
-                                    character = new Character();
-                                    character->model = new Model(const_cast<char*>(filePath.c_str()));
-                                    level.addModel(character->model);    
-                                    showFileDialog = false;                       
+                                    getUIState().modelfileName = getUIState().filePath;
+                                    getUIState().character = new Character();
+                                    getUIState().character->model = new Model(const_cast<char*>(getUIState().filePath.c_str()));
+                                    level.addModel(getUIState().character->model);    
+                                    getUIState().showFileDialog = false;                       
                                 }
                                 break;
-                            case FileTypeOperation::albedoTexture:
+                            case ProjectAsset::FileTypeOperation::albedoTexture:
                                 {
-                                    albedo = filePath;
-                                    character->model->LoadTexture(filePath, aiTextureType_DIFFUSE);
-                                    showFileDialog = false;                      
+                                    getUIState().albedo = getUIState().filePath;
+                                    getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeOperation::normalTexture:
+                            case ProjectAsset::FileTypeOperation::normalTexture:
                                 {
-                                    normal = filePath;
-                                    character->model->LoadTexture(filePath, aiTextureType_NORMALS);
-                                    showFileDialog = false;                      
+                                    getUIState().normal = getUIState().filePath;
+                                    getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeOperation::metalnessTexture:
+                            case ProjectAsset::FileTypeOperation::metalnessTexture:
                                 {
-                                    metalness = filePath;
-                                    character->model->LoadTexture(filePath, aiTextureType_METALNESS);
-                                    showFileDialog = false;                      
+                                    getUIState().metalness = getUIState().filePath;
+                                    getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeOperation::roughnessTexture:
+                            case ProjectAsset::FileTypeOperation::roughnessTexture:
                                 {
-                                    roughness = filePath;
-                                    character->model->LoadTexture(filePath, aiTextureType_DIFFUSE_ROUGHNESS);
-                                    showFileDialog = false;                      
+                                    getUIState().roughness = getUIState().filePath;
+                                    getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeOperation::aoTexture:
+                            case ProjectAsset::FileTypeOperation::aoTexture:
                                 {
-                                    ao = filePath;
-                                    character->model->LoadTexture(filePath, aiTextureType_AMBIENT_OCCLUSION);
-                                    showFileDialog = false;                      
+                                    getUIState().ao = getUIState().filePath;
+                                    getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeOperation::loadModel:
+                            case ProjectAsset::FileTypeOperation::loadModel:
                                 {
-                                    character->model = new Model();
-                                    Model::loadFromFile(filePath, *character->model);
-                                    level.addModel(character->model);
-                                    showFileDialog = false;                      
+                                    getUIState().character->model = new Model();
+                                    Model::loadFromFile(getUIState().filePath, *getUIState().character->model);
+                                    level.addModel(getUIState().character->model);
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
-                            case FileTypeOperation::loadAnimation:
+                            case ProjectAsset::FileTypeOperation::loadAnimation:
                                 {
-                                    if(character != NULL)
+                                    if(getUIState().character != NULL)
                                     {
-                                        auto animation = new Animation(filePath, character->model);
-                                        animations.push_back(animation);
-                                        animationNames.push_back(animation->animationName);
+                                        auto animation = new Animation(getUIState().filePath, getUIState().character->model);
+                                        getUIState().animations.push_back(animation);
+                                        getUIState().animationNames.push_back(animation->animationName);
                                     }
                                     else
                                     {
-                                        errorMessage = "Please first Load a model and have it selected before loading an animation";
+                                        State::state->errorStack.LastElement() = "Please first Load a model and have it selected before loading an animation";
                                     }
-                                    showFileDialog = false;                      
+                                    getUIState().showFileDialog = false;                      
                                 }
                                 break;
                         
@@ -394,29 +392,29 @@ public:
 
             }
 
-            if(!showOpenButton)
+            if(!getUIState().showOpenButton)
             {
-                switch(fileTypeOperation)
+                switch(getUIState().fileTypeOperation)
                 {
-                    case FileTypeOperation::saveLevelAs: {
-                        InputText("##Filename", saveAsFileName);
+                    case ProjectAsset::FileTypeOperation::saveLevelAs: {
+                        InputText("##Filename", getUIState().saveAsFileName);
                         if (ImGui::Button("Save"))
                         {
-                            level.levelname = saveAsFileName;
-                            Level::saveToFile("Assets/" + saveAsFileName, level);
-                            showFileDialog = false;
+                            level.levelname = getUIState().saveAsFileName;
+                            Level::saveToFile("Assets/" + getUIState().saveAsFileName, level);
+                            getUIState().showFileDialog = false;
                         }
                     }
                     break;
 
-                    case FileTypeOperation::saveModel: {
-                        InputText("##Filename", saveAsFileName);
+                    case ProjectAsset::FileTypeOperation::saveModel: {
+                        InputText("##Filename", getUIState().saveAsFileName);
                         if (ImGui::Button("Save"))
                         {
-                            auto model = mModels->at(selectedModelIndex);
-                            Model::saveSerializedModel("Assets/" + saveAsFileName, *model);
+                            auto model = getUIState().models[getUIState().selectedModelIndex];
+                            Model::saveSerializedModel("Assets/" + getUIState().saveAsFileName, *model);
                             //Recurrsively call save texture on the texture method ?
-                            showFileDialog = false;
+                            getUIState().showFileDialog = false;
                         }
                     }
                     break;
@@ -429,72 +427,72 @@ public:
 
     void ModelAndTextureSelectionWindow()
     {
-        if(ImGui::Begin("Load Model", &loadModelWindow))
+        if(ImGui::Begin("Import ModelType", &getUIState().loadModelWindow))
         {   
-            ImGui::Text("Model");
+            ImGui::Text("ModelType");
             ImGui::SameLine();
-            ImGui::Text("%s", modelfileName.c_str());
+            ImGui::Text("%s", getUIState().modelfileName.c_str());
             ImGui::SameLine();
             if(ImGui::Button("Browse##1"))
             {
-                showFileDialog = true;
-                showOpenButton = true;
-                fileTypeOperation = FileTypeOperation::importModelFile;
+                getUIState().showFileDialog = true;
+                getUIState().showOpenButton = true;
+                getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importModelFile;
             }
 
             ImGui::Text("Albedo");
             ImGui::SameLine();
-            ImGui::Text("%s", albedo.c_str());
+            ImGui::Text("%s", getUIState().albedo.c_str());
             ImGui::SameLine();
             if(ImGui::Button("Browse##2"))
             {
-                showFileDialog = true;
-                showOpenButton = true;
-                fileTypeOperation = FileTypeOperation::albedoTexture;
+                getUIState().showFileDialog = true;
+                getUIState().showOpenButton = true;
+                getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::albedoTexture;
             }
 
             ImGui::Text("Normal");
             ImGui::SameLine();
-            ImGui::Text("%s", normal.c_str());
+            ImGui::Text("%s", getUIState().normal.c_str());
             ImGui::SameLine();
             if(ImGui::Button("Browse##3"))
             {
-                showFileDialog = true;
-                showOpenButton = true;
-                fileTypeOperation = FileTypeOperation::normalTexture;
+                getUIState().showFileDialog = true;
+                getUIState().showOpenButton = true;
+                getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::normalTexture;
             }
 
             ImGui::Text("Metalness");
             ImGui::SameLine();
-            ImGui::Text("%s", metalness.c_str());
+            ImGui::Text("%s", getUIState().metalness.c_str());
             ImGui::SameLine();
             if(ImGui::Button("Browse##5"))
             {
-                showFileDialog = true;
-                showOpenButton = true;
-                fileTypeOperation = FileTypeOperation::metalnessTexture;
+                getUIState().showFileDialog = true;
+                getUIState().showOpenButton = true;
+                getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::metalnessTexture;
             }
 
             ImGui::Text("Roughness");
             ImGui::SameLine();
-            ImGui::Text("%s", roughness.c_str());
+            ImGui::Text("%s", getUIState().roughness.c_str());
             ImGui::SameLine();
             if(ImGui::Button("Browse##6"))
             {
-                showFileDialog = true;
-                showOpenButton = true;
-                fileTypeOperation = FileTypeOperation::roughnessTexture;
+                getUIState().showFileDialog = true;
+                getUIState().showOpenButton = true;
+                getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::roughnessTexture;
             }
 
             ImGui::Text("AO");
             ImGui::SameLine();
-            ImGui::Text("%s", ao.c_str());
+            ImGui::Text("%s", getUIState().ao.c_str());
             ImGui::SameLine();
             if(ImGui::Button("Browse##7"))
             {
-                showFileDialog = true;
-                showOpenButton = true;
-                fileTypeOperation = FileTypeOperation::aoTexture;
+                getUIState().showFileDialog = true;
+                getUIState().showOpenButton = true;
+                getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::aoTexture;
             }
 
             ImGui::End();
@@ -503,16 +501,16 @@ public:
 
     void updateAnimator(float deltatime)
     {
-        if(selectedAnimationIndex != -1 && character != nullptr && animations.size() != 0)
-        character->animator->UpdateAnimation(deltatime);
+        if(getUIState().selectedAnimationIndex != -1 && getUIState().character != nullptr && getUIState().animations.size() != 0)
+        getUIState().character->animator->UpdateAnimation(deltatime);
     }
 
     void updateFinalBoneMatrix(Shader ourShader)
     {
-        shaderOfSelectedModel = &ourShader;
-        if(character->animator != nullptr)
+        getUIState().shaderOfSelectedModel = &ourShader;
+        if(getUIState().character->animator != nullptr)
         {
-            auto transforms = character->animator->GetFinalBoneMatrices();
+            auto transforms = getUIState().character->animator->GetFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)
                 ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
         }
@@ -521,49 +519,13 @@ public:
                 for (int i = 0; i < 100; ++i)
                 ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", 1.0f);
         }
-        if(character->model != nullptr)
+        if(getUIState().character->model != nullptr)
         {
-            shaderOfSelectedModel->setInt("displayBoneIndex", selectedBoneId);
+            getUIState().shaderOfSelectedModel->setInt("displayBoneIndex", getUIState().selectedBoneId);
         }
     }
 
 private:
-    float m = 0;
-    std::vector<Model *> *mModels;
-    int selectedModelIndex = -1;
-    int coordinateSpace = -1;
-    bool isFirstFrame = true;
-
-    bool showFileDialog=false;
-    bool loadModelWindow=false;
-    bool showOpenButton=false;
-
-    std::string fileExtension;
-    std::string filePath;
-
-    FileTypeOperation fileTypeOperation;
-
-    Character* character = NULL;
-    Shader* shaderOfSelectedModel;
-    int selectedBoneId = 0;
-
-    std::string modelfileName="";
-    std::string albedo="";
-    std::string normal="";
-    std::string metalness="";
-    std::string roughness="";
-    std::string ao="";
-    std::string saveAsFileName = "";
-
-    std::string error="";
-
-    std::vector<Animation*> animations;
-    std::vector<const char*> animationNames;
-    int selectedAnimationIndex = -1;
-
-    std::string errorMessage = ""; //Duplicate error declaration on lie 588 and 564.
-    // Maybe we can have these at a common place to we can handle them better 
-
     bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0) {
         // Ensure the buffer is large enough to hold the text
         char buffer[256];

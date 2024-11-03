@@ -46,7 +46,7 @@ include_directories(Glitter/Headers/
                     )
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
-file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
+file(GLOB_RECURSE PROJECT_HEADERS Glitter/Headers/*.hpp)
 file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp Glitter/main.cpp)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag

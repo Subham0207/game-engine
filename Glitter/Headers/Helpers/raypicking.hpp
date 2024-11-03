@@ -157,7 +157,7 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& 
             }
         }
     }
-        // std::cout << "Selected Model index " << closestModelIndex << std::endl;
+        // std::cout << "Selected ModelType index " << closestModelIndex << std::endl;
         // return -1;
         return closestModelIndex;
 }
@@ -212,7 +212,7 @@ int handlePicking(
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
         // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
         selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, models);
-        // std::cout << "Intersected Model index: " << selectedModelIndex << std::endl;
+        // std::cout << "Intersected ModelType index: " << selectedModelIndex << std::endl;
     }
     // renderRay(rayOrigin, rayDir, rayShader); 
     // renderRayWithIntersection(rayOrigin, State::state->rayEnd, rayShader); 

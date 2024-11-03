@@ -107,4 +107,4 @@ private:
     
 };
 
-// BOOST_CLASS_VERSION(Model, 0);
+// BOOST_CLASS_VERSION(ModelType, 0);

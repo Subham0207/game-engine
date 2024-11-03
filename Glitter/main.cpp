@@ -138,7 +138,7 @@ int main(int argc, char * argv[]) {
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
-    // auto model3d = new Model("E:/OpenGL/backpack/backpack.obj");
+    // auto model3d = new ModelType("E:/OpenGL/backpack/backpack.obj");
     
     //Lights setup
     auto lights = new Lights(); //for PBR removing directional lights and spotlight; Set them back up later.

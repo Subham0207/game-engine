@@ -64,10 +64,12 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 9. BoneIds and thier weights on each vertex is not being transmitted correctly to shader.
 10. `redefiniton error due stb_image and stb_write_png libraries`. Create a .cpp file and include their implmentation macro then headers in that file. Its because they came with .cpp and .h files instead of objs/binaries but the .cpp file was not created so we do this. This is probably for making them system agonstic.
 11. I was trying to move the main.cpp around so the correct way is to modify what it is called in project_sources file. Don't create another file decalartion with same identifier.
+12. I used clion to refactor the code. Right now cpp extension doesnot have that kind of sophisticated support.
+13. Wrote a little tasks.json to create cpp file from a hpp file
 
 
 ## How does Level file works
-1. Model is saved in a custom format Reprensenting the model class (This is basically the serialized version of a model object). This is so that we can load the model instantly from this file since it has has all the data needed to render the model.
+1. ModelType is saved in a custom format Reprensenting the model class (This is basically the serialized version of a model object). This is so that we can load the model instantly from this file since it has has all the data needed to render the model.
 2. Loading the model itself saves the model in the custom format.
 3. model textures -- they will need to be saved again -- we save them again during load -- saved them in different file (Yes for reusability purposes) ?
 4. In Level file we create instances of a model whose data is read from the above mentioned model file. For a model instance we store the location of the model from where we can construct this instance + transformation of the model instance in the level. We store an array of model instances and thier transformation in the level file.
@@ -94,10 +96,10 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
             # Save the model locations. -- done
             # Save the camera position. -- done
         vi. create a scenery
-    6. Loading Animation
+    6. Loading AnimationType
         1. Updating our Data structure. Storeing animation data.
             ## Bone over time applies transformation to vertices in a mesh that it influences.
-                i. Bone Animation and Bone influence of each vertices of a mesh is stored separatly.
+                i. Bone AnimationType and Bone influence of each vertices of a mesh is stored separatly.
                 ii. Bone OffsetMatrix. Vertex moved in bone space.
             ## Inverse kinematics and Forward Kinematics.
     6.1. Character class. 
@@ -108,6 +110,10 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics
+
+## How does the UI code works
+    1. Global state tracks which UI window is open.
+    2. The UI elements are reusable and modular.
 
 ## Testing
     1. Using GoogleTests: https://matgomes.com/integrate-google-test-into-cmake/

@@ -65,7 +65,7 @@ class Level{
                 model->model = *lvl.modelTransformations[i]; // Set modelMatrix
                 lvl.models->push_back(model);
                 delete lvl.modelTransformations[i];                 
-                lvl.modelTransformations[i] = &model->model;//point lvl's ModelMatrix back to Model's Matrix;
+                lvl.modelTransformations[i] = &model->model;//point lvl's ModelMatrix back to ModelType's Matrix;
             }
 
             lvl.camera->cameraFront = *lvl.cameraFront;

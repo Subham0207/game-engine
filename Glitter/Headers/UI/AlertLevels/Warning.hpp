@@ -1,0 +1,6 @@
+namespace ProjectAsset {
+    void RenderWarning()
+    {
+        
+    }
+}
