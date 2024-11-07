@@ -113,7 +113,10 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 
 ## How does the UI code works
     1. Global state tracks which UI window is open.
-    2. The UI elements are reusable and modular.
+    2. The UI elements are reusable and modular functions.
 
 ## Testing
     1. Using GoogleTests: https://matgomes.com/integrate-google-test-into-cmake/
+
+## UI State management
+    1. The static file we are using for our state will only grow in memory. We need to find an alternative to this like lazy load state from disk and offload unused state params maybe ? or the state should forever be fetched from disk who knows D:

@@ -80,42 +80,42 @@ namespace ProjectAsset{
 
 void ProjectAsset::selectModelFile()
 {
-    State::state->uiState.showFileDialog = true;
+    State::state->uiState.showFileExplorerWindow = true;
     State::state->uiState.showOpenButton = true;
     State::state->uiState.fileTypeOperation = FileTypeOperation::importModelFile;
 }
 
 void ProjectAsset::selectAlbedoTexture()
 {
-    State::state->uiState.showFileDialog = true;
+    State::state->uiState.showFileExplorerWindow = true;
     State::state->uiState.showOpenButton = true;
     State::state->uiState.fileTypeOperation = FileTypeOperation::albedoTexture;
 }
 
 void ProjectAsset::selectNormalTexture()
 {
-    State::state->uiState.showFileDialog = true;
+    State::state->uiState.showFileExplorerWindow = true;
     State::state->uiState.showOpenButton = true;
     State::state->uiState.fileTypeOperation = FileTypeOperation::normalTexture;
 }
 
 void ProjectAsset::selectMetalTexture()
 {
-    State::state->uiState.showFileDialog = true;
+    State::state->uiState.showFileExplorerWindow = true;
     State::state->uiState.showOpenButton = true;
     State::state->uiState.fileTypeOperation = FileTypeOperation::metalnessTexture;
 }
 
 void ProjectAsset::selectRoughnessTexture()
 {
-    State::state->uiState.showFileDialog = true;
+    State::state->uiState.showFileExplorerWindow = true;
     State::state->uiState.showOpenButton = true;
     State::state->uiState.fileTypeOperation = FileTypeOperation::roughnessTexture;
 }
 
 void ProjectAsset::selectAOTexture()
 {
-    State::state->uiState.showFileDialog = true;
+    State::state->uiState.showFileExplorerWindow = true;
     State::state->uiState.showOpenButton = true;
     State::state->uiState.fileTypeOperation = FileTypeOperation::aoTexture;
 }

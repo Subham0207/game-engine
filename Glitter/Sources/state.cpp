@@ -5,3 +5,8 @@ ProjectAsset::UIState &getUIState()
 {
     return State::state->uiState;
 }
+
+Level &getActiveLevel()
+{
+   return State::state->activeLevel;
+}

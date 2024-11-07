@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <imgui.h>
 #include <vector>
 
 namespace ProjectAsset{
@@ -7,5 +8,13 @@ namespace ProjectAsset{
     //So FileExplorer can contain an AssetBrowser
     void RenderFileExplorer(
         std::string currentPath,
-        std::vector<std::string> fileNames);
+        std::vector<std::string>& fileNames);
+
+    void saveAFile(std::string currentPath,
+                std::vector<std::string>& fileNames);
+
+    void selectOrLoadAFileFromFileExplorer(std::string currentPath,
+                std::vector<std::string>& fileNames);
+
+    bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0);
 };

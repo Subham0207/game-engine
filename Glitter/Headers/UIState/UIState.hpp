@@ -20,7 +20,8 @@ namespace ProjectAsset {
         bool isFirstFrame = true;
 
 
-        bool showFileDialog = false;
+        bool selectAFile = false;
+        bool saveAFile = false;
         bool loadModelWindow = false;
         bool showOpenButton = false;
 

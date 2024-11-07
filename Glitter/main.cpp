@@ -108,6 +108,7 @@ int main(int argc, char * argv[]) {
 
     //Loading Level -- making .lvl as the extention of my levelfile
     auto lvl = new Level();
+    State::state->activeLevel = *lvl;
     lvl->camera = clientHandler.camera;
     lvl->cameraUp = &clientHandler.camera->cameraUp;
     lvl->cameraFront = &clientHandler.camera->cameraFront;

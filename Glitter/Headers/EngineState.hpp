@@ -3,6 +3,7 @@
 #include <iostream>
 #include "Helpers/LimitedVector.hpp"
 #include "UIState/UIState.hpp"
+#include "Level/Level.hpp"
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -32,7 +33,10 @@ public:
     LimitedVector<std::string> warningStack = LimitedVector<std::string>(1000);
     LimitedVector<std::string> successStack = LimitedVector<std::string>(1000);
 
+    Level &activeLevel = *(new Level());//Init an empty level so this compiles
+
     ProjectAsset::UIState uiState;
 };
 
 ProjectAsset::UIState& getUIState();
+Level& getActiveLevel();
