@@ -173,10 +173,10 @@ void Outliner::handlerForUIComponentsvisibility()
 {
     if(getUIState().selectAFile)
     {
-        ProjectAsset::selectOrLoadAFileFromFileExplorer(fs::current_path().string(), State::state->uiState.fileNames);
+        ProjectAsset::selectOrLoadAFileFromFileExplorer(getUIState().currentPath, State::state->uiState.fileNames, getUIState().selectAFile);
     }
     else if(getUIState().saveAFile){
-        ProjectAsset::saveAFile(fs::current_path().string(), State::state->uiState.fileNames);
+        ProjectAsset::saveAFile(getUIState().currentPath, State::state->uiState.fileNames, getUIState().saveAFile);
     }
 
     if(getUIState().loadModelWindow)

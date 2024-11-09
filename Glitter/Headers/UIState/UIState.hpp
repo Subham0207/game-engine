@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 class Model;
 class Animation;
@@ -26,10 +28,10 @@ namespace ProjectAsset {
         bool showOpenButton = false;
 
         //FileExplorer
-        bool showFileExplorerWindow = false;
         std::vector<std::string> fileNames;
         int selectedFileIndex;
         std::vector<std::string> directoryStack;
+        std::string currentPath = fs::current_path().string();
 
         std::string fileExtension="";
         std::string filePath="";

@@ -22,7 +22,7 @@ public:
     // Constructor
     Outliner(std::vector<Model *> models) {
         // Initialize the items array or any other setup needed
-        getUIState().models = models;
+        getUIState().models = *State::state->activeLevel.models;
         getUIState().selectedModelIndex = -1;
     }
 

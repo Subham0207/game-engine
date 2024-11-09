@@ -8,9 +8,10 @@
 namespace fs = std::filesystem;
 
 void ProjectAsset::RenderFileExplorer(
-                std::string currentPath,
+                std::string& currentPath,
                 std::vector<std::string>& fileNames)
 {
+    if(fileNames.size() == 0)
     for (const auto& entry : fs::directory_iterator(currentPath))
     {
         fileNames.push_back(entry.path().string());
@@ -21,6 +22,7 @@ void ProjectAsset::RenderFileExplorer(
     
     if(ImGui::Button("Go to Root of project"))
     {
+        fileNames.clear();
         currentPath = State::state->projectRootLocation;
     }
 
@@ -30,6 +32,7 @@ void ProjectAsset::RenderFileExplorer(
     // Up button to go to the parent directory
     if (ImGui::Button("Up"))
     {
+        fileNames.clear();
         currentPath = fs::path(currentPath).parent_path().string();
     }
 
@@ -43,21 +46,26 @@ void ProjectAsset::RenderFileExplorer(
             {
                 getUIState().selectedFileIndex = fileIndex;
 
-                // If a directory is selected, navigate into it
+                // If a directory is selected, navigate into it else set selected file.
                 if (fs::is_directory(fileNames[fileIndex]))
                 {
                     currentPath = fileNames[fileIndex];
+                    fileNames.clear();
+                }else{
+                    getUIState().filePath = fileNames[fileIndex];
                 }
+
             }
         }
         ImGui::EndListBox();
     }
 }
 
-void ProjectAsset::saveAFile(std::string currentPath,
-                std::vector<std::string>& fileNames)
+void ProjectAsset::saveAFile(std::string& currentPath,
+                std::vector<std::string>& fileNames,
+                bool& showUI)
 {   
-    if(ImGui::Begin("FileExplorer"))
+    if(ImGui::Begin("FileExplorer", &showUI))
     {
         ProjectAsset::RenderFileExplorer(currentPath, fileNames);
         switch(getUIState().fileTypeOperation)
@@ -68,7 +76,7 @@ void ProjectAsset::saveAFile(std::string currentPath,
                 {
                     getActiveLevel().levelname = getUIState().saveAsFileName;
                     Level::saveToFile("Assets/" + getUIState().saveAsFileName, getActiveLevel());
-                    getUIState().showFileExplorerWindow = false;
+                    showUI = false;
                 }
             }
             break;
@@ -80,7 +88,7 @@ void ProjectAsset::saveAFile(std::string currentPath,
                     auto model = getUIState().models.at(getUIState().selectedModelIndex);
                     Model::saveSerializedModel("Assets/" + getUIState().saveAsFileName, *model);
                     //Recurrsively call save texture on the texture method ?
-                    getUIState().showFileExplorerWindow = false;
+                    showUI = false;
                 }
             }
             break;
@@ -89,9 +97,11 @@ void ProjectAsset::saveAFile(std::string currentPath,
     }
 }
 
-void ProjectAsset::selectOrLoadAFileFromFileExplorer(std::string currentPath,
-                std::vector<std::string>& fileNames){
-    if(ImGui::Begin("FileExplorer"))
+void ProjectAsset::selectOrLoadAFileFromFileExplorer(
+                std::string& currentPath,
+                std::vector<std::string>& fileNames,
+                bool& showUI){
+    if(ImGui::Begin("FileExplorer", &showUI))
     {
         ProjectAsset::RenderFileExplorer(currentPath, fileNames);
 
@@ -105,7 +115,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(std::string currentPath,
                     case FileTypeOperation::LoadLvlFile:
                         {
                             Level::loadFromFile(getUIState().filePath, getActiveLevel());
-                            getUIState().showFileExplorerWindow = false;
+                            showUI = false;
                         }
                         break;
                     case FileTypeOperation::importModelFile:
@@ -113,43 +123,44 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(std::string currentPath,
                             getUIState().modelfileName = getUIState().filePath;
                             getUIState().character = new Character();
                             getUIState().character->model = new Model(const_cast<char*>(getUIState().filePath.c_str()));
-                            getActiveLevel().addModel(getUIState().character->model);    
-                            getUIState().showFileExplorerWindow = false;                       
+                            getActiveLevel().addModel(getUIState().character->model);
+                            getUIState().models = *State::state->activeLevel.models;    
+                            showUI = false;                       
                         }
                         break;
                     case FileTypeOperation::albedoTexture:
                         {
                             getUIState().albedo = getUIState().filePath;
                             getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::normalTexture:
                         {
                             getUIState().normal = getUIState().filePath;
                             getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::metalnessTexture:
                         {
                             getUIState().metalness = getUIState().filePath;
                             getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::roughnessTexture:
                         {
                             getUIState().roughness = getUIState().filePath;
                             getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::aoTexture:
                         {
                             getUIState().ao = getUIState().filePath;
                             getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::loadModel:
@@ -157,7 +168,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(std::string currentPath,
                             getUIState().character->model = new Model();
                             Model::loadFromFile(getUIState().filePath, *getUIState().character->model);
                             getActiveLevel().addModel(getUIState().character->model);
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::loadAnimation:
@@ -172,7 +183,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(std::string currentPath,
                             {
                                 State::state->errorStack.LastElement() = "Please first Load a model and have it selected before loading an animation";
                             }
-                            getUIState().showFileExplorerWindow = false;                      
+                            showUI = false;                      
                         }
                         break;
                 
