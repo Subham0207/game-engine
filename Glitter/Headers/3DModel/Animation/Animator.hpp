@@ -89,4 +89,12 @@ private:
 	float m_CurrentTime;
 	float m_DeltaTime;
 
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & m_FinalBoneMatrices;
+        ar & m_CurrentAnimation;
+        ar & m_CurrentTime;
+        ar & m_DeltaTime;
+    }
 };

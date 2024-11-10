@@ -5,6 +5,8 @@
 
 #include "assimp/scene.h"
 
+#include <serializeAClass.hpp>
+
 class Camera
 {
 friend class InputHandler;
@@ -40,5 +42,18 @@ private:
 	float fov = 45.0f;
 
 	glm::mat4 view;
-	 glm::mat4 projection = glm::mat4(1.0f);
+	glm::mat4 projection = glm::mat4(1.0f);
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+		ar & viewLoc;
+		ar & projectionLoc;
+		ar & fov;
+		ar & view;
+		ar & projection;
+		ar & cameraPos;
+		ar & cameraFront;
+		ar & cameraUp;
+    }
 };

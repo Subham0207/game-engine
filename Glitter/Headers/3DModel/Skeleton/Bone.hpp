@@ -9,28 +9,52 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "../../../Vendor/glm/glm/gtx/quaternion.hpp"
 #include "../../Helpers/AssimpGLMHelpers.hpp"
+#include <serializeAClass.hpp>
 
 struct KeyPosition
 {
 	glm::vec3 position;
 	float timeStamp;
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & position;
+        ar & timeStamp;
+    }
 };
 
 struct KeyRotation
 {
 	glm::quat orientation;
 	float timeStamp;
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & orientation;
+        ar & timeStamp;
+    }
 };
 
 struct KeyScale
 {
 	glm::vec3 scale;
 	float timeStamp;
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & scale;
+        ar & timeStamp;
+    }
 };
 
 class Bone
 {
 public:
+	Bone() = default;
+	~Bone(){}
 	Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 		:
 		m_Name(name),
@@ -184,4 +208,19 @@ private:
 	glm::mat4 m_LocalTransform;
 	std::string m_Name;
 	int m_ID;
+
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+		ar & m_Positions;
+		ar & m_Rotations;
+		ar & m_Scales;
+		ar & m_NumPositions;
+		ar & m_NumRotations;
+		ar & m_NumScalings;
+		ar & m_LocalTransform;
+		ar & m_Name;
+		ar & m_ID;
+    }
 };

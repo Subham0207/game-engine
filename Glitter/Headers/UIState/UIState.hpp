@@ -52,7 +52,7 @@ namespace ProjectAsset {
         std::string saveAsFileName = "";
 
         std::vector<Animation*> animations;
-        std::vector<const char*> animationNames;
+        std::vector<std::string> animationNames;
         int selectedAnimationIndex = -1;
     };
 

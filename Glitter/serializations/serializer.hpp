@@ -36,6 +36,14 @@ void serialize(Archive &ar, glm::vec4 &vec, const unsigned int version) {
 }
 
 template<class Archive>
+void serialize(Archive &ar, glm::quat &rot, const unsigned int version) {
+    ar & rot.w;
+    ar & rot.x;
+    ar & rot.y;
+    ar & rot.z;
+}
+
+template<class Archive>
 void serialize(Archive &ar, glm::mat4 &mat, const unsigned int version) {
     ar & boost::serialization::make_array(&mat[0][0], 16);
 }

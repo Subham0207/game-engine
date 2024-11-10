@@ -8,6 +8,7 @@
 #include <functional>
 #include "3DModel/Skeleton/AnimData.hpp"
 #include "../model.hpp"
+#include <serializeAClass.hpp>
 
 struct AssimpNodeData
 {
@@ -15,6 +16,15 @@ struct AssimpNodeData
 	std::string name;
 	int childrenCount;
 	std::vector<AssimpNodeData> children;
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+        ar & transformation;
+        ar & name;
+        ar & childrenCount;
+        ar & children;
+    }
 };
 
 class Animation
@@ -22,7 +32,7 @@ class Animation
 public:
 	Animation() = default;
 
-	Animation(const std::string& animationPath, Model* model)
+	Animation(std::string& animationPath, Model* model)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
@@ -35,7 +45,7 @@ public:
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
 		ReadMissingBones(animation, *model);
 
-		animationName = animationPath.c_str();
+		animationName = animationPath;
 		hasMissingBones = true;
 	}
 
@@ -64,7 +74,7 @@ public:
 		return m_BoneInfoMap;
 	}
 
-	const char* animationName;
+	std::string animationName;
 	bool hasMissingBones;
 
 	void ReadMissingBones(const aiAnimation* animation, Model& model)
@@ -113,4 +123,15 @@ private:
 	std::vector<Bone> m_Bones;
 	AssimpNodeData m_RootNode;
 	std::map<std::string, BoneInfo> m_BoneInfoMap;
+
+	friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version) {
+		ar & m_Duration;
+		ar & m_TicksPerSecond;
+		ar & m_Bones, m_RootNode;
+		ar & m_BoneInfoMap;
+		ar & animationName;
+		ar & hasMissingBones;
+    }
 };

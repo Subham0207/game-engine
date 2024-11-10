@@ -125,7 +125,12 @@ void Outliner::manageAnimationsForSelectedModel()
         getUIState().showOpenButton = true;
         getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::loadAnimation;
     }
-    if (ImGui::Combo("Choose an option", &getUIState().selectedAnimationIndex, getUIState().animationNames.data(),getUIState().animationNames.size())) {
+    std::vector<const char*> cStringAnimationNames;
+    for (const auto& name : getUIState().animationNames) {
+        cStringAnimationNames.push_back(name.c_str());
+    }
+
+    if (ImGui::Combo("Choose an option", &getUIState().selectedAnimationIndex, cStringAnimationNames.data(), cStringAnimationNames.size())) {
         // Action when the selection changes
         // std::cout << "Selected: " << animationNames[current_item] << std::endl;
     }
