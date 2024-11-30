@@ -5,6 +5,7 @@
 #include <vector>
 #include <filesystem>
 #include "Helpers/AssimpGLMHelpers.hpp"
+#include <Helpers/vertexBoneDataHelper.hpp>
 #include "Helpers/Shared.hpp"
 #include <Modals/vertex.hpp>
 #include <stb_image.h>
@@ -12,7 +13,10 @@
 // using namespace std;
 namespace fs = std::filesystem;
 
-void Model::loadModel(std::string path)
+void Model::loadModel(
+    std::string path,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter)
 {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -71,7 +75,7 @@ void Model::loadModel(std::string path)
         }
     }
     // processTexture(scene);
-    processNode(scene->mRootNode, scene);
+    processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
 }
 
 void Model::saveSerializedModel(std::string filename, Model &model)
@@ -136,23 +140,31 @@ void Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureT
     textureIds.push_back(newTexture);
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene)
+void Model::processNode(
+    aiNode* node,
+     const aiScene* scene,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter)
 {
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         // Store the information about a mesh
         // that we can comprehend right now and push into an array
-        meshes.push_back(processMesh(mesh, scene));
+        meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter));
     }
 
     for(unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        processNode(node->mChildren[i], scene);
+        processNode(node->mChildren[i], scene, m_BoneInfoMap, m_BoneCounter);
     }
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
+Mesh Model::processMesh(
+    aiMesh* mesh,
+    const aiScene* scene,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter)
 {
    std::vector<ProjectModals::Vertex> vertices;
    std::vector<unsigned int>indices;
@@ -237,7 +249,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // Sample color instead so that will be vertex color
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-    ExtractBoneWeightForVertices(vertices,mesh,scene);
+    Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
     return Mesh(vertices, indices, &textureIds);
 }
 
@@ -324,53 +336,6 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
     for(int i = 0;i<meshes.size();i++)
     {
         textureIds.push_back(texture);
-    }
-}
-
-void Model::SetVertexBoneData(ProjectModals::Vertex& vertex, int boneID, float weight)
-{
-    for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
-    {
-        if (vertex.m_BoneIDs[i] < 0)
-        {
-            vertex.m_Weights[i] = weight;
-            vertex.m_BoneIDs[i] = boneID;
-            break;
-        }
-    }
-}
-
-void Model::ExtractBoneWeightForVertices(std::vector<ProjectModals::Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
-{
-    for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
-    {
-        int boneID = -1;
-        std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
-        if (m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end())
-        {
-            BoneInfo newBoneInfo;
-            newBoneInfo.id = m_BoneCounter;
-            newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
-                mesh->mBones[boneIndex]->mOffsetMatrix);
-            m_BoneInfoMap[boneName] = newBoneInfo;
-            boneID = m_BoneCounter;
-            m_BoneCounter++;
-        }
-        else
-        {
-            boneID = m_BoneInfoMap[boneName].id;
-        }
-        assert(boneID != -1);
-        auto weights = mesh->mBones[boneIndex]->mWeights;
-        int numWeights = mesh->mBones[boneIndex]->mNumWeights;
-
-        for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
-        {
-            int vertexId = weights[weightIndex].mVertexId;
-            float weight = weights[weightIndex].mWeight;
-            assert(vertexId <= vertices.size());
-            SetVertexBoneData(vertices[vertexId], boneID, weight);
-        }
     }
 }
 

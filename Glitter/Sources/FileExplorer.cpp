@@ -121,8 +121,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                     case FileTypeOperation::importModelFile:
                         {
                             getUIState().modelfileName = getUIState().filePath;
-                            getUIState().character = new Character();
-                            getUIState().character->model = new Model(const_cast<char*>(getUIState().filePath.c_str()));
+                            getUIState().character = new Character(getUIState().filePath);
                             getActiveLevel().addModel(getUIState().character->model);
                             getUIState().models = *State::state->activeLevel.models;    
                             showUI = false;                       
@@ -175,7 +174,10 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             if(getUIState().character != NULL)
                             {
-                                auto animation = new Animation(getUIState().filePath, getUIState().character->model);
+                                auto animation = new Animation(
+                                getUIState().filePath,
+                                getUIState().character->GetBoneInfoMap(),
+                                getUIState().character->GetBoneCount());
                                 getUIState().animations.push_back(animation);
                                 getUIState().animationNames.push_back(animation->animationName);
                             }

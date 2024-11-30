@@ -8,8 +8,9 @@
 class Character
 {
 public:
-    Character(){
+    Character(std::string filepath){
         animator = new Animator();
+        model = new Model(filepath, &m_BoneInfoMap, &m_BoneCounter);
     };
 
     Model* model;
@@ -20,10 +21,16 @@ public:
 
     void static loadFromFile(const std::string &filename, Character &character);
 
+    auto& GetBoneInfoMap() { return m_BoneInfoMap; }
+    int& GetBoneCount() { return m_BoneCounter; }    
+
 private:
     Camera* camera;
 
     glm::mat4 transformation;
+
+    std::map<std::string, BoneInfo> m_BoneInfoMap;
+    int m_BoneCounter = 0;
 
     friend class boost::serialization::access;
     template<class Archive>

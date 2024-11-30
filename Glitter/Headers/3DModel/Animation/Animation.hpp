@@ -7,7 +7,6 @@
 #include "3DModel/Skeleton/Bone.hpp"
 #include <functional>
 #include "3DModel/Skeleton/AnimData.hpp"
-#include "../model.hpp"
 #include <serializeAClass.hpp>
 
 struct AssimpNodeData
@@ -32,7 +31,10 @@ class Animation
 public:
 	Animation() = default;
 
-	Animation(std::string& animationPath, Model* model)
+	Animation(
+	std::string& animationPath,
+	std::map<std::string, BoneInfo>& boneInfoMap,
+	int& boneCount)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
@@ -43,7 +45,7 @@ public:
 		aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
 		globalTransformation = globalTransformation.Inverse();
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
-		ReadMissingBones(animation, *model);
+		ReadMissingBones(animation, boneInfoMap, boneCount);
 
 		animationName = animationPath;
 		hasMissingBones = true;
@@ -77,12 +79,12 @@ public:
 	std::string animationName;
 	bool hasMissingBones;
 
-	void ReadMissingBones(const aiAnimation* animation, Model& model)
+	void ReadMissingBones(
+	const aiAnimation* animation,
+	std::map<std::string, BoneInfo>& boneInfoMap,
+	int& boneCount)
 	{
 		int size = animation->mNumChannels;
-
-		auto& boneInfoMap = model.GetBoneInfoMap();//getting m_BoneInfoMap from ModelType class
-		int& boneCount = model.GetBoneCount(); //getting the m_BoneCounter from ModelType class
 
 		//reading channels(bones engaged in an animation and their keyframes)
 		for (int i = 0; i < size; i++)

@@ -18,15 +18,15 @@
 #include <serializeAClass.hpp>
 #include <Modals/texture.hpp>
 
-#define MAX_BONE_WEIGHTS 100
-
 class Model
 {
 public:
     Model()=default;
-    Model(char* path)
+    Model(std::string path,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
+    int* m_BoneCounter = nullptr)
     {
-        loadModel(path);
+        loadModel(path, m_BoneInfoMap, m_BoneCounter);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     }
@@ -52,9 +52,6 @@ public:
 
     void static loadFromFile(const std::string &filename, Model &model);
 
-    auto& GetBoneInfoMap() { return m_BoneInfoMap; }
-    int& GetBoneCount() { return m_BoneCounter; }    
-
 private:
     // model data
     std::vector<ProjectModals::Texture> textureIds;
@@ -65,29 +62,23 @@ private:
 
     ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
 
-    void loadModel(std::string path);
-    void processNode(aiNode* node, const aiScene* scene);
+    void loadModel(std::string path,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter);
+    void processNode(
+    aiNode* node,
+    const aiScene* scene,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter);
     void processTexture(const aiScene *scene);
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+    Mesh processMesh(
+    aiMesh* mesh,
+    const aiScene* scene,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter);
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
     void loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
     void Model::calculateBoundingBox(const aiScene* scene);
-    void SetVertexBoneData(ProjectModals::Vertex& vertex, int boneID, float weight);
-    void ExtractBoneWeightForVertices(std::vector<ProjectModals::Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
-
-    std::map<std::string, BoneInfo> m_BoneInfoMap;
-    int m_BoneCounter = 0;
-
-
-    void SetVertexBoneDataToDefault(ProjectModals::Vertex& vertex)
-    {
-        for (int i = 0; i < MAX_BONE_WEIGHTS; i++)
-        {
-            vertex.m_BoneIDs[i] = -1;
-            vertex.m_Weights[i] = 0.0f;
-        }
-    }
-
 
     friend class boost::serialization::access;
     template<class Archive>

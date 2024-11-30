@@ -1,6 +1,7 @@
 #ifndef SERIALIZATION_GLM_HPP
 #define SERIALIZATION_GLM_HPP
 
+#pragma once
 #include <boost/serialization/serialization.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -9,6 +10,7 @@
 #include <boost/serialization/split_member.hpp>
 #include <glm/glm.hpp>
 #include <vector>
+#include <assimp/scene.h>
 
 namespace boost {
 namespace serialization {
