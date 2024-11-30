@@ -6,6 +6,7 @@
 #include <filesystem>
 #include "Helpers/AssimpGLMHelpers.hpp"
 #include "Helpers/Shared.hpp"
+#include <Modals/vertex.hpp>
 #include <stb_image.h>
 #include <stb_image_write.h>
 // using namespace std;
@@ -131,7 +132,7 @@ void Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureT
     stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = Shared::sendTextureToGPU(data, mWidth, mheight, nrComponents);
     auto filepath = fs::current_path().append(filename).string();
-    Texture newTexture(textureID, textureType, filepath);
+    ProjectModals::Texture newTexture(textureID, textureType, filepath);
     textureIds.push_back(newTexture);
 }
 
@@ -153,14 +154,14 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 {
-   std::vector<Vertex> vertices;
+   std::vector<ProjectModals::Vertex> vertices;
    std::vector<unsigned int>indices;
-   std::vector<Texture> textures;
+   std::vector<ProjectModals::Texture> textures;
 
     //1. Procesing vertices
    for(unsigned int i = 0; i < mesh->mNumVertices; i++)
    {
-    Vertex vertex;
+    ProjectModals::Vertex vertex;
     vertex.Position = glm::vec3(
      static_cast<float>(mesh->mVertices[i].x),
      static_cast<float>(mesh->mVertices[i].y),
@@ -316,7 +317,7 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
     std::string filename = "Assets/"+fsPath.filename().string();
     unsigned int id = Shared::TextureFromFile(texturePath.c_str(), filename);
     auto filepath = fs::current_path().append(filename).string();
-    Texture texture(id, typeName, filepath);
+    ProjectModals::Texture texture(id, typeName, filepath);
     //Load Texture in GPU. Get the ID.
     // texture.path = texturePath.c_str();
 
@@ -326,7 +327,7 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
     }
 }
 
-void Model::SetVertexBoneData(Vertex& vertex, int boneID, float weight)
+void Model::SetVertexBoneData(ProjectModals::Vertex& vertex, int boneID, float weight)
 {
     for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
     {
@@ -339,7 +340,7 @@ void Model::SetVertexBoneData(Vertex& vertex, int boneID, float weight)
     }
 }
 
-void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+void Model::ExtractBoneWeightForVertices(std::vector<ProjectModals::Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
 {
     for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
     {

@@ -16,6 +16,7 @@
 
 #include <map>
 #include <serializeAClass.hpp>
+#include <Modals/texture.hpp>
 
 #define MAX_BONE_WEIGHTS 100
 
@@ -56,7 +57,7 @@ public:
 
 private:
     // model data
-    std::vector<Texture> textureIds;
+    std::vector<ProjectModals::Texture> textureIds;
     std::vector<aiTextureType> textureTypes;
     std::vector<Mesh> meshes;
     std::string directory;
@@ -71,14 +72,14 @@ private:
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
     void loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
     void Model::calculateBoundingBox(const aiScene* scene);
-    void SetVertexBoneData(Vertex& vertex, int boneID, float weight);
-    void ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
+    void SetVertexBoneData(ProjectModals::Vertex& vertex, int boneID, float weight);
+    void ExtractBoneWeightForVertices(std::vector<ProjectModals::Vertex>& vertices, aiMesh* mesh, const aiScene* scene);
 
     std::map<std::string, BoneInfo> m_BoneInfoMap;
     int m_BoneCounter = 0;
 
 
-    void SetVertexBoneDataToDefault(Vertex& vertex)
+    void SetVertexBoneDataToDefault(ProjectModals::Vertex& vertex)
     {
         for (int i = 0; i < MAX_BONE_WEIGHTS; i++)
         {
