@@ -18,17 +18,18 @@
 #include "boost/serialization/access.hpp"
 
 #include <Modals/vertex.hpp>
-#include <Modals/texture.hpp>
+#include <Modals/material.hpp>
 
     class Mesh {
     public:
         // mesh data
         std::vector<ProjectModals::Vertex>       vertices;
         std::vector<unsigned int> indices;
-        std::vector<ProjectModals::Texture> *textureIds;
+
+        Modals::Material* material = new Modals::Material();
 
         Mesh()=default;
-        Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices, std::vector<ProjectModals::Texture> *textureIds);
+        Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices);
         void Draw(Shader* shader);
         void setupMesh();
     private:

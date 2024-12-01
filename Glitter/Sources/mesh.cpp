@@ -1,10 +1,9 @@
 #include "3DModel/mesh.hpp"
 
-Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices, std::vector<ProjectModals::Texture> *textureIds)
+Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices)
 {
     this->vertices = vertices;
     this->indices = indices;
-    this->textureIds = textureIds;
 
     setupMesh();
 }
@@ -28,15 +27,58 @@ void Mesh::Draw(Shader* shader)
     glBindTexture(GL_TEXTURE_2D, 0);
     for(unsigned int i = 0;i < textureTypes.size(); i++)
     {
-        for (unsigned int j = 0; j < textureIds->size(); j++)
+        switch (textureTypes[i])
         {
-            if(textureIds->at(j).type == textureTypes[i])
+            case aiTextureType_DIFFUSE:
             {
-                glActiveTexture(GL_TEXTURE0 + i + 1);
-                glBindTexture(GL_TEXTURE_2D, textureIds->at(j).id);
+                if(material->albedo != nullptr)
+                {
+                    glActiveTexture(GL_TEXTURE0 + 1);
+                    glBindTexture(GL_TEXTURE_2D, material->albedo->id);
+                }
+                break;
             }
-        }   
+            case aiTextureType_NORMALS:
+            {
+                if(material->normal != nullptr)
+                {
+                    glActiveTexture(GL_TEXTURE0 + 2);
+                    glBindTexture(GL_TEXTURE_2D, material->normal->id);
+                }
+                break;
+            }
+            case aiTextureType_METALNESS:
+            {
+                if(material->metalness != nullptr)
+                {
+                    glActiveTexture(GL_TEXTURE0 + 3);
+                    glBindTexture(GL_TEXTURE_2D, material->metalness->id);
+                }
+                break;
+            }
+            case aiTextureType_DIFFUSE_ROUGHNESS:
+            {
+                if(material->roughness != nullptr)
+                {
+                    glActiveTexture(GL_TEXTURE0 + 4);
+                    glBindTexture(GL_TEXTURE_2D, material->roughness->id);
+                }
+                break;
+            }
+            case aiTextureType_AMBIENT_OCCLUSION:
+            {
+                if(material->ao != nullptr)
+                {
+                    glActiveTexture(GL_TEXTURE0 + 5);
+                    glBindTexture(GL_TEXTURE_2D, material->ao->id);
+                }
+                break;
+            }
+            default:
+                break;
+        }
     }
+
     // I don't need to active texture 0 again ?? Why was I doing this ?
     // glActiveTexture(GL_TEXTURE0);
 

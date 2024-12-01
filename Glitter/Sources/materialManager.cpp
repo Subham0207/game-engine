@@ -2,104 +2,91 @@
 #include <imgui.h>
 #include "EngineState.hpp"
 #include <Helpers/window3d.hpp>
+#include <Modals/material.hpp>
 
 void UI::renderMaterialManagerComponent()
 {
     //TODO: (Do this first ) Show the texture in this channel as icon. Also has ability to change it.
-    textureFoundInModel();
+    materialsFoundInModel();
 
-    ImGui::Text("Albedo");
-    ImGui::SameLine();
-    ImGui::Text("%s", getUIState().albedo.c_str());
-    ImGui::SameLine();
-    if(ImGui::Button("MaterialBrowse##2"))
+    auto materials = getUIState().materials;
+    for (size_t i = 0; i < materials.size(); i++)
     {
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::albedoTexture;
-    }
+        ImGui::Text(("Material: " + std::to_string(i)).c_str());
 
-    ImGui::Text("Normal");
-    ImGui::SameLine();
-    ImGui::Text("%s", getUIState().normal.c_str());
-    ImGui::SameLine();
-    if(ImGui::Button("MaterialBrowse##3"))
-    {
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::normalTexture;
-    }
+        getUIState().materialIndex = i;
 
-    ImGui::Text("Metalness");
-    ImGui::SameLine();
-    ImGui::Text("%s", getUIState().metalness.c_str());
-    ImGui::SameLine();
-    if(ImGui::Button("MaterialBrowse##5"))
-    {
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::metalnessTexture;
-    }
 
-    ImGui::Text("Roughness");
-    ImGui::SameLine();
-    ImGui::Text("%s", getUIState().roughness.c_str());
-    ImGui::SameLine();
-    if(ImGui::Button("MaterialBrowse##6"))
-    {
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::roughnessTexture;
-    }
+        ImGui::Text("Albedo");
+        ImGui::SameLine();
+        if(materials[i]->albedo)
+        ImGui::Text("%s", materials[i]->albedo->name);
+        ImGui::SameLine();
+        if(ImGui::Button(("MaterialBrowse##2" + std::to_string(i)).c_str()))
+        {
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::albedoTexture;
+            getUIState().selectAFile = true;
+            getUIState().showOpenButton = true;
+        }
 
-    ImGui::Text("AO");
-    ImGui::SameLine();
-    ImGui::Text("%s", getUIState().ao.c_str());
-    ImGui::SameLine();
-    if(ImGui::Button("MaterialBrowse##7"))
-    {
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::aoTexture;
+        ImGui::Text("Normal");
+        ImGui::SameLine();
+        if(materials[i]->normal)
+        ImGui::Text("%s", materials[i]->normal->name);
+        ImGui::SameLine();
+        if(ImGui::Button(("MaterialBrowse##3" + std::to_string(i)).c_str()))
+        {
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::normalTexture;
+            getUIState().selectAFile = true;
+            getUIState().showOpenButton = true;
+        }
+
+        ImGui::Text("Metalness");
+        ImGui::SameLine();
+        if(materials[i]->metalness)
+        ImGui::Text("%s", materials[i]->metalness->name);
+        ImGui::SameLine();
+        if(ImGui::Button(("MaterialBrowse##5"+ std::to_string(i)).c_str()))
+        {
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::metalnessTexture;
+            getUIState().selectAFile = true;
+            getUIState().showOpenButton = true;
+        }
+
+        ImGui::Text("Roughness");
+        ImGui::SameLine();
+        if(materials[i]->roughness)
+        ImGui::Text("%s", materials[i]->roughness->name);
+        ImGui::SameLine();
+        if(ImGui::Button(("MaterialBrowse##6"+ std::to_string(i)).c_str()))
+        {
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::roughnessTexture;
+            getUIState().selectAFile = true;
+            getUIState().showOpenButton = true;
+        }
+
+        ImGui::Text("AO");
+        ImGui::SameLine();
+        if(materials[i]->ao)
+        ImGui::Text("%s", materials[i]->ao->name);
+        ImGui::SameLine();
+        if(ImGui::Button(("MaterialBrowse##7"+ std::to_string(i)).c_str()))
+        {
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::aoTexture;
+            getUIState().selectAFile = true;
+            getUIState().showOpenButton = true;
+        }
     }
 }
-void UI::textureFoundInModel()
+void UI::materialsFoundInModel()
 {
-    //Texture loaded from ModelFile
-
+    //We get the last model that was loaded and populate the UI
     Model* model = nullptr;
     if(getUIState().models.size() > 0)
         model = getUIState().models[getUIState().models.size() -  1];
 
     if(model != nullptr)
     {
-        auto textures = model->getTextures();
-        for (size_t i = 0; i < textures.size(); i++)
-        {
-            switch (textures[i].type)
-            {
-                case aiTextureType_DIFFUSE:
-                    getUIState().albedo = textures[i].name;
-                    break;
-                case aiTextureType_SPECULAR:
-                    getUIState().roughness = textures[i].name;
-                    break;
-                case aiTextureType_NORMALS:
-                    getUIState().normal = textures[i].name;
-                    break;
-                case aiTextureType_DIFFUSE_ROUGHNESS:
-                    getUIState().roughness = textures[i].name;
-                    break;
-                case aiTextureType_AMBIENT_OCCLUSION:
-                    getUIState().ao = textures[i].name;
-                    break;
-                case aiTextureType_METALNESS:
-                    getUIState().metalness = textures[i].name;
-                    break;
-                
-                default:
-                    break;
-            }
-        }
+        getUIState().materials = model->getMaterials();
     }
 }

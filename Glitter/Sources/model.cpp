@@ -30,52 +30,7 @@ void Model::loadModel(
     }
     directory = path.substr(0, path.find_last_of('/'));
 
-    //Load textures
-    // for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
-    //     aiMaterial* material = scene->mMaterials[i];
-    //     loadMaterialTextures(material, aiTextureType_DIFFUSE);
-    //     loadMaterialTextures(material, aiTextureType_SPECULAR);
-    // }
 
-    //Embedded Texture
-    //Instead of processing texture we can process material to also know what type of the texture that is ??
-    for (unsigned int m = 0; m < scene->mNumMaterials; m++) {
-        aiMaterial* material = scene->mMaterials[m];
-
-        // Check for different texture types
-        const std::vector<aiTextureType> textureTypes = {
-            aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_AMBIENT_OCCLUSION,
-            aiTextureType_METALNESS
-        };
-
-        for (aiTextureType type : textureTypes) {
-            aiString texturePath;
-            if (material->GetTexture(type, 0, &texturePath) == AI_SUCCESS) {
-                std::cout << "Material " << m << " has texture type " << type << ": " << texturePath.C_Str() << std::endl;
-
-                // Look for the corresponding embedded texture
-                for (unsigned int t = 0; t < scene->mNumTextures; t++) {
-                    const aiTexture* embeddedTexture = scene->mTextures[t];
-                    if (texturePath.C_Str() == std::string(embeddedTexture->mFilename.C_Str())) {
-                        std::cout << "Found embedded texture matching " << texturePath.C_Str() << std::endl;
-                        // Process embedded texture
-                        if (embeddedTexture->mHeight == 0) {
-                        std::cout << "Compressed texture format: " << embeddedTexture->achFormatHint << std::endl;
-                        std::cout << "Size: " << embeddedTexture->mWidth << " bytes" << std::endl;
-                        if(embeddedTexture->pcData)
-                        if(type == aiTextureType_SPECULAR)
-                            loadEmbeddedTexture(embeddedTexture, aiTextureType_DIFFUSE_ROUGHNESS);
-                        loadEmbeddedTexture(embeddedTexture, type);
-                        } else {
-                            std::cout << "Uncompressed texture" << std::endl;
-                            std::cout << "Dimensions: " << embeddedTexture->mWidth << " x " << embeddedTexture->mHeight << std::endl;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // processTexture(scene);
     processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
 }
 
@@ -101,44 +56,57 @@ void Model::saveSerializedModel(std::string filename, Model &model)
     //They will need to bound again to GPU
 }
 
-void Model::processTexture(const aiScene *scene)
+ProjectModals::Texture* Model::processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type)
 {
-    if (scene->HasTextures()) {
-        for (unsigned int i = 0; i < scene->mNumTextures; i++) {
-            const aiTexture* texture = scene->mTextures[i];
-            std::cout << "Embedded Texture " << i << ": " << std::endl;
+    aiString texturePath;
+    if (material->GetTexture(type, 0, &texturePath) == AI_SUCCESS) {
+        std::cout << "Material has texture type " << type << ": " << texturePath.C_Str() << std::endl;
 
-            // Check if the texture is compressed or not
-            if (texture->mHeight == 0) {
-                std::cout << "Compressed texture format: " << texture->achFormatHint << std::endl;
-                std::cout << "Size: " << texture->mWidth << " bytes" << std::endl;
-                if(texture->pcData)
-                loadEmbeddedTexture(texture, aiTextureType_DIFFUSE);
-            } else {
-                std::cout << "Uncompressed texture" << std::endl;
-                std::cout << "Dimensions: " << texture->mWidth << " x " << texture->mHeight << std::endl;
+        // Look for the corresponding embedded texture
+        for (unsigned int t = 0; t < scene->mNumTextures; t++) {
+            const aiTexture* embeddedTexture = scene->mTextures[t];
+            if (texturePath.C_Str() == std::string(embeddedTexture->mFilename.C_Str())) {
+                std::cout << "Found embedded texture matching " << texturePath.C_Str() << std::endl;
+                // Process embedded texture
+                if (embeddedTexture->mHeight == 0) {
+                std::cout << "Compressed texture format: " << embeddedTexture->achFormatHint << std::endl;
+                std::cout << "Size: " << embeddedTexture->mWidth << " bytes" << std::endl;
+                if(embeddedTexture->pcData)
+                if(type == aiTextureType_SPECULAR)
+                    return loadEmbeddedTexture(embeddedTexture, aiTextureType_DIFFUSE_ROUGHNESS);
+                return loadEmbeddedTexture(embeddedTexture, type);
+                } else {
+                    std::cout << "Uncompressed texture" << std::endl;
+                    std::cout << "Dimensions: " << embeddedTexture->mWidth << " x " << embeddedTexture->mHeight << std::endl;
+                }
             }
-
-            // Optionally, write the texture to a file to inspect it
-            // std::ofstream outFile("embedded_texture_" + std::to_string(i) + ".data", std::ios::binary);
-            // outFile.write(reinterpret_cast<const char*>(texture->pcData), texture->mWidth * texture->mHeight * 4);
-            // outFile.close();
         }
-    } else {
-        std::cout << "No embedded textures found." << std::endl;
     }
+    return nullptr;
 }
 
-void Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType)
+ProjectModals::Texture* Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType)
 {
+    auto filename = "Assets/" + fs::path(texture->mFilename.C_Str()).filename().string();
+    if(textureIds.size() > 0)
+    {
+        for (size_t i = 0; i < textureIds.size(); i++)
+        {
+            if(textureIds[i]->name == texture->mFilename.C_Str())
+            return textureIds[i];
+        }
+        
+    }
+    
+
     int mWidth, mheight, nrComponents;
     unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData), texture->mWidth, &mWidth, &mheight, &nrComponents, 0);
-    auto filename = "Assets/" + fs::path(texture->mFilename.C_Str()).filename().string();
     stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = Shared::sendTextureToGPU(data, mWidth, mheight, nrComponents);
     auto filepath = fs::current_path().append(filename).string();
-    ProjectModals::Texture newTexture(textureID, textureType, filepath);
+    auto newTexture = new ProjectModals::Texture(textureID, textureType, filepath);
     textureIds.push_back(newTexture);
+    return textureIds[textureIds.size() - 1];
 }
 
 void Model::processNode(
@@ -245,13 +213,52 @@ Mesh Model::processMesh(
             indices.push_back(face.mIndices[j]);
     } 
 
+    Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
+
+    auto justMesh = Mesh(vertices, indices);
+
     //3. process materials
     // What if there are no textures found there is no reason to error out on that case
     // Sample color instead so that will be vertex color
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    const std::vector<aiTextureType> textureTypes = {
+        aiTextureType_DIFFUSE,
+        aiTextureType_SPECULAR,
+        aiTextureType_NORMALS,
+        aiTextureType_DIFFUSE_ROUGHNESS,
+        aiTextureType_AMBIENT_OCCLUSION,
+        aiTextureType_METALNESS
+    };
 
-    Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
-    return Mesh(vertices, indices, &textureIds);
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    for (aiTextureType type : textureTypes) {
+        switch (type)
+        {
+            case aiTextureType_DIFFUSE:
+                justMesh.material->albedo = processEmbeddedTexture(scene, material, type);
+                break;
+            case aiTextureType_SPECULAR:
+                justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
+                break;
+            case aiTextureType_NORMALS:
+                justMesh.material->normal = processEmbeddedTexture(scene, material, type);
+                break;
+            case aiTextureType_DIFFUSE_ROUGHNESS:
+                justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
+                break;
+            case aiTextureType_AMBIENT_OCCLUSION:
+                justMesh.material->ao = processEmbeddedTexture(scene, material, type);
+                break;
+            case aiTextureType_METALNESS:
+                justMesh.material->metalness = processEmbeddedTexture(scene, material, type);
+                break;
+            default:
+                break;
+        }
+    }
+
+    materials.push_back(justMesh.material);
+
+    return justMesh;
 }
 
 std::string GetAbsoluteTexturePath(const std::string& modelDirectory, const aiString& relativePath) {
@@ -330,14 +337,41 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
     std::string filename = "Assets/"+fsPath.filename().string();
     unsigned int id = Shared::TextureFromFile(texturePath.c_str(), filename);
     auto filepath = fs::current_path().append(filename).string();
-    ProjectModals::Texture texture(id, typeName, filepath);
+    auto texture = new ProjectModals::Texture(id, typeName, filepath);
     //Load Texture in GPU. Get the ID.
     // texture.path = texturePath.c_str();
 
-    for(int i = 0;i<meshes.size();i++)
+    textureIds.push_back(texture);
+
+    //call each mesh to re-apply any missing texture
+    for (size_t i = 0; i < meshes.size(); i++)
     {
-        textureIds.push_back(texture);
+        switch (texture->type)
+        {
+            case aiTextureType_DIFFUSE:
+                meshes[i].material->albedo = texture;
+                break;
+            case aiTextureType_SPECULAR:
+                meshes[i].material->roughness = texture;
+                break;
+            case aiTextureType_NORMALS:
+                meshes[i].material->normal = texture;
+                break;
+            case aiTextureType_DIFFUSE_ROUGHNESS:
+                meshes[i].material->roughness = texture;
+                break;
+            case aiTextureType_AMBIENT_OCCLUSION:
+                meshes[i].material->ao = texture;
+                break;
+            case aiTextureType_METALNESS:
+                meshes[i].material->metalness = texture;
+                break;
+            default:
+                break;
+        }
     }
+    
+
 }
 
 void Model::loadFromFile(const std::string &filename, Model &model) {
@@ -359,14 +393,16 @@ void Model::loadFromFile(const std::string &filename, Model &model) {
     {
         //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
         model.meshes[i].setupMesh();
-        model.meshes[i].textureIds = &model.textureIds;
+
+        //Attach correct texture to each meshes;
+        //model.meshes[i].albedo.Filename = model.textureIds.findTexture(model.meshes[i].albedo.Filename)
     }
     for (size_t i = 0; i < model.textureIds.size(); i++)
     {
         //Just need to generate new textureIds for the texture
         int width, height, nrComponents;
-        unsigned char* data = stbi_load(model.textureIds[i].name.c_str(), &width, &height, &nrComponents, 0);
-        model.textureIds[i].id = Shared::sendTextureToGPU(data, width, height, nrComponents);
+        unsigned char* data = stbi_load(model.textureIds[i]->name.c_str(), &width, &height, &nrComponents, 0);
+        model.textureIds[i]->id = Shared::sendTextureToGPU(data, width, height, nrComponents);
     }
 }
 

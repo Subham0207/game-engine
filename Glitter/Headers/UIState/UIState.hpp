@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <filesystem>
+#include <Modals/material.hpp>
 namespace fs = std::filesystem;
 
 class Model;
@@ -36,6 +37,7 @@ namespace ProjectAsset {
         std::string fileExtension="";
         std::string filePath="";
 
+        int materialIndex = -1;
         FileTypeOperation fileTypeOperation;
 
         Character* character = NULL;
@@ -44,11 +46,7 @@ namespace ProjectAsset {
 
         // Details of ModelType selection window
         std::string modelfileName="";
-        std::string albedo="";
-        std::string normal="";
-        std::string metalness="";
-        std::string roughness="";
-        std::string ao="";
+        std::vector<Modals::Material*> materials;
         std::string saveAsFileName = "";
 
         std::vector<Animation*> animations;

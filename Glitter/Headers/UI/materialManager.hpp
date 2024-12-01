@@ -3,5 +3,5 @@
 namespace UI{
     void renderMaterialManagerComponent();
 
-    void textureFoundInModel();
+    void materialsFoundInModel();
 }

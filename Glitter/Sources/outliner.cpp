@@ -200,15 +200,12 @@ void Outliner::handlerForUIComponentsvisibility()
 }
 void Outliner::ModelAndTextureSelectionWindow()
 {
-    getUIState().modelfileName = "";
-    getUIState().albedo="";
-    getUIState().normal="";
-    getUIState().metalness="";
-    getUIState().roughness="";
-    getUIState().ao="";
     
     if(ImGui::Begin("Import Model", &getUIState().loadModelWindow))
     {   
+        // getUIState().selectAFile = false;
+        // getUIState().materials.clear();
+        
         ImGui::Text("Model");
         ImGui::SameLine();
         ImGui::Text("%s", getUIState().modelfileName.c_str());

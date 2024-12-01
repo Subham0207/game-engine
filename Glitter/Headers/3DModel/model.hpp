@@ -16,7 +16,7 @@
 
 #include <map>
 #include <serializeAClass.hpp>
-#include <Modals/texture.hpp>
+#include <Modals/material.hpp>
 
 class Model
 {
@@ -48,9 +48,9 @@ public:
         return &meshes;
     }
 
-    auto getTextures()
+    auto getMaterials()
     {
-        return textureIds;
+        return materials;
     }
     
     void static saveSerializedModel(std::string filename,  Model &model);
@@ -59,8 +59,8 @@ public:
 
 private:
     // model data
-    std::vector<ProjectModals::Texture> textureIds;
-    std::vector<aiTextureType> textureTypes;
+    std::vector<Modals::Material*> materials;
+    std::vector<ProjectModals::Texture*> textureIds;
     std::vector<Mesh> meshes;
     std::string directory;
     aiAABB* boundingBox;
@@ -75,14 +75,14 @@ private:
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter);
-    void processTexture(const aiScene *scene);
+    ProjectModals::Texture* processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type);
     Mesh processMesh(
     aiMesh* mesh,
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter);
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
-    void loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
+    ProjectModals::Texture* loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
     void Model::calculateBoundingBox(const aiScene* scene);
 
     friend class boost::serialization::access;
@@ -90,7 +90,7 @@ private:
     void serialize(Archive &ar, const unsigned int version) {
         ar & meshes;
         ar & model;
-        ar & textureIds;
+        ar & materials;
         ar & directory;
     }
     
