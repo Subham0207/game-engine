@@ -107,6 +107,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
         i. Hover bug: When mouse hover over Imgui UIs, UI elements are getting hovered even when mouse is hidden.
     6.12. Material Manager.
     6.2 Loading multiple characters. To manage and fix textures.
+    6.2.1 Found the issue the model has different meshes which use different textures of same type. But my engine only allows 1 texture of each type.
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics

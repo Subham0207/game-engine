@@ -1,5 +1,6 @@
 #include <UI/outliner.hpp>
-
+#include <UI/materialManager.hpp>
+ 
 void Outliner::ModelMatrixComponent()
 {
             if(getUIState().selectedModelIndex > -1)
@@ -191,9 +192,16 @@ void Outliner::handlerForUIComponentsvisibility()
 }
 void Outliner::ModelAndTextureSelectionWindow()
 {
-    if(ImGui::Begin("Import ModelType", &getUIState().loadModelWindow))
+    getUIState().modelfileName = "";
+    getUIState().albedo="";
+    getUIState().normal="";
+    getUIState().metalness="";
+    getUIState().roughness="";
+    getUIState().ao="";
+    
+    if(ImGui::Begin("Import Model", &getUIState().loadModelWindow))
     {   
-        ImGui::Text("ModelType");
+        ImGui::Text("Model");
         ImGui::SameLine();
         ImGui::Text("%s", getUIState().modelfileName.c_str());
         ImGui::SameLine();
@@ -204,60 +212,7 @@ void Outliner::ModelAndTextureSelectionWindow()
             getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importModelFile;
         }
 
-        ImGui::Text("Albedo");
-        ImGui::SameLine();
-        ImGui::Text("%s", getUIState().albedo.c_str());
-        ImGui::SameLine();
-        if(ImGui::Button("Browse##2"))
-        {
-            getUIState().selectAFile = true;
-            getUIState().showOpenButton = true;
-            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::albedoTexture;
-        }
-
-        ImGui::Text("Normal");
-        ImGui::SameLine();
-        ImGui::Text("%s", getUIState().normal.c_str());
-        ImGui::SameLine();
-        if(ImGui::Button("Browse##3"))
-        {
-            getUIState().selectAFile = true;
-            getUIState().showOpenButton = true;
-            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::normalTexture;
-        }
-
-        ImGui::Text("Metalness");
-        ImGui::SameLine();
-        ImGui::Text("%s", getUIState().metalness.c_str());
-        ImGui::SameLine();
-        if(ImGui::Button("Browse##5"))
-        {
-            getUIState().selectAFile = true;
-            getUIState().showOpenButton = true;
-            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::metalnessTexture;
-        }
-
-        ImGui::Text("Roughness");
-        ImGui::SameLine();
-        ImGui::Text("%s", getUIState().roughness.c_str());
-        ImGui::SameLine();
-        if(ImGui::Button("Browse##6"))
-        {
-            getUIState().selectAFile = true;
-            getUIState().showOpenButton = true;
-            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::roughnessTexture;
-        }
-
-        ImGui::Text("AO");
-        ImGui::SameLine();
-        ImGui::Text("%s", getUIState().ao.c_str());
-        ImGui::SameLine();
-        if(ImGui::Button("Browse##7"))
-        {
-            getUIState().selectAFile = true;
-            getUIState().showOpenButton = true;
-            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::aoTexture;
-        }
+        UI::renderMaterialManagerComponent();
 
         ImGui::End();
     }

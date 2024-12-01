@@ -44,7 +44,8 @@ void Model::loadModel(
 
         // Check for different texture types
         const std::vector<aiTextureType> textureTypes = {
-            aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_AMBIENT_OCCLUSION
+            aiTextureType_DIFFUSE, aiTextureType_SPECULAR, aiTextureType_NORMALS, aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_AMBIENT_OCCLUSION,
+            aiTextureType_METALNESS
         };
 
         for (aiTextureType type : textureTypes) {
@@ -367,4 +368,9 @@ void Model::loadFromFile(const std::string &filename, Model &model) {
         unsigned char* data = stbi_load(model.textureIds[i].name.c_str(), &width, &height, &nrComponents, 0);
         model.textureIds[i].id = Shared::sendTextureToGPU(data, width, height, nrComponents);
     }
+}
+
+void UpdateEngineStateWithFoundTexture(aiTextureType type)
+{
+
 }

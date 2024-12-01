@@ -47,6 +47,11 @@ public:
     std::vector<Mesh>* getMeshes(){
         return &meshes;
     }
+
+    auto getTextures()
+    {
+        return textureIds;
+    }
     
     void static saveSerializedModel(std::string filename,  Model &model);
 
