@@ -78,6 +78,8 @@ public:
     void updateFinalBoneMatrix(Shader ourShader);
 
 private:
+    bool scaleUniformly = true;
+
     void ModelAndTextureSelectionWindow();
     void ModelMatrixComponent();
     void levelControlsComponent(Level &lvl);

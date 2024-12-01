@@ -27,9 +27,17 @@ void Outliner::ModelMatrixComponent()
                 ImGui::Text("Scale");
                 ImGui::DragFloat("X##scale", &scale.x, 0.005f, 0.1f, 100.0f);  // Clamped to reasonable values
                 ImGui::SameLine();
-                ImGui::DragFloat("Y##scale", &scale.y, 0.005f, 0.1f, 100.0f);
-                ImGui::SameLine();
-                ImGui::DragFloat("Z##scale", &scale.z, 0.005f, 0.1f, 100.0f);
+                if(scaleUniformly)
+                {
+                    scale.z = scale.y = scale.x;
+                }
+                else{
+                    ImGui::DragFloat("Y##scale", &scale.y, 0.005f, 0.1f, 100.0f);
+                    ImGui::SameLine();
+                    ImGui::DragFloat("Z##scale", &scale.z, 0.005f, 0.1f, 100.0f);
+                    ImGui::SameLine();
+                }
+                ImGui::Checkbox("Scale uniformly", &scaleUniformly);
 
                 // // // ImGui interface for rotation
                 ImGui::Text("Rotation");
