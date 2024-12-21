@@ -111,7 +111,9 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
     6.2.2. I need to use material class. So a Model has a array of materials not textures. And a mesh can use 1 Material. A material has 1 texture of each type.
     6.2.3. Now we have 1 material per mesh ( so multiple material per model). Although you cannot edit each of the materials yet (DONE); Also I don't process the alpha channel from a texture (DONE);
     Some vertices of a model donot move when animation is played;
-    reset model loading window when a model load is finalized (DONE) But the new textures get shared with other models for some reason (PENDING);
+    reset model loading window when a model load is finalized (DONE) But the new textures get shared with other models for some reason (SORT OF DONE FOR NOW) This is happening due to a texture type being bound in  one model and the other model not having the texture uses the already bound one; We will revist this
+    But basically metallic textures are not working anymore;
+    Animation Getting played in two models at same time + something is wrong with vertices.
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics

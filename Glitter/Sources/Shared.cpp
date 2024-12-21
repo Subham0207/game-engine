@@ -49,3 +49,42 @@ namespace Shared{
         return textureID;
     }
 }
+
+unsigned int Shared::generateMetallicTexture()
+{
+    unsigned char pixel[4] = {0, 0, 0, 0};
+    return Shared::generateTexture(pixel);
+}
+unsigned int Shared::generateNonMetallicTexture()
+{
+    unsigned char pixel[4] = {255, 255, 255, 255};
+    return Shared::generateTexture(pixel);
+}
+unsigned int Shared::generateWhiteAOTexture()
+{
+    unsigned char pixel[4] = {255, 255, 255, 255};
+    return Shared::generateTexture(pixel);
+}
+
+unsigned int Shared::generateTexture(unsigned char* pixel)
+{
+unsigned int emptyTexture;
+glGenTextures(1, &emptyTexture);
+glBindTexture(GL_TEXTURE_2D, emptyTexture);
+
+// Define a single black pixel (RGBA)
+// unsigned char blackPixel[4] = {255, 255, 255, 255}; // Black and fully transparent
+// Alternatively: {255, 255, 255, 255} for white and opaque
+
+// Allocate the texture with this single pixel
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
+// Set texture parameters to avoid sampling artifacts
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+glBindTexture(GL_TEXTURE_2D, 0); // Unbind
+return emptyTexture;
+}

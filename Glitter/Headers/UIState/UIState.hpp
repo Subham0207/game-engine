@@ -52,6 +52,10 @@ namespace ProjectAsset {
         std::vector<Animation*> animations;
         std::vector<std::string> animationNames;
         int selectedAnimationIndex = -1;
+
+        unsigned int metalicTextureID;
+        unsigned int nonMetalicTextureID;
+        unsigned int whiteAOTextureID;
     };
 
 }

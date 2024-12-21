@@ -31,6 +31,7 @@
 #include <EngineState.hpp>
 #include "Lights/cubemap.hpp"
 #include "Level/Level.hpp"
+#include <Helpers/Shared.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -130,6 +131,11 @@ int main(int argc, char * argv[]) {
     auto backgroundShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/background.vert","E:/OpenGL/Glitter/Glitter/Shaders/background.frag");
     cubeMap->setup(mWindow,
     *equirectangularToCubemapShader, *irradianceShader, *prefilterShader, *brdfShader);
+
+    //Generate textureIds for Some Default texture
+    getUIState().metalicTextureID = Shared::generateMetallicTexture();
+    getUIState().nonMetalicTextureID = Shared::generateMetallicTexture();
+    getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
 
     //Create different shaders for the each model
     std::vector<Shader*> shaders;
