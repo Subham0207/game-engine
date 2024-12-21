@@ -70,10 +70,13 @@ void InputHandler::handleBasicMovement(float deltaTime)
 void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     //First process inputs for imgui
-    ImGuiIO& io = ImGui::GetIO();
-    io.MousePos = ImVec2((float)xpos, (float)ypos);
-    if (io.WantCaptureMouse)
-    return;
+    if(currentInputHandler->mouseState != GLFW_CURSOR_DISABLED)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.MousePos = ImVec2((float)xpos, (float)ypos);
+        if (io.WantCaptureMouse)
+        return;
+    }
 
     //Once we know imgui is not processing that input; process the input.
     if (currentInputHandler->firstMouse) // initially set to true
