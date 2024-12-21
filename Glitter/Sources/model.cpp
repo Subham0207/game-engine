@@ -101,6 +101,7 @@ ProjectModals::Texture* Model::loadEmbeddedTexture(const aiTexture* texture, aiT
 
     int mWidth, mheight, nrComponents;
     unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData), texture->mWidth, &mWidth, &mheight, &nrComponents, 0);
+    //TODO: Saving logic should be removed from here and should be saved when material it is attached to is saved ??
     stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = Shared::sendTextureToGPU(data, mWidth, mheight, nrComponents);
     auto filepath = fs::current_path().append(filename).string();

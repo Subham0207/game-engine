@@ -83,7 +83,7 @@ private:
     int* m_BoneCounter);
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
     ProjectModals::Texture* loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
-    void Model::calculateBoundingBox(const aiScene* scene);
+    void calculateBoundingBox(const aiScene* scene);
 
     friend class boost::serialization::access;
     template<class Archive>

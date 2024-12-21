@@ -109,7 +109,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
     6.2 Loading multiple characters. To manage and fix textures.
     6.2.1 Found the issue the model has different meshes which use different textures of same type. But my engine only allows 1 texture of each type.
     6.2.2. I need to use material class. So a Model has a array of materials not textures. And a mesh can use 1 Material. A material has 1 texture of each type.
-    6.2.3. Now we have 1 material per mesh ( so multiple material per model). Although you cannot each of the materials yet; Also I don't process the alpha channel from a texture (IN PROGRESS)
+    6.2.3. Now we have 1 material per mesh ( so multiple material per model). Although you cannot edit each of the materials yet (PENDING); Also I don't process the alpha channel from a texture (DONE);
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics

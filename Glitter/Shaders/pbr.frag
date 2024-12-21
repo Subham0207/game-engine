@@ -11,12 +11,6 @@ in vec4 weights;
 uniform int displayBoneIndex;
 
 
-// material parameters
-// uniform vec3  albedo;
-// uniform float metallic;
-// uniform float roughness;
-// uniform float ao;
-
 layout(binding = 1) uniform sampler2D albedoMap;
 layout(binding = 2) uniform sampler2D normalMap;
 layout(binding = 3) uniform sampler2D metallicMap;
@@ -50,7 +44,10 @@ vec3 getNormalFromMap();
 
 void main()
 {
-    vec3 albedo     =  pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
+    vec4 albedoSample = texture(albedoMap, TexCoords);
+    vec3 albedo = pow(albedoSample.rgb, vec3(2.2));
+    float alpha = albedoSample.a;
+
     float metallic  = texture(metallicMap, TexCoords).r;
     float roughness = texture(roughnessMap, TexCoords).r;
     float ao        = texture(aoMap, TexCoords).r;
@@ -134,10 +131,10 @@ void main()
 //     }
 //    if(!boneSelectionFoundToRender)
 //    {
-//         FragColor = vec4(color, 1.0);
+//         FragColor = vec4(color, alpha);
 //    }
 
-    FragColor = vec4(color, 1.0);
+    FragColor = vec4(color, alpha);
 }  
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -197,38 +194,3 @@ vec3 getNormalFromMap()
 
     return normalize(TBN * tangentNormal);
 }
-
-
-//https://github.com/Nadrin/PBR/blob/master/data/shaders/glsl
-//https://github.com/Nadrin/PBR/blob/master/src/opengl.cpp#L296 -- First Skybox is drawn though
-// and textures related to it is anyhow required by PBR material.
-
-//Loading of Environment textures
-// 1. EnvironmentMap
-// 2. IrradianceMap -- diffuse lighting information from environment map
-// 3. PreFilteredMap -- specular reflection based on roughness
-// 4. BRDF-LUT -- Needs to be generated using some algo from the environment map
-
-//Loading of material textures
-// 1. Albedo
-// 2. Normal
-// 3. Metalness
-// 4. Roughness
-// 5. AO
-// 6. You pass the above environment textures to every model.
-
-//Gamma correction
-
-//Tone mapping and Bloom
-
-//Handling multiple Lightsources 
-//https://learnopengl.com/PBR/Lighting -- Only describes point light ( Need to look for directional light and spot light )
-// 1. Directional Light
-// 2. Point Light
-// 3. Spot Light
-
-
-//Global Illumnination -- This is an endgame build :D
-// FragColor = DirectionLight + IndirectLight
-// For scenes that  do not change -- Light probe, light Mapping
-// For scenes that chagnes -- Instant Radiosity ( Virtual Lights )
