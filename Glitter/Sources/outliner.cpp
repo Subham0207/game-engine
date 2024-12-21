@@ -219,6 +219,12 @@ void Outliner::ModelAndTextureSelectionWindow()
 
         UI::renderMaterialManagerComponent();
 
+        if(ImGui::Button("Done##1"))
+        {
+            getUIState().materials.clear();
+            getUIState().loadModelWindow = false;
+        }
+
         ImGui::End();
     }
 }

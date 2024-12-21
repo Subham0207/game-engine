@@ -45,8 +45,9 @@ void UI::materialsFoundInModel()
 {
     //We get the last model that was loaded and populate the UI
     Model* model = nullptr;
-    if(getUIState().models.size() > 0)
-        model = getUIState().models[getUIState().models.size() -  1];
+    int modelIndex = getUIState().selectedModelIndex;
+    if(modelIndex > -1)
+        model = getUIState().models[modelIndex];
 
     if(model != nullptr)
     {
