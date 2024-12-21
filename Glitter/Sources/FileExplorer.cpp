@@ -129,36 +129,36 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         break;
                     case FileTypeOperation::albedoTexture:
                         {
-                            getUIState().materials[getUIState().materialIndex]->albedo->name = getUIState().filePath;
-                            getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
+                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
+                            getUIState().materials[getUIState().materialIndex]->albedo = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::normalTexture:
                         {
-                            getUIState().materials[getUIState().materialIndex]->normal->name = getUIState().filePath;
-                            getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
+                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
+                            getUIState().materials[getUIState().materialIndex]->normal = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::metalnessTexture:
                         {
-                            getUIState().materials[getUIState().materialIndex]->metalness->name = getUIState().filePath;
-                            getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
+                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
+                            getUIState().materials[getUIState().materialIndex]->metalness = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::roughnessTexture:
                         {
-                            getUIState().materials[getUIState().materialIndex]->roughness->name = getUIState().filePath;
-                            getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
+                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
+                            getUIState().materials[getUIState().materialIndex]->roughness = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::aoTexture:
                         {
-                            getUIState().materials[getUIState().materialIndex]->ao->name = getUIState().filePath;
-                            getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
+                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
+                            getUIState().materials[getUIState().materialIndex]->ao = texture;
                             showUI = false;                      
                         }
                         break;

@@ -332,7 +332,7 @@ void Model::calculateBoundingBox(const aiScene* scene) {
     }
 }
 
-void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
+ProjectModals::Texture* Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 {
     fs::path fsPath(texturePath);
     std::string filename = "Assets/"+fsPath.filename().string();
@@ -344,35 +344,8 @@ void Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 
     textureIds.push_back(texture);
 
-    //call each mesh to re-apply any missing texture
-    for (size_t i = 0; i < meshes.size(); i++)
-    {
-        switch (texture->type)
-        {
-            case aiTextureType_DIFFUSE:
-                meshes[i].material->albedo = texture;
-                break;
-            case aiTextureType_SPECULAR:
-                meshes[i].material->roughness = texture;
-                break;
-            case aiTextureType_NORMALS:
-                meshes[i].material->normal = texture;
-                break;
-            case aiTextureType_DIFFUSE_ROUGHNESS:
-                meshes[i].material->roughness = texture;
-                break;
-            case aiTextureType_AMBIENT_OCCLUSION:
-                meshes[i].material->ao = texture;
-                break;
-            case aiTextureType_METALNESS:
-                meshes[i].material->metalness = texture;
-                break;
-            default:
-                break;
-        }
-    }
-    
-
+    //Update the material and since material are reference types; The correct mesh should get updated
+    return texture;
 }
 
 void Model::loadFromFile(const std::string &filename, Model &model) {

@@ -32,7 +32,7 @@ public:
     }
     void Draw(Shader* shader, GLFWwindow* window);
     aiAABB* GetBoundingBox();
-    void LoadTexture(std::string texturePath, aiTextureType typeName);
+    ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName);
     glm::mat4 model = glm::mat4(1.0f);
 
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)

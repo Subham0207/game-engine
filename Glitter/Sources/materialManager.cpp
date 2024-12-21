@@ -13,8 +13,6 @@ void UI::renderMaterialManagerComponent()
     for (size_t i = 0; i < materials.size(); i++)
     {
         ImGui::Text(("Material: " + std::to_string(i)).c_str());
-
-        getUIState().materialIndex = i;
         
         int textureIndex = 2; // This is just for UI purposes
 
@@ -71,5 +69,6 @@ void UI::UpdateOrDisplayTexture(
         getUIState().fileTypeOperation = textureType;
         getUIState().selectAFile = true;
         getUIState().showOpenButton = true;
+        getUIState().materialIndex = materialIndex;
     }
 } 
