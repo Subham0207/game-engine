@@ -106,9 +106,6 @@ int main(int argc, char * argv[]) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-    //For RGBA to work Enable Alpha channel and Blend
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Loading Level -- making .lvl as the extention of my levelfile
     auto lvl = new Level();
@@ -131,6 +128,11 @@ int main(int argc, char * argv[]) {
     auto backgroundShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/background.vert","E:/OpenGL/Glitter/Glitter/Shaders/background.frag");
     cubeMap->setup(mWindow,
     *equirectangularToCubemapShader, *irradianceShader, *prefilterShader, *brdfShader);
+
+    //For RGBA to work Enable Alpha channel and Blend; 
+    //NOTE: Its very important to enable alpha and blend after cubemap generation else brdfLUT will come out black
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Generate textureIds for Some Default texture
     getUIState().metalicTextureID = Shared::generateMetallicTexture();
