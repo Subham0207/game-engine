@@ -116,7 +116,7 @@ public:
 			if (animationTime < m_Positions[index + 1].timeStamp)
 				return index;
 		}
-		assert(0);
+		return m_NumPositions - 3;//FinalKeyframeIndex
 	}
 
 	int GetRotationIndex(float animationTime)
@@ -126,7 +126,7 @@ public:
 			if (animationTime < m_Rotations[index + 1].timeStamp)
 				return index;
 		}
-		assert(0);
+		return m_NumPositions - 3;//FinalKeyframeIndex
 	}
 
 	int GetScaleIndex(float animationTime)
@@ -136,7 +136,7 @@ public:
 			if (animationTime < m_Scales[index + 1].timeStamp)
 				return index;
 		}
-		assert(0);
+		return m_NumPositions - 3;//FinalKeyframeIndex
 	}
 
 
