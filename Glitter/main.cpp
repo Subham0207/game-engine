@@ -216,7 +216,7 @@ int main(int argc, char * argv[]) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        outliner->updateAnimator(deltaTime);
+        // outliner->updateAnimator(deltaTime);
 
 
         clientHandler.inputHandler->handleInput(deltaTime);
@@ -228,7 +228,7 @@ int main(int argc, char * argv[]) {
         //Go through all the characters and call UpdateAnimation
         for(int i=0;i<lvl->characters->size();i++)
         {
-            lvl->characters->at(i)->updateFinalBoneMatrix();
+            lvl->characters->at(i)->updateFinalBoneMatrix(deltaTime);
         }
 
 

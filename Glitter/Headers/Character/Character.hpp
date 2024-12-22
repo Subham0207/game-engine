@@ -24,7 +24,7 @@ public:
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
     int& GetBoneCount() { return m_BoneCounter; }
 
-    void updateFinalBoneMatrix();    
+    void updateFinalBoneMatrix(float deltatime);
 
 private:
     Camera* camera;

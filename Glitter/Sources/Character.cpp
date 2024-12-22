@@ -28,8 +28,13 @@ void Character::loadFromFile(const std::string &filename, Character &character)
 {
 }
 
-void Character::updateFinalBoneMatrix()
+void Character::updateFinalBoneMatrix(float deltatime)
 {
+    if(animator->m_CurrentAnimation)
+    {
+        animator->UpdateAnimation(deltatime, m_BoneInfoMap);
+    }
+
     model->shader->use();
     if(animator != nullptr && animator->isAnimationPlaying)
     {

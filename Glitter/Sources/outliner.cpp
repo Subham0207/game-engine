@@ -91,6 +91,15 @@ void Outliner::modelSelectorComponent()
         name+=std::to_string(i);
         if (ImGui::RadioButton( name.c_str(), &getUIState().selectedModelIndex, i)) {
         }
+        
+        try
+        {
+            getUIState().character = getActiveLevel().characters->at(getUIState().selectedModelIndex);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
         // Optionally, pop style changes here if you made any
     }
 }
@@ -146,7 +155,10 @@ void Outliner::manageAnimationsForSelectedModel()
     if(ImGui::Button("Play AnimationType"))
     {
         if(getUIState().character->animator != nullptr)
-        getUIState().character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
+        {
+            std::cout << "Character: "<< getUIState().character->model->getName() << std::endl;
+            getUIState().character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
+        }
         // we need to send the manipulation to mesh
     }
 }
