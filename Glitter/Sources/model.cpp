@@ -282,7 +282,7 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
     
 }
 
-void Model::Draw(Shader* shader, GLFWwindow* window)
+void Model::Draw(GLFWwindow* window)
 {
     //Probably this should happen if the model is selected but its fine as a start
     if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)

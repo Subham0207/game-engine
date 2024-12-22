@@ -75,7 +75,6 @@ public:
 
     //Handling Animation applying logic here: probably these should be called from character class idk right now we will see.
     void updateAnimator(float deltatime);
-    void updateFinalBoneMatrix(Shader ourShader);
 
 private:
     bool scaleUniformly = true;

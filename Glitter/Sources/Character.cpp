@@ -1,5 +1,7 @@
 #include <Character/Character.hpp>
 #include <filesystem>
+#include <EngineState.hpp>
+
 namespace fs = std::filesystem;
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -24,4 +26,26 @@ void Character::saveToFile(std::string filename, Character &character)
 
 void Character::loadFromFile(const std::string &filename, Character &character)
 {
+}
+
+void Character::updateFinalBoneMatrix()
+{
+    model->shader->use();
+    if(animator != nullptr && animator->isAnimationPlaying)
+    {
+        auto transforms = animator->GetFinalBoneMatrices();
+        for (int i = 0; i < transforms.size(); ++i)
+            model->shader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+    }
+    else{
+        //MAXBONES 100
+            for (int i = 0; i < 100; ++i)
+            model->shader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", 1.0f);
+    }
+
+    //For Debuggging
+    if(model != nullptr)
+    {
+        model->shader->setInt("displayBoneIndex", getUIState().selectedBoneId);
+    }
 }

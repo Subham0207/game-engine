@@ -10,6 +10,7 @@
 
 #include "3DModel/model.hpp"
 #include "Camera/Camera.hpp"
+#include <Character/Character.hpp>
 
 namespace fs = std::filesystem;
 
@@ -96,9 +97,14 @@ class Level{
             modelTransformations.push_back(&model->model);
             models->push_back(model);
         }
+
+        void addCharacter(Character *character){
+            characters->push_back(character);
+        }
         std::vector<std::string> modelFilePaths;
         std::vector<glm::mat4*> modelTransformations;
         std::vector<Model *> *models = new std::vector<Model *>();
+        std::vector<Character *> *characters = new std::vector<Character *>();
         std::string levelname = "level1";
 
         glm::vec3* cameraPos;

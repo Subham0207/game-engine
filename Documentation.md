@@ -113,7 +113,8 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
     Some vertices of a model donot move when animation is played;
     reset model loading window when a model load is finalized (DONE) But the new textures get shared with other models for some reason (SORT OF DONE FOR NOW) This is happening due to a texture type being bound in  one model and the other model not having the texture uses the already bound one; We will revist this
     But basically metallic textures are not working anymore(FIXED) To Fix enable alpha and blend after the cubemap has generated;
-    Animation Getting played in two models at same time + something is wrong with vertices (PENDING).
+    Animation Getting played in two models at same time + something is wrong with vertices (IN PROGRESS) Found the issue we are updating
+    shaders of everyModel with the finalBoneMatrices of on model.
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics

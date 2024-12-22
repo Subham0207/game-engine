@@ -26,11 +26,13 @@ public:
     std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
     int* m_BoneCounter = nullptr)
     {
+        shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+        shader->use();
         loadModel(path, m_BoneInfoMap, m_BoneCounter);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     }
-    void Draw(Shader* shader, GLFWwindow* window);
+    void Draw(GLFWwindow* window);
     aiAABB* GetBoundingBox();
     ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName);
     glm::mat4 model = glm::mat4(1.0f);
@@ -56,6 +58,7 @@ public:
     void static saveSerializedModel(std::string filename,  Model &model);
 
     void static loadFromFile(const std::string &filename, Model &model);
+    Shader* shader;
 
 private:
     // model data
@@ -70,19 +73,25 @@ private:
     void loadModel(std::string path,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter);
+
     void processNode(
     aiNode* node,
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter);
+
     ProjectModals::Texture* processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type);
+    
     Mesh processMesh(
     aiMesh* mesh,
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter);
+
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
+
     ProjectModals::Texture* loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
+
     void calculateBoundingBox(const aiScene* scene);
 
     friend class boost::serialization::access;

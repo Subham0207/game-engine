@@ -139,6 +139,7 @@ int main(int argc, char * argv[]) {
     getUIState().nonMetalicTextureID = Shared::generateMetallicTexture();
     getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
 
+
     //Create different shaders for the each model
     std::vector<Shader*> shaders;
     for(auto i:*(lvl->models))
@@ -146,6 +147,9 @@ int main(int argc, char * argv[]) {
         auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
         shaders.push_back(shader);
     }
+    
+    
+    //Create different shaders for the each model
     
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
@@ -221,20 +225,18 @@ int main(int argc, char * argv[]) {
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if(shaders.size() != lvl->models->size())
+        //Go through all the characters and call UpdateAnimation
+        for(int i=0;i<lvl->characters->size();i++)
         {
-            for(auto i:*(lvl->models))
-            {
-                auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
-                shaders.push_back(shader);
-            }
+            lvl->characters->at(i)->updateFinalBoneMatrix();
         }
+
 
         // render the model
         for(int i=0;i<models->size();i++)
         {
             glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
-            shaders.at(i)->use();
+            models->at(i)->shader->use();
 
             glActiveTexture(GL_TEXTURE0+6);
             glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->irradianceMap);
@@ -243,18 +245,16 @@ int main(int argc, char * argv[]) {
             glActiveTexture(GL_TEXTURE0+8);
             glBindTexture(GL_TEXTURE_2D, cubeMap->brdfLUTTexture);
             
-            clientHandler.camera->updateMVP(shaders.at(i)->ID);
-            glUniformMatrix4fv(glGetUniformLocation(shaders.at(i)->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
-            glUniform3f(glGetUniformLocation(shaders.at(i)->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
+            clientHandler.camera->updateMVP(models->at(i)->shader->ID);
+            glUniformMatrix4fv(glGetUniformLocation(models->at(i)->shader->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
+            glUniform3f(glGetUniformLocation(models->at(i)->shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
 
             // This is a spotlight attached to the client's camera
             // lights->spotLights[0].position = clientHandler.camera->getPosition();
             // lights->spotLights[0].direction = clientHandler.camera->getFront();
-            
-            //Passing values required by the shader for the lights present in the scene
-            outliner->updateFinalBoneMatrix(*shaders.at(i));
-            lights->Render(shaders.at(i)->ID);
-            (*models)[i]->Draw(shaders.at(i), mWindow);
+
+            lights->Render(models->at(i)->shader->ID);
+            (*models)[i]->Draw(mWindow);
         }
 
         // equirectangularToCubemapShader->use();

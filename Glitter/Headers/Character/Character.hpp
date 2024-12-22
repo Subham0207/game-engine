@@ -22,7 +22,9 @@ public:
     void static loadFromFile(const std::string &filename, Character &character);
 
     auto& GetBoneInfoMap() { return m_BoneInfoMap; }
-    int& GetBoneCount() { return m_BoneCounter; }    
+    int& GetBoneCount() { return m_BoneCounter; }
+
+    void updateFinalBoneMatrix();    
 
 private:
     Camera* camera;

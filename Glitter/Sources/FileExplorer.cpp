@@ -123,6 +123,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             getUIState().modelfileName = getUIState().filePath;
                             getUIState().character = new Character(getUIState().filePath);
                             getActiveLevel().addModel(getUIState().character->model);
+                            getActiveLevel().addCharacter(getUIState().character);
                             getUIState().models = *State::state->activeLevel.models;    
                             showUI = false;                       
                         }

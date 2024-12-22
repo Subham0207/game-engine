@@ -262,25 +262,8 @@ void Outliner::applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, 
 void Outliner::updateAnimator(float deltatime)
 {
     if(getUIState().selectedAnimationIndex != -1 && getUIState().character != nullptr && getUIState().animations.size() != 0)
-    getUIState().character->animator->UpdateAnimation(deltatime);
-}
-
-void Outliner::updateFinalBoneMatrix(Shader ourShader)
-{
-    getUIState().shaderOfSelectedModel = &ourShader;
-    if(getUIState().character->animator != nullptr)
     {
-        auto transforms = getUIState().character->animator->GetFinalBoneMatrices();
-        for (int i = 0; i < transforms.size(); ++i)
-            ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-    }
-    else{
-        //MAXBONES 100
-            for (int i = 0; i < 100; ++i)
-            ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", 1.0f);
-    }
-    if(getUIState().character->model != nullptr)
-    {
-        getUIState().shaderOfSelectedModel->setInt("displayBoneIndex", getUIState().selectedBoneId);
+        auto boneInfoMap = getUIState().character->GetBoneInfoMap();
+        getUIState().character->animator->UpdateAnimation(deltatime, boneInfoMap);
     }
 }

@@ -20,25 +20,28 @@ public:
 			m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
 	}
 
-	void UpdateAnimation(float dt)
+	void UpdateAnimation(float dt, std::map<std::string, BoneInfo> boneInfoMap)
 	{
 		m_DeltaTime = dt;
 		if (m_CurrentAnimation)
 		{
 			m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
 			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-			CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
+			CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f), boneInfoMap);
 		}
 	}
 
 	void PlayAnimation(Animation* pAnimation)
 	{
 		if(pAnimation)
-		m_CurrentAnimation = pAnimation;
-		m_CurrentTime = 0.0f;
+		{
+			m_CurrentAnimation = pAnimation;
+			m_CurrentTime = 0.0f;
+			isAnimationPlaying = true;
+		}
 	}
 
-	void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform)
+	void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform, std::map<std::string, BoneInfo> boneInfoMap)
 	{
 		std::string nodeName = node->name;
 		// glm::mat4 nodeTransform = node->transformation;
@@ -56,7 +59,6 @@ public:
 
 		glm::mat4 globalTransformation = parentTransform * nodeTransform;
 
-		auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
 		if (boneInfoMap.find(nodeName) != boneInfoMap.end())
 		{
 			int index = boneInfoMap[nodeName].id;
@@ -65,7 +67,7 @@ public:
 		}
 
 		for (int i = 0; i < node->childrenCount; i++)
-			CalculateBoneTransform(&node->children[i], globalTransformation);
+			CalculateBoneTransform(&node->children[i], globalTransformation, boneInfoMap);
 	}
 
 	std::vector<glm::mat4> GetFinalBoneMatrices()
@@ -83,6 +85,8 @@ public:
 		return m_FinalBoneMatrices;
 	}
 
+	bool isAnimationPlaying = false;
+	
 private:
 	std::vector<glm::mat4> m_FinalBoneMatrices;
 	Animation* m_CurrentAnimation;
