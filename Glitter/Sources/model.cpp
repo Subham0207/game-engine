@@ -10,6 +10,9 @@
 #include <Modals/vertex.hpp>
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include <EngineState.hpp>
+#include "ImGuizmo.h"
+
 // using namespace std;
 namespace fs = std::filesystem;
 
@@ -282,27 +285,40 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
     
 }
 
-void Model::Draw(GLFWwindow* window)
+void Model::draw()
 {
-    //Probably this should happen if the model is selected but its fine as a start
-    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-    {
-        this->whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
-    }
-    if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-    {
-        this->whichTransformActive = ImGuizmo::OPERATION::ROTATE;
-    }
-    if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-    {
-        this->whichTransformActive = ImGuizmo::OPERATION::SCALE;
-    }
-
 	for (unsigned int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader);
 }
 
-aiAABB* Model::GetBoundingBox(){
+void Model::bindCubeMapTextures(CubeMap *cubeMap)
+{
+    glActiveTexture(GL_TEXTURE0+6);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->irradianceMap);
+    glActiveTexture(GL_TEXTURE0+7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->prefilterMap);
+    glActiveTexture(GL_TEXTURE0+8);
+    glBindTexture(GL_TEXTURE_2D, cubeMap->brdfLUTTexture);
+}
+
+void Model::updateModelAndViewPosMatrix(glm::vec3 cameraPosition)
+{
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(this->model));
+    glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
+}
+
+void Model::useAttachedShader()
+{
+    shader->use();
+}
+
+unsigned int Model::getShaderId() const
+{
+    return shader->ID;
+}
+
+aiAABB *Model::GetBoundingBox()
+{
     return boundingBox;
 }
 
@@ -348,7 +364,14 @@ ProjectModals::Texture* Model::LoadTexture(std::string texturePath, aiTextureTyp
     return texture;
 }
 
-void Model::loadFromFile(const std::string &filename, Model &model) {
+void Model::imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
+{
+    ImGuizmo::Manipulate(
+    glm::value_ptr(viewMatrix),
+    glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(model));
+}
+void Model::loadFromFile(const std::string &filename, Model &model)
+{
 
     try
     {

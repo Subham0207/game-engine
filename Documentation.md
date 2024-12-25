@@ -60,6 +60,9 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 5. To convert a point from local space to world space -> modelMatrix * vec4(pointInLocalSpace);
 6. returning after imgui want to capture means that your mouse is probably over a imgui. Note setting leftClick to false when imgui is using inputs helped a ton.
 7. Avoid circular includes or else you will get compile errors like no overload function found that takes n arg.
+    # Two types of circular dependency error
+        i. The class exists but the compiler complains that it doesnot. Separate definitions in hpp and declaration in cpp. Don't import if a class method/member is not used in hpp file just initialize it.
+        ii. Error in code from packages.
 8. ` error LNK2038: mismatch detected for 'RuntimeLibrary': value 'MTd_StaticDebug' doesn't match value 'MDd_DynamicDebug' in test.obj ( for lots obj against the test.obj ) ........and then at last I get fatal error LNK1169: one or more multiply defined symbols found.` -- The GlitterLib was being built with sources of deps whose libs were already being linked to it. So only the .cpp files for your projects are needed here rest comes from linker. Also make sure in build/cmakecache.txt -- `gtest_force_shared_crt:BOOL=ON`.
 9. BoneIds and thier weights on each vertex is not being transmitted correctly to shader.
 10. `redefiniton error due stb_image and stb_write_png libraries`. Create a .cpp file and include their implmentation macro then headers in that file. Its because they came with .cpp and .h files instead of objs/binaries but the .cpp file was not created so we do this. This is probably for making them system agonstic.
@@ -113,8 +116,9 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
     Some vertices of a model donot move when animation is played;
     reset model loading window when a model load is finalized (DONE) But the new textures get shared with other models for some reason (SORT OF DONE FOR NOW) This is happening due to a texture type being bound in  one model and the other model not having the texture uses the already bound one; We will revist this
     But basically metallic textures are not working anymore(FIXED) To Fix enable alpha and blend after the cubemap has generated;
-    Animation Getting played in two models at same time + something is wrong with vertices (IN PROGRESS) Found the issue we are updating
-    shaders of everyModel with the finalBoneMatrices of on model.
+    Animation Getting played in two models at same time(Fixed) + something is wrong with vertices (IN PROGRESS) Found the issue we are updating
+    shaders of everyModel with the finalBoneMatrices of on model. 
+    ### To Fix vertices lets first render bones of a model which we can control to see the vertices influenced (How It works: we calculate final transformation of every bone and upload it to GPU then vertices it influences move)
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics

@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <filesystem>
+#include <imgui.h>
+#include <ImGuizmo.h>
 #include <Modals/material.hpp>
 namespace fs = std::filesystem;
 
@@ -56,6 +58,8 @@ namespace ProjectAsset {
         unsigned int metalicTextureID;
         unsigned int nonMetalicTextureID;
         unsigned int whiteAOTextureID;
+
+        ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
     };
 
 }

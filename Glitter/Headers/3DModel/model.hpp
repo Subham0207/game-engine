@@ -10,15 +10,16 @@
 #include "3DModel/Skeleton/AnimData.hpp"
 
 #include "imgui.h"
-#include "ImGuizmo.h"
 
 #include "GLFW/glfw3.h"
 
 #include <map>
 #include <serializeAClass.hpp>
 #include <Modals/material.hpp>
+#include <Lights/cubemap.hpp>
+#include <Renderable/renderable.hpp>
 
-class Model
+class Model: public Renderable
 {
 public:
     Model()=default;
@@ -32,17 +33,23 @@ public:
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     }
-    void Draw(GLFWwindow* window);
+
+    void draw() override;
+
+    void bindCubeMapTextures(CubeMap *cubeMap) override;
+
+    void updateModelAndViewPosMatrix(glm::vec3 cameraPosition) override;
+
+    void useAttachedShader() override;
+
+    unsigned int getShaderId() const override;
+
     aiAABB* GetBoundingBox();
     ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName);
     glm::mat4 model = glm::mat4(1.0f);
 
-    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
-    {
-            ImGuizmo::Manipulate(
-            glm::value_ptr(viewMatrix),
-            glm::value_ptr(projMatrix), whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(model));
-    }
+    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix);
+
     std::string getName(){
         return directory;
     }
@@ -68,7 +75,6 @@ private:
     std::string directory;
     aiAABB* boundingBox;
 
-    ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
 
     void loadModel(std::string path,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,

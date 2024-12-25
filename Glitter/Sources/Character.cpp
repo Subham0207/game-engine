@@ -1,7 +1,6 @@
 #include <Character/Character.hpp>
 #include <filesystem>
 #include <EngineState.hpp>
-
 namespace fs = std::filesystem;
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -53,4 +52,25 @@ void Character::updateFinalBoneMatrix(float deltatime)
     {
         model->shader->setInt("displayBoneIndex", getUIState().selectedBoneId);
     }
+}
+
+void Character::draw()
+{
+    model->draw();
+
+}
+
+void Character::bindCubeMapTextures(CubeMap *cubemap)
+{
+    model->bindCubeMapTextures(cubemap);
+}
+
+void Character::useAttachedShader()
+{
+    model->useAttachedShader();
+}
+
+unsigned int Character::getShaderId() const
+{
+    return model->getShaderId();
 }

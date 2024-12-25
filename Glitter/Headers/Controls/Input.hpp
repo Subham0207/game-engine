@@ -18,6 +18,8 @@ private:
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
+	static void handleTransformGizmo(GLFWwindow* window);
+
 	bool firstMouse = true;
 	float yaw = -90.0f;
 	float pitch = 0.0f;

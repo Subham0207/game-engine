@@ -3,6 +3,8 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_glfw.h"
+#include <EngineState.hpp>
+#include <ImGuizmo.h>
 
 InputHandler* InputHandler::currentInputHandler = nullptr;
 
@@ -131,7 +133,22 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
     InputHandler::currentInputHandler->leftClickPressed = false;
 }
 
-void InputHandler::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void InputHandler::handleTransformGizmo(GLFWwindow *window)
+{
+    if(glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    {
+        getUIState().whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
+    }
+    if(glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    {
+        getUIState().whichTransformActive = ImGuizmo::OPERATION::ROTATE;
+    }
+    if(glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    {
+        getUIState().whichTransformActive = ImGuizmo::OPERATION::SCALE;
+    }
+}
+void InputHandler::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     if(ImGui::GetIO().WantCaptureMouse)
     {

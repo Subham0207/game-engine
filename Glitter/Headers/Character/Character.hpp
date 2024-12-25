@@ -4,8 +4,10 @@
 #include "Camera/Camera.hpp"
 #include "glm/glm.hpp"
 #include <serializeAClass.hpp>
+#include <Renderable/renderable.hpp>
+#include <Lights/cubemap.hpp>
 
-class Character
+class Character: public Renderable
 {
 public:
     Character(std::string filepath){
@@ -25,6 +27,14 @@ public:
     int& GetBoneCount() { return m_BoneCounter; }
 
     void updateFinalBoneMatrix(float deltatime);
+
+    void draw() override;
+
+    void bindCubeMapTextures(CubeMap *cubemap) override;
+
+    void useAttachedShader() override;
+
+    unsigned int getShaderId() const override;
 
 private:
     Camera* camera;

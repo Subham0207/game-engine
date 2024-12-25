@@ -27,6 +27,7 @@
 #include "UI/AssetBrowser.hpp"
 
 #include "Helpers/raypicking.hpp"
+#include <ImGuizmo.h>
 
 #include <EngineState.hpp>
 #include "Lights/cubemap.hpp"
@@ -235,26 +236,20 @@ int main(int argc, char * argv[]) {
         // render the model
         for(int i=0;i<models->size();i++)
         {
-            glm::vec3 position((*models)[i]->model[3][0], (*models)[i]->model[3][1], (*models)[i]->model[3][2]);
-            models->at(i)->shader->use();
+            models->at(i)->useAttachedShader();
+            auto shaderID = models->at(i)->getShaderId();
 
-            glActiveTexture(GL_TEXTURE0+6);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->irradianceMap);
-            glActiveTexture(GL_TEXTURE0+7);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->prefilterMap);
-            glActiveTexture(GL_TEXTURE0+8);
-            glBindTexture(GL_TEXTURE_2D, cubeMap->brdfLUTTexture);
+            models->at(i)->bindCubeMapTextures(cubeMap);
             
-            clientHandler.camera->updateMVP(models->at(i)->shader->ID);
-            glUniformMatrix4fv(glGetUniformLocation(models->at(i)->shader->ID, "model"), 1, GL_FALSE, glm::value_ptr((*models)[i]->model));
-            glUniform3f(glGetUniformLocation(models->at(i)->shader->ID, "viewPos"), clientHandler.camera->getPosition().r, clientHandler.camera->getPosition().g, clientHandler.camera->getPosition().b);
+            clientHandler.camera->updateMVP(shaderID);
+            models->at(i)->updateModelAndViewPosMatrix(clientHandler.camera->getPosition());
 
             // This is a spotlight attached to the client's camera
             // lights->spotLights[0].position = clientHandler.camera->getPosition();
             // lights->spotLights[0].direction = clientHandler.camera->getFront();
 
-            lights->Render(models->at(i)->shader->ID);
-            (*models)[i]->Draw(mWindow);
+            lights->Render(shaderID);
+            (*models)[i]->draw();
         }
 
         // equirectangularToCubemapShader->use();
