@@ -303,7 +303,7 @@ void Model::bindCubeMapTextures(CubeMap *cubeMap)
 
 void Model::updateModelAndViewPosMatrix(glm::vec3 cameraPosition)
 {
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(this->model));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(this->modelMatrix));
     glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
 }
 
@@ -368,7 +368,7 @@ void Model::imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
 {
     ImGuizmo::Manipulate(
     glm::value_ptr(viewMatrix),
-    glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(model));
+    glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(modelMatrix));
 }
 void Model::loadFromFile(const std::string &filename, Model &model)
 {

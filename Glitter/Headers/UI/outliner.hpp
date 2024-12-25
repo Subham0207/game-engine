@@ -8,6 +8,7 @@
 #include "EngineState.hpp"
 #include "3DModel/Animation/Animator.hpp"
 #include  <UI/FileExplorer.hpp>
+#include <Renderable/renderable.hpp>
 
 #include "assimp/scene.h"
 #include "Character/Character.hpp"
@@ -20,10 +21,10 @@ class Outliner
 {
 public:
     // Constructor
-    Outliner(std::vector<Model *> models) {
+    Outliner(std::vector<Renderable *> renderable) {
         // Initialize the items array or any other setup needed
-        getUIState().models = *State::state->activeLevel.models;
-        getUIState().selectedModelIndex = -1;
+        getUIState().renderables = *State::state->activeLevel.renderables;
+        getUIState().selectedRenderableIndex = -1;
     }
 
     // Render the radio buttons
@@ -65,10 +66,10 @@ public:
 
     // Get the index of the currently selected radio button
     int GetSelectedIndex() const {
-        return getUIState().selectedModelIndex;
+        return getUIState().selectedRenderableIndex;
     }
     void setSelectedIndex(int newSelectedIndex){
-    getUIState().selectedModelIndex = newSelectedIndex;
+    getUIState().selectedRenderableIndex = newSelectedIndex;
     }
 
 

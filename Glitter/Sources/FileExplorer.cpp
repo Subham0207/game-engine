@@ -83,10 +83,13 @@ void ProjectAsset::saveAFile(std::string& currentPath,
 
             case FileTypeOperation::saveModel: {
                 InputText("##Filename", getUIState().saveAsFileName);
-                if (ImGui::Button("Save"))
+                if (ImGui::Button("Save") && getUIState().selectedRenderableIndex > -1)
                 {
-                    auto model = getUIState().models.at(getUIState().selectedModelIndex);
-                    Model::saveSerializedModel("Assets/" + getUIState().saveAsFileName, *model);
+                    auto renderable = getUIState().renderables.at(getUIState().selectedRenderableIndex);
+                    if(auto* model = dynamic_cast<Model*>(renderable))
+                    {
+                        Model::saveSerializedModel("Assets/" + getUIState().saveAsFileName, *model);
+                    }
                     //Recurrsively call save texture on the texture method ?
                     showUI = false;
                 }
@@ -121,64 +124,79 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                     case FileTypeOperation::importModelFile:
                         {
                             getUIState().modelfileName = getUIState().filePath;
-                            getUIState().character = new Character(getUIState().filePath);
-                            getActiveLevel().addModel(getUIState().character->model);
-                            getActiveLevel().addCharacter(getUIState().character);
-                            getUIState().models = *State::state->activeLevel.models;    
+                            getActiveLevel().addRenderable(new Character(getUIState().filePath));
+                            getUIState().renderables = *State::state->activeLevel.renderables;    
                             showUI = false;                       
                         }
                         break;
                     case FileTypeOperation::albedoTexture:
                         {
-                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
+                            if(getUIState().selectedRenderableIndex < 0)
+                            break;
+                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            ->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
                             getUIState().materials[getUIState().materialIndex]->albedo = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::normalTexture:
                         {
-                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
+                            if(getUIState().selectedRenderableIndex < 0)
+                            break;
+                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            ->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
                             getUIState().materials[getUIState().materialIndex]->normal = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::metalnessTexture:
                         {
-                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
+                            if(getUIState().selectedRenderableIndex < 0)
+                            break;
+                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            ->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
                             getUIState().materials[getUIState().materialIndex]->metalness = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::roughnessTexture:
                         {
-                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
+                            if(getUIState().selectedRenderableIndex < 0)
+                            break;
+                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            ->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
                             getUIState().materials[getUIState().materialIndex]->roughness = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::aoTexture:
                         {
-                            auto texture = getUIState().character->model->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
+                            if(getUIState().selectedRenderableIndex < 0)
+                            break;
+                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            ->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
                             getUIState().materials[getUIState().materialIndex]->ao = texture;
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::loadModel:
                         {
-                            getUIState().character->model = new Model();
-                            Model::loadFromFile(getUIState().filePath, *getUIState().character->model);
-                            getActiveLevel().addModel(getUIState().character->model);
+                            auto renderable = new Model();
+                            Model::loadFromFile(getUIState().filePath, *renderable);
+                            getActiveLevel().addRenderable(renderable);
                             showUI = false;                      
                         }
                         break;
                     case FileTypeOperation::loadAnimation:
                         {
-                            if(getUIState().character != NULL)
+                            if(getUIState().selectedRenderableIndex < 0)
+                            break;
+                            if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
                             {
                                 auto animation = new Animation(
                                 getUIState().filePath,
-                                getUIState().character->GetBoneInfoMap(),
-                                getUIState().character->GetBoneCount());
+                                character->GetBoneInfoMap(),
+                                character->GetBoneCount());
                                 getUIState().animations.push_back(animation);
                                 getUIState().animationNames.push_back(animation->animationName);
                             }

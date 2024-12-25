@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <imgui.h>
 #include <ImGuizmo.h>
+#include <Renderable/renderable.hpp>
 #include <Modals/material.hpp>
 namespace fs = std::filesystem;
 
@@ -19,8 +20,8 @@ namespace ProjectAsset {
     };
 
     struct UIState{
-        std::vector<Model*> models;
-        int selectedModelIndex = -1;
+        std::vector<Renderable*> renderables;
+        int selectedRenderableIndex = -1;
         int coordinateSpace = -1;
         bool isFirstFrame = true;
 
@@ -42,7 +43,6 @@ namespace ProjectAsset {
         int materialIndex = -1;
         FileTypeOperation fileTypeOperation;
 
-        Character* character = NULL;
         Shader* shaderOfSelectedModel = NULL;
         int selectedBoneId = 0;
 

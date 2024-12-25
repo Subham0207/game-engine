@@ -11,6 +11,7 @@
 #include "3DModel/model.hpp"
 #include "Camera/Camera.hpp"
 #include <Character/Character.hpp>
+#include <Renderable/renderable.hpp>
 
 namespace fs = std::filesystem;
 
@@ -63,10 +64,10 @@ class Level{
             {
                 auto model = new Model();
                 Model::loadFromFile(lvl.modelFilePaths[i], *model);// this also sets modelMatrix to identityMatrix
-                model->model = *lvl.modelTransformations[i]; // Set modelMatrix
-                lvl.models->push_back(model);
+                model->setModelMatrix(*lvl.modelTransformations[i]); // Set modelMatrix
+                lvl.renderables->push_back(model);
                 delete lvl.modelTransformations[i];                 
-                lvl.modelTransformations[i] = &model->model;//point lvl's ModelMatrix back to ModelType's Matrix;
+                lvl.modelTransformations[i] = &model->getModelMatrix();//point lvl's ModelMatrix back to ModelType's Matrix;
             }
 
             lvl.camera->cameraFront = *lvl.cameraFront;
@@ -92,19 +93,15 @@ class Level{
                 return false;
         }
 
-        void addModel(Model *model){
-            modelFilePaths.push_back(model->getName());
-            modelTransformations.push_back(&model->model);
-            models->push_back(model);
+        void addRenderable(Renderable *renderable){
+            modelFilePaths.push_back(renderable->getName());
+            modelTransformations.push_back(&renderable->getModelMatrix());
+            renderables->push_back(renderable);
         }
 
-        void addCharacter(Character *character){
-            characters->push_back(character);
-        }
         std::vector<std::string> modelFilePaths;
         std::vector<glm::mat4*> modelTransformations;
-        std::vector<Model *> *models = new std::vector<Model *>();
-        std::vector<Character *> *characters = new std::vector<Character *>();
+        std::vector<Renderable *> *renderables = new std::vector<Renderable *>();
         std::string levelname = "level1";
 
         glm::vec3* cameraPos;

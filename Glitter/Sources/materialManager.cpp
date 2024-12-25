@@ -44,14 +44,15 @@ void UI::renderMaterialManagerComponent()
 void UI::materialsFoundInModel()
 {
     //We get the last model that was loaded and populate the UI
-    Model* model = nullptr;
-    int modelIndex = getUIState().selectedModelIndex;
-    if(modelIndex > -1)
-        model = getUIState().models[modelIndex];
 
-    if(model != nullptr)
+    if(getUIState().selectedRenderableIndex > -1)
     {
-        getUIState().materials = model->getMaterials();
+        Renderable* renderable = getUIState().renderables[getUIState().selectedRenderableIndex];
+
+        if(renderable != nullptr)
+        {
+            getUIState().materials = renderable->getMaterials();
+        }
     }
 }
 

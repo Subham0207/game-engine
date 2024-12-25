@@ -20,6 +20,7 @@
 #include "Helpers/glitter.hpp"
 
 #include "EngineState.hpp"
+#include <Renderable/renderable.hpp>
 
 void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int shaderId){
 
@@ -100,13 +101,13 @@ void renderRayWithIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayE
 
 }
 
-int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<Model*>& models) {
+int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<Renderable*>& renderables) {
     int closestModelIndex = -1;
     float closestDistance = std::numeric_limits<float>::max();
     glm::vec3 closestIntersectionPoint;
 
-    for (unsigned int i = 0; i < models.size();i++) {
-        const auto meshes = *models.at(i)->getMeshes();
+    for (unsigned int i = 0; i < renderables.size();i++) {
+        const auto meshes = *renderables.at(i)->getMeshes();
         for (unsigned int j = 0; j < meshes.size();j++) {
             auto mesh = meshes.at(j);
             for (int k = 0; k < mesh.indices.size(); k+=3) {
@@ -125,7 +126,7 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& 
                 glm::vec2 baryPosition;
 
                 //convert rayorigin and direction into model's local space
-                glm::mat4 inverseModelMatrix = glm::inverse(models.at(i)->model);
+                glm::mat4 inverseModelMatrix = glm::inverse(renderables.at(i)->getModelMatrix());
 
                 // Transform ray to object space
                 glm::vec4 homogenousRayOrigin = glm::vec4(rayOrigin, 1.0); // Make ray origin homogeneous
@@ -147,10 +148,10 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& 
                                 closestIntersectionPoint = rayEnd;
 
                                 //the intersection point is in local space convert it into world
-                                rayEnd = glm::vec3(models.at(i)->model * glm::vec4(rayEnd,1.0));                                
-                                State::state->v0 = glm::vec3(models.at(i)->model * glm::vec4(v0,1.0));
-                                State::state->v1 = glm::vec3(models.at(i)->model * glm::vec4(v1,1.0));
-                                State::state->v2 = glm::vec3(models.at(i)->model * glm::vec4(v2,1.0));
+                                rayEnd = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(rayEnd,1.0));                                
+                                State::state->v0 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v0,1.0));
+                                State::state->v1 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v1,1.0));
+                                State::state->v2 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v2,1.0));
                             }
                         }
                     }
@@ -197,7 +198,7 @@ void setRay(double winX, double winY, glm::vec3& rayOrigin, glm::vec3& rayDir, g
 int handlePicking(
     double mouseX,
     double mouseY,
-    const std::vector<Model*>& models,
+    const std::vector<Renderable*>& renderables,
     glm::mat4 &view,
     glm::mat4 &projection,
     unsigned int rayShader,
@@ -211,8 +212,8 @@ int handlePicking(
         setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
         // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-        selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, models);
-        // std::cout << "Intersected ModelType index: " << selectedModelIndex << std::endl;
+        selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, renderables);
+        // std::cout << "Intersected ModelType index: " << selectedRenderableIndex << std::endl;
     }
     // renderRay(rayOrigin, rayDir, rayShader); 
     // renderRayWithIntersection(rayOrigin, State::state->rayEnd, rayShader); 

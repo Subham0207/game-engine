@@ -3,9 +3,9 @@
  
 void Outliner::ModelMatrixComponent()
 {
-            if(getUIState().selectedModelIndex > -1)
+            if(getUIState().selectedRenderableIndex > -1)
         {
-            glm::mat4& modelMatrix = (getUIState().models)[getUIState().selectedModelIndex]->model;
+            glm::mat4& modelMatrix = (getUIState().renderables)[getUIState().selectedRenderableIndex]->getModelMatrix();
             glm::vec3 scale, rotation, translation, skew;
             glm::vec4 perspective;
             glm::quat orientation;
@@ -83,22 +83,13 @@ void Outliner::levelControlsComponent(Level &lvl)
 }
 void Outliner::modelSelectorComponent()
 {
-    for (int i = 0; i < getUIState().models.size(); ++i) {
+    for (int i = 0; i < getUIState().renderables.size(); ++i) {
         // Optionally, push style changes here if you want to customize appearance
         // Render the radio button
         // The label for each button could be customized further if needed
-        std::string name = (getUIState().models)[i]->getName();
+        std::string name = (getUIState().renderables)[i]->getName();
         name+=std::to_string(i);
-        if (ImGui::RadioButton( name.c_str(), &getUIState().selectedModelIndex, i)) {
-        }
-        
-        try
-        {
-            getUIState().character = getActiveLevel().characters->at(getUIState().selectedModelIndex);
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
+        if (ImGui::RadioButton(name.c_str(), &getUIState().selectedRenderableIndex, i)) {
         }
         // Optionally, pop style changes here if you made any
     }
@@ -154,10 +145,10 @@ void Outliner::manageAnimationsForSelectedModel()
     }
     if(ImGui::Button("Play AnimationType"))
     {
-        if(getUIState().character->animator != nullptr)
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
         {
-            std::cout << "Character: "<< getUIState().character->model->getName() << std::endl;
-            getUIState().character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
+            std::cout << "Character: "<< character->getName() << std::endl;
+            character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
         }
         // we need to send the manipulation to mesh
     }
@@ -179,20 +170,20 @@ void Outliner::popupForErrorsAndWarning()
 }
 void Outliner::debugOptions()
 {
-    if(ImGui::Button("Increment selected bone"))
-    {
-        if(getUIState().character != nullptr)
-        {
-            getUIState().selectedBoneId++;
-        }
-    }
-    if(ImGui::Button("Reset selected bone"))
-    {
-        if(getUIState().character != nullptr)
-        {
-            getUIState().selectedBoneId = 0;
-        }
-    }
+    // if(ImGui::Button("Increment selected bone"))
+    // {
+    //     if(getUIState().character != nullptr)
+    //     {
+    //         getUIState().selectedBoneId++;
+    //     }
+    // }
+    // if(ImGui::Button("Reset selected bone"))
+    // {
+    //     if(getUIState().character != nullptr)
+    //     {
+    //         getUIState().selectedBoneId = 0;
+    //     }
+    // }
 }
 
 void Outliner::handlerForUIComponentsvisibility()
@@ -273,9 +264,12 @@ void Outliner::applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, 
 
 void Outliner::updateAnimator(float deltatime)
 {
-    if(getUIState().selectedAnimationIndex != -1 && getUIState().character != nullptr && getUIState().animations.size() != 0)
+    if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
     {
-        auto boneInfoMap = getUIState().character->GetBoneInfoMap();
-        getUIState().character->animator->UpdateAnimation(deltatime, boneInfoMap);
+        if(getUIState().selectedAnimationIndex != -1 && getUIState().animations.size() != 0)
+        {
+            auto boneInfoMap = character->GetBoneInfoMap();
+            character->animator->UpdateAnimation(deltatime, boneInfoMap);
+        }
     }
 }

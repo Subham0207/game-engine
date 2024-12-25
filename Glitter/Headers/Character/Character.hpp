@@ -36,6 +36,36 @@ public:
 
     unsigned int getShaderId() const override;
 
+    void updateModelAndViewPosMatrix(glm::vec3 cameraPosition) override
+    {
+        model->updateModelAndViewPosMatrix(cameraPosition);
+    }
+
+    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override
+    {
+        model->imguizmoManipulate(viewMatrix, projMatrix);
+    }
+
+    std::vector<Mesh>* getMeshes() override{
+        return model->getMeshes();
+    };
+    glm::mat4& getModelMatrix() override{
+        return model->getModelMatrix();
+    };
+
+    std::string getName() override{
+        return model->getName();
+    }
+
+    ProjectModals::Texture* LoadTexture(std::string filePath, aiTextureType textureType) override{
+        return model->LoadTexture(filePath, textureType);
+    }
+
+    std::vector<Modals::Material *> getMaterials() override
+    {
+        return model->getMaterials();
+    }
+
 private:
     Camera* camera;
 

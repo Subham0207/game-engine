@@ -142,15 +142,6 @@ int main(int argc, char * argv[]) {
 
 
     //Create different shaders for the each model
-    std::vector<Shader*> shaders;
-    for(auto i:*(lvl->models))
-    {
-        auto shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
-        shaders.push_back(shader);
-    }
-    
-    
-    //Create different shaders for the each model
     
     auto rayCastshader =  new Shader(
         "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
@@ -180,7 +171,7 @@ int main(int argc, char * argv[]) {
     // };
 
     //Start loading a 3D model here ?
-    auto models = lvl->models;
+    auto renderables = lvl->renderables;
     
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
@@ -201,7 +192,7 @@ int main(int argc, char * argv[]) {
 
     // Setup Platform/Renderer backends
 
-    auto outliner = new Outliner(*models);
+    auto outliner = new Outliner(*renderables);
     auto assetBrowser = new ProjectAsset::AssetBrowser();
 
     glm::vec3 rayOrigin, rayDir;
@@ -226,30 +217,26 @@ int main(int argc, char * argv[]) {
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //Go through all the characters and call UpdateAnimation
-        for(int i=0;i<lvl->characters->size();i++)
-        {
-            lvl->characters->at(i)->updateFinalBoneMatrix(deltaTime);
-        }
-
-
         // render the model
-        for(int i=0;i<models->size();i++)
+        for(int i=0;i<renderables->size();i++)
         {
-            models->at(i)->useAttachedShader();
-            auto shaderID = models->at(i)->getShaderId();
+            lvl->renderables->at(i)->updateFinalBoneMatrix(deltaTime);
 
-            models->at(i)->bindCubeMapTextures(cubeMap);
+           renderables->at(i)->useAttachedShader(); 
+            
+            auto shaderID = renderables->at(i)->getShaderId();
+
+            renderables->at(i)->bindCubeMapTextures(cubeMap);
             
             clientHandler.camera->updateMVP(shaderID);
-            models->at(i)->updateModelAndViewPosMatrix(clientHandler.camera->getPosition());
+            renderables->at(i)->updateModelAndViewPosMatrix(clientHandler.camera->getPosition());
 
             // This is a spotlight attached to the client's camera
             // lights->spotLights[0].position = clientHandler.camera->getPosition();
             // lights->spotLights[0].direction = clientHandler.camera->getFront();
 
             lights->Render(shaderID);
-            (*models)[i]->draw();
+            (*renderables)[i]->draw();
         }
 
         // equirectangularToCubemapShader->use();
@@ -274,7 +261,7 @@ int main(int argc, char * argv[]) {
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             InputHandler::currentInputHandler->lastX,
             InputHandler::currentInputHandler->lastY,
-            *models,
+            *renderables,
             InputHandler::currentInputHandler->m_Camera->viewMatrix(),
             InputHandler::currentInputHandler->m_Camera->projectionMatrix(),
             rayCastshader->ID,
@@ -287,7 +274,7 @@ int main(int argc, char * argv[]) {
 
 
         if(getSelectedIndex > -1)
-        (*models)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
+        (*renderables)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 
         //Render the outliner
         outliner->Render(*lvl);

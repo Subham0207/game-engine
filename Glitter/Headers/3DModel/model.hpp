@@ -30,8 +30,8 @@ public:
         shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
         shader->use();
         loadModel(path, m_BoneInfoMap, m_BoneCounter);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
     }
 
     void draw() override;
@@ -45,28 +45,39 @@ public:
     unsigned int getShaderId() const override;
 
     aiAABB* GetBoundingBox();
-    ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName);
-    glm::mat4 model = glm::mat4(1.0f);
+    ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName) override;
 
-    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix);
+    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override;
 
-    std::string getName(){
+    std::string getName() override{
         return directory;
     }
-    std::vector<Mesh>* getMeshes(){
+    std::vector<Mesh>* getMeshes() override{
         return &meshes;
     }
 
-    auto getMaterials()
+    glm::mat4& getModelMatrix() override{
+        return modelMatrix;
+    }
+
+    void setModelMatrix(glm::mat4 matrix) override{
+        modelMatrix = matrix;
+    };
+
+    std::vector<Modals::Material *> getMaterials() override
     {
         return materials;
     }
+
+    void setFileName(std::string filename) override{
+        directory = filename;
+    }
     
-    void static saveSerializedModel(std::string filename,  Model &model);
+    void static saveSerializedModel(std::string filename, Model &model);
 
     void static loadFromFile(const std::string &filename, Model &model);
-    Shader* shader;
 
+    Shader* shader;
 private:
     // model data
     std::vector<Modals::Material*> materials;
@@ -74,6 +85,7 @@ private:
     std::vector<Mesh> meshes;
     std::string directory;
     aiAABB* boundingBox;
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
 
 
     void loadModel(std::string path,
@@ -104,7 +116,7 @@ private:
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version) {
         ar & meshes;
-        ar & model;
+        ar & modelMatrix;
         ar & materials;
         ar & directory;
     }

@@ -34,7 +34,7 @@ void Character::updateFinalBoneMatrix(float deltatime)
         animator->UpdateAnimation(deltatime, m_BoneInfoMap);
     }
 
-    model->shader->use();
+    model->useAttachedShader();
     if(animator != nullptr && animator->isAnimationPlaying)
     {
         auto transforms = animator->GetFinalBoneMatrices();
