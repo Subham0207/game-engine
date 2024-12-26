@@ -38,7 +38,7 @@ public:
 
     void bindCubeMapTextures(CubeMap *cubeMap) override;
 
-    void updateModelAndViewPosMatrix(glm::vec3 cameraPosition) override;
+    void updateModelAndViewPosMatrix(Camera* camera) override;
 
     void useAttachedShader() override;
 

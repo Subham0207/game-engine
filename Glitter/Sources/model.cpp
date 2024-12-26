@@ -301,9 +301,10 @@ void Model::bindCubeMapTextures(CubeMap *cubeMap)
     glBindTexture(GL_TEXTURE_2D, cubeMap->brdfLUTTexture);
 }
 
-void Model::updateModelAndViewPosMatrix(glm::vec3 cameraPosition)
+void Model::updateModelAndViewPosMatrix(Camera* camera)
 {
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(this->modelMatrix));
+    auto cameraPosition = camera->getPosition();
+    shader->setMat4("model", this->modelMatrix);
     glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
 }
 

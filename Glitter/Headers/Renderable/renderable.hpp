@@ -2,13 +2,14 @@
 #include<Lights/cubemap.hpp>
 #include<glm/glm.hpp>
 #include<3DModel/mesh.hpp>
+#include<Camera/Camera.hpp>
 
 class Renderable {
 public:
     virtual void draw() = 0;
     virtual void updateFinalBoneMatrix(float deltaTime) {}
     virtual void bindCubeMapTextures(CubeMap *cubeMap) {}
-    virtual void updateModelAndViewPosMatrix(glm::vec3 cameraPosition) = 0;
+    virtual void updateModelAndViewPosMatrix(Camera* camera) = 0;
     virtual void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) = 0;
     virtual std::vector<Mesh>* getMeshes() = 0;
     virtual glm::mat4& getModelMatrix() = 0;

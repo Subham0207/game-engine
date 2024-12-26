@@ -220,16 +220,15 @@ int main(int argc, char * argv[]) {
         // render the model
         for(int i=0;i<renderables->size();i++)
         {
+            renderables->at(i)->useAttachedShader();
             lvl->renderables->at(i)->updateFinalBoneMatrix(deltaTime);
-
-           renderables->at(i)->useAttachedShader(); 
             
             auto shaderID = renderables->at(i)->getShaderId();
 
             renderables->at(i)->bindCubeMapTextures(cubeMap);
             
             clientHandler.camera->updateMVP(shaderID);
-            renderables->at(i)->updateModelAndViewPosMatrix(clientHandler.camera->getPosition());
+            renderables->at(i)->updateModelAndViewPosMatrix(clientHandler.camera);
 
             // This is a spotlight attached to the client's camera
             // lights->spotLights[0].position = clientHandler.camera->getPosition();
