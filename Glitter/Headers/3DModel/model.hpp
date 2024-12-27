@@ -18,6 +18,7 @@
 #include <Modals/material.hpp>
 #include <Lights/cubemap.hpp>
 #include <Renderable/renderable.hpp>
+#include <Lights/light.hpp>
 
 class Model: public Renderable
 {
@@ -34,15 +35,13 @@ public:
         modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
     }
 
-    void draw() override;
+    void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
 
-    void bindCubeMapTextures(CubeMap *cubeMap) override;
+    void bindCubeMapTextures(CubeMap *cubeMap);
 
-    void updateModelAndViewPosMatrix(Camera* camera) override;
+    void updateModelAndViewPosMatrix(Camera* camera);
 
     void useAttachedShader() override;
-
-    unsigned int getShaderId() const override;
 
     aiAABB* GetBoundingBox();
     ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName) override;

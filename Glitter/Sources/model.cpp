@@ -285,8 +285,14 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
     
 }
 
-void Model::draw()
+void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
+    bindCubeMapTextures(cubeMap);
+    camera->updateMVP(shader->ID);
+    updateModelAndViewPosMatrix(camera);
+
+    lights->Render(shader->ID);
+
 	for (unsigned int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader);
 }
@@ -311,11 +317,6 @@ void Model::updateModelAndViewPosMatrix(Camera* camera)
 void Model::useAttachedShader()
 {
     shader->use();
-}
-
-unsigned int Model::getShaderId() const
-{
-    return shader->ID;
 }
 
 aiAABB *Model::GetBoundingBox()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../Vendor/glm/glm/glm.hpp"
+#include <glm/glm.hpp>
 #include <map>
 #include <vector>
 #include "assimp/scene.h"

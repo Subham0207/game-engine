@@ -7,20 +7,16 @@
 #include <Renderable/renderable.hpp>
 #include <Lights/cubemap.hpp>
 #include <Helpers/shader.hpp>
+#include <3DModel/Skeleton/skeleton.hpp>
 
 class Character: public Renderable
 {
 public:
     Character(std::string filepath){
         animator = new Animator();
-        model = new Model(filepath, &m_BoneInfoMap, &m_BoneCounter);
-        bonesShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/boneShader.vert", "E:/OpenGL/Glitter/Glitter/Shaders/boneShader.frag");
-        auto transforms = animator->GetFinalBoneMatrices();
-        for (int i = 0; i < m_BoneInfoMap.size(); ++i)
-        {
-            extractBonePositions(i, transforms[i]);
-        }
-        setupBoneBuffersOnGPU();
+        skeleton = new Skeleton::Skeleton();
+        model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter);
+        skeleton->setup(animator);
     };
 
     Model* model;
@@ -31,33 +27,14 @@ public:
 
     void static loadFromFile(const std::string &filename, Character &character);
 
-    auto& GetBoneInfoMap() { return m_BoneInfoMap; }
-    int& GetBoneCount() { return m_BoneCounter; }
+    auto& GetBoneInfoMap() { return skeleton->m_BoneInfoMap; }
+    int& GetBoneCount() { return skeleton->m_BoneCounter; }
 
     void updateFinalBoneMatrix(float deltatime);
 
-    void draw() override;
-
-    void bindCubeMapTextures(CubeMap *cubemap) override;
+    void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
 
     void useAttachedShader() override;
-
-    unsigned int getShaderId() const override;
-
-    void updateModelAndViewPosMatrix(Camera* camera) override
-    {
-        model->updateModelAndViewPosMatrix(camera);
-
-        glm::mat4 projection = camera->projectionMatrix();
-        glm::mat4 view = camera->viewMatrix();
-
-        bonesShader->use();
-        bonesShader->setMat4("projection", projection);
-        bonesShader->setMat4("view", view);
-        bonesShader->setMat4("model", model->getModelMatrix());
-
-        model->shader->use();
-    }
 
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override
     {
@@ -89,18 +66,9 @@ private:
 
     glm::mat4 transformation;
 
-    std::map<std::string, BoneInfo> m_BoneInfoMap;
-    int m_BoneCounter = 0;
-    std::vector<glm::vec3> bonePositions;
-    unsigned int bonesVAO;
-    unsigned int bonesVBO;
-
-
-    Shader* bonesShader;
+    Skeleton::Skeleton* skeleton;
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
-    void extractBonePositions(int boneIndex, glm::mat4 transform);
-    void setupBoneBuffersOnGPU();
-    void renderBones();
+
 
     friend class boost::serialization::access;
     template<class Archive>

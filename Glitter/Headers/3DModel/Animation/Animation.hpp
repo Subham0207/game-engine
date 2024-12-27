@@ -2,8 +2,9 @@
 
 #include <vector>
 #include <map>
-#include "../../../Vendor/glm/glm/glm.hpp"
-#include "assimp/scene.h"
+#include <glm/glm.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include "3DModel/Skeleton/Bone.hpp"
 #include <functional>
 #include "3DModel/Skeleton/AnimData.hpp"

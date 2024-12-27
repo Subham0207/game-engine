@@ -1,15 +1,13 @@
 #pragma once
 #include<Lights/cubemap.hpp>
+#include<Lights/light.hpp>
 #include<glm/glm.hpp>
 #include<3DModel/mesh.hpp>
 #include<Camera/Camera.hpp>
 
 class Renderable {
 public:
-    virtual void draw() = 0;
-    virtual void updateFinalBoneMatrix(float deltaTime) {}
-    virtual void bindCubeMapTextures(CubeMap *cubeMap) {}
-    virtual void updateModelAndViewPosMatrix(Camera* camera) = 0;
+    virtual void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) = 0;
     virtual void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) = 0;
     virtual std::vector<Mesh>* getMeshes() = 0;
     virtual glm::mat4& getModelMatrix() = 0;
@@ -18,7 +16,6 @@ public:
     virtual std::vector<Modals::Material *> getMaterials() = 0;
     virtual void setModelMatrix(glm::mat4 matrix) {}
     virtual void setFileName(std::string filename) {}
-    virtual unsigned int getShaderId() const = 0;
     virtual void useAttachedShader() {};
     virtual ~Renderable() = default;
 };

@@ -119,6 +119,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
     Animation Getting played in two models at same time(Fixed) + something is wrong with vertices (IN PROGRESS) Found the issue we are updating
     shaders of everyModel with the finalBoneMatrices of on model. 
     ### To Fix vertices lets first render bones of a model which we can control to see the vertices influenced (How It works: we calculate final transformation of every bone and upload it to GPU then vertices it influences move)
+        i. I tried rendering the bones as points. it seems to be rendering and the bones are out of the model as well so could be wrong but is hards to read anything. Lets improve this by rendering the actual mesh and bone-parent connection.(IN PROGRESS: separated bones to render into skeleton class; Now need to render mesh instead of points; we also need to know the parent child relation to render them correctly)
     6.21. Saving Animations, character, etc...
     6.3 Playing different animation based on player input.
     7. Physics

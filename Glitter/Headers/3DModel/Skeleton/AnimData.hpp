@@ -1,6 +1,6 @@
 #pragma once
 
-#include"../../../Vendor/glm/glm/glm.hpp"
+#include<glm/glm.hpp>
 #include <serializeAClass.hpp>
 
 struct BoneInfo

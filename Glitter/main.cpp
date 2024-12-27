@@ -221,21 +221,7 @@ int main(int argc, char * argv[]) {
         for(int i=0;i<renderables->size();i++)
         {
             renderables->at(i)->useAttachedShader();
-            lvl->renderables->at(i)->updateFinalBoneMatrix(deltaTime);
-            
-            auto shaderID = renderables->at(i)->getShaderId();
-
-            renderables->at(i)->bindCubeMapTextures(cubeMap);
-            
-            clientHandler.camera->updateMVP(shaderID);
-            renderables->at(i)->updateModelAndViewPosMatrix(clientHandler.camera);
-
-            // This is a spotlight attached to the client's camera
-            // lights->spotLights[0].position = clientHandler.camera->getPosition();
-            // lights->spotLights[0].direction = clientHandler.camera->getFront();
-
-            lights->Render(shaderID);
-            (*renderables)[i]->draw();
+            (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
         }
 
         // equirectangularToCubemapShader->use();
