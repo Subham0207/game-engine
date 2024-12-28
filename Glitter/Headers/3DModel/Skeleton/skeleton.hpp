@@ -24,7 +24,6 @@ namespace Skeleton {
         Shader* bonesShader;
         Animator* animator;
 
-
         void extractBonePositions(int boneIndex, glm::mat4 transform);
         void updateModelAndViewPosMatrix(Camera* camera, glm::mat4 &modelMatrix);
         void setupBoneBuffersOnGPU();

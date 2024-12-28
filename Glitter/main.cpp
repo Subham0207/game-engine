@@ -216,6 +216,8 @@ int main(int argc, char * argv[]) {
         // Background Fill Color
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        cubeMap->Draw(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix(), *backgroundShader);
 
         // render the model
         for(int i=0;i<renderables->size();i++)
@@ -224,10 +226,6 @@ int main(int argc, char * argv[]) {
             (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
         }
 
-        // equirectangularToCubemapShader->use();
-        // equirectangularToCubemapShader->setMat4("view", clientHandler.camera->viewMatrix());
-        // equirectangularToCubemapShader->setMat4("projection", clientHandler.camera->projectionMatrix());
-        cubeMap->Draw(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix(), *backgroundShader);
 
         //Thinking imgui should be last in call chain to show up last on screen ??
         // Start the Dear ImGui frame

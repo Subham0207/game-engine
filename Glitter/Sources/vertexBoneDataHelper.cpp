@@ -40,8 +40,10 @@ namespace Helpers
             {
                 BoneInfo newBoneInfo;
                 newBoneInfo.id = m_BoneCounter;
+                newBoneInfo.parentIndex = -1;
                 newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
                     mesh->mBones[boneIndex]->mOffsetMatrix);
+                newBoneInfo.transform = glm::mat4(1.0f);
                 m_BoneInfoMap[boneName] = newBoneInfo;
                 boneID = m_BoneCounter;
                 m_BoneCounter++;
@@ -61,6 +63,20 @@ namespace Helpers
                 assert(vertexId <= vertices.size());
                 SetVertexBoneData(vertices[vertexId], boneID, weight);
             }
+        }
+    }
+
+    void resolveBoneHierarchy(const aiNode *node, int parentIndex, std::map<std::string, BoneInfo> &boneInfoMap)
+    {
+        std::string nodeName = node->mName.C_Str();
+
+        if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
+            boneInfoMap[nodeName].parentIndex = parentIndex;
+            parentIndex = boneInfoMap[nodeName].id;
+        }
+
+        for (unsigned int i = 0; i < node->mNumChildren; ++i) {
+            resolveBoneHierarchy(node->mChildren[i], parentIndex, boneInfoMap);
         }
     }
 }

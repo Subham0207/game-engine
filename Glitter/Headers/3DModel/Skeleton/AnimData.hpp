@@ -5,11 +5,15 @@
 
 struct BoneInfo
 {
+    int parentIndex; 
+
 	/*id is index in finalBoneMatrices*/
 	int id;
 
 	/*offset matrix transforms vertex from model space to bone space*/
 	glm::mat4 offset;
+
+    glm::mat4 transform;
 
 	friend class boost::serialization::access;
     template<class Archive>

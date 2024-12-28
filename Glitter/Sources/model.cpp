@@ -35,6 +35,9 @@ void Model::loadModel(
 
 
     processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
+
+    if(m_BoneInfoMap!=nullptr)
+    Helpers::resolveBoneHierarchy(scene->mRootNode, -1, *m_BoneInfoMap);
 }
 
 void Model::saveSerializedModel(std::string filename, Model &model)

@@ -14,6 +14,8 @@ namespace Helpers{
         std::map<std::string, BoneInfo>& m_BoneInfoMap,
         int& m_BoneCounter);
 
+    void resolveBoneHierarchy(const aiNode *node, int parentIndex, std::map<std::string, BoneInfo> &boneInfoMap);
+
     void SetVertexBoneDataToDefault(ProjectModals::Vertex& vertex);
 
     void SetVertexBoneData(ProjectModals::Vertex& vertex, int boneID, float weight);

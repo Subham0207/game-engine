@@ -18,7 +18,7 @@ void Skeleton::Skeleton::setupBoneBuffersOnGPU()
     glBindVertexArray(bonesVAO);
     glBindBuffer(GL_ARRAY_BUFFER, bonesVBO);
 
-    glBufferData(GL_ARRAY_BUFFER, bonePositions.size() * sizeof(glm::vec3), &bonePositions[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, bonePositions.size() * sizeof(glm::vec3), bonePositions.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -32,14 +32,32 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 
     updateModelAndViewPosMatrix(camera, modelMatrix);
     bonePositions.clear();
-    auto transforms = animator->GetFinalBoneMatrices();
+    auto transform = animator->GetFinalBoneMatrices();
     for (int i = 0; i < m_BoneInfoMap.size(); ++i)
     {
-        extractBonePositions(i, transforms[i]);
+        auto it = m_BoneInfoMap.begin();
+        std::advance(it, i);
+
+        int parentIndex = it->second.parentIndex;
+
+        if (parentIndex != -1) {
+            glm::vec3 childPos = glm::vec3(it->second.transform[3]);
+
+            parentIndex = it->second.parentIndex;
+            auto parentBone = m_BoneInfoMap.begin();
+            std::advance(parentBone, parentIndex);
+
+            glm::vec3 parentPos = glm::vec3(parentBone->second.transform[3]);
+
+            extractBonePositions(i,transform[i]);
+            extractBonePositions(parentIndex,transform[parentIndex]);
+
+            // bonePositions.push_back(childPos);//Start of line
+            // bonePositions.push_back(parentPos);//End of line
+        }
     }
 
     glDisable(GL_DEPTH_TEST);
-    glEnable(GL_PROGRAM_POINT_SIZE);
 
     glBindVertexArray(bonesVAO);
 
@@ -48,10 +66,9 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
     glBufferSubData(GL_ARRAY_BUFFER, 0, bonePositions.size() * sizeof(glm::vec3), bonePositions.data());
 
     // Render as points
-    glDrawArrays(GL_POINTS, 0, bonePositions.size());
+    glDrawArrays(GL_LINES, 0, bonePositions.size());
     glBindVertexArray(0);
 
-    glDisable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_DEPTH_TEST);
 }
 void Skeleton::Skeleton::setup(Animator *animator)
@@ -62,7 +79,17 @@ void Skeleton::Skeleton::setup(Animator *animator)
     auto transforms = animator->GetFinalBoneMatrices();
     for (int i = 0; i < m_BoneInfoMap.size(); ++i)
     {
-        extractBonePositions(i, transforms[i]);
+        auto it = m_BoneInfoMap.begin();
+        std::advance(it, i);
+
+        int parentIndex = it->second.parentIndex;
+
+        if (parentIndex != -1) {
+            glm::vec3 childPos = glm::vec3(transforms[i][3]);
+            glm::vec3 parentPos = glm::vec3(transforms[parentIndex][3]);
+            bonePositions.push_back(childPos);
+            bonePositions.push_back(parentPos);
+        }
     }
     setupBoneBuffersOnGPU();
 }
