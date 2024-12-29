@@ -33,6 +33,7 @@
 #include "Lights/cubemap.hpp"
 #include "Level/Level.hpp"
 #include <Helpers/Shared.hpp>
+#include <Sprites/text.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -201,6 +202,9 @@ int main(int argc, char * argv[]) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(glDebugOutput, nullptr);
 
+    auto text = new Sprites::Text();
+    text->setup();
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -225,7 +229,8 @@ int main(int argc, char * argv[]) {
             renderables->at(i)->useAttachedShader();
             (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
         }
-
+        
+        text->RenderText3D("Lets see, if this works?", glm::vec3(0.0f), clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix());
 
         //Thinking imgui should be last in call chain to show up last on screen ??
         // Start the Dear ImGui frame

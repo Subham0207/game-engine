@@ -1,5 +1,6 @@
 #include <3DModel/Skeleton/skeleton.hpp>
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 
 
 void Skeleton::Skeleton::extractBonePositions(int boneIndex, glm::mat4 transform)
@@ -7,7 +8,8 @@ void Skeleton::Skeleton::extractBonePositions(int boneIndex, glm::mat4 transform
     auto it = m_BoneInfoMap.begin();
     std::advance(it, boneIndex);
     auto boneinfo = it->second;
-    glm::vec3 bonePosition = glm::vec3(transform * boneinfo.offset * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    glm::vec3 bonePosition = it->second.offset[3];
+        
     bonePositions.push_back(bonePosition);
 }
 

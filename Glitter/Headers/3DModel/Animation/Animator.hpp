@@ -62,6 +62,7 @@ public:
 		if (boneInfoMap.find(nodeName) != boneInfoMap.end())
 		{
 			int index = boneInfoMap[nodeName].id;
+			boneInfoMap[nodeName].transform = globalTransformation;
 			glm::mat4 offset = boneInfoMap[nodeName].offset;
 			m_FinalBoneMatrices[index] = globalTransformation * offset;
 		}
