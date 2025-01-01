@@ -13,6 +13,16 @@ namespace Sprites{
     class Text
     {
         public:
+            Text(std::string txt, glm::vec3 pos)
+            {   
+                this->text = txt;
+                this->position = pos;
+                setup();
+            }
+            void updatePosition(glm::vec3 pos)
+            {
+                this->position = pos;
+            }
             void setup()
             {
                 shader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/textShader.vert","E:/OpenGL/Glitter/Glitter/Shaders/textShader.frag");
@@ -44,8 +54,6 @@ namespace Sprites{
             }
 
             void RenderText3D(
-            const std::string& text,
-            const glm::vec3& position,
             const glm::mat4& viewMatrix,
             const glm::mat4& projectionMatrix
             ) 
@@ -124,6 +132,8 @@ namespace Sprites{
             return model;
         }
 
+        std::string text;
+        glm::vec3 position;
         Shader* shader;
         GLuint fontTexture;
         stbtt_bakedchar cdata[96];

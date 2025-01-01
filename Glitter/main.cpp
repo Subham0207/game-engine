@@ -202,9 +202,6 @@ int main(int argc, char * argv[]) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(glDebugOutput, nullptr);
 
-    auto text = new Sprites::Text();
-    text->setup();
-
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -229,8 +226,12 @@ int main(int argc, char * argv[]) {
             renderables->at(i)->useAttachedShader();
             (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
         }
+
+        for(int i=0;i<getActiveLevel().textSprites.size();i++)
+        {
+            getActiveLevel().textSprites.at(i)->RenderText3D(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix());
+        }
         
-        text->RenderText3D("Lets see, if this works?", glm::vec3(0.0f), clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix());
 
         //Thinking imgui should be last in call chain to show up last on screen ??
         // Start the Dear ImGui frame

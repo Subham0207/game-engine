@@ -20,7 +20,7 @@ public:
 			m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
 	}
 
-	void UpdateAnimation(float dt, std::map<std::string, BoneInfo> boneInfoMap)
+	void UpdateAnimation(float dt, std::map<std::string, BoneInfo> &boneInfoMap)
 	{
 		m_DeltaTime = dt;
 		if (m_CurrentAnimation)
@@ -41,7 +41,7 @@ public:
 		}
 	}
 
-	void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform, std::map<std::string, BoneInfo> boneInfoMap)
+	void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform, std::map<std::string, BoneInfo> &boneInfoMap)
 	{
 		std::string nodeName = node->name;
 		// glm::mat4 nodeTransform = node->transformation;

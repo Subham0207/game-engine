@@ -61,12 +61,12 @@ public:
         return model->getMaterials();
     }
 
+    Skeleton::Skeleton* skeleton;
 private:
     Camera* camera;
 
     glm::mat4 transformation;
 
-    Skeleton::Skeleton* skeleton;
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
 
 

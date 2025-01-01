@@ -12,6 +12,7 @@
 #include "Camera/Camera.hpp"
 #include <Character/Character.hpp>
 #include <Renderable/renderable.hpp>
+#include <Sprites/text.hpp>
 
 namespace fs = std::filesystem;
 
@@ -101,6 +102,7 @@ class Level{
 
         std::vector<std::string> modelFilePaths;
         std::vector<glm::mat4*> modelTransformations;
+        std::vector<Sprites::Text*> textSprites;
         std::vector<Renderable *> *renderables = new std::vector<Renderable *>();
         std::string levelname = "level1";
 

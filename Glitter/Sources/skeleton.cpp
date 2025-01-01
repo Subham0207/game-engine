@@ -1,15 +1,25 @@
 #include <3DModel/Skeleton/skeleton.hpp>
+#include <EngineState.hpp>
+#include <Sprites/text.hpp>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
 
-void Skeleton::Skeleton::extractBonePositions(int boneIndex, glm::mat4 transform)
+void Skeleton::Skeleton::extractBonePositions(int boneIndex, glm::mat4 modelMatrix)
 {
     auto it = m_BoneInfoMap.begin();
     std::advance(it, boneIndex);
     auto boneinfo = it->second;
-    glm::vec3 bonePosition = it->second.offset[3];
-        
+    glm::vec3 bonePosition = glm::vec3((it->second.transform * modelMatrix)[3]);
+    if(boneIndex < getActiveLevel().textSprites.size())
+    {
+        getActiveLevel().textSprites.at(boneIndex)->updatePosition(bonePosition);
+    }
+    else
+    {
+        auto textSprite = new Sprites::Text(it->first, bonePosition);
+        getActiveLevel().textSprites.push_back(textSprite);
+    }
     bonePositions.push_back(bonePosition);
 }
 
@@ -43,19 +53,9 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
         int parentIndex = it->second.parentIndex;
 
         if (parentIndex != -1) {
-            glm::vec3 childPos = glm::vec3(it->second.transform[3]);
-
             parentIndex = it->second.parentIndex;
-            auto parentBone = m_BoneInfoMap.begin();
-            std::advance(parentBone, parentIndex);
-
-            glm::vec3 parentPos = glm::vec3(parentBone->second.transform[3]);
-
-            extractBonePositions(i,transform[i]);
-            extractBonePositions(parentIndex,transform[parentIndex]);
-
-            // bonePositions.push_back(childPos);//Start of line
-            // bonePositions.push_back(parentPos);//End of line
+            extractBonePositions(i, modelMatrix);
+            extractBonePositions(parentIndex, modelMatrix);
         }
     }
 
