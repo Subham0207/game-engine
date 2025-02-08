@@ -4,13 +4,13 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
-
 void Skeleton::Skeleton::extractBonePositions(int boneIndex, glm::mat4 modelMatrix)
 {
     auto it = m_BoneInfoMap.begin();
     std::advance(it, boneIndex);
     auto boneinfo = it->second;
-    glm::vec3 bonePosition = glm::vec3((it->second.transform * modelMatrix)[3]);
+    std::cout << it->first << std::endl;
+    glm::vec3 bonePosition = glm::vec3((it->second.transform * modelMatrix)[3]); // World transform
     if(boneIndex < getActiveLevel().textSprites.size())
     {
         getActiveLevel().textSprites.at(boneIndex)->updatePosition(bonePosition);
@@ -23,6 +23,18 @@ void Skeleton::Skeleton::extractBonePositions(int boneIndex, glm::mat4 modelMatr
     bonePositions.push_back(bonePosition);
 }
 
+glm::mat4 Skeleton::Skeleton::worldTransform(int boneIndex, glm::mat4 modelMatrix)
+{
+    auto it = m_BoneInfoMap.begin();
+    std::advance(it, boneIndex);
+    auto boneinfo = it->second;
+    return it->second.transform * modelMatrix;
+}
+
+bool Skeleton::Skeleton::isClose(glm::vec3 parentEndpoint, glm::vec3 childPosition, float tolerance)
+{
+    return glm::all(glm::epsilonEqual(parentEndpoint, childPosition, tolerance));;
+}
 void Skeleton::Skeleton::setupBoneBuffersOnGPU()
 {
     glGenVertexArrays(1, &bonesVAO);
@@ -45,6 +57,7 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
     updateModelAndViewPosMatrix(camera, modelMatrix);
     bonePositions.clear();
     auto transform = animator->GetFinalBoneMatrices();
+    std::cout << "start" << std::endl;
     for (int i = 0; i < m_BoneInfoMap.size(); ++i)
     {
         auto it = m_BoneInfoMap.begin();
@@ -53,11 +66,36 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
         int parentIndex = it->second.parentIndex;
 
         if (parentIndex != -1) {
-            parentIndex = it->second.parentIndex;
-            extractBonePositions(i, modelMatrix);
-            extractBonePositions(parentIndex, modelMatrix);
+
+            auto it = m_BoneInfoMap.begin();
+            std::advance(it, parentIndex);
+            auto boneinfo = it->second;
+            glm::mat4 parentTransform = it->second.transform * modelMatrix;
+
+            // Parent bone direction and length
+            glm::vec3 parentDirection = glm::normalize(it->second.offset[3]); // Extract from the translation column
+            float parentLength = parentDirection.length();
+
+            // Calculate endpoint of parent bone
+            glm::vec3 parentEndpoint = glm::vec3(parentTransform[3]) * glm::vec3(0, 0, parentLength);
+
+            // Transform child's position to parent's space
+            glm::mat4 childTransform = worldTransform(i, modelMatrix);
+            glm::vec3 childPosition = childTransform[3]; // Extract translation
+
+            // Check if positions match (within a tolerance)
+            float EPSILON = 1e-5f;
+            if(isClose(parentEndpoint, childPosition, EPSILON)) {
+                // The child bone is likely using "Keep Offset"
+            }
+            else{
+                //Actual bone lines
+                bonePositions.push_back(childPosition);
+                bonePositions.push_back(parentTransform[3]);
+            }
         }
     }
+    std::cout << "End" << std::endl;
 
     glDisable(GL_DEPTH_TEST);
 
@@ -65,7 +103,7 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 
     // Update vertex buffer with bone positions
     glBindBuffer(GL_ARRAY_BUFFER, bonesVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, bonePositions.size() * sizeof(glm::vec3), bonePositions.data());
+    glBufferData(GL_ARRAY_BUFFER, bonePositions.size() * sizeof(glm::vec3), bonePositions.data(), GL_DYNAMIC_DRAW);
 
     // Render as points
     glDrawArrays(GL_LINES, 0, bonePositions.size());

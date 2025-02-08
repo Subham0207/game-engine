@@ -28,6 +28,9 @@ namespace Skeleton {
         void updateModelAndViewPosMatrix(Camera* camera, glm::mat4 &modelMatrix);
         void setupBoneBuffersOnGPU();
 
+        glm::mat4 worldTransform(int boneIndex, glm::mat4 modelMatrix);
+        bool isClose(glm::vec3 parentEndpoint, glm::vec3 childPosition, float tolerance);
+
         void draw(Camera* camera, glm::mat4 &modelMatrix);
         void setup(Animator* animator);
 
