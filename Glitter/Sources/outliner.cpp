@@ -178,20 +178,25 @@ void Outliner::popupForErrorsAndWarning()
 }
 void Outliner::debugOptions()
 {
-    // if(ImGui::Button("Increment selected bone"))
-    // {
-    //     if(getUIState().character != nullptr)
-    //     {
-    //         getUIState().selectedBoneId++;
-    //     }
-    // }
-    // if(ImGui::Button("Reset selected bone"))
-    // {
-    //     if(getUIState().character != nullptr)
-    //     {
-    //         getUIState().selectedBoneId = 0;
-    //     }
-    // }
+    auto selectedIndex = 0;
+    if(getUIState().selectedRenderableIndex > -1)
+    {
+        selectedIndex = getUIState().selectedRenderableIndex;
+    }
+    if(ImGui::Button("Increment selected bone"))
+    {
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedIndex]))
+        {
+            getUIState().selectedBoneId++;
+        }
+    }
+    if(ImGui::Button("Reset selected bone"))
+    {
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedIndex]))
+        {
+            getUIState().selectedBoneId = -1;
+        }
+    }
 }
 
 void Outliner::handlerForUIComponentsvisibility()

@@ -108,33 +108,33 @@ void main()
     color = pow(color, vec3(1.0/2.2));
 
 // Use the below logic to visualize vertices influenced by the selectedBones.
-//     bool boneSelectionFoundToRender = false;
-//     for(int i=0;i<=4;i++)
-//     {
-//         if(boneIds[i] == displayBoneIndex && displayBoneIndex != -1)
-//         {
-//             if(weights[i] >= 0.7)
-//             {
-//                 FragColor = vec4(1.0,0.0,0.0,1.0) * weights[i];
-//             }
-//             else if(weights[i] >= 0.4 && weights[i] <= 0.6)
-//             {
-//                 FragColor = vec4(0.0,1.0,0.0,1.0) * weights[i];
-//             }
-//             else if(weights[i] >= 0.1)
-//             {
-//                 FragColor = vec4(1.0,1.0,0.0,1.0) * weights[i];
-//             }
-//             boneSelectionFoundToRender = true;
-//             break;
-//         }
-//     }
-//    if(!boneSelectionFoundToRender)
-//    {
-//         FragColor = vec4(color, alpha);
-//    }
+    bool boneSelectionFoundToRender = false;
+    for(int i=0;i<=4;i++)
+    {
+        if(boneIds[i] == displayBoneIndex && displayBoneIndex != -1)
+        {
+            if(weights[i] >= 0.7)
+            {
+                FragColor = vec4(1.0,0.0,0.0,1.0) * weights[i];
+            }
+            else if(weights[i] >= 0.4 && weights[i] <= 0.6)
+            {
+                FragColor = vec4(0.0,1.0,0.0,1.0) * weights[i];
+            }
+            else if(weights[i] >= 0.1)
+            {
+                FragColor = vec4(1.0,1.0,0.0,1.0) * weights[i];
+            }
+            boneSelectionFoundToRender = true;
+            break;
+        }
+    }
+   if(!boneSelectionFoundToRender)
+   {
+        FragColor = vec4(color, alpha);
+   }
 
-    FragColor = vec4(color, alpha);
+    // FragColor = vec4(color, alpha);
 }  
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
