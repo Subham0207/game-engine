@@ -29,12 +29,12 @@ void Character::loadFromFile(const std::string &filename, Character &character)
 
 void Character::updateFinalBoneMatrix(float deltatime)
 {
-    if(animator->m_CurrentAnimation)
+    if(animator->m_CurrentAnimation && animator->isAnimationPlaying)
     {
         animator->UpdateAnimation(deltatime, skeleton->m_BoneInfoMap);
     }
 
-    if(animator != nullptr && animator->isAnimationPlaying)
+    if(animator != nullptr)
     {
         auto transforms = animator->GetFinalBoneMatrices();
         for (int i = 0; i < transforms.size(); ++i)

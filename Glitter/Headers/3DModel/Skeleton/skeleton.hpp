@@ -24,7 +24,6 @@ namespace Skeleton {
         Shader* bonesShader;
         Animator* animator;
 
-        void extractBonePositions(int boneIndex, glm::mat4 transform);
         void updateModelAndViewPosMatrix(Camera* camera, glm::mat4 &modelMatrix);
         void setupBoneBuffersOnGPU();
 
@@ -32,8 +31,9 @@ namespace Skeleton {
         bool isClose(glm::vec3 parentEndpoint, glm::vec3 childPosition, float tolerance);
 
         void draw(Camera* camera, glm::mat4 &modelMatrix);
-        void setup(Animator* animator);
+        void setup(Animator* animator, glm::mat4 modelMatrix);
 
     private:
+        void calculateBoneStartAndEndPos(glm::mat4 &modelMatrix);
     };
 }

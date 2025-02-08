@@ -143,12 +143,20 @@ void Outliner::manageAnimationsForSelectedModel()
         // Action when the selection changes
         // std::cout << "Selected: " << animationNames[current_item] << std::endl;
     }
-    if(ImGui::Button("Play AnimationType"))
+    if(ImGui::Button("Play Animation"))
     {
         if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
         {
             std::cout << "Character: "<< character->getName() << std::endl;
             character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
+        }
+        // we need to send the manipulation to mesh
+    }
+        if(ImGui::Button("Stop Animation"))
+    {
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+        {
+            character->animator->isAnimationPlaying = false;
         }
         // we need to send the manipulation to mesh
     }

@@ -16,7 +16,7 @@ public:
         animator = new Animator();
         skeleton = new Skeleton::Skeleton();
         model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter);
-        skeleton->setup(animator);
+        skeleton->setup(animator, this->model->getModelMatrix());
     };
 
     Model* model;

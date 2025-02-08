@@ -65,6 +65,9 @@ public:
 			boneInfoMap[nodeName].transform = globalTransformation;
 			glm::mat4 offset = boneInfoMap[nodeName].offset;
 			m_FinalBoneMatrices[index] = globalTransformation * offset;
+
+			//This is the perfect place to draw a bone; we have parent and child transform
+			
 		}
 
 		for (int i = 0; i < node->childrenCount; i++)

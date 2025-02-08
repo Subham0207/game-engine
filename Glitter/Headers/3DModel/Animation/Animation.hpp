@@ -124,7 +124,7 @@ private:
 	float m_Duration;
 	int m_TicksPerSecond;
 	std::vector<Bone> m_Bones;
-	AssimpNodeData m_RootNode;
+	AssimpNodeData m_RootNode; // This is the skeletal tree
 	std::map<std::string, BoneInfo> m_BoneInfoMap;
 
 	friend class boost::serialization::access;
