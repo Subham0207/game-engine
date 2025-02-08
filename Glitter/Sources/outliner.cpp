@@ -276,7 +276,7 @@ void Outliner::updateAnimator(float deltatime)
     {
         if(getUIState().selectedAnimationIndex != -1 && getUIState().animations.size() != 0)
         {
-            character->animator->UpdateAnimation(deltatime, character->skeleton->m_BoneInfoMap);
+            character->animator->UpdateAnimation(deltatime, character->skeleton->m_BoneInfoMap, character->getModelMatrix(), character->skeleton->bonePositions);
         }
     }
 }

@@ -37,8 +37,6 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 
     updateModelAndViewPosMatrix(camera, modelMatrix);
 
-    calculateBoneStartAndEndPos(modelMatrix);
-
     glDisable(GL_DEPTH_TEST);
 
     glBindVertexArray(bonesVAO);
@@ -60,62 +58,10 @@ void Skeleton::Skeleton::setup(Animator *animator, glm::mat4 modelMatrix)
     bonesShader->use();
     auto transforms = animator->GetFinalBoneMatrices();
 
-    calculateBoneStartAndEndPos(modelMatrix);
 
     setupBoneBuffersOnGPU();
 }
 
-void Skeleton::Skeleton::calculateBoneStartAndEndPos(glm::mat4 &modelMatrix)
-{
-    bonePositions.clear();
-    auto transform = animator->GetFinalBoneMatrices();
-    for (int i = 0; i < m_BoneInfoMap.size(); ++i)
-    {
-        auto it = m_BoneInfoMap.begin();
-        std::advance(it, i);
-
-        int parentIndex = it->second.parentIndex;
-
-        if (parentIndex != -1) {
-
-            auto it = m_BoneInfoMap.begin();
-            std::advance(it, parentIndex);
-            auto boneinfo = it->second;
-            glm::mat4 parentTransform = it->second.transform * modelMatrix;
-
-            // Parent bone direction and length
-            glm::vec3 parentDirection = glm::normalize(it->second.offset[3]); // Extract from the translation column
-            float parentLength = parentDirection.length();
-
-            // Calculate endpoint of parent bone
-            glm::vec3 parentEndpoint = glm::vec3(parentTransform[3]) * glm::vec3(0, 0, parentLength);
-
-            // Transform child's position to parent's space
-            glm::mat4 childTransform = worldTransform(i, modelMatrix);
-            glm::vec3 childPosition = childTransform[3]; // Extract translation
-
-            // Check if positions match (within a tolerance)
-            float EPSILON = 1e-5f;
-            if(isClose(parentEndpoint, childPosition, EPSILON)) {
-                // The child bone is likely using "Keep Offset"
-            }
-            else{
-                //Actual bone lines
-                if(i < getActiveLevel().textSprites.size())
-                {
-                    getActiveLevel().textSprites.at(i)->updatePosition(childPosition);
-                }
-                else
-                {
-                    auto textSprite = new Sprites::Text(it->first, childPosition);
-                    getActiveLevel().textSprites.push_back(textSprite);
-                }
-                bonePositions.push_back(childPosition);
-                bonePositions.push_back(parentTransform[3]);
-            }
-        }
-    }
-}
 void Skeleton::Skeleton::updateModelAndViewPosMatrix(Camera *camera, glm::mat4 &modelMatrix)
 {
     glm::mat4 projection = camera->projectionMatrix();

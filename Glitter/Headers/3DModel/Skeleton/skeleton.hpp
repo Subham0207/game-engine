@@ -34,6 +34,5 @@ namespace Skeleton {
         void setup(Animator* animator, glm::mat4 modelMatrix);
 
     private:
-        void calculateBoneStartAndEndPos(glm::mat4 &modelMatrix);
     };
 }

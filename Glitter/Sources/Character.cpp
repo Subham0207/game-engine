@@ -31,7 +31,11 @@ void Character::updateFinalBoneMatrix(float deltatime)
 {
     if(animator->m_CurrentAnimation && animator->isAnimationPlaying)
     {
-        animator->UpdateAnimation(deltatime, skeleton->m_BoneInfoMap);
+        animator->UpdateAnimation(
+            deltatime,
+             skeleton->m_BoneInfoMap,
+            getModelMatrix(),
+            skeleton->bonePositions);
     }
 
     if(animator != nullptr)
