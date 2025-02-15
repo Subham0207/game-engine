@@ -20,13 +20,19 @@ void Skeleton::Skeleton::setupBoneBuffersOnGPU()
 {
     glGenVertexArrays(1, &bonesVAO);
     glGenBuffers(1, &bonesVBO);
+    glGenBuffers(1, &bonesColorVBO);
+
     glBindVertexArray(bonesVAO);
+
     glBindBuffer(GL_ARRAY_BUFFER, bonesVBO);
-
     glBufferData(GL_ARRAY_BUFFER, bonePositions.size() * sizeof(glm::vec3), bonePositions.data(), GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, bonesColorVBO);
+    glBufferData(GL_ARRAY_BUFFER, boneColors.size() * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
 }
@@ -34,8 +40,14 @@ void Skeleton::Skeleton::setupBoneBuffersOnGPU()
 void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 {
     bonesShader->use();
-
     updateModelAndViewPosMatrix(camera, modelMatrix);
+
+    boneColors = std::vector<glm::vec3>(bonePositions.size(), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    auto selectedBoneIndex = getUIState().selectedBoneId;
+    if (selectedBoneIndex >= 0 && selectedBoneIndex < boneColors.size()) {
+        boneColors[selectedBoneIndex] = glm::vec3(0.0f, 1.0f, 0.0f); // Selected bone is green
+    }
 
     glDisable(GL_DEPTH_TEST);
 
@@ -44,6 +56,14 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
     // Update vertex buffer with bone positions
     glBindBuffer(GL_ARRAY_BUFFER, bonesVBO);
     glBufferData(GL_ARRAY_BUFFER, bonePositions.size() * sizeof(glm::vec3), bonePositions.data(), GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    // Upload bone colors
+    glBindBuffer(GL_ARRAY_BUFFER, bonesColorVBO);
+    glBufferData(GL_ARRAY_BUFFER, boneColors.size() * sizeof(glm::vec3), boneColors.data(), GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(1);
 
     // Render as points
     glDrawArrays(GL_LINES, 0, bonePositions.size());

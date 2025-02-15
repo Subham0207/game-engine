@@ -183,20 +183,20 @@ void Outliner::debugOptions()
     {
         selectedIndex = getUIState().selectedRenderableIndex;
     }
-    if(ImGui::Button("Increment selected bone"))
+    ImGui::Text("Selected bone");
+
+    ImGui::SameLine();
+    ImGui::InputInt("##number", &getUIState().selectedBoneId, 1);
+
+
+    ImGui::SameLine();
+    if (ImGui::Button("Reset"))
     {
-        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedIndex]))
-        {
-            getUIState().selectedBoneId++;
-        }
+        getUIState().selectedBoneId = -1;
     }
-    if(ImGui::Button("Reset selected bone"))
-    {
-        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedIndex]))
-        {
-            getUIState().selectedBoneId = -1;
-        }
-    }
+
+    ImGui::SameLine();
+    ImGui::Text("Current number: %d", getUIState().selectedBoneId);
 }
 
 void Outliner::handlerForUIComponentsvisibility()

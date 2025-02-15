@@ -19,8 +19,10 @@ namespace Skeleton {
         std::map<std::string, BoneInfo> m_BoneInfoMap;
         int m_BoneCounter = 0;
         std::vector<glm::vec3> bonePositions;
+        std::vector<glm::vec3> boneColors;
         unsigned int bonesVAO;
         unsigned int bonesVBO;
+        unsigned int bonesColorVBO;
         Shader* bonesShader;
         Animator* animator;
 
