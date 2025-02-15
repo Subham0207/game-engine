@@ -29,6 +29,9 @@ namespace ProjectModals{
         // bitangent
         glm::vec3 Bitangent;
 
+        //animated vertex pos
+        glm::vec3 animatedPos;
+
     private:
         friend class boost::serialization::access;
 
@@ -38,10 +41,10 @@ namespace ProjectModals{
             ar & Normal;
             ar & TexCoords;
             ar & Color;
-            ar & Tangent;
-            ar & Bitangent;
             ar & m_BoneIDs;
             ar & m_Weights;
+            ar & Tangent;
+            ar & Bitangent;
         }
     };
 }

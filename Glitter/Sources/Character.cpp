@@ -43,7 +43,30 @@ void Character::updateFinalBoneMatrix(float deltatime)
         auto transforms = animator->GetFinalBoneMatrices();
         for (int i = 0; i < transforms.size(); ++i)
         {
+            // Apply finalBoneMatrix to GPU
             setFinalBoneMatrix(i, transforms[i]);
+        }
+
+        // Apply finalBoneMatrix to CPU mesh as well since we use CPU based selection; TODO: Later add this to a flag so we can switch to other selection methods
+        // each vertex has info which bone is influencing it and its position
+        //Use mostly the same code in vertex shader to calculate the position of the vertex
+        //But if the vertex.pos is what we set ?
+        for ( int i = 0; i < model->getMeshes()->size(); i++)
+        {
+            auto vertices = &model->getMeshes()->at(i).vertices;
+            for(int j = 0; j < vertices->size(); j++)
+            {
+                vertices->at(j).animatedPos = glm::vec4(0.0f);
+                for (int k = 0; k < 4; k++) {
+                    int boneID = vertices->at(j).m_BoneIDs[k];
+                    float weight = vertices->at(j).m_Weights[k];
+                    
+                    if (boneID >= 0) {
+                        glm::mat4 boneTransform = transforms[boneID];
+                        vertices->at(j).animatedPos += weight * (boneTransform * glm::vec4(vertices->at(j).Position, 1.0f));
+                    }
+                }
+            }
         }
     }
     else{

@@ -156,6 +156,8 @@ Mesh Model::processMesh(
      static_cast<float>(mesh->mVertices[i].z)
     );
 
+    vertex.animatedPos = vertex.Position;
+
     if(mesh->HasNormals())
     {
         vertex.Normal = glm::vec3(

@@ -118,9 +118,9 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& 
 
                 //You see here you have v0,v1,v2 in model's local space :D
                 //And that is why you will get intersections assuming the model is at 0,0,0 in world space
-                glm::vec3 v0 = mesh.vertices.at(index0).Position;
-                glm::vec3 v1 = mesh.vertices.at(index1).Position;
-                glm::vec3 v2 = mesh.vertices.at(index2).Position;
+                glm::vec3 v0 = mesh.vertices.at(index0).animatedPos;
+                glm::vec3 v1 = mesh.vertices.at(index1).animatedPos;
+                glm::vec3 v2 = mesh.vertices.at(index2).animatedPos;
     
                 float distance = std::numeric_limits<float>::max();
                 glm::vec2 baryPosition;
