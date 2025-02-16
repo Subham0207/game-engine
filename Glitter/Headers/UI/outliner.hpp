@@ -72,11 +72,6 @@ public:
     getUIState().selectedRenderableIndex = newSelectedIndex;
     }
 
-
-
-    //Handling Animation applying logic here: probably these should be called from character class idk right now we will see.
-    void updateAnimator(float deltatime);
-
 private:
     bool scaleUniformly = true;
 

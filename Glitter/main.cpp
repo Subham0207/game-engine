@@ -209,9 +209,6 @@ int main(int argc, char * argv[]) {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // outliner->updateAnimator(deltaTime);
-
-
         clientHandler.inputHandler->handleInput(deltaTime);
 
         // Background Fill Color

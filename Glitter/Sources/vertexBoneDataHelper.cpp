@@ -66,17 +66,21 @@ namespace Helpers
         }
     }
 
-    void resolveBoneHierarchy(const aiNode *node, int parentIndex, std::map<std::string, BoneInfo> &boneInfoMap)
+    void resolveBoneHierarchy(const aiNode *node, int parentIndex, std::map<std::string, BoneInfo> &boneInfoMap, std::vector<Bone> &m_Bones)
     {
         std::string nodeName = node->mName.C_Str();
 
         if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
             boneInfoMap[nodeName].parentIndex = parentIndex;
             parentIndex = boneInfoMap[nodeName].id;
+            
+            m_Bones.push_back(Bone(nodeName,
+                boneInfoMap[nodeName].id));
         }
 
         for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-            resolveBoneHierarchy(node->mChildren[i], parentIndex, boneInfoMap);
+            resolveBoneHierarchy(node->mChildren[i], parentIndex, boneInfoMap, m_Bones);
         }
+
     }
 }

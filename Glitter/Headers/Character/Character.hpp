@@ -8,6 +8,7 @@
 #include <Lights/cubemap.hpp>
 #include <Helpers/shader.hpp>
 #include <3DModel/Skeleton/skeleton.hpp>
+#include <Helpers/vertexBoneDataHelper.hpp>
 
 class Character: public Renderable
 {
@@ -17,6 +18,14 @@ public:
         skeleton = new Skeleton::Skeleton();
         model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter);
         skeleton->setup(animator, this->model->getModelMatrix());
+
+        Assimp::Importer import;
+        const aiScene* scene = import.ReadFile(filepath, aiProcess_Triangulate | aiProcess_FlipUVs);
+        skeleton->ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
+
+        //The animation ReadMissingBone and this function seems to do the same thing
+        Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
+
     };
 
     Model* model;

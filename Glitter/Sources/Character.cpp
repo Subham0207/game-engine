@@ -29,14 +29,13 @@ void Character::loadFromFile(const std::string &filename, Character &character)
 
 void Character::updateFinalBoneMatrix(float deltatime)
 {
-    if(animator->m_CurrentAnimation && animator->isAnimationPlaying)
-    {
-        animator->UpdateAnimation(
-            deltatime,
-             skeleton->m_BoneInfoMap,
-            getModelMatrix(),
-            skeleton->bonePositions);
-    }
+    animator->UpdateAnimation(
+        deltatime,
+        skeleton->m_BoneInfoMap,
+        getModelMatrix(),
+        skeleton->bonePositions,
+        &skeleton->m_RootNode,
+        skeleton->m_Bones);
 
     if(animator != nullptr)
     {

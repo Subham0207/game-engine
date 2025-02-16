@@ -274,14 +274,3 @@ void Outliner::applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, 
         modelMatrix[3] = glm::vec4(translation, 1.0f);
     }
 }
-
-void Outliner::updateAnimator(float deltatime)
-{
-    if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
-    {
-        if(getUIState().selectedAnimationIndex != -1 && getUIState().animations.size() != 0)
-        {
-            character->animator->UpdateAnimation(deltatime, character->skeleton->m_BoneInfoMap, character->getModelMatrix(), character->skeleton->bonePositions);
-        }
-    }
-}

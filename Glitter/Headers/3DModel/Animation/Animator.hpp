@@ -24,16 +24,23 @@ public:
 		float dt,
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &modelMatrix,
-		std::vector<glm::vec3> &bonePositions)
+		std::vector<glm::vec3> &bonePositions,
+		AssimpNodeData *node,
+		std::vector<Bone> &bones)
 	{
 		m_DeltaTime = dt;
 		if (m_CurrentAnimation)
 		{
 			m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
 			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-			bonePositions.clear();
-			CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f), boneInfoMap, modelMatrix, bonePositions);
 		}
+		else{
+			m_CurrentTime = 0;
+		}
+		bonePositions.clear();
+		//Use NodeDataFrom Skeleton
+		CalculateBoneTransform(node, glm::mat4(1.0f), boneInfoMap, modelMatrix, bonePositions, bones);// This identity matrix is the reason the model doesnot move around the world. It's root stays at the origin
+
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -51,20 +58,24 @@ public:
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &modelMatrix,
-		std::vector<glm::vec3> &bonePositions)
+		std::vector<glm::vec3> &bonePositions,
+		std::vector<Bone> &bones
+		)
 	{
 		std::string nodeName = node->name;
 		// glm::mat4 nodeTransform = node->transformation;
 		
 		// Skip actual transformation logic and use identity matrices
-		glm::mat4 nodeTransform = glm::mat4(1.0f);
-
-		Bone* Bone = m_CurrentAnimation->FindBone(nodeName);
-
-		if (Bone)
+		glm::mat4 nodeTransform = node->transformation;
+		
+		if(m_CurrentAnimation)
 		{
-			Bone->Update(m_CurrentTime);
-			nodeTransform = Bone->GetLocalTransform();
+			auto animBone = m_CurrentAnimation->FindBone(nodeName);
+			if(animBone)
+			{
+				animBone->Update(m_CurrentTime);
+				nodeTransform = animBone->GetLocalTransform();
+			}
 		}
 
 		glm::mat4 globalTransformation = parentTransform * nodeTransform;
@@ -87,7 +98,19 @@ public:
 		}
 
 		for (int i = 0; i < node->childrenCount; i++)
-			CalculateBoneTransform(&node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions);
+			CalculateBoneTransform(&node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones);
+	}
+
+	Bone* FindBone(const std::string& name, std::vector<Bone> &bones)
+	{
+		auto iter = std::find_if(bones.begin(), bones.end(),
+			[&](const Bone& Bone)
+			{
+				return Bone.GetBoneName() == name;
+			}
+		);
+		if (iter == bones.end()) return nullptr;
+		else return &(*iter);
 	}
 
 	std::vector<glm::mat4> GetFinalBoneMatrices()

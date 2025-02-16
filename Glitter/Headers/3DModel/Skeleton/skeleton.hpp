@@ -26,6 +26,26 @@ namespace Skeleton {
         Shader* bonesShader;
         Animator* animator;
 
+        void static ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
+        {
+            assert(src);
+    
+            dest.name = src->mName.data;
+            dest.transformation = AssimpGLMHelpers::ConvertMatrixToGLMFormat(src->mTransformation);
+            dest.childrenCount = src->mNumChildren;
+    
+            for (int i = 0; i < src->mNumChildren; i++)
+            {
+                AssimpNodeData newData;
+                ReadHierarchyData(newData, src->mChildren[i]);
+                dest.children.push_back(newData);
+            }
+        }
+
+        AssimpNodeData m_RootNode; // The Real Skeletal tree :D finally
+
+        std::vector<Bone> m_Bones;//List Of Bones...
+
         void updateModelAndViewPosMatrix(Camera* camera, glm::mat4 &modelMatrix);
         void setupBoneBuffersOnGPU();
 

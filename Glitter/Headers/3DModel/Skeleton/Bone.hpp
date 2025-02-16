@@ -55,6 +55,9 @@ class Bone
 public:
 	Bone() = default;
 	~Bone(){}
+
+	Bone(const std::string& name, int ID):m_Name(name),m_ID(ID),m_LocalTransform(1.0f){}
+
 	Bone(const std::string& name, int ID, const aiNodeAnim* channel)
 		:
 		m_Name(name),
