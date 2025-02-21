@@ -21,4 +21,7 @@ namespace Helpers{
 
     void SetVertexBoneData(ProjectModals::Vertex& vertex, int boneID, float weight);
 
+    glm::mat4 GetBoneOffsetMatrix(const aiNode* boneNode);
+
+    aiNode* FindNodeRecursive(aiNode* node, const std::string& nodeName);
 }

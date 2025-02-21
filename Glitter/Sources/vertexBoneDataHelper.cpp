@@ -1,5 +1,6 @@
 #include <Helpers/vertexBoneDataHelper.hpp>
 #include <Helpers/AssimpGLMHelpers.hpp>
+#include <iostream>
 
 namespace Helpers
 {
@@ -41,8 +42,22 @@ namespace Helpers
                 BoneInfo newBoneInfo;
                 newBoneInfo.id = m_BoneCounter;
                 newBoneInfo.parentIndex = -1;
-                newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
-                    mesh->mBones[boneIndex]->mOffsetMatrix);
+                auto bone = mesh->mBones[boneIndex];
+                if (bone->mOffsetMatrix != aiMatrix4x4()) {
+                    newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(bone->mOffsetMatrix);
+                } 
+                else 
+                {
+                    // If offset matrix is missing, attempt to compute it from the node hierarchy
+                    aiNode* boneNode = FindNodeRecursive(scene->mRootNode, boneName);
+                    if (boneNode) {
+                        newBoneInfo.offset = GetBoneOffsetMatrix(boneNode);
+                    } 
+                    else {
+                        std::cerr << "Warning: Bone '" << boneName << "' missing from mesh and scene graph!" << std::endl;
+                        newBoneInfo.offset = glm::mat4(1.0f); // Default to identity
+                    }
+                }
                 newBoneInfo.transform = glm::mat4(1.0f);
                 m_BoneInfoMap[boneName] = newBoneInfo;
                 boneID = m_BoneCounter;
@@ -82,5 +97,30 @@ namespace Helpers
             resolveBoneHierarchy(node->mChildren[i], parentIndex, boneInfoMap, m_Bones);
         }
 
+    }
+
+    glm::mat4 GetBoneOffsetMatrix(const aiNode* boneNode) {
+        if (!boneNode) return glm::mat4(1.0f);
+    
+        aiMatrix4x4 inverseTransform = boneNode->mTransformation;
+        inverseTransform.Inverse();  // Get the inverse bind pose
+    
+        return AssimpGLMHelpers::ConvertMatrixToGLMFormat(inverseTransform);
+    }
+
+    aiNode* FindNodeRecursive(aiNode* node, const std::string& nodeName)
+    {
+        if (!node) return nullptr;
+
+        if (node->mName.C_Str() == nodeName) {
+            return node;
+        }
+
+        for (unsigned int i = 0; i < node->mNumChildren; i++) {
+            aiNode* foundNode = FindNodeRecursive(node->mChildren[i], nodeName);
+            if (foundNode) return foundNode;
+        }
+
+        return nullptr;
     }
 }
