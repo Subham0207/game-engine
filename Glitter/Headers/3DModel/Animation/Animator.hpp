@@ -6,6 +6,7 @@
 #include "assimp/scene.h"
 #include "assimp/Importer.hpp"
 #include "Animation.hpp"
+#include <Helpers/vertexBoneDataHelper.hpp>
 
 class Animator
 {
@@ -39,8 +40,11 @@ public:
 		}
 		bonePositions.clear();
 		//Use NodeDataFrom Skeleton
-		CalculateBoneTransform(node, glm::mat4(1.0f), boneInfoMap, modelMatrix, bonePositions, bones);// This identity matrix is the reason the model doesnot move around the world. It's root stays at the origin
-
+		// std::cout << "Skeletal Start" << std::endl;
+		auto globalInverseTransform = glm::inverse(node->transformation);
+		CalculateBoneTransform(node, glm::mat4(1.0f), boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);// This identity matrix is the reason the model doesnot move around the world. It's root stays at the origin
+		// std::cout << "Skeletal End" << std::endl;
+		
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -59,13 +63,12 @@ public:
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &modelMatrix,
 		std::vector<glm::vec3> &bonePositions,
-		std::vector<Bone> &bones
+		std::vector<Bone> &bones,
+		glm::mat4 &globalInverseTransform
 		)
 	{
 		std::string nodeName = node->name;
-		// glm::mat4 nodeTransform = node->transformation;
 		
-		// Skip actual transformation logic and use identity matrices
 		glm::mat4 nodeTransform = node->transformation;
 		
 		if(m_CurrentAnimation)
@@ -74,31 +77,39 @@ public:
 			if(animBone)
 			{
 				animBone->Update(m_CurrentTime);
-				nodeTransform = animBone->GetLocalTransform();
+				nodeTransform = nodeTransform * animBone->GetLocalTransform();
 			}
 		}
-
+		
 		glm::mat4 globalTransformation = parentTransform * nodeTransform;
-
+		
 		if (boneInfoMap.find(nodeName) != boneInfoMap.end())
 		{
 			int index = boneInfoMap[nodeName].id;
 			boneInfoMap[nodeName].transform = globalTransformation;
 			glm::mat4 offset = boneInfoMap[nodeName].offset;
-			m_FinalBoneMatrices[index] = globalTransformation * offset;
+			m_FinalBoneMatrices[index] = globalInverseTransform * globalTransformation * offset;
+
+			glm::vec3 currentBonePosition = glm::vec3(globalTransformation * glm::vec4(0, 0, 0, 1));
+			glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
+
+			if (node->childrenCount > 0) {
+				glm::mat4 childGlobalTransform = globalTransformation * node->children[0].transformation;
+				currentBonePosition = glm::vec3(childGlobalTransform * glm::vec4(0, 0, 0, 1));
+			}
 
 			//This is the perfect place to draw a bone; we have parent and child transform
 			calculateBoneVectorFromParentAndChild(
 				modelMatrix,
 				bonePositions,
 				boneInfoMap,
-				globalTransformation[3],
-				parentTransform[3]
+				currentBonePosition,
+				parentBonePosition
 			);
 		}
 
 		for (int i = 0; i < node->childrenCount; i++)
-			CalculateBoneTransform(&node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones);
+			CalculateBoneTransform(&node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);
 	}
 
 	Bone* FindBone(const std::string& name, std::vector<Bone> &bones)
@@ -153,6 +164,15 @@ public:
 			// 	auto textSprite = new Sprites::Text(it->first, childPosition);
 			// 	getActiveLevel().textSprites.push_back(textSprite);
 			// }
+			// std::cout << "child pos";
+			// std::cout << childPos[0] << " " ;
+			// std::cout << childPos[1] << " ";
+			// std::cout << childPos[2] <<  " " << std::endl;
+
+			// std::cout << "parent  pos";
+			// std::cout << parentPos[0] << " " ;
+			// std::cout << parentPos[1] << " ";
+			// std::cout << parentPos[2] <<  " " << std::endl;
 			bonePositions.push_back(childPos);
 			bonePositions.push_back(parentPos);
 		}

@@ -93,11 +93,6 @@ public:
 			auto channel = animation->mChannels[i];
 			std::string boneName = channel->mNodeName.data;
 
-			if (boneInfoMap.find(boneName) == boneInfoMap.end())
-			{
-				boneInfoMap[boneName].id = boneCount;
-				boneCount++;
-			}
 			m_Bones.push_back(Bone(channel->mNodeName.data,
 				boneInfoMap[channel->mNodeName.data].id, channel));
 		}

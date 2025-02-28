@@ -24,4 +24,6 @@ namespace Helpers{
     glm::mat4 GetBoneOffsetMatrix(const aiNode* boneNode);
 
     aiNode* FindNodeRecursive(aiNode* node, const std::string& nodeName);
+
+    bool IsMatrixIdentity(const glm::mat4& mat, float epsilon = 0.0001f);
 }

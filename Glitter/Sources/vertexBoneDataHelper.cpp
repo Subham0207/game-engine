@@ -88,6 +88,10 @@ namespace Helpers
         if (boneInfoMap.find(nodeName) != boneInfoMap.end()) {
             boneInfoMap[nodeName].parentIndex = parentIndex;
             parentIndex = boneInfoMap[nodeName].id;
+
+            if (parentIndex == -1){
+                std::cout << "WARNING: Parent is missing! " << nodeName << std::endl;
+            }
             
             m_Bones.push_back(Bone(nodeName,
                 boneInfoMap[nodeName].id));
@@ -122,5 +126,18 @@ namespace Helpers
         }
 
         return nullptr;
+    }
+
+    bool IsMatrixIdentity(const glm::mat4& mat, float epsilon) {
+        glm::mat4 identity = glm::mat4(1.0f);
+        
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                if (!glm::epsilonEqual(mat[i][j], identity[i][j], epsilon)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
