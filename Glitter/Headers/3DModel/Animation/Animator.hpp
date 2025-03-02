@@ -41,8 +41,8 @@ public:
 		bonePositions.clear();
 		//Use NodeDataFrom Skeleton
 		// std::cout << "Skeletal Start" << std::endl;
-		auto globalInverseTransform = glm::inverse(node->transformation);
-		CalculateBoneTransform(node, glm::mat4(1.0f), boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);// This identity matrix is the reason the model doesnot move around the world. It's root stays at the origin
+		auto globalInverseTransform = glm::inverse(node->transformation); // make sure the first node is the rootNode and not the firstBone. This is used to position the model in the world space.
+		CalculateBoneTransform(node, globalInverseTransform, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);// This identity matrix is the reason the model doesnot move around the world. It's root stays at the origin
 		// std::cout << "Skeletal End" << std::endl;
 		
 	}
@@ -77,7 +77,11 @@ public:
 			if(animBone)
 			{
 				animBone->Update(m_CurrentTime);
-				nodeTransform = nodeTransform * animBone->GetLocalTransform();
+				nodeTransform = animBone->GetLocalTransform();
+			}
+			else
+			{
+				std::cout << "node not animated " << nodeName << std::endl;
 			}
 		}
 		

@@ -34,7 +34,7 @@ void Character::updateFinalBoneMatrix(float deltatime)
         skeleton->m_BoneInfoMap,
         getModelMatrix(),
         skeleton->bonePositions,
-        &skeleton->m_RootNode,
+        &skeleton->skeletaltreeRoot,
         skeleton->m_Bones);
 
     if(animator != nullptr)

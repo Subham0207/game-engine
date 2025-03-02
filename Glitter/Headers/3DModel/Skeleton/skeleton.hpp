@@ -42,7 +42,92 @@ namespace Skeleton {
             }
         }
 
-        AssimpNodeData m_RootNode; // The Real Skeletal tree :D finally
+        glm::mat4 getLocalTransformForBone(const AssimpNodeData& node, const std::string& boneName)
+        {
+            if (node.name == boneName)
+                return node.transformation;
+        
+            for (const auto& child : node.children) 
+            {
+                glm::mat4 result = getLocalTransformForBone(child, boneName);
+                
+                if (result != glm::mat4(0.0f))  
+                    return result;
+            }
+        
+            return glm::mat4(0.0f);
+        }
+
+        std::map<int, std::string> CreateBoneIndexMap(const std::map<std::string, BoneInfo>& boneInfoMap)
+        {
+            std::map<int, std::string> indexToName;
+            for (const auto& [boneName, boneInfo] : boneInfoMap)
+            {
+                indexToName[boneInfo.id] = boneName;
+            }
+            return indexToName;
+        }
+
+        void BuildBoneHierarchy()
+        {
+            std::map<std::string, AssimpNodeData*> nodeMap;
+            std::map<int, std::string> indexToName = CreateBoneIndexMap(m_BoneInfoMap); // 🔥 Get index → name map
+        
+            // Step 1: Create nodes for all bones
+            for (const auto& [boneName, boneInfo] : m_BoneInfoMap)
+            {
+                nodeMap[boneName] = new AssimpNodeData{
+                    glm::mat4(1.0f),  // Default transform (will update later)
+                    boneName,
+                    0,  // Children count (will update later)
+                    {}  // Empty children list
+                };
+            }
+
+            std::string rootBoneName = "";
+        
+            // Step 2: Attach children to their parents using parentIndex
+            for (const auto& [boneName, boneInfo] : m_BoneInfoMap)
+            {
+                int parentIndex = boneInfo.parentIndex;
+                if (parentIndex != -1 && indexToName.find(parentIndex) != indexToName.end())  
+                {
+                    std::string parentName = indexToName[parentIndex];
+                    nodeMap[parentName]->children.push_back(*nodeMap[boneName]);
+                    nodeMap[parentName]->childrenCount++;
+                }
+                else  
+                {
+                    // If there's no parent, it's the root bone
+                    rootBoneName = boneName;
+                }
+
+                //Look up RootNodedata and set local node transforms for skeletaltree nodes
+                nodeMap[boneName]->transformation = getLocalTransformForBone(m_RootNode, boneName);
+            }
+
+            //After all the bones have been parsed we move on to the rootNode i.e. represent the origin of the model.
+            std::string rootNodeName = m_RootNode.name;
+            nodeMap[rootNodeName] = new AssimpNodeData{
+                m_RootNode.transformation,
+                rootNodeName,
+                0,
+                {}
+            };
+            nodeMap[rootNodeName]->children.push_back(*nodeMap[rootBoneName]);
+            nodeMap[rootNodeName]->childrenCount++;
+
+            skeletaltreeRoot = *nodeMap[rootNodeName];
+        
+            // Cleanup dynamically allocated memory
+            for (auto& [name, node] : nodeMap)
+            {
+                delete node;
+            }
+        }
+
+        AssimpNodeData m_RootNode; 
+        AssimpNodeData skeletaltreeRoot; 
 
         std::vector<Bone> m_Bones;//List Of Bones...
 

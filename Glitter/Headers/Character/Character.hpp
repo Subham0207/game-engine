@@ -26,6 +26,7 @@ public:
         //The animation ReadMissingBone and this function seems to do the same thing
         Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
 
+        skeleton->BuildBoneHierarchy();
     };
 
     Model* model;
