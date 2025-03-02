@@ -97,11 +97,6 @@ public:
 			glm::vec3 currentBonePosition = glm::vec3(globalTransformation * glm::vec4(0, 0, 0, 1));
 			glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
 
-			if (node->childrenCount > 0) {
-				glm::mat4 childGlobalTransform = globalTransformation * node->children[0]->transformation;
-				currentBonePosition = glm::vec3(childGlobalTransform * glm::vec4(0, 0, 0, 1));
-			}
-
 			//This is the perfect place to draw a bone; we have parent and child transform
 			calculateBoneVectorFromParentAndChild(
 				modelMatrix,
