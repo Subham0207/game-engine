@@ -15,7 +15,7 @@ struct AssimpNodeData
 	glm::mat4 transformation;
 	std::string name;
 	int childrenCount;
-	std::vector<AssimpNodeData> children;
+	std::vector<AssimpNodeData*> children;
 
 	friend class boost::serialization::access;
     template<class Archive>
@@ -111,8 +111,8 @@ private:
 
 		for (int i = 0; i < src->mNumChildren; i++)
 		{
-			AssimpNodeData newData;
-			ReadHierarchyData(newData, src->mChildren[i]);
+			auto newData = new AssimpNodeData();
+			ReadHierarchyData(*newData, src->mChildren[i]);
 			dest.children.push_back(newData);
 		}
 	}

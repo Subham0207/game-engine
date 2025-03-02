@@ -36,27 +36,48 @@ namespace Skeleton {
     
             for (int i = 0; i < src->mNumChildren; i++)
             {
-                AssimpNodeData newData;
-                ReadHierarchyData(newData, src->mChildren[i]);
+                auto newData = new AssimpNodeData();
+                ReadHierarchyData(*newData, src->mChildren[i]);
                 dest.children.push_back(newData);
             }
         }
 
-        glm::mat4 getLocalTransformForBone(const AssimpNodeData& node, const std::string& boneName)
+        glm::mat4 getAccumulatedLocalTransform(const AssimpNodeData& node, const std::string& boneName, glm::mat4 accumulatedTransform = glm::mat4(1.0f), bool shouldAccumulate = false)
         {
-            if (node.name == boneName)
-                return node.transformation;
-        
-            for (const auto& child : node.children) 
+            bool currentIsHelperNode = node.name.find(boneName) != std::string::npos; // ✅ Only accumulate if the node is related to `boneName`
+            
+            if ((currentIsHelperNode && node.name != boneName) || (shouldAccumulate))
             {
-                glm::mat4 result = getLocalTransformForBone(child, boneName);
-                
-                if (result != glm::mat4(0.0f))  
+                shouldAccumulate = true; // Start accumulating transforms once we hit a related helper node
+                accumulatedTransform *= node.transformation;
+            }
+            else
+            {
+                accumulatedTransform = glm::mat4(1.0f); // so we don't accumlate and  influence other unrelated bones.
+                shouldAccumulate = false;
+            }
+        
+        
+            if (node.name == boneName)
+            {
+              if(shouldAccumulate)
+              {
+                  shouldAccumulate = false;
+                  return accumulatedTransform; // ✅ Return final transformation when reaching the actual bone
+              }
+              return node.transformation;
+            }
+        
+            for (const auto& child : node.children)
+            {
+                glm::mat4 result = getAccumulatedLocalTransform(*child, boneName, accumulatedTransform, shouldAccumulate);
+                if (result != glm::mat4(1.0f)) // ✅ If valid transformation found, return it
                     return result;
             }
         
-            return glm::mat4(0.0f);
+            return glm::mat4(1.0f); // ❌ If bone not found, return identity (safe fallback)
         }
+        
 
         std::map<int, std::string> CreateBoneIndexMap(const std::map<std::string, BoneInfo>& boneInfoMap)
         {
@@ -88,12 +109,12 @@ namespace Skeleton {
         
             // Step 2: Attach children to their parents using parentIndex
             for (const auto& [boneName, boneInfo] : m_BoneInfoMap)
-            {
+            {                
                 int parentIndex = boneInfo.parentIndex;
                 if (parentIndex != -1 && indexToName.find(parentIndex) != indexToName.end())  
                 {
                     std::string parentName = indexToName[parentIndex];
-                    nodeMap[parentName]->children.push_back(*nodeMap[boneName]);
+                    nodeMap[parentName]->children.push_back(nodeMap[boneName]); // See this is attach empty default values for the children.
                     nodeMap[parentName]->childrenCount++;
                 }
                 else  
@@ -102,8 +123,13 @@ namespace Skeleton {
                     rootBoneName = boneName;
                 }
 
+                if(boneName == "mixamorig:LeftUpLeg")
+                {
+                    std::cout << "true";
+                }
+
                 //Look up RootNodedata and set local node transforms for skeletaltree nodes
-                nodeMap[boneName]->transformation = getLocalTransformForBone(m_RootNode, boneName);
+                nodeMap[boneName]->transformation = getAccumulatedLocalTransform(m_RootNode, boneName);
             }
 
             //After all the bones have been parsed we move on to the rootNode i.e. represent the origin of the model.
@@ -114,20 +140,14 @@ namespace Skeleton {
                 0,
                 {}
             };
-            nodeMap[rootNodeName]->children.push_back(*nodeMap[rootBoneName]);
+            nodeMap[rootNodeName]->children.push_back(nodeMap[rootBoneName]);
             nodeMap[rootNodeName]->childrenCount++;
 
-            skeletaltreeRoot = *nodeMap[rootNodeName];
-        
-            // Cleanup dynamically allocated memory
-            for (auto& [name, node] : nodeMap)
-            {
-                delete node;
-            }
+            skeletaltreeRoot = nodeMap[rootNodeName];
         }
 
         AssimpNodeData m_RootNode; 
-        AssimpNodeData skeletaltreeRoot; 
+        AssimpNodeData* skeletaltreeRoot; 
 
         std::vector<Bone> m_Bones;//List Of Bones...
 

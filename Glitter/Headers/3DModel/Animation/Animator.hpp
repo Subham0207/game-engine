@@ -98,7 +98,7 @@ public:
 			glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
 
 			if (node->childrenCount > 0) {
-				glm::mat4 childGlobalTransform = globalTransformation * node->children[0].transformation;
+				glm::mat4 childGlobalTransform = globalTransformation * node->children[0]->transformation;
 				currentBonePosition = glm::vec3(childGlobalTransform * glm::vec4(0, 0, 0, 1));
 			}
 
@@ -113,7 +113,7 @@ public:
 		}
 
 		for (int i = 0; i < node->childrenCount; i++)
-			CalculateBoneTransform(&node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);
+			CalculateBoneTransform(node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);
 	}
 
 	Bone* FindBone(const std::string& name, std::vector<Bone> &bones)
