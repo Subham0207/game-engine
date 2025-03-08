@@ -32,10 +32,7 @@ class Animation
 public:
 	Animation() = default;
 
-	Animation(
-	std::string& animationPath,
-	std::map<std::string, BoneInfo>& boneInfoMap,
-	int& boneCount)
+	Animation(std::string& animationPath)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
@@ -46,7 +43,7 @@ public:
 		aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
 		globalTransformation = globalTransformation.Inverse();
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
-		ReadMissingBones(animation, boneInfoMap, boneCount);
+		readSkeletalAnimationData(animation);
 
 		animationName = animationPath;
 		hasMissingBones = true;
@@ -72,18 +69,12 @@ public:
 	inline float GetTicksPerSecond() { return m_TicksPerSecond; }
 	inline float GetDuration() { return m_Duration;}
 	inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
-	inline const std::map<std::string,BoneInfo>& GetBoneIDMap() 
-	{ 
-		return m_BoneInfoMap;
-	}
 
 	std::string animationName;
 	bool hasMissingBones;
 
-	void ReadMissingBones(
-	const aiAnimation* animation,
-	std::map<std::string, BoneInfo>& boneInfoMap,
-	int& boneCount)
+	void readSkeletalAnimationData(
+	const aiAnimation* animation)
 	{
 		int size = animation->mNumChannels;
 
@@ -93,11 +84,8 @@ public:
 			auto channel = animation->mChannels[i];
 			std::string boneName = channel->mNodeName.data;
 
-			m_Bones.push_back(Bone(channel->mNodeName.data,
-				boneInfoMap[channel->mNodeName.data].id, channel));
+			m_Bones.push_back(Bone(channel->mNodeName.data, channel));
 		}
-
-		m_BoneInfoMap = boneInfoMap;
 	}
 
 private:
@@ -120,7 +108,6 @@ private:
 	int m_TicksPerSecond;
 	std::vector<Bone> m_Bones;
 	AssimpNodeData m_RootNode; // This is the skeletal tree
-	std::map<std::string, BoneInfo> m_BoneInfoMap;
 
 	friend class boost::serialization::access;
     template<class Archive>
@@ -128,7 +115,6 @@ private:
 		ar & m_Duration;
 		ar & m_TicksPerSecond;
 		ar & m_Bones, m_RootNode;
-		ar & m_BoneInfoMap;
 		ar & animationName;
 		ar & hasMissingBones;
     }

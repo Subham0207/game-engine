@@ -193,10 +193,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
                             {
-                                auto animation = new Animation(
-                                getUIState().filePath,
-                                character->GetBoneInfoMap(),
-                                character->GetBoneCount());
+                                auto animation = new Animation(getUIState().filePath);
                                 getUIState().animations.push_back(animation);
                                 getUIState().animationNames.push_back(animation->animationName);
                             }
