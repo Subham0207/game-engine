@@ -3,6 +3,8 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 #include <glad/glad.h>
+#include <3DModel/Animation/Animation.hpp>
+#include <EngineState.hpp>
 
 namespace Shared{
         unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents){
@@ -87,4 +89,11 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 glBindTexture(GL_TEXTURE_2D, 0); // Unbind
 return emptyTexture;
+}
+
+void Shared::readAnimation(std::string filename)
+{
+    auto animation = new Animation(filename);
+    getUIState().animations.push_back(animation);
+    getUIState().animationNames.push_back(animation->animationName);
 }

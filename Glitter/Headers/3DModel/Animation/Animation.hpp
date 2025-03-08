@@ -4,6 +4,7 @@
 #include <map>
 #include <glm/glm.hpp>
 #include <assimp/scene.h>
+#include "assimp/Importer.hpp"
 #include <assimp/postprocess.h>
 #include "3DModel/Skeleton/Bone.hpp"
 #include <functional>

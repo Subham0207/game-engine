@@ -1,9 +1,9 @@
 #pragma once
 #include "UI/FileExplorer.hpp"
 #include <imgui.h>
-#include "EngineState.hpp"
 #include <EngineState.hpp>
 #include <Character/Character.hpp>
+#include <Helpers/Shared.hpp>
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -193,9 +193,8 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
                             {
-                                auto animation = new Animation(getUIState().filePath);
-                                getUIState().animations.push_back(animation);
-                                getUIState().animationNames.push_back(animation->animationName);
+                                std::string& filename = getUIState().filePath;
+                                Shared::readAnimation(filename);
                             }
                             else
                             {
