@@ -20,6 +20,9 @@ private:
 
 	static void handleTransformGizmo(GLFWwindow* window);
 
+	void handleEditorInput(float deltaTime);
+	void handlePlay();
+
 	bool firstMouse = true;
 	float yaw = -90.0f;
 	float pitch = 0.0f;

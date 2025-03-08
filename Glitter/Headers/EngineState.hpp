@@ -5,6 +5,7 @@
 #include "UIState/UIState.hpp"
 #include "Level/Level.hpp"
 #include <filesystem>
+#include <Controls/PlayerController.hpp>
 namespace fs = std::filesystem;
 
 class State{
@@ -36,6 +37,9 @@ public:
     Level &activeLevel = *(new Level());//Init an empty level so this compiles
 
     bool isPlay = false;
+
+    int activePlayerControllerId = 0;
+    std::vector<Controls::PlayerController*> playerControllers = std::vector<Controls::PlayerController*>();
 
     ProjectAsset::UIState uiState;
 };

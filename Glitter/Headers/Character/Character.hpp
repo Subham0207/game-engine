@@ -9,25 +9,13 @@
 #include <Helpers/shader.hpp>
 #include <3DModel/Skeleton/skeleton.hpp>
 #include <Helpers/vertexBoneDataHelper.hpp>
+#include <Controls/PlayerController.hpp>
+#include <Controls/statemachine.hpp>
 
 class Character: public Renderable
 {
 public:
-    Character(std::string filepath){
-        animator = new Animator();
-        skeleton = new Skeleton::Skeleton();
-        model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter);
-        skeleton->setup(animator, this->model->getModelMatrix());
-
-        Assimp::Importer import;
-        const aiScene* scene = import.ReadFile(filepath, aiProcess_Triangulate | aiProcess_FlipUVs);
-        skeleton->ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
-
-        //The animation ReadMissingBone and this function seems to do the same thing
-        Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
-
-        skeleton->BuildBoneHierarchy();
-    };
+    Character(std::string filepath);
 
     Model* model;
     Animator* animator;
@@ -72,6 +60,8 @@ public:
     }
 
     Skeleton::Skeleton* skeleton;
+    Controls::PlayerController* playerController;
+    Controls::AnimationStateMachine* animStateMachine;
 private:
     Camera* camera;
 

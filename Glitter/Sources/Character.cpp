@@ -3,6 +3,26 @@
 #include <EngineState.hpp>
 namespace fs = std::filesystem;
 
+Character::Character(std::string filepath){
+    animator = new Animator();
+    skeleton = new Skeleton::Skeleton();
+    model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter);
+    skeleton->setup(animator, this->model->getModelMatrix());
+
+    Assimp::Importer import;
+    const aiScene* scene = import.ReadFile(filepath, aiProcess_Triangulate | aiProcess_FlipUVs);
+    skeleton->ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
+
+    //The animation ReadMissingBone and this function seems to do the same thing
+    Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
+
+    skeleton->BuildBoneHierarchy();
+
+    playerController = new Controls::PlayerController();
+    State::state->playerControllers.push_back(playerController);
+    animStateMachine = new Controls::AnimationStateMachine(playerController, animator);
+};
+
 void Character::saveToFile(std::string filename, Character &character)
 {
     fs::path dir = fs::path(filename).parent_path();
@@ -90,6 +110,9 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
     model->draw(deltaTime, camera, lights, cubeMap);
 
     skeleton->draw(camera, getModelMatrix());
+
+    if(State::state->isPlay)
+    animStateMachine->Update();
 }
 
 void Character::useAttachedShader()

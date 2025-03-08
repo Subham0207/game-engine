@@ -128,6 +128,15 @@ void Outliner::manageModels()
 }
 void Outliner::manageAnimationsForSelectedModel()
 {
+    if(ImGui::Button("Play"))
+    {
+        State::state->isPlay = true;
+    }
+    if(ImGui::Button("End Play"))
+    {
+        State::state->isPlay = false;
+    }
+
     if(ImGui::Button("Load animation for model"))
     {
         getUIState().selectAFile = true;

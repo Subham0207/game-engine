@@ -1,4 +1,6 @@
+#pragma once
 #include <3DModel/Animation/Animator.hpp>
+#include <Controls/PlayerController.hpp>
 
 namespace Controls
 {
@@ -12,34 +14,15 @@ namespace Controls
     class AnimationStateMachine {
     private:
         AnimationState currentState;
+        AnimationState previousState;
         Animator* animator;
+        PlayerController* playerController;
 
     public:
-        AnimationStateMachine();
+        AnimationStateMachine(PlayerController* playerController, Animator* animator);
         
-        void Update() {
-            switch (currentState) {
-                case AnimationState::Idle:
-                    //When an input key is set change the state correctly
-                    currentState = AnimationState::Walking;
-                    break;
-                case AnimationState::Walking:
-                    currentState = AnimationState::Idle;
-                    break;
-            }
-
-            PlayAnimation(currentState);
-        }
-
-        void PlayAnimation(AnimationState state) {
-            switch (state) {
-                case AnimationState::Idle:
-                    // Play the correct animation
-                    break;
-                case AnimationState::Walking:
-                    break;
-            }
-        }
+        void Update();
+        void PlayAnimation(AnimationState state);
     };
 
 }

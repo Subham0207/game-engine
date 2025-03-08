@@ -1,3 +1,4 @@
+#pragma once
 #include "Controls/Input.hpp"
 #include <iostream>
 #include "imgui.h"
@@ -17,6 +18,18 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
 }
 
 void InputHandler::handleInput(float deltaTime)
+{
+    if(!State::state->isPlay)
+    {
+        handleEditorInput(deltaTime);
+    }
+    else
+    {
+        handlePlay();
+    }
+}
+
+void InputHandler::handleEditorInput(float deltaTime)
 {
     handleBasicMovement(deltaTime);
     if (glfwGetKey(m_Window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
@@ -47,6 +60,32 @@ void InputHandler::handleInput(float deltaTime)
 
 }
 
+void InputHandler::handlePlay()
+{
+    //Get the first PlayerController or activePlayer controller
+    //A Player controller for now will just pass these button presses as boolean. This is for abstraction purpose
+    //That means the state machine would be called on every frame but based on if the player controller has a input for it it would respond
+    //We can place the state machine update in character update for now
+    auto id = State::state->activePlayerControllerId;
+    Controls::PlayerController* playerController = nullptr;
+    if(State::state->playerControllers.size() > 0)
+    playerController = State::state->playerControllers.at(0);
+
+    if(!playerController)
+    return;
+
+    //Shit + W to run
+    if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS && glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    playerController->setRunning();
+    //W to move
+    else if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
+    playerController->setWalking();
+    //space to jump
+    else if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    playerController->setJumping();
+    else
+    playerController->setIdleing();
+}
 void InputHandler::handleBasicMovement(float deltaTime)
 {
     ImGuiIO& io = ImGui::GetIO();
