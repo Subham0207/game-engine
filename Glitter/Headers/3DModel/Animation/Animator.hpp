@@ -79,10 +79,6 @@ public:
 				animBone->Update(m_CurrentTime);
 				nodeTransform = animBone->GetLocalTransform();
 			}
-			else
-			{
-				std::cout << "node not animated " << nodeName << std::endl;
-			}
 		}
 		
 		glm::mat4 globalTransformation = parentTransform * nodeTransform;

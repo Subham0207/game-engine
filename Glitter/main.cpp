@@ -35,9 +35,12 @@
 #include <Helpers/Shared.hpp>
 #include <Sprites/text.hpp>
 
+#include <Controls/statemachine.hpp>
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
+//This is default stuff
 struct ClientHandler {
     InputHandler* inputHandler;
     Camera* camera;
@@ -201,6 +204,9 @@ int main(int argc, char * argv[]) {
     //GPULogger
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(glDebugOutput, nullptr);
+
+    //Init
+    Controls::AnimationStateMachine();
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {

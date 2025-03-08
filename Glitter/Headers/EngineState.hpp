@@ -35,6 +35,8 @@ public:
 
     Level &activeLevel = *(new Level());//Init an empty level so this compiles
 
+    bool isPlay = false;
+
     ProjectAsset::UIState uiState;
 };
 

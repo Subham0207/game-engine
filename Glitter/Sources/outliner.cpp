@@ -145,10 +145,13 @@ void Outliner::manageAnimationsForSelectedModel()
     }
     if(ImGui::Button("Play Animation"))
     {
-        if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+        if(getUIState().selectedRenderableIndex > -1)
         {
-            std::cout << "Character: "<< character->getName() << std::endl;
-            character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
+            if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+            {
+                std::cout << "Character: "<< character->getName() << std::endl;
+                character->animator->PlayAnimation(getUIState().animations[getUIState().selectedAnimationIndex]);
+            }
         }
         // we need to send the manipulation to mesh
     }

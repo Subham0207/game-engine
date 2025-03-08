@@ -44,7 +44,7 @@ namespace ProjectAsset {
         FileTypeOperation fileTypeOperation;
 
         Shader* shaderOfSelectedModel = NULL;
-        int selectedBoneId = 0;
+        int selectedBoneId = -1;
 
         // Details of ModelType selection window
         std::string modelfileName="";
