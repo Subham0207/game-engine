@@ -59,6 +59,8 @@ namespace ProjectAsset {
         unsigned int nonMetalicTextureID;
         unsigned int whiteAOTextureID;
 
+        bool showDebugBone = false;
+
         ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
     };
 

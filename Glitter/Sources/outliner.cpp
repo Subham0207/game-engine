@@ -190,6 +190,12 @@ void Outliner::popupForErrorsAndWarning()
 }
 void Outliner::debugOptions()
 {
+
+    if(ImGui::Button("Toggle Render bones"))
+    {
+        getUIState().showDebugBone = !getUIState().showDebugBone;
+    }
+
     auto selectedIndex = 0;
     if(getUIState().selectedRenderableIndex > -1)
     {
