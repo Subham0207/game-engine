@@ -125,7 +125,7 @@ int main(int argc, char * argv[]) {
     // }
     
     //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
-    auto cubeMap = new CubeMap("E:/OpenGL/Models/quarry_cloudy_4k.hdr");
+    auto cubeMap = new CubeMap("E:/OpenGL/Models/rostock_laage_airport_8k.hdr");
     auto equirectangularToCubemapShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/equirectanglular_to_cubemap.frag");
     auto irradianceShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/irradiance_convolution.frag");
     auto prefilterShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/prefilter.frag");

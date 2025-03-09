@@ -17,6 +17,7 @@ namespace Controls
         AnimationState previousState;
         Animator* animator;
         PlayerController* playerController;
+        float blendFactor;
 
     public:
         AnimationStateMachine(PlayerController* playerController, Animator* animator);

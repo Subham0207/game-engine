@@ -15,6 +15,9 @@ public:
 	{
 		m_CurrentTime = 0.0;
 		m_CurrentAnimation = NULL;
+		animation1 = NULL;
+		animation2 = NULL;
+		blendFactor = 0.0f;
 		m_FinalBoneMatrices.reserve(100);
 
 		for (int i = 0; i < 100; i++)
@@ -30,21 +33,34 @@ public:
 		std::vector<Bone> &bones)
 	{
 		m_DeltaTime = dt;
-		if (m_CurrentAnimation)
+		if (animation1 && animation2)
 		{
-			m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+			currentTime1 += animation1->GetTicksPerSecond() * dt;
+			currentTime1 = fmod(currentTime1, animation1->GetDuration());
+
+			currentTime2 += animation2->GetTicksPerSecond() * dt;
+			currentTime2 = fmod(currentTime2, animation2->GetDuration());
 		}
 		else{
 			m_CurrentTime = 0;
+			currentTime1 = 0;
+			currentTime2 = 0;
 		}
 		bonePositions.clear();
 		//Use NodeDataFrom Skeleton
 		// std::cout << "Skeletal Start" << std::endl;
 		auto globalInverseTransform = glm::inverse(node->transformation); // make sure the first node is the rootNode and not the firstBone. This is used to position the model in the world space.
-		CalculateBoneTransform(node, globalInverseTransform, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);// This identity matrix is the reason the model doesnot move around the world. It's root stays at the origin
-		// std::cout << "Skeletal End" << std::endl;
-		
+		CalculateBoneTransformBlended(
+		node,
+		globalInverseTransform,
+		boneInfoMap,
+		modelMatrix,
+		bonePositions,
+		bones,
+		globalInverseTransform,
+		animation1,
+		animation2,
+		blendFactor);
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -57,6 +73,18 @@ public:
 		}
 	}
 
+	void PlayAnimationBlended(Animation* animation1, Animation* animation2, float blendFactor)
+	{
+		if(animation1 && animation2)
+		{
+			this->animation1 = animation1;
+			this->animation2 = animation2;
+			this->blendFactor = blendFactor;
+			isAnimationPlaying = true;
+		}
+	}
+
+
 	void CalculateBoneTransform(
 		const AssimpNodeData* node,
 		glm::mat4 parentTransform,
@@ -65,6 +93,19 @@ public:
 		std::vector<glm::vec3> &bonePositions,
 		std::vector<Bone> &bones,
 		glm::mat4 &globalInverseTransform
+		);
+
+	void CalculateBoneTransformBlended(
+		const AssimpNodeData* node,
+		glm::mat4 parentTransform,
+		std::map<std::string, BoneInfo> &boneInfoMap,
+		glm::mat4 &modelMatrix,
+		std::vector<glm::vec3> &bonePositions,
+		std::vector<Bone> &bones,
+		glm::mat4 &globalInverseTransform,
+		Animation* animation1,
+		Animation* animation2,
+		float blendFactor
 		);
 
 	Bone* FindBone(const std::string& name, std::vector<Bone> &bones)
@@ -135,11 +176,20 @@ public:
 
 	bool isAnimationPlaying = false;
 	Animation* m_CurrentAnimation;
+
+	//These three values need to be passed from animStateMachine 
+	Animation* animation1;
+	Animation* animation2;
+	float currentTime1;
+	float currentTime2;
+	float blendFactor;
 	
 private:
 	std::vector<glm::mat4> m_FinalBoneMatrices;
 	float m_CurrentTime;
 	float m_DeltaTime;
+
+	glm::mat4 calculateLocalInterpolatedtransformForBones(Bone* bone1, Bone* bone2, float blendFactor);
 
 	friend class boost::serialization::access;
     template<class Archive>
