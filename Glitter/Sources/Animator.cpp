@@ -57,24 +57,45 @@ void Animator::CalculateBoneTransformBlended(
     glm::mat4 parentTransform,
     std::map<std::string, BoneInfo> &boneInfoMap,
     glm::mat4 &modelMatrix, std::vector<glm::vec3> &bonePositions,
-    std::vector<Bone> &bones, glm::mat4 &globalInverseTransform,
-    Animation *animation1,
-    Animation *animation2,
-    float blendFactor)
+    std::vector<Bone> &bones, glm::mat4 &globalInverseTransform)
 {
     std::string nodeName = node->name;
     
     glm::mat4 nodeTransform = node->transformation;
     
-    if(animation1 && animation2)
-    {
-        auto animBone1 = animation1->FindBone(nodeName);
-        auto animBone2 = animation2->FindBone(nodeName);
-        if(animBone1 && animBone2)
-        {
-            auto localInterpolatedTransform = calculateLocalInterpolatedtransformForBones(animBone1, animBone2, blendFactor);
-            nodeTransform = localInterpolatedTransform;
+    if (blendSelection.bottomLeft && blendSelection.bottomRight && 
+        blendSelection.topLeft && blendSelection.topRight) {
+
+        currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
+        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
+
+        currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
+        currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
+
+        currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
+        currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
+
+        currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
+        currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
+        
+        Bone* boneBL = blendSelection.bottomLeft->FindBone(nodeName);
+        Bone* boneBR = blendSelection.bottomRight->FindBone(nodeName);
+        Bone* boneTL = blendSelection.topLeft->FindBone(nodeName);
+        Bone* boneTR = blendSelection.topRight->FindBone(nodeName);
+
+        if (boneBL && boneBR && boneTL && boneTR) {
+            nodeTransform = calculateLocalInterpolatedtransformForBone(
+                boneBL, boneBR, boneTL, boneTR,
+                blendSelection.xFactor, blendSelection.yFactor
+            );
         }
+    }
+    else
+    {
+        currentTime1 = 0.0f;
+        currentTime2 = 0.0f;
+        currentTime3 = 0.0f;
+        currentTime4 = 0.0f;
     }
     
     glm::mat4 globalTransformation = parentTransform * nodeTransform;
@@ -107,30 +128,44 @@ void Animator::CalculateBoneTransformBlended(
             boneInfoMap, modelMatrix,
             bonePositions,
             bones,
-            globalInverseTransform,
-            animation1,
-            animation2,
-            blendFactor);
+            globalInverseTransform);
 }
-glm::mat4 Animator::calculateLocalInterpolatedtransformForBones(Bone *bone1, Bone *bone2, float blendFactor)
+glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
+    Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
+    float xFactor, float yFactor)
 {
-    auto pos1 = bone1->InterpolatePositionVec(currentTime1);
-    auto pos2 = bone2->InterpolatePositionVec(currentTime2);
+    glm::vec3 posBL = boneBL->InterpolatePositionVec(m_CurrentTime);
+    glm::vec3 posBR = boneBR->InterpolatePositionVec(m_CurrentTime);
+    glm::vec3 posTL = boneTL->InterpolatePositionVec(m_CurrentTime);
+    glm::vec3 posTR = boneTR->InterpolatePositionVec(m_CurrentTime);
 
-    //lerp
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::mix(pos1, pos2, blendFactor));
+    // Bilinear interpolation for position
+    glm::vec3 posX1 = glm::mix(posBL, posBR, xFactor);
+    glm::vec3 posX2 = glm::mix(posTL, posTR, xFactor);
+    glm::vec3 interpolatedPos = glm::mix(posX1, posX2, yFactor);
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), interpolatedPos);
 
-    auto scale1 = bone1->InterpolateScalingVec(currentTime1);
-    auto scale2 = bone2->InterpolateScalingVec(currentTime2);
+    glm::vec3 scaleBL = boneBL->InterpolateScalingVec(m_CurrentTime);
+    glm::vec3 scaleBR = boneBR->InterpolateScalingVec(m_CurrentTime);
+    glm::vec3 scaleTL = boneTL->InterpolateScalingVec(m_CurrentTime);
+    glm::vec3 scaleTR = boneTR->InterpolateScalingVec(m_CurrentTime);
 
-    //lerp
-    glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::mix(scale1, scale2, blendFactor));
+    // Bilinear interpolation for scale
+    glm::vec3 scaleX1 = glm::mix(scaleBL, scaleBR, xFactor);
+    glm::vec3 scaleX2 = glm::mix(scaleTL, scaleTR, xFactor);
+    glm::vec3 interpolatedScale = glm::mix(scaleX1, scaleX2, yFactor);
+    glm::mat4 scale = glm::scale(glm::mat4(1.0f), interpolatedScale);
 
-    auto rotation1 = bone1->InterpolateRotationInQuat(currentTime1);
-    auto rotation2 = bone2->InterpolateRotationInQuat(currentTime2);
+    glm::quat rotBL = boneBL->InterpolateRotationInQuat(m_CurrentTime);
+    glm::quat rotBR = boneBR->InterpolateRotationInQuat(m_CurrentTime);
+    glm::quat rotTL = boneTL->InterpolateRotationInQuat(m_CurrentTime);
+    glm::quat rotTR = boneTR->InterpolateRotationInQuat(m_CurrentTime);
 
-    //slerp
-    glm::quat rotation = glm::slerp(rotation1, rotation2, blendFactor);
+    // Bilinear interpolation for rotation (slerp each axis)
+    glm::quat rotX1 = glm::slerp(rotBL, rotBR, xFactor);
+    glm::quat rotX2 = glm::slerp(rotTL, rotTR, xFactor);
+    glm::quat interpolatedRot = glm::slerp(rotX1, rotX2, yFactor);
+    glm::mat4 rotate = glm::toMat4(interpolatedRot);
 
-    return translate * glm::toMat4(rotation) * scale;
+    return translate * rotate * scale;
 }

@@ -61,7 +61,8 @@ namespace ProjectAsset {
 
         bool showDebugBone = false;
 
-        float blendFactor = 0.0f;
+        float xblendFactor = 0.0f;
+        float yblendFactor = 0.0f;
 
         ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
     };

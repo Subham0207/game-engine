@@ -210,6 +210,8 @@ int main(int argc, char * argv[]) {
     Shared::readAnimation("E:/OpenGL/Models/Standard Walk.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Running.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Jumping.fbx");
+    Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Left.fbx");
+    Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Right.fbx");
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {

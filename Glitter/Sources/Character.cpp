@@ -21,6 +21,12 @@ Character::Character(std::string filepath){
     playerController = new Controls::PlayerController();
     State::state->playerControllers.push_back(playerController);
     animStateMachine = new Controls::AnimationStateMachine(playerController, animator);
+
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[1]);
+    blendSpace.AddBlendPoint(glm::vec2(2.0f, 0.0f), getUIState().animations[2]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[4]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[5]);
 };
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -112,7 +118,12 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
     skeleton->draw(camera, getModelMatrix());
 
     if(State::state->isPlay)
-    animStateMachine->Update();
+    {
+        float xfactor = getUIState().xblendFactor;
+        float yfactor = getUIState().xblendFactor;
+        auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
+        this->animator->PlayAnimationBlended(blendSelection);
+    }
 }
 
 void Character::useAttachedShader()

@@ -62,6 +62,8 @@ public:
     Skeleton::Skeleton* skeleton;
     Controls::PlayerController* playerController;
     Controls::AnimationStateMachine* animStateMachine;
+
+    BlendSpace2D blendSpace;
 private:
     Camera* camera;
 

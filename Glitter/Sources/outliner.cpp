@@ -191,7 +191,8 @@ void Outliner::popupForErrorsAndWarning()
 void Outliner::debugOptions()
 {
 
-    ImGui::SliderFloat("blendFactor", &getUIState().blendFactor, 0.0f, 1.0f);
+    ImGui::SliderFloat("X blendFactor", &getUIState().xblendFactor, -1.0f, 2.0f);
+    ImGui::SliderFloat("Y blendFactor", &getUIState().yblendFactor, -1.0f, 2.0f);
 
     if(ImGui::Button("Toggle Render bones"))
     {
