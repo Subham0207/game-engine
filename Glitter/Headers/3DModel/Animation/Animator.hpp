@@ -173,6 +173,8 @@ private:
 	std::vector<glm::mat4> m_FinalBoneMatrices;
 	float m_CurrentTime;
 	float m_DeltaTime;
+	float maxDuration;
+	float m_ElapsedTime;
 
 	glm::mat4 calculateLocalInterpolatedtransformForBone(Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
 		float xFactor, float yFactor, glm::mat4 bindPoseTransform);

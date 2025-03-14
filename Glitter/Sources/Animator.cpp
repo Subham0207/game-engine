@@ -112,10 +112,20 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
     Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
     float xFactor, float yFactor, glm::mat4 bindPoseTransform)
 {
-    glm::vec3 posBL = boneBL ? boneBL->InterpolatePositionVec(currentTime1):  glm::vec3(bindPoseTransform[3]);
-    glm::vec3 posBR = boneBR ? boneBR->InterpolatePositionVec(currentTime2): posBL;
-    glm::vec3 posTL = boneTL ? boneTL->InterpolatePositionVec(currentTime3): posBL;
-    glm::vec3 posTR = boneTR ? boneTR->InterpolatePositionVec(currentTime4): posBL;
+    float t_normalized = m_CurrentTime / maxDuration;
+    auto warpTime = [&](float animationDuration) -> float {
+        return t_normalized * animationDuration;
+    };
+
+    auto m_CurrentTimeBL = blendSelection.bottomLeft ? warpTime(blendSelection.bottomLeft->GetDuration()) : 0.0f;
+    auto m_CurrentTimeBR = blendSelection.bottomRight ? warpTime(blendSelection.bottomRight->GetDuration()) : 0.0f;
+    auto m_CurrentTimeTL = blendSelection.topLeft ? warpTime(blendSelection.topLeft->GetDuration()) : 0.0f;
+    auto m_CurrentTimeTR = blendSelection.topRight ? warpTime(blendSelection.topRight->GetDuration()) : 0.0f;
+
+    glm::vec3 posBL = boneBL ? boneBL->InterpolatePositionVec(m_CurrentTimeBL):  glm::vec3(bindPoseTransform[3]);
+    glm::vec3 posBR = boneBR ? boneBR->InterpolatePositionVec(m_CurrentTimeBR): posBL;
+    glm::vec3 posTL = boneTL ? boneTL->InterpolatePositionVec(m_CurrentTimeTL): posBL;
+    glm::vec3 posTR = boneTR ? boneTR->InterpolatePositionVec(m_CurrentTimeTR): posBL;
 
     // Bilinear interpolation for position
     glm::vec3 posX1 = glm::mix(posBL, posBR, xFactor);
@@ -123,10 +133,10 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
     glm::vec3 interpolatedPos = glm::mix(posX1, posX2, yFactor);
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), interpolatedPos);
 
-    glm::vec3 scaleBL = boneBL ? boneBL->InterpolateScalingVec(currentTime1): glm::vec3(glm::length(bindPoseTransform[0]), glm::length(bindPoseTransform[1]), glm::length(bindPoseTransform[2]));
-    glm::vec3 scaleBR = boneBR ? boneBR->InterpolateScalingVec(currentTime2): scaleBL;
-    glm::vec3 scaleTL = boneTL ? boneTL->InterpolateScalingVec(currentTime3): scaleBL;
-    glm::vec3 scaleTR = boneTR ? boneTR->InterpolateScalingVec(currentTime4): scaleBL;
+    glm::vec3 scaleBL = boneBL ? boneBL->InterpolateScalingVec(m_CurrentTimeBL): glm::vec3(glm::length(bindPoseTransform[0]), glm::length(bindPoseTransform[1]), glm::length(bindPoseTransform[2]));
+    glm::vec3 scaleBR = boneBR ? boneBR->InterpolateScalingVec(m_CurrentTimeBR): scaleBL;
+    glm::vec3 scaleTL = boneTL ? boneTL->InterpolateScalingVec(m_CurrentTimeTL): scaleBL;
+    glm::vec3 scaleTR = boneTR ? boneTR->InterpolateScalingVec(m_CurrentTimeTR): scaleBL;
 
     // Bilinear interpolation for scale
     glm::vec3 scaleX1 = glm::mix(scaleBL, scaleBR, xFactor);
@@ -134,10 +144,10 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
     glm::vec3 interpolatedScale = glm::mix(scaleX1, scaleX2, yFactor);
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), interpolatedScale);
 
-    glm::quat rotBL = boneBL ? boneBL->InterpolateRotationInQuat(currentTime1): glm::quat_cast(bindPoseTransform);
-    glm::quat rotBR = boneBR ? boneBR->InterpolateRotationInQuat(currentTime2): rotBL;
-    glm::quat rotTL = boneTL ? boneTL->InterpolateRotationInQuat(currentTime3): rotBL;
-    glm::quat rotTR = boneTR ? boneTR->InterpolateRotationInQuat(currentTime4): rotBL;
+    glm::quat rotBL = boneBL ? boneBL->InterpolateRotationInQuat(m_CurrentTimeBL): glm::quat_cast(bindPoseTransform);
+    glm::quat rotBR = boneBR ? boneBR->InterpolateRotationInQuat(m_CurrentTimeBR): rotBL;
+    glm::quat rotTL = boneTL ? boneTL->InterpolateRotationInQuat(m_CurrentTimeTL): rotBL;
+    glm::quat rotTR = boneTR ? boneTR->InterpolateRotationInQuat(m_CurrentTimeTR): rotBL;
 
     // Bilinear interpolation for rotation (slerp each axis)
     glm::quat rotX1 = glm::slerp(rotBL, rotBR, xFactor);
@@ -150,41 +160,33 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
 
 void Animator::setAnimationTime()
 {
-    if (blendSelection.bottomLeft) {
-
-        currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
-        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
-    }
-    else
+    maxDuration = 0.0f;
+    float ticksPerSecond = 30.0f;
+    if (blendSelection.bottomLeft)  
     {
-        currentTime1 = 0.0f;
+        maxDuration = std::max(maxDuration, blendSelection.bottomLeft->GetDuration());
+        ticksPerSecond = blendSelection.bottomLeft->GetTicksPerSecond();
     }
-
-    if (blendSelection.bottomRight) {
-        currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
-        currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
-    }
-    else
+    if (blendSelection.bottomRight) 
     {
-        currentTime2 = 0.0f;
+        maxDuration = std::max(maxDuration, blendSelection.bottomRight->GetDuration());
+        ticksPerSecond = blendSelection.bottomRight->GetDuration();
     }
-
-    if (blendSelection.topLeft) {
-        currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
-        currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
-    }
-    else
+    if (blendSelection.topLeft)
     {
-        currentTime3 = 0.0f;
+        maxDuration = std::max(maxDuration, blendSelection.topLeft->GetDuration());
+        ticksPerSecond = blendSelection.topLeft->GetDuration();
     }
-
-    if (blendSelection.topRight) {
-        currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
-        currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
-    }
-    else
+    if (blendSelection.topRight)    
     {
-        currentTime4 = 0.0f;
+        maxDuration = std::max(maxDuration, blendSelection.topRight->GetDuration());
+        ticksPerSecond = blendSelection.topRight->GetDuration();
     }
 
+    if (maxDuration <= 0.0f) return;
+
+    m_CurrentTime += ticksPerSecond * m_DeltaTime;
+    m_CurrentTime = fmod(m_CurrentTime, maxDuration);
+
+    m_ElapsedTime += m_DeltaTime;
 }
