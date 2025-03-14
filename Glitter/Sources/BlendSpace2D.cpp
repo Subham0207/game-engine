@@ -6,19 +6,36 @@ BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     if (blendPoints.empty()) return result; // No animations available
 
     // Find the four nearest blend points
+
+    float minDistTL = FLT_MAX, minDistTR = FLT_MAX, minDistBL = FLT_MAX, minDistBR = FLT_MAX;
+
     BlendPoint topLeft = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
     BlendPoint topRight = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
     BlendPoint bottomLeft = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
     BlendPoint bottomRight = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    for (const auto& point : blendPoints) {
-        if (point.position.x <= input.x && point.position.y >= input.y) topLeft = point;
-        if (point.position.x >= input.x && point.position.y >= input.y) topRight = point;
-        if (point.position.x <= input.x && point.position.y <= input.y) bottomLeft = point;
-        if (point.position.x >= input.x && point.position.y <= input.y) bottomRight = point;
-    }
+    for (auto& point : blendPoints) {
+        float distance = glm::length(point.position - input);
 
-    if (!bottomLeft.animation || !bottomRight.animation || !topLeft.animation || !topRight.animation)
-        return result; // Ensure valid animations
+        if (point.position.x <= input.x && point.position.y >= input.y && distance < minDistTL) {
+            minDistTL = distance;
+            topLeft = point;
+        }
+
+        if (point.position.x >= input.x && point.position.y >= input.y && distance < minDistTR) {
+            minDistTR = distance;
+            topRight = point;
+        }
+
+        if (point.position.x <= input.x && point.position.y <= input.y && distance < minDistBL) {
+            minDistBL = distance;
+            bottomLeft = point;
+        }
+
+        if (point.position.x >= input.x && point.position.y <= input.y && distance < minDistBR) {
+            minDistBR = distance;
+            bottomRight = point;
+        }
+    }
 
     // Compute blend factors
     auto xFactorDenominator = (bottomRight.position.x - bottomLeft.position.x);
@@ -38,6 +55,9 @@ BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     result.bottomRight = bottomRight.animation;
     result.topLeft = topLeft.animation;
     result.topRight = topRight.animation;
+
+    result.xFactor = input.x;
+    result.yFactor = input.y;
 
     return result;
 }

@@ -22,11 +22,11 @@ Character::Character(std::string filepath){
     State::state->playerControllers.push_back(playerController);
     animStateMachine = new Controls::AnimationStateMachine(playerController, animator);
 
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[1]);
-    blendSpace.AddBlendPoint(glm::vec2(2.0f, 0.0f), getUIState().animations[2]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[4]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[5]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[0]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[4]);
+    blendSpace.AddBlendPoint(glm::vec2(2.0f, 2.0f), getUIState().animations[5]);
 };
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -120,7 +120,7 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
     if(State::state->isPlay)
     {
         float xfactor = getUIState().xblendFactor;
-        float yfactor = getUIState().xblendFactor;
+        float yfactor = getUIState().yblendFactor;
         auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
         this->animator->PlayAnimationBlended(blendSelection);
     }

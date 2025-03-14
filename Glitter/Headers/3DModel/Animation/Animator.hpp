@@ -175,7 +175,7 @@ private:
 	float m_DeltaTime;
 
 	glm::mat4 calculateLocalInterpolatedtransformForBone(Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
-		float xFactor, float yFactor);
+		float xFactor, float yFactor, glm::mat4 bindPoseTransform);
 
 	void setAnimationTime();
 
