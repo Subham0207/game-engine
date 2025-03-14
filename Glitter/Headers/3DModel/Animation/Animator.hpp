@@ -41,6 +41,7 @@ public:
 		bonePositions.clear();
 		//Use NodeDataFrom Skeleton
 		// std::cout << "Skeletal Start" << std::endl;
+		setAnimationTime();
 		auto globalInverseTransform = glm::inverse(node->transformation); // make sure the first node is the rootNode and not the firstBone. This is used to position the model in the world space.
 		CalculateBoneTransformBlended(
 		node,
@@ -175,6 +176,8 @@ private:
 
 	glm::mat4 calculateLocalInterpolatedtransformForBone(Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
 		float xFactor, float yFactor);
+
+	void setAnimationTime();
 
 	friend class boost::serialization::access;
     template<class Archive>

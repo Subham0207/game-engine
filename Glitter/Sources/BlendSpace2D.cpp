@@ -21,8 +21,18 @@ BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
         return result; // Ensure valid animations
 
     // Compute blend factors
+    auto xFactorDenominator = (bottomRight.position.x - bottomLeft.position.x);
+    if(xFactorDenominator != 0)
     result.xFactor = (input.x - bottomLeft.position.x) / (bottomRight.position.x - bottomLeft.position.x);
+    else
+    result.xFactor = (input.x - bottomLeft.position.x) / 1;
+
+    auto yFactorDenominator = (topLeft.position.y - bottomLeft.position.y);
+    if(yFactorDenominator != 0)
     result.yFactor = (input.y - bottomLeft.position.y) / (topLeft.position.y - bottomLeft.position.y);
+    else
+    result.yFactor = (input.y - bottomLeft.position.y) / 1;
+
 
     result.bottomLeft = bottomLeft.animation;
     result.bottomRight = bottomRight.animation;
