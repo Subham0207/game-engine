@@ -2,40 +2,46 @@
 
 namespace Controls
 {
-    class PlayerController{        
-        public:
+    class PlayerController
+    {        
+    public:
         PlayerController()
+            : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
+              isJumping(false), interpolationSpeed(0.07f) 
         {}
-            bool isWalking = false;
-            bool isRunning = false;
-            bool isJumping = false;
 
-        void setWalking()
-        {
-            isWalking = true;
-            isRunning = false;
-            isJumping = false;
-        }
+        float movementSpeed;           // Current speed (blended)
+        float targetSpeed;             // Target speed (where we want to go)
+        float movementDirection;   // Current direction (blended)
+        float targetDirection;     // Target direction (where we want to go)
+        bool isJumping;
+        float interpolationSpeed;      // Controls how fast blending happens (0.1 = smooth, 1.0 = instant)
 
-        void setRunning()
+        void setMovement(float speed, float direction)
         {
-            isWalking = false;
-            isRunning = true;
+            targetSpeed = speed;         // Set target speed (Idle: 0, Walk: 1, Run: 2)
+            targetDirection = direction; // Set target direction (Normalized X,Y)
             isJumping = false;
         }
 
         void setJumping()
         {
-            isWalking = false;
-            isRunning = false;
-            isJumping = true;            
+            isJumping = true;
+            targetSpeed = 0.0f;
+            targetDirection = 0.0f;
         }
 
-        void setIdleing()
+        void setIdle()
         {
-            isWalking = false;
-            isRunning = false;
-            isJumping = false;            
+            targetSpeed = 0.0f;
+            targetDirection = 1.0f;
+            isJumping = false;
+        }
+
+        void update()
+        {
+            movementSpeed = glm::mix(movementSpeed, targetSpeed, interpolationSpeed); // Smooth transition
+            movementDirection = glm::mix(movementDirection, targetDirection, interpolationSpeed);
         }
     };
 }

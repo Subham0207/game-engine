@@ -191,8 +191,19 @@ void Outliner::popupForErrorsAndWarning()
 void Outliner::debugOptions()
 {
 
-    ImGui::SliderFloat("X blendFactor", &getUIState().xblendFactor, 0.0f, 2.0f);
-    ImGui::SliderFloat("Y blendFactor", &getUIState().yblendFactor, 0.0f, 2.0f);
+    if(State::state->playerControllers.size() > 0)
+    {
+        auto playerController = State::state->playerControllers[0];
+        if(playerController)
+        {
+            ImGui::SliderFloat("X blendFactor", &playerController->movementDirection, -2.0f, -4.0f);
+            ImGui::SliderFloat("Y blendFactor", &playerController->movementSpeed, -2.0f, -4.0f);
+        }
+    }
+
+    // ImGui::SliderFloat("X blendFactor", &getUIState().xblendFactor, 0.0f, 2.0f);
+    // ImGui::SliderFloat("Y blendFactor", &getUIState().yblendFactor, 0.0f, 2.0f);
+
 
     if(ImGui::Button("Toggle Render bones"))
     {

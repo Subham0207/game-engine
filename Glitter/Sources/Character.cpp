@@ -119,10 +119,13 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
     if(State::state->isPlay)
     {
-        float xfactor = getUIState().xblendFactor;
-        float yfactor = getUIState().yblendFactor;
+        float xfactor = playerController->movementDirection;
+        float yfactor = playerController->movementSpeed;
+        // float xfactor = getUIState().xblendFactor;
+        // float yfactor = getUIState().yblendFactor;
         auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
         this->animator->PlayAnimationBlended(blendSelection);
+        playerController->update();
     }
 }
 

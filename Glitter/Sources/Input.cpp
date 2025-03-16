@@ -76,15 +76,19 @@ void InputHandler::handlePlay()
 
     //Shit + W to run
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS && glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    playerController->setRunning();
+    playerController->setMovement(1.1, 1);
     //W to move
     else if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-    playerController->setWalking();
+    playerController->setMovement(1, 1);
+    else if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
+    playerController->setMovement(1.1, 0);
+    else if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
+    playerController->setMovement(1.1, 1.1);
     //space to jump
     else if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
     playerController->setJumping();
     else
-    playerController->setIdleing();
+    playerController->setIdle();
 }
 void InputHandler::handleBasicMovement(float deltaTime)
 {
