@@ -112,15 +112,11 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
     Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
     float xFactor, float yFactor, glm::mat4 bindPoseTransform)
 {
-    float t_normalized = m_CurrentTime / maxDuration;
-    auto warpTime = [&](float animationDuration) -> float {
-        return t_normalized * animationDuration;
-    };
 
-    auto m_CurrentTimeBL = blendSelection.bottomLeft ? warpTime(blendSelection.bottomLeft->GetDuration()) : 0.0f;
-    auto m_CurrentTimeBR = blendSelection.bottomRight ? warpTime(blendSelection.bottomRight->GetDuration()) : 0.0f;
-    auto m_CurrentTimeTL = blendSelection.topLeft ? warpTime(blendSelection.topLeft->GetDuration()) : 0.0f;
-    auto m_CurrentTimeTR = blendSelection.topRight ? warpTime(blendSelection.topRight->GetDuration()) : 0.0f;
+    auto m_CurrentTimeBL = currentTime1;
+    auto m_CurrentTimeBR = currentTime2;
+    auto m_CurrentTimeTL = currentTime3;
+    auto m_CurrentTimeTR = currentTime4;
 
     glm::vec3 posBL = boneBL ? boneBL->InterpolatePositionVec(m_CurrentTimeBL):  glm::vec3(bindPoseTransform[3]);
     glm::vec3 posBR = boneBR ? boneBR->InterpolatePositionVec(m_CurrentTimeBR): posBL;
@@ -160,33 +156,48 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
 
 void Animator::setAnimationTime()
 {
-    maxDuration = 0.0f;
-    float ticksPerSecond = 30.0f;
-    if (blendSelection.bottomLeft)  
-    {
-        maxDuration = std::max(maxDuration, blendSelection.bottomLeft->GetDuration());
-        ticksPerSecond = blendSelection.bottomLeft->GetTicksPerSecond();
-    }
-    if (blendSelection.bottomRight) 
-    {
-        maxDuration = std::max(maxDuration, blendSelection.bottomRight->GetDuration());
-        ticksPerSecond = blendSelection.bottomRight->GetDuration();
-    }
-    if (blendSelection.topLeft)
-    {
-        maxDuration = std::max(maxDuration, blendSelection.topLeft->GetDuration());
-        ticksPerSecond = blendSelection.topLeft->GetDuration();
-    }
-    if (blendSelection.topRight)    
-    {
-        maxDuration = std::max(maxDuration, blendSelection.topRight->GetDuration());
-        ticksPerSecond = blendSelection.topRight->GetDuration();
-    }
+    if (blendSelection.bottomLeft) {
+        currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
+        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
 
-    if (maxDuration <= 0.0f) return;
-
-    m_CurrentTime += ticksPerSecond * m_DeltaTime;
-    m_CurrentTime = fmod(m_CurrentTime, maxDuration);
-
-    m_ElapsedTime += m_DeltaTime;
+        auto name = blendSelection.bottomLeft->animationName;
+        if(
+            blendSelection.bottomRight && name == blendSelection.bottomRight->animationName &&
+            blendSelection.topLeft && name == blendSelection.topLeft->animationName &&
+            blendSelection.topRight && name == blendSelection.topRight->animationName
+        )
+        {
+            currentTime2 = currentTime1;
+            currentTime3 = currentTime1;
+            currentTime4 = currentTime1;
+        }
+    }
+    else
+    {
+        currentTime1 = 0.0f;
+    }
+    if (blendSelection.bottomRight) {
+       currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
+       currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
+    }
+    else
+    {
+        currentTime2 = 0.0f;
+    }
+    if (blendSelection.topLeft) {
+       currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
+       currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
+    }
+    else
+    {
+        currentTime3 = 0.0f;
+    }
+    if (blendSelection.topRight) {
+       currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
+       currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
+   }
+   else
+   {
+        currentTime4 = 0.0f;
+    }
 }
