@@ -1,4 +1,6 @@
 #pragma once
+#include <glm/glm.hpp>
+#include <iostream>
 
 namespace Controls
 {
@@ -7,7 +9,7 @@ namespace Controls
     public:
         PlayerController()
             : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
-              isJumping(false), interpolationSpeed(0.07f) 
+              isJumping(false), interpolationSpeed(0.1f) 
         {}
 
         float movementSpeed;           // Current speed (blended)
@@ -42,6 +44,22 @@ namespace Controls
         {
             movementSpeed = glm::mix(movementSpeed, targetSpeed, interpolationSpeed); // Smooth transition
             movementDirection = glm::mix(movementDirection, targetDirection, interpolationSpeed);
+
+            movementSpeed = glm::mix(movementSpeed, targetSpeed, interpolationSpeed);
+            movementDirection = glm::mix(movementDirection, targetDirection, interpolationSpeed);
+        
+            // If close to zero, force it to be zero
+            constexpr float epsilon = 1e-6f;
+
+            if (std::abs(movementSpeed - std::round(movementSpeed)) < epsilon) {
+                movementSpeed = std::round(movementSpeed);
+            }
+        
+            if (std::abs(movementDirection - std::round(movementDirection)) < epsilon) {
+                movementDirection = std::round(movementDirection);
+            }
+            
+            std::cout << "( " << movementSpeed << ", " <<movementDirection <<" )" << std::endl;
         }
     };
 }

@@ -13,8 +13,11 @@ struct BlendSelection {
     Animation* bottomRight;
     Animation* topLeft;
     Animation* topRight;
-    float xFactor;
-    float yFactor;
+
+    float bottomLeftBlendFactor;
+    float bottomRightBlendFactor;
+    float topLeftBlendFactor;
+    float topRightBlendFactor;
 };
 
 class BlendSpace2D {
@@ -31,4 +34,12 @@ public:
 
 private:
     std::vector<BlendPoint> blendPoints;
+    void calculateBlendFactors(
+        glm::vec2 input,
+        BlendSelection& result,
+        BlendPoint anim1Point,
+        BlendPoint anim2Point,
+        BlendPoint anim3Point,
+        BlendPoint anim4Point
+    );
 };

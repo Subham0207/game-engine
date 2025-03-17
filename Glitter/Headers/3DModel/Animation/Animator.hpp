@@ -176,8 +176,8 @@ private:
 	float maxDuration;
 	float m_ElapsedTime;
 
-	glm::mat4 calculateLocalInterpolatedtransformForBone(Bone *boneBL, Bone *boneBR, Bone *boneTL, Bone *boneTR,
-		float xFactor, float yFactor, glm::mat4 bindPoseTransform);
+	glm::mat4 calculateLocalInterpolatedtransformForBone(Bone *boneTL, Bone *boneTR, Bone *boneBL, Bone *boneBR,
+		float topLeftBlendFactor, float topRightBlendFactor, float bottomLeftBlendFactor, float bottomRightBlendFactor, glm::mat4 bindPoseTransform);
 
 	void setAnimationTime();
 

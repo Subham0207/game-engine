@@ -22,7 +22,10 @@ Character::Character(std::string filepath){
     State::state->playerControllers.push_back(playerController);
     animStateMachine = new Controls::AnimationStateMachine(playerController, animator);
 
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
     blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[0]);
+    blendSpace.AddBlendPoint(glm::vec2(2.0f, 0.0f), getUIState().animations[0]);
+
     blendSpace.AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
     blendSpace.AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
     blendSpace.AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[4]);
