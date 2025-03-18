@@ -65,8 +65,8 @@ void BlendSpace2D::calculateBlendFactors(
     float d1 = glm::distance(input, anim1Point.position);
     float d2 = glm::distance(input, anim2Point.position);
     float d3 = glm::distance(input, anim3Point.position);
-    float d4 = glm::distance(input, anim4Point.position)
-    ;
+    float d4 = glm::distance(input, anim4Point.position);
+    
     if (d1 == 0.0f || d2 == 0.0f || d3 == 0.0f || d4 == 0.0f) {
         result.topLeftBlendFactor = 1;
         result.topRightBlendFactor = 0;

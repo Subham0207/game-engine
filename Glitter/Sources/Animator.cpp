@@ -158,48 +158,65 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
 
 void Animator::setAnimationTime()
 {
-    if (blendSelection.bottomLeft) {
+    if(blendSelection.bottomLeftBlendFactor == 1)
+    {
         currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
         currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
 
-        auto name = blendSelection.bottomLeft->animationName;
-        if(
-            blendSelection.bottomRight && name == blendSelection.bottomRight->animationName &&
-            blendSelection.topLeft && name == blendSelection.topLeft->animationName &&
-            blendSelection.topRight && name == blendSelection.topRight->animationName
-        )
-        {
-            currentTime2 = currentTime1;
-            currentTime3 = currentTime1;
-            currentTime4 = currentTime1;
-        }
+        currentTime2 = currentTime1;
+        currentTime3 = currentTime1;
+        currentTime4 = currentTime1;
+        return;
     }
-    else
-    {
-        currentTime1 = 0.0f;
+
+    if (blendSelection.bottomRightBlendFactor == 1) {
+        currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
+        currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
+
+        currentTime1 = currentTime2;
+        currentTime3 = currentTime2;
+        currentTime4 = currentTime2;
+        return;
     }
+
+    if (blendSelection.topLeftBlendFactor == 1) {
+        currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
+        currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
+
+        currentTime1 = currentTime3;
+        currentTime2 = currentTime3;
+        currentTime4 = currentTime3;
+        return;
+    }
+
+    if (blendSelection.topRightBlendFactor == 1) {
+        currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
+        currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
+
+        currentTime1 = currentTime4;
+        currentTime2 = currentTime4;
+        currentTime3 = currentTime4;
+        return;
+    }
+
+    if (blendSelection.bottomLeftBlendFactor == 1) {
+        currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
+        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
+    }
+
     if (blendSelection.bottomRight) {
        currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
        currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
     }
-    else
-    {
-        currentTime2 = 0.0f;
-    }
+
     if (blendSelection.topLeft) {
        currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
        currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
     }
-    else
-    {
-        currentTime3 = 0.0f;
-    }
+
     if (blendSelection.topRight) {
        currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
        currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
-   }
-   else
-   {
-        currentTime4 = 0.0f;
     }
+
 }

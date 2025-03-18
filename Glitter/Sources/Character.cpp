@@ -30,6 +30,10 @@ Character::Character(std::string filepath){
     blendSpace.AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
     blendSpace.AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[4]);
     blendSpace.AddBlendPoint(glm::vec2(2.0f, 2.0f), getUIState().animations[5]);
+
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[4]);
+    blendSpace.AddBlendPoint(glm::vec2(2.0f, 1.0f), getUIState().animations[5]);
+
 };
 
 void Character::saveToFile(std::string filename, Character &character)
