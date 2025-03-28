@@ -2,17 +2,19 @@
 #include <3DModel/Animation/Animation.hpp>
 #include <glm/glm.hpp>
 #include <vector>
+#include <3DModel/Animation/Timewarp.hpp>
 
 struct BlendPoint {
     glm::vec2 position;  // (X, Y) coordinates in the blend space
     Animation* animation; // Animation assigned to this point
+    int blendPointIndex = 0;
 };
 
 struct BlendSelection {
-    Animation* bottomLeft;
-    Animation* bottomRight;
-    Animation* topLeft;
-    Animation* topRight;
+    BlendPoint* bottomLeft;
+    BlendPoint* bottomRight;
+    BlendPoint* topLeft;
+    BlendPoint* topRight;
 
     float bottomLeftBlendFactor;
     float bottomRightBlendFactor;
@@ -31,6 +33,8 @@ public:
     }
 
     BlendSelection GetBlendSelection(glm::vec2 input);
+
+    void generateTimeWarpCurve(AssimpNodeData* rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
 
 private:
     std::vector<BlendPoint> blendPoints;

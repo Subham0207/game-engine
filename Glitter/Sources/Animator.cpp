@@ -65,10 +65,26 @@ void Animator::CalculateBoneTransformBlended(
 
     if(blendSelection.bottomLeft || blendSelection.bottomRight || blendSelection.topLeft || blendSelection.topRight)
     {
-        Bone* boneBL = blendSelection.bottomLeft ? blendSelection.bottomLeft->FindBone(nodeName) : nullptr;
-        Bone* boneBR = blendSelection.bottomRight ? blendSelection.bottomRight->FindBone(nodeName): nullptr;
-        Bone* boneTL = blendSelection.topLeft ? blendSelection.topLeft->FindBone(nodeName): nullptr;
-        Bone* boneTR = blendSelection.topRight ? blendSelection.topRight->FindBone(nodeName): nullptr;
+
+        //Since by Here we have the times selected we can do timewarping
+        //Get correct timewarp curve from the timewarp map i.e. {animation1, animation2}: timewarpCurve 
+        //get the timewarpped time: so bL -> bR, bL -> tL, bL -> tR. if we take bL as the source animation.
+        auto timewarpcurveBL_BR = timewarpmap[{blendSelection.bottomLeft->blendPointIndex, blendSelection.bottomRight->blendPointIndex}];
+        auto timewarpcurveBL_TL = timewarpmap[{blendSelection.bottomLeft->blendPointIndex, blendSelection.bottomRight->blendPointIndex}];
+        auto timewarpcurveBL_TR = timewarpmap[{blendSelection.bottomLeft->blendPointIndex, blendSelection.bottomRight->blendPointIndex}];
+
+        if(timewarpcurveBL_BR)
+        currentTime2 = timewarpcurveBL_BR->evaluate(currentTime1);
+        if(timewarpcurveBL_TL)
+        currentTime3 = timewarpcurveBL_TL->evaluate(currentTime1);
+        if(timewarpcurveBL_TR)
+        currentTime4 = timewarpcurveBL_TR->evaluate(currentTime1);
+        //Now we time warped all the animations based on 1 one's timing.
+
+        Bone* boneBL = blendSelection.bottomLeft ? blendSelection.bottomLeft->animation->FindBone(nodeName) : nullptr;
+        Bone* boneBR = blendSelection.bottomRight ? blendSelection.bottomRight->animation->FindBone(nodeName): nullptr;
+        Bone* boneTL = blendSelection.topLeft ? blendSelection.topLeft->animation->FindBone(nodeName): nullptr;
+        Bone* boneTR = blendSelection.topRight ? blendSelection.topRight->animation->FindBone(nodeName): nullptr;
         nodeTransform = calculateLocalInterpolatedtransformForBone(
             boneTL,
             boneTR,
@@ -160,9 +176,12 @@ void Animator::setAnimationTime()
 {
     if(blendSelection.bottomLeftBlendFactor == 1)
     {
-        currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
-        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
+        currentTime1 += blendSelection.bottomLeft->animation->GetTicksPerSecond() * m_DeltaTime;
+        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->animation->GetDuration());
 
+        //This is because all the four blendpoints point to the same animation so might as well have same timing
+        //Basically letting us blend b/w the same animation at same time.
+        //Could be expensive though
         currentTime2 = currentTime1;
         currentTime3 = currentTime1;
         currentTime4 = currentTime1;
@@ -170,8 +189,8 @@ void Animator::setAnimationTime()
     }
 
     if (blendSelection.bottomRightBlendFactor == 1) {
-        currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
-        currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
+        currentTime2 += blendSelection.bottomRight->animation->GetTicksPerSecond() * m_DeltaTime;
+        currentTime2 = fmod(currentTime2, blendSelection.bottomRight->animation->GetDuration());
 
         currentTime1 = currentTime2;
         currentTime3 = currentTime2;
@@ -180,8 +199,8 @@ void Animator::setAnimationTime()
     }
 
     if (blendSelection.topLeftBlendFactor == 1) {
-        currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
-        currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
+        currentTime3 += blendSelection.topLeft->animation->GetTicksPerSecond() * m_DeltaTime;
+        currentTime3 = fmod(currentTime3, blendSelection.topLeft->animation->GetDuration());
 
         currentTime1 = currentTime3;
         currentTime2 = currentTime3;
@@ -190,8 +209,8 @@ void Animator::setAnimationTime()
     }
 
     if (blendSelection.topRightBlendFactor == 1) {
-        currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
-        currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
+        currentTime4 += blendSelection.topRight->animation->GetTicksPerSecond() * m_DeltaTime;
+        currentTime4 = fmod(currentTime4, blendSelection.topRight->animation->GetDuration());
 
         currentTime1 = currentTime4;
         currentTime2 = currentTime4;
@@ -199,24 +218,23 @@ void Animator::setAnimationTime()
         return;
     }
 
-    if (blendSelection.bottomLeftBlendFactor == 1) {
-        currentTime1 += blendSelection.bottomLeft->GetTicksPerSecond() * m_DeltaTime;
-        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->GetDuration());
+    if (blendSelection.bottomLeft) {
+        currentTime1 += blendSelection.bottomLeft->animation->GetTicksPerSecond() * m_DeltaTime;
+        currentTime1 = fmod(currentTime1, blendSelection.bottomLeft->animation->GetDuration());
     }
 
     if (blendSelection.bottomRight) {
-       currentTime2 += blendSelection.bottomRight->GetTicksPerSecond() * m_DeltaTime;
-       currentTime2 = fmod(currentTime2, blendSelection.bottomRight->GetDuration());
+       currentTime2 += blendSelection.bottomRight->animation->GetTicksPerSecond() * m_DeltaTime;
+       currentTime2 = fmod(currentTime2, blendSelection.bottomRight->animation->GetDuration());
     }
 
     if (blendSelection.topLeft) {
-       currentTime3 += blendSelection.topLeft->GetTicksPerSecond() * m_DeltaTime;
-       currentTime3 = fmod(currentTime3, blendSelection.topLeft->GetDuration());
+       currentTime3 += blendSelection.topLeft->animation->GetTicksPerSecond() * m_DeltaTime;
+       currentTime3 = fmod(currentTime3, blendSelection.topLeft->animation->GetDuration());
     }
 
     if (blendSelection.topRight) {
-       currentTime4 += blendSelection.topRight->GetTicksPerSecond() * m_DeltaTime;
-       currentTime4 = fmod(currentTime4, blendSelection.topRight->GetDuration());
+       currentTime4 += blendSelection.topRight->animation->GetTicksPerSecond() * m_DeltaTime;
+       currentTime4 = fmod(currentTime4, blendSelection.topRight->animation->GetDuration());
     }
-
 }

@@ -168,6 +168,8 @@ public:
 	float currentTime2;
 	float currentTime3;
 	float currentTime4;
+
+	std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> timewarpmap; // pair{index of blendpoint, index of point blendpoint} like 1->3
 	
 private:
 	std::vector<glm::mat4> m_FinalBoneMatrices;

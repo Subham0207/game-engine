@@ -107,6 +107,7 @@ private:
 	}
 	float m_Duration;
 	int m_TicksPerSecond;
+	int totalAnimatedFrames;
 	std::vector<Bone> m_Bones;
 	AssimpNodeData m_RootNode; // This is the skeletal tree
 

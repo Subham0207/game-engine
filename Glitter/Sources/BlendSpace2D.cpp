@@ -1,5 +1,6 @@
 #include <Controls/BlendSpace2D.hpp>
 #include <iostream>
+#include <vector>
 
 BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     BlendSelection result{nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -11,56 +12,109 @@ BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     float minDistTL = FLT_MAX, minDistTR = FLT_MAX, minDistBL = FLT_MAX, minDistBR = FLT_MAX;
     bool hasTL = false, hasTR = false, hasBL = false, hasBR = false;
 
-    BlendPoint topLeft = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    BlendPoint topRight = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    BlendPoint bottomLeft = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    BlendPoint bottomRight = BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
+    auto topLeft = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
+    auto topRight = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
+    auto bottomLeft = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
+    auto bottomRight = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
     for (auto& point : blendPoints) {
         float distance = glm::length(point.position - input);
 
         if (point.position.x <= input.x && point.position.y >= input.y && distance < minDistTL) {
             minDistTL = distance;
-            topLeft = point;
+            topLeft = &point;
             hasTL = true;
         }
 
         if (point.position.x >= input.x && point.position.y >= input.y && distance < minDistTR) {
             minDistTR = distance;
-            topRight = point;
+            topRight = &point;
             hasTR = true;
         }
 
         if (point.position.x <= input.x && point.position.y <= input.y && distance < minDistBL) {
             minDistBL = distance;
-            bottomLeft = point;
+            bottomLeft = &point;
             hasBL = true;
         }
 
         if (point.position.x >= input.x && point.position.y <= input.y && distance < minDistBR) {
             minDistBR = distance;
-            bottomRight = point;
+            bottomRight = &point;
             hasBR = true;
         }
     }
 
-    calculateBlendFactors(input, result, topLeft, topRight, bottomLeft, bottomRight);
+    calculateBlendFactors(input, result, *topLeft, *topRight, *bottomLeft, *bottomRight);
     
-    result.bottomLeft = bottomLeft.animation;
-    result.bottomRight = bottomRight.animation;
-    result.topLeft = topLeft.animation;
-    result.topRight = topRight.animation;
+    result.bottomLeft = bottomLeft;
+    result.bottomRight = bottomRight;
+    result.topLeft = topLeft;
+    result.topRight = topRight;
 
     return result;
 }
 
+void BlendSpace2D::generateTimeWarpCurve(AssimpNodeData* rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap)
+{
+    for (size_t i = 0; i < blendPoints.size(); i++)
+    {
+        auto currentPoint = blendPoints[i];
+        auto input = currentPoint.position;
+        //Find 4 points to blend to: top left, top right, bottom left, bottom right.
+        auto neigbours = std::vector<BlendPoint>(4, BlendPoint({glm::vec2(0.0f,0.0f), nullptr}));
+        float minDistTL = FLT_MAX, minDistTR = FLT_MAX, minDistBL = FLT_MAX, minDistBR = FLT_MAX;
+        for (size_t j = 0; j < blendPoints.size(); j++) {
+            auto point = blendPoints[j];
+            float distance = glm::length(point.position - input);
+    
+            if (point.position.x <= input.x && point.position.y >= input.y && distance < minDistTL) {
+                minDistTL = distance;
+                neigbours[0] = point;
+                neigbours[0].blendPointIndex = j;
+            }
+            
+            if (point.position.x >= input.x && point.position.y >= input.y && distance < minDistTR) {
+                minDistTR = distance;
+                neigbours[1] = point;
+                neigbours[1].blendPointIndex = j;
+            }
+    
+            if (point.position.x <= input.x && point.position.y <= input.y && distance < minDistBL) {
+                minDistBL = distance;
+                neigbours[2] = point;
+                neigbours[2].blendPointIndex = j;
+            }
+    
+            if (point.position.x >= input.x && point.position.y <= input.y && distance < minDistBR) {
+                minDistBR = distance;
+                neigbours[3] = point;
+                neigbours[3].blendPointIndex = j;
+            }
+        }
+        
+        for (size_t j = 0; j < 4; j++)
+        {
+            auto timewarpCurve = Animation3D::alignAnimations(
+                currentPoint.animation,
+                neigbours[j].animation,
+                rootNode
+            );
+            if(i != j)
+            timewarpCurveMap[{i, neigbours[j].blendPointIndex}] = timewarpCurve;
+        }
+        
+    }
+
+
+}
+
 void BlendSpace2D::calculateBlendFactors(
     glm::vec2 input,
-    BlendSelection& result,
+    BlendSelection &result,
     BlendPoint anim1Point,
     BlendPoint anim2Point,
     BlendPoint anim3Point,
-    BlendPoint anim4Point
-)
+    BlendPoint anim4Point)
 {
     float d1 = glm::distance(input, anim1Point.position);
     float d2 = glm::distance(input, anim2Point.position);
