@@ -163,11 +163,15 @@ glm::mat4 Animator::calculateLocalInterpolatedtransformForBone(
     glm::quat rotTL = boneTL ? boneTL->InterpolateRotationInQuat(m_CurrentTimeTL): rotBL;
     glm::quat rotTR = boneTR ? boneTR->InterpolateRotationInQuat(m_CurrentTimeTR): rotBL;
 
-    // Bilinear interpolation for rotation (slerp each axis)
-    glm::quat rotX1 = glm::slerp(rotBL, rotBR, topRightBlendFactor + bottomRightBlendFactor);  // Interpolates Bottom Row
-    glm::quat rotX2 = glm::slerp(rotTL, rotTR, topRightBlendFactor + topLeftBlendFactor);      // Interpolates Top Row
-    glm::quat interpolatedRot = glm::slerp(rotX1, rotX2, topLeftBlendFactor + topRightBlendFactor);
-    glm::mat4 rotate = glm::toMat4(interpolatedRot);
+    float totalWeight = topLeftBlendFactor + topRightBlendFactor + bottomLeftBlendFactor + bottomRightBlendFactor;
+
+    glm::quat rot = glm::normalize(
+        glm::slerp(glm::slerp(rotBL, rotBR, bottomRightBlendFactor / (bottomLeftBlendFactor + bottomRightBlendFactor + 0.0001f)),
+                   glm::slerp(rotTL, rotTR, topRightBlendFactor / (topLeftBlendFactor + topRightBlendFactor + 0.0001f)),
+                   (topRightBlendFactor + topLeftBlendFactor) / totalWeight)
+    );
+
+    glm::mat4 rotate = glm::toMat4(rot);
 
     return translate * rotate * scale;
 }

@@ -9,7 +9,7 @@ namespace Controls
     public:
         PlayerController()
             : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
-              isJumping(false), interpolationSpeed(0.5f) 
+              isJumping(false), interpolationSpeed(0.1f) 
         {}
 
         float movementSpeed;           // Current speed (blended)

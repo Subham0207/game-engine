@@ -14,6 +14,7 @@
 #include "Character/Character.hpp"
 #include "Level/Level.hpp"
 #include <filesystem>
+#include <UI/Blendspace2DUI.hpp>
 namespace fs = std::filesystem;
 
 
@@ -28,41 +29,7 @@ public:
     }
 
     // Render the radio buttons
-    void Render(Level &lvl) {
-        if(ImGui::Begin("Outliner"))
-        {
-            levelControlsComponent(lvl);
-
-            coordinateSystemSelectorComponent();
-
-            ImGui::NewLine();
-
-            modelSelectorComponent();
-
-            ImGui::NewLine();
-
-            //Show transformation of the selected model
-            ImGui::PushItemWidth(40);
-            ModelMatrixComponent();
-
-            manageModels();
-
-            manageAnimationsForSelectedModel();
-
-            debugOptions();
-
-            popupForErrorsAndWarning();
-        
-            ImGui::End();
-        }
-        
-        handlerForUIComponentsvisibility();
-
-        if(getUIState().isFirstFrame){
-        ImGui::SetWindowFocus(false);
-        getUIState().isFirstFrame = false;
-        }
-    }
+    void Render(Level &lvl);
 
     // Get the index of the currently selected radio button
     int GetSelectedIndex() const {

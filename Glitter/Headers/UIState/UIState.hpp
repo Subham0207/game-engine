@@ -65,6 +65,9 @@ namespace ProjectAsset {
         float yblendFactor = 0.0f;
 
         ImGuizmo::OPERATION whichTransformActive = ImGuizmo::OPERATION::TRANSLATE;
+
+        //Blendspace
+        ImVec2 scrubbedPoint = ImVec2(0,0);
     };
 
 }

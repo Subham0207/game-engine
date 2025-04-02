@@ -35,7 +35,7 @@ Character::Character(std::string filepath){
     blendSpace.AddBlendPoint(glm::vec2(2.0f, 1.0f), getUIState().animations[5]);
 
 
-    blendSpace.generateTimeWarpCurve(&skeleton->m_RootNode, animator->timewarpmap);
+    // blendSpace.generateTimeWarpCurve(&skeleton->m_RootNode, animator->timewarpmap);
 
 };
 
@@ -133,6 +133,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         float yfactor = playerController->movementSpeed;
         // float xfactor = getUIState().xblendFactor;
         // float yfactor = getUIState().yblendFactor;
+        getUIState().scrubbedPoint.x = xfactor;
+        getUIState().scrubbedPoint.y = yfactor;
         auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
         this->animator->PlayAnimationBlended(blendSelection);
         playerController->update();

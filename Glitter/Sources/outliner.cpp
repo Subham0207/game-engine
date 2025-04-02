@@ -1,6 +1,61 @@
 #include <UI/outliner.hpp>
 #include <UI/materialManager.hpp>
  
+void Outliner::Render(Level &lvl) {
+    if(ImGui::Begin("Outliner"))
+    {
+        levelControlsComponent(lvl);
+
+        coordinateSystemSelectorComponent();
+
+        ImGui::NewLine();
+
+        modelSelectorComponent();
+
+        ImGui::NewLine();
+
+        //Show transformation of the selected model
+        ImGui::PushItemWidth(40);
+        ModelMatrixComponent();
+
+        manageModels();
+
+        manageAnimationsForSelectedModel();
+
+        debugOptions();
+
+        popupForErrorsAndWarning();
+    
+        ImGui::End();
+    }
+
+    if(ImGui::Begin("Blendspace"))
+    {
+        ImVec2 gridSize = ImVec2(200, 200);
+        if(getUIState().selectedRenderableIndex > -1)
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+        {
+            if(ProjectAssets::ImGuiGrid2D(character->blendSpace.blendPoints, &getUIState().scrubbedPoint, gridSize, &character->animator->blendSelection)){
+                // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
+
+                getUIState().xblendFactor = glm::clamp(getUIState().scrubbedPoint.x, 0.0f,2.0f);
+                getUIState().yblendFactor = glm::clamp(getUIState().scrubbedPoint.y, 0.0f,2.0f);
+            }
+            else{
+                // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
+            }
+        }
+        ImGui::End();
+    }
+    
+    handlerForUIComponentsvisibility();
+
+    if(getUIState().isFirstFrame){
+    ImGui::SetWindowFocus(false);
+    getUIState().isFirstFrame = false;
+    }
+}
+
 void Outliner::ModelMatrixComponent()
 {
             if(getUIState().selectedRenderableIndex > -1)

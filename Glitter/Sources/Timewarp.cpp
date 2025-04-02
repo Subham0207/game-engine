@@ -87,6 +87,7 @@ vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* anim
     dtw[0][0] = 0.0;
     
     std::cout << "\n";
+    std::cout << "Source: "<<animation1->animationName << " Target: " << animation2->animationName << std::endl;
     for (int i = 1; i <= totalSteps; ++i) {
         float relativeTimeA = i / float(totalSteps);
     
@@ -110,10 +111,7 @@ vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* anim
     
             // Compute DTW cost matrix
             dtw[i][j] = frameCost + bestPrevCost;
-            std::cout << "| ";
-            std::cout << dtw[i][j] << " ";
-            std::cout << " |";
-    
+
             if (bestPrevCost == dtw[i-1][j]) {
                 path[i][j] = {i-1, j};
             }
@@ -123,12 +121,24 @@ vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* anim
             else {
                 path[i][j] = {i-1, j-1};
             }
+
+        }
+        std::cout << "\n";
+    }
+    
+    std::cout << "dtw" << std::endl;
+    for (int i = 0; i <= totalSteps; i++) {
+            for (int j = 0; j <= totalSteps; j++) {
+            std::cout << "| ";
+            std::cout << dtw[i][j] << " ";
+            std::cout << " |";
         }
         std::cout << "\n";
     }
 
+    std::cout << "Path" << std::endl;
     for (int i = 0; i <= totalSteps; i++) {
-        for (int j = 0; j <= totalSteps; j++) {
+            for (int j = 0; j <= totalSteps; j++) {
             std::cout << "| ";
             std::cout << path[i][j].first << ","<< path[i][j].second << " ";
             std::cout << " |";
@@ -145,6 +155,13 @@ vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* anim
         i = prevI;
         j = prevJ;
     }
+
+    std::cout << "Alignment curve" <<std::endl;
+    for (size_t i = 0; i < alignmentPath.size(); i++)
+    {
+        std::cout << alignmentPath[i].first << ", "<< alignmentPath[i].second << std::endl;
+    }
+    
     reverse(alignmentPath.begin(), alignmentPath.end());
 
     return alignmentPath;
