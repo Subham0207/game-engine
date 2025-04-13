@@ -18,6 +18,8 @@ option(BUILD_OPENGL3_DEMOS OFF)
 option(BUILD_UNIT_TESTS OFF)
 add_subdirectory(Glitter/Vendor/bullet)
 
+add_subdirectory(Glitter/Vendor/JoltPhysics/Build)
+
 enable_testing()
 
 add_definitions(-DNOMINMAX)
@@ -43,6 +45,7 @@ include_directories(Glitter/Headers/
                     Glitter/Vendor/imguizmo/
                     Glitter/DepsHeaderAndLibs/Headers/
                     Glitter/serializations/
+                    Glitter/Vendor/JoltPhysics/Jolt/
                     )
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
@@ -94,7 +97,7 @@ target_link_libraries(${PROJECT_NAME} assimp glfw
                       BulletDynamics BulletCollision LinearMath
                       ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-gd-x64-1_85.lib
                       ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
-                  
+                      Jolt::Jolt
                       )
 
 list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/main.cpp)
@@ -108,7 +111,7 @@ target_link_libraries(GlitterLib assimp glfw
                       BulletDynamics BulletCollision LinearMath
                       ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-gd-x64-1_85.lib
                       ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
-                  
+                      Jolt::Jolt
                       )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
