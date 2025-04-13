@@ -30,3 +30,7 @@
     path = Glitter/Vendor/imguizmo
     url = https://github.com/CedricGuillemet/ImGuizmo.git
     branch = master
+[submodule "Glitter/Vendor/jolt"]
+    path = Glitter/Vendor/jolt
+    url = https://github.com/jrouwe/JoltPhysics.git
+    branch = master
