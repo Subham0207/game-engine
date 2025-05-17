@@ -37,6 +37,8 @@
 
 #include <Controls/statemachine.hpp>
 
+#include <PhysicsSystem.hpp>
+
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
@@ -213,6 +215,21 @@ int main(int argc, char * argv[]) {
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Left.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Right.fbx");
 
+    PhysicsSystemWrapper physics;
+    physics.Init();
+    physics.AddBox({ 0, -1, 0 }, JPH::Quat::sIdentity(), { 50, 1, 50 }, false); // Ground
+    auto dynamicBoxId = physics.AddBox({ 0, 5, 0 }, JPH::Quat::sIdentity(), { 0.5f, 0.5f, 0.5f }, true); // Falling cube
+
+    auto staticBox = new Model("E:/OpenGL/Glitter/EngineAssets/cube.fbx");
+    staticBox->setTransform(glm::vec3(0.0f, -1.0f, 0.0f), glm::quat(), glm::vec3(5.0f, 1.0f, 5.0f));
+    getActiveLevel().addRenderable(staticBox);
+    getUIState().renderables = *State::state->activeLevel.renderables;
+
+    auto dynamicBox = new Model("E:/OpenGL/Glitter/EngineAssets/cube.fbx");
+    dynamicBox->setTransform(glm::vec3(0.0f, 5.0f, 0.0f), glm::quat(), glm::vec3(0.5f, 0.5f, 0.5f));
+    getActiveLevel().addRenderable(dynamicBox);
+    getUIState().renderables = *State::state->activeLevel.renderables;
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -221,6 +238,25 @@ int main(int argc, char * argv[]) {
         lastFrame = currentFrame;
 
         clientHandler.inputHandler->handleInput(deltaTime);
+        if(State::state->isPlay)
+        {
+            physics.Update(deltaTime);
+
+            //Update transform of physics enabled renderables
+            //How do we get the transforms for a objects from the physics engine --- by its id i would guess
+            auto transform = physics.GetBodyPosition(dynamicBoxId);
+            auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
+
+            auto rotation = physics.GetBodyRotation(dynamicBoxId);
+            auto rotationglm = glm::quat(
+                                static_cast<float>(rotation.GetW()),
+                                static_cast<float>(rotation.GetX()),
+                                static_cast<float>(rotation.GetY()),
+                                static_cast<float>(rotation.GetZ())
+                            );
+
+            dynamicBox->setTransform(transformglm, rotationglm, glm::vec3(0.5f, 0.5f, 0.5f));
+        }
 
         // Background Fill Color
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);

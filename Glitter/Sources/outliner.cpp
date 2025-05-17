@@ -60,6 +60,7 @@ void Outliner::ModelMatrixComponent()
 {
             if(getUIState().selectedRenderableIndex > -1)
         {
+            auto index = getUIState().selectedRenderableIndex;
             glm::mat4& modelMatrix = (getUIState().renderables)[getUIState().selectedRenderableIndex]->getModelMatrix();
             glm::vec3 scale, rotation, translation, skew;
             glm::vec4 perspective;

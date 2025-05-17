@@ -28,7 +28,14 @@ public:
     std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
     int* m_BoneCounter = nullptr)
     {
-        shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+        if(m_BoneInfoMap && m_BoneCounter)
+        {
+            shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+        }
+        else
+        {
+            shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/staticShader.vert","E:/OpenGL/Glitter/Glitter/Shaders/staticShader.frag");
+        }
         shader->use();
         loadModel(path, m_BoneInfoMap, m_BoneCounter);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -62,6 +69,15 @@ public:
     void setModelMatrix(glm::mat4 matrix) override{
         modelMatrix = matrix;
     };
+
+    void setTransform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
+    {
+        glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
+        glm::mat4 R = glm::toMat4(rotation);
+        glm::mat4 S = glm::scale(glm::mat4(1.0f), scale);
+
+        modelMatrix = T * R * S;
+    }
 
     std::vector<Modals::Material *> getMaterials() override
     {
