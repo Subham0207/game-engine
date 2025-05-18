@@ -89,3 +89,9 @@ JPH::Vec3 PhysicsSystemWrapper::GetBodyPosition(JPH::BodyID id) const {
 JPH::Quat PhysicsSystemWrapper::GetBodyRotation(JPH::BodyID id) const {
     return physicsSystem.GetBodyInterface().GetRotation(id);
 }
+
+JPH::BodyInterface &PhysicsSystemWrapper::GetPhysicsBodyInterface()
+{
+    // TODO: insert return statement here
+    return physicsSystem.GetBodyInterface();
+}

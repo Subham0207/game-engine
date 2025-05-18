@@ -36,6 +36,7 @@ public:
 
     JPH::Vec3 GetBodyPosition(JPH::BodyID id) const;
     JPH::Quat GetBodyRotation(JPH::BodyID id) const;
+    JPH::BodyInterface& GetPhysicsBodyInterface();
 private:
     JPH::TempAllocatorImpl* tempAllocator;
     JPH::JobSystemThreadPool* jobSystem;

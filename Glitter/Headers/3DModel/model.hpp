@@ -70,6 +70,37 @@ public:
         modelMatrix = matrix;
     };
 
+    glm::vec3 GetPosition()
+    {
+        return glm::vec3(modelMatrix[3]);
+    }
+
+    glm::vec3 GetScale()
+    {
+        glm::vec3 scale;
+        scale.x = glm::length(glm::vec3(modelMatrix[0])); // X column
+        scale.y = glm::length(glm::vec3(modelMatrix[1])); // Y column
+        scale.z = glm::length(glm::vec3(modelMatrix[2])); // Z column
+        return scale;
+    }
+
+    glm::quat GetRot()
+    {
+        glm::vec3 scale;
+        scale.x = glm::length(glm::vec3(modelMatrix[0]));
+        scale.y = glm::length(glm::vec3(modelMatrix[1]));
+        scale.z = glm::length(glm::vec3(modelMatrix[2]));
+
+        glm::mat4 rotMat = modelMatrix;
+
+        // Remove scale from rotation matrix
+        rotMat[0] /= scale.x;
+        rotMat[1] /= scale.y;
+        rotMat[2] /= scale.z;
+
+        return glm::quat_cast(rotMat);
+    }
+
     void setTransform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
     {
         glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
@@ -78,6 +109,16 @@ public:
 
         modelMatrix = T * R * S;
     }
+
+    void setTransformFromPhysics(const glm::vec3& position, const glm::quat& rotation)
+    {
+        glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
+        glm::mat4 R = glm::toMat4(rotation);
+        glm::mat4 S = glm::scale(glm::mat4(1.0f), GetScale());
+
+        modelMatrix = T * R * S;
+    }
+
 
     std::vector<Modals::Material *> getMaterials() override
     {
