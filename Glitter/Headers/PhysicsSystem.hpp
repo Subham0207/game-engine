@@ -37,6 +37,8 @@ public:
     JPH::Vec3 GetBodyPosition(JPH::BodyID id) const;
     JPH::Quat GetBodyRotation(JPH::BodyID id) const;
     JPH::BodyInterface& GetPhysicsBodyInterface();
+    void RemoveBody(JPH::BodyID bodyID);
+    bool isFirstPhysicsEnabledFrame = true;
 private:
     JPH::TempAllocatorImpl* tempAllocator;
     JPH::JobSystemThreadPool* jobSystem;

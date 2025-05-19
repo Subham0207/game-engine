@@ -233,20 +233,28 @@ int main(int argc, char * argv[]) {
 
         clientHandler.inputHandler->handleInput(deltaTime);
         if(State::state->isPlay)
-        {
-            physics.Update(deltaTime);
-
+        {            
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess
-            staticBox->PhysicsUpdate();
-            dynamicBox->PhysicsUpdate();
-            box->PhysicsUpdate();
+            if(physics.isFirstPhysicsEnabledFrame == true)
+            {
+                //make the physics objects transformations ( including scale ) same as thier model
+                physics.isFirstPhysicsEnabledFrame = false;
+                staticBox->syncTransformation();
+                dynamicBox->syncTransformation();
+                box->syncTransformation();                
+            }
+            else
+            {
+                physics.Update(deltaTime);
+                staticBox->PhysicsUpdate();
+                dynamicBox->PhysicsUpdate();
+                box->PhysicsUpdate();
+            }
         }
         else
         {
-            staticBox->syncTransformation();
-            dynamicBox->syncTransformation();
-            box->syncTransformation();
+            physics.isFirstPhysicsEnabledFrame = true;
         }
 
         // Background Fill Color

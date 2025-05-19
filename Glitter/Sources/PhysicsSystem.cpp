@@ -95,3 +95,13 @@ JPH::BodyInterface &PhysicsSystemWrapper::GetPhysicsBodyInterface()
     // TODO: insert return statement here
     return physicsSystem.GetBodyInterface();
 }
+
+void PhysicsSystemWrapper::RemoveBody(JPH::BodyID bodyID)
+{
+    if (GetPhysicsBodyInterface().IsAdded(bodyID)) {
+        physicsSystem.GetBodyInterface().RemoveBody(bodyID);
+    
+        // Then destroy it completely
+        physicsSystem.GetBodyInterface().DestroyBody(bodyID);
+    }
+}

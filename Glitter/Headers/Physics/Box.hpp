@@ -18,10 +18,15 @@ namespace Physics
         );
         void PhysicsUpdate();
         void syncTransformation();
+        void initTransformation(            
+            glm::vec3 position = glm::vec3(0.0f),
+            glm::quat rotation = glm::quat(),
+            glm::vec3 scale = glm::vec3(1.0f));
         void AddToLevel();
     private:
         JPH::BodyID physicsId;
         PhysicsSystemWrapper* physics;
         Model * model;
+        bool isDynamic;
     };
 }

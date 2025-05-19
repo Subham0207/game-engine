@@ -21,21 +21,48 @@ void Physics::Box::PhysicsUpdate()
 
 void Physics::Box::syncTransformation()
 {
-    //if transformation changed when physics was disabled
-    //Propagate these transformations to physics body
-    JPH::BodyInterface& bodyInterface = physics->GetPhysicsBodyInterface();
-
     auto position = model->GetPosition();
+    auto scale = model->GetScale();
+    auto rotation = model->GetRot();
+
+    glm::quat glmRot = glm::normalize(rotation);
+    JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
+
+    // Convert glm::vec3 to JPH::Vec3
     JPH::Vec3 jphPosition(position.x, position.y, position.z);
-    bodyInterface.SetPosition(physicsId, jphPosition,JPH::EActivation::Activate);
+    JPH::Vec3 jphHalfExtents(scale.x, scale.y, scale.z); // BoxShape expects half extents
 
-    auto glmRot = model->GetRot();
-    JPH::Quat jphRot(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
-    bodyInterface.SetRotation(physicsId, jphRot, JPH::EActivation::Activate);
+    physics->RemoveBody(physicsId);
 
-    //Scale is immutable
+    // Add physics box
+    physicsId = this->physics->AddBox(
+        jphPosition,
+        jphRotation,
+        jphHalfExtents,
+        isDynamic
+    );
 }
 
+void Physics::Box::initTransformation(glm::vec3 position, glm::quat rotation, glm::vec3 scale)
+{
+    // glm::quat glmRot = glm::normalize(rotation);
+    // JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
+
+    // // Convert glm::vec3 to JPH::Vec3
+    // JPH::Vec3 jphPosition(position.x, position.y, position.z);
+    // JPH::Vec3 jphHalfExtents(scale.x, scale.y, scale.z); // BoxShape expects half extents
+
+    // // Add physics box
+    // physicsId = this->physics->AddBox(
+    //     jphPosition,
+    //     jphRotation,
+    //     jphHalfExtents,
+    //     isDynamic
+    // );
+
+    // Apply transform to the model
+    model->setTransform(position, rotation, scale);
+}
 void Physics::Box::AddToLevel()
 {
     getActiveLevel().addRenderable(model);
@@ -53,26 +80,8 @@ Physics::Box::Box(
 {
    model = new Model("E:/OpenGL/Glitter/EngineAssets/cube.fbx");
    this->physics = physics;
-
-
-    // Convert glm::quat to JPH::Quat
-    glm::quat glmRot = glm::normalize(rotation);
-    JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
-
-    // Convert glm::vec3 to JPH::Vec3
-    JPH::Vec3 jphPosition(position.x, position.y, position.z);
-    JPH::Vec3 jphHalfExtents(scale.x, scale.y, scale.z); // BoxShape expects half extents
-
-    // Add physics box
-    physicsId = this->physics->AddBox(
-        jphPosition,
-        jphRotation,
-        jphHalfExtents,
-        isDynamic
-    );
-
-    // Apply transform to the model
-    model->setTransform(position, rotation, scale);
+   this->isDynamic = isDynamic;
+    initTransformation(position, rotation, scale);
 
     if(shouldAddToLevel)
     {
