@@ -39,6 +39,7 @@
 
 #include <PhysicsSystem.hpp>
 #include <Physics/Box.hpp>
+#include <Physics/capsule.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -224,6 +225,8 @@ int main(int argc, char * argv[]) {
 
     auto box = new Physics::Box(&physics, true, true, glm::vec3(0.0f,10.0f,0.0f));
 
+    auto capsule = new Physics::Capsule(&physics, true, true);
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -242,7 +245,8 @@ int main(int argc, char * argv[]) {
                 physics.isFirstPhysicsEnabledFrame = false;
                 staticBox->syncTransformation();
                 dynamicBox->syncTransformation();
-                box->syncTransformation();                
+                box->syncTransformation();
+                capsule->syncTransformation();                
             }
             else
             {
@@ -250,6 +254,7 @@ int main(int argc, char * argv[]) {
                 staticBox->PhysicsUpdate();
                 dynamicBox->PhysicsUpdate();
                 box->PhysicsUpdate();
+                capsule->PhysicsUpdate();
             }
         }
         else

@@ -3,6 +3,7 @@
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Physics/Collision/PhysicsMaterial.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 
 PhysicsSystemWrapper::PhysicsSystemWrapper()
     : tempAllocator(nullptr), jobSystem(nullptr)
@@ -80,6 +81,18 @@ JPH::BodyID PhysicsSystemWrapper::AddSphere(const JPH::Vec3& pos, float radius, 
 
     JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
     return bi.CreateAndAddBody(settings, dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+}
+
+JPH::BodyID PhysicsSystemWrapper::AddCapsule(const JPH::Vec3 &pos, const JPH::Quat &rot, float halfHeight, float radius, bool dynamic)
+{
+    JPH::BodyCreationSettings settings(
+        new JPH::CapsuleShape(halfHeight, radius),
+        pos,
+        rot,
+        dynamic ? JPH::EMotionType::Dynamic : JPH::EMotionType::Static, // or Static / Kinematic
+        0
+    );
+    return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
 }
 
 JPH::Vec3 PhysicsSystemWrapper::GetBodyPosition(JPH::BodyID id) const {

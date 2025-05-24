@@ -33,6 +33,7 @@ public:
 
     JPH::BodyID AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, bool dynamic);
     JPH::BodyID AddSphere(const JPH::Vec3& pos, float radius, bool dynamic);
+    JPH::BodyID AddCapsule(const JPH::Vec3& pos, const JPH::Quat& rot, float halfHeight, float radius, bool dynamic);
 
     JPH::Vec3 GetBodyPosition(JPH::BodyID id) const;
     JPH::Quat GetBodyRotation(JPH::BodyID id) const;

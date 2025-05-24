@@ -20,10 +20,10 @@ namespace Physics
         virtual void PhysicsUpdate();
         virtual void syncTransformation();
         void AddToLevel();
-    private:
-        JPH::BodyID physicsId;
-        PhysicsSystemWrapper* physics;
         Model * model;
+        PhysicsSystemWrapper* physics;
+        JPH::BodyID physicsId;
+    private:
         bool isDynamic;
     };
 }
