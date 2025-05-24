@@ -37,6 +37,8 @@ Character::Character(std::string filepath){
 
     // blendSpace.generateTimeWarpCurve(&skeleton->m_RootNode, animator->timewarpmap);
 
+    capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
+
 };
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -150,4 +152,16 @@ void Character::setFinalBoneMatrix(int boneIndex, glm::mat4 transform)
 {
     model->shader->use();
     model->shader->setMat4("finalBonesMatrices[" + std::to_string(boneIndex) + "]", transform);
+}
+
+void Character::physicsUpdate()
+{
+    capsuleCollider->PhysicsUpdate();
+}
+
+void Character::syncTransformationToPhysicsEntity()
+{
+    //The capsule mesh will be attached to the character so when character moves that mesh updates
+    //that should be enough to update the physics collider correctly
+    capsuleCollider->syncTransformation();
 }

@@ -18,4 +18,7 @@ public:
     virtual void setFileName(std::string filename) {}
     virtual void useAttachedShader() {};
     virtual ~Renderable() = default;
+
+    virtual void physicsUpdate(){};
+    virtual void syncTransformationToPhysicsEntity(){};
 };

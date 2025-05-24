@@ -6,6 +6,7 @@
 #include "Level/Level.hpp"
 #include <filesystem>
 #include <Controls/PlayerController.hpp>
+#include <PhysicsSystem.hpp>
 namespace fs = std::filesystem;
 
 class State{
@@ -42,7 +43,10 @@ public:
     std::vector<Controls::PlayerController*> playerControllers = std::vector<Controls::PlayerController*>();
 
     ProjectAsset::UIState uiState;
+
+    PhysicsSystemWrapper* physics = new PhysicsSystemWrapper();
 };
 
 ProjectAsset::UIState& getUIState();
 Level& getActiveLevel();
+PhysicsSystemWrapper& getPhysicsSystem();

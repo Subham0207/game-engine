@@ -10,3 +10,8 @@ Level &getActiveLevel()
 {
    return State::state->activeLevel;
 }
+
+PhysicsSystemWrapper &getPhysicsSystem()
+{
+    return *State::state->physics;
+}

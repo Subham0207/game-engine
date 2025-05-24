@@ -217,15 +217,14 @@ int main(int argc, char * argv[]) {
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Left.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Right.fbx");
 
-    PhysicsSystemWrapper physics;
-    physics.Init();
-    auto staticBox = new Physics::Box(&physics, false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(5.0f,1.0f,5.0f));
+    getPhysicsSystem().Init();
+    auto staticBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(5.0f,1.0f,5.0f));
 
-    auto dynamicBox = new Physics::Box(&physics, true, true, glm::vec3(0.0f,5.0f,0.0f), glm::angleAxis(glm::radians(40.0f), glm::vec3(1,0,0)));
+    auto dynamicBox = new Physics::Box(&getPhysicsSystem(), true, true, glm::vec3(0.0f,5.0f,0.0f), glm::angleAxis(glm::radians(40.0f), glm::vec3(1,0,0)));
 
-    auto box = new Physics::Box(&physics, true, true, glm::vec3(0.0f,10.0f,0.0f));
+    auto box = new Physics::Box(&getPhysicsSystem(), true, true, glm::vec3(0.0f,10.0f,0.0f));
 
-    auto capsule = new Physics::Capsule(&physics, true, true);
+    auto capsule = new Physics::Capsule(&getPhysicsSystem(), true, true);
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
@@ -239,10 +238,10 @@ int main(int argc, char * argv[]) {
         {            
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess
-            if(physics.isFirstPhysicsEnabledFrame == true)
+            if(getPhysicsSystem().isFirstPhysicsEnabledFrame == true)
             {
                 //make the physics objects transformations ( including scale ) same as thier model
-                physics.isFirstPhysicsEnabledFrame = false;
+                getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
                 staticBox->syncTransformation();
                 dynamicBox->syncTransformation();
                 box->syncTransformation();
@@ -250,7 +249,7 @@ int main(int argc, char * argv[]) {
             }
             else
             {
-                physics.Update(deltaTime);
+                getPhysicsSystem().Update(deltaTime);
                 staticBox->PhysicsUpdate();
                 dynamicBox->PhysicsUpdate();
                 box->PhysicsUpdate();
@@ -259,7 +258,7 @@ int main(int argc, char * argv[]) {
         }
         else
         {
-            physics.isFirstPhysicsEnabledFrame = true;
+            getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
         }
 
         // Background Fill Color

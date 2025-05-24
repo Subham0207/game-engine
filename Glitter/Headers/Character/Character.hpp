@@ -11,6 +11,7 @@
 #include <Helpers/vertexBoneDataHelper.hpp>
 #include <Controls/PlayerController.hpp>
 #include <Controls/statemachine.hpp>
+#include <Physics/capsule.hpp>
 
 class Character: public Renderable
 {
@@ -64,6 +65,11 @@ public:
     Controls::AnimationStateMachine* animStateMachine;
 
     BlendSpace2D blendSpace;
+
+    Physics::Capsule* capsuleCollider;
+
+    void physicsUpdate() override;
+    void syncTransformationToPhysicsEntity() override;
 private:
     Camera* camera;
 
