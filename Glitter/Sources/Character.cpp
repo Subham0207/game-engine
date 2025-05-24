@@ -143,13 +143,15 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         this->animator->PlayAnimationBlended(blendSelection);
         playerController->update();
 
-        //When play is enabled move the character to where the collider is
-        model->setModelMatrix(capsuleCollider->model->getModelMatrix());
+        auto pos = capsuleCollider->model->GetPosition();
+        pos.y -= 1.5;
+        model->setTransformFromPhysics(pos, capsuleCollider->model->GetRot());
     }
     else
     {
-        //When play disabled move the capsule collider when model moves
-        capsuleCollider->model->setModelMatrix(model->getModelMatrix());
+        auto pos = model->GetPosition();
+        pos.y += 1.5f;
+        capsuleCollider->model->setTransformFromPhysics(pos, model->GetRot());
     }
 }
 
