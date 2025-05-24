@@ -129,6 +129,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
     skeleton->draw(camera, getModelMatrix());
 
+
+
     if(State::state->isPlay)
     {
         float xfactor = playerController->movementDirection;
@@ -140,6 +142,14 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
         this->animator->PlayAnimationBlended(blendSelection);
         playerController->update();
+
+        //When play is enabled move the character to where the collider is
+        model->setModelMatrix(capsuleCollider->model->getModelMatrix());
+    }
+    else
+    {
+        //When play disabled move the capsule collider when model moves
+        capsuleCollider->model->setModelMatrix(model->getModelMatrix());
     }
 }
 

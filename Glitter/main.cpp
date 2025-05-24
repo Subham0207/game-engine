@@ -245,7 +245,12 @@ int main(int argc, char * argv[]) {
                 staticBox->syncTransformation();
                 dynamicBox->syncTransformation();
                 box->syncTransformation();
-                capsule->syncTransformation();                
+                capsule->syncTransformation();
+                
+                for(int i=0;i<renderables->size();i++)
+                {
+                    renderables->at(i)->syncTransformationToPhysicsEntity();
+                }
             }
             else
             {
@@ -254,6 +259,11 @@ int main(int argc, char * argv[]) {
                 dynamicBox->PhysicsUpdate();
                 box->PhysicsUpdate();
                 capsule->PhysicsUpdate();
+
+                for(int i=0;i<renderables->size();i++)
+                {
+                    renderables->at(i)->physicsUpdate();
+                }
             }
         }
         else
