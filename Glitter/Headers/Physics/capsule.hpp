@@ -17,5 +17,6 @@ namespace Physics
     float radius = 0.5f;
     float halfHeight = 1.0f;
     void syncTransformation() override;
+    void addCustomModel(std::string modelPath) override;
     };
 }

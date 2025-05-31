@@ -11,15 +11,18 @@ Physics::PhysicsObject::PhysicsObject(
     glm::vec3 scale
 )
 {
-    model = new Model(modelPath);
+    if(modelPath != nullptr)
+    {
+        addCustomModel(modelPath);
+        model->setTransform(position, rotation, scale);
+        if(shouldAddToLevel)
+        {
+            AddToLevel();
+        }
+    }
     this->physics = physics;
     this->isDynamic = isDynamic;
-    model->setTransform(position, rotation, scale);
 
-    if(shouldAddToLevel)
-    {
-        AddToLevel();
-    }
 }
 
 void Physics::PhysicsObject::PhysicsUpdate()
@@ -60,6 +63,11 @@ void Physics::PhysicsObject::syncTransformation()
         jphHalfExtents,
         isDynamic
     );
+}
+
+void Physics::PhysicsObject::addCustomModel(std::string modelPath)
+{
+    model = new Model(modelPath);
 }
 
 void Physics::PhysicsObject::AddToLevel()

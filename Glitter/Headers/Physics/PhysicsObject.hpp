@@ -19,6 +19,7 @@ namespace Physics
         );
         virtual void PhysicsUpdate();
         virtual void syncTransformation();
+        virtual void addCustomModel(std::string modelPath);
         void AddToLevel();
         Model * model;
         PhysicsSystemWrapper* physics;

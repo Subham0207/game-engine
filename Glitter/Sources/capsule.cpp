@@ -1,4 +1,5 @@
 #include "Physics/capsule.hpp"
+#include <3DModel/capsulecollider.hpp>
 
 Physics::Capsule::Capsule
     (PhysicsSystemWrapper *physics,
@@ -8,7 +9,7 @@ Physics::Capsule::Capsule
     glm::quat rotation,
     glm::vec3 scale) : PhysicsObject(
         physics,
-        "E:/OpenGL/Glitter/EngineAssets/cube.fbx",
+        nullptr,
         isDynamic,
         shouldAddToLevel,
         position,
@@ -16,6 +17,12 @@ Physics::Capsule::Capsule
         scale
     )
 {
+        addCustomModel("");
+        model->setTransform(position, rotation, scale);
+        if(shouldAddToLevel)
+        {
+            AddToLevel();
+        }
 }
 
 void Physics::Capsule::syncTransformation()
@@ -33,4 +40,8 @@ void Physics::Capsule::syncTransformation()
     physics->RemoveBody(physicsId);
 
     physicsId = physics->AddCapsule(jphPosition, jphRotation, halfHeight, radius, true);
+}
+void Physics::Capsule::addCustomModel(std::string modelPath)
+{
+    model = createCapsuleModel();
 }

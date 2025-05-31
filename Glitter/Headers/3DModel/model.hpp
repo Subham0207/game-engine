@@ -134,11 +134,11 @@ public:
     void static loadFromFile(const std::string &filename, Model &model);
 
     Shader* shader;
+    std::vector<Mesh> meshes;
 private:
     // model data
     std::vector<Modals::Material*> materials;
     std::vector<ProjectModals::Texture*> textureIds;
-    std::vector<Mesh> meshes;
     std::string directory;
     aiAABB* boundingBox;
     glm::mat4 modelMatrix = glm::mat4(1.0f);
