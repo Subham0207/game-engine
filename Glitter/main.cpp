@@ -224,8 +224,6 @@ int main(int argc, char * argv[]) {
 
     auto box = new Physics::Box(&getPhysicsSystem(), true, true, glm::vec3(0.0f,10.0f,0.0f));
 
-    auto capsule = new Physics::Capsule(&getPhysicsSystem(), true, true);
-
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
         //delta time -- making things time dependent
@@ -245,7 +243,6 @@ int main(int argc, char * argv[]) {
                 staticBox->syncTransformation();
                 dynamicBox->syncTransformation();
                 box->syncTransformation();
-                capsule->syncTransformation();
                 
                 for(int i=0;i<renderables->size();i++)
                 {
@@ -258,7 +255,6 @@ int main(int argc, char * argv[]) {
                 staticBox->PhysicsUpdate();
                 dynamicBox->PhysicsUpdate();
                 box->PhysicsUpdate();
-                capsule->PhysicsUpdate();
 
                 for(int i=0;i<renderables->size();i++)
                 {

@@ -1,5 +1,5 @@
 #include "Physics/capsule.hpp"
-#include <3DModel/capsulecollider.hpp>
+#include <3DModel/capsulecolliderMesh.hpp>
 
 Physics::Capsule::Capsule
     (PhysicsSystemWrapper *physics,
@@ -19,10 +19,10 @@ Physics::Capsule::Capsule
 {
         addCustomModel("");
         model->setTransform(position, rotation, scale);
-        if(shouldAddToLevel)
-        {
-            AddToLevel();
-        }
+        // if(shouldAddToLevel)
+        // {
+        //     AddToLevel();
+        // }
 }
 
 void Physics::Capsule::syncTransformation()
@@ -43,5 +43,7 @@ void Physics::Capsule::syncTransformation()
 }
 void Physics::Capsule::addCustomModel(std::string modelPath)
 {
-    model = createCapsuleModel();
+    auto capsule = new CapsuleColliderModel();
+    getActiveLevel().addRenderable(capsule);
+    model = capsule->model;
 }
