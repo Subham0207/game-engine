@@ -1,6 +1,8 @@
 #pragma once
 #include <PhysicsSystem.hpp>
 #include <Physics/PhysicsObject.hpp>
+#include <3DModel/capsulecolliderMesh.hpp>
+#include <glm/glm.hpp>
 
 namespace Physics
 {
@@ -14,9 +16,15 @@ namespace Physics
             glm::quat rotation = glm::quat(),
             glm::vec3 scale = glm::vec3(1.0f)
         );
-    float radius = 0.5f;
-    float halfHeight = 1.0f;
-    void syncTransformation() override;
-    void addCustomModel(std::string modelPath) override;
+        float radius = 0.5f;
+        float halfHeight = 1.0f;
+        CapsuleColliderModel *capsule;
+        void reInit(float radius, float halfheight);
+        void syncTransformation() override;
+        void addCustomModel(std::string modelPath) override;
+
+        glm::vec3 position;
+        glm::quat rotation;
+        glm::vec3 scale;
     };
 }

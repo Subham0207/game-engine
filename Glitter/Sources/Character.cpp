@@ -143,15 +143,26 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         this->animator->PlayAnimationBlended(blendSelection);
         playerController->update();
 
-        auto pos = capsuleCollider->model->GetPosition();
-        pos.y -= 1.5;
-        model->setTransformFromPhysics(pos, capsuleCollider->model->GetRot());
+        auto capsuleWorldPos = capsuleCollider->model->GetPosition();
+        auto relativePosition = glm::vec3(
+        capsuleWorldPos.x + capsuleColliderPosRelative.x,
+        capsuleWorldPos.y + capsuleColliderPosRelative.y,
+        capsuleWorldPos.z + capsuleColliderPosRelative.z
+        );
+        model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
     }
     else
     {
-        auto pos = model->GetPosition();
-        pos.y += 1.5f;
-        capsuleCollider->model->setTransformFromPhysics(pos, model->GetRot());
+        auto characterWorldPos = model->GetPosition();
+        auto relativePosition = glm::vec3(
+            characterWorldPos.x - capsuleColliderPosRelative.x,
+            characterWorldPos.y - capsuleColliderPosRelative.y,
+            characterWorldPos.z - capsuleColliderPosRelative.z
+        );
+
+        capsuleCollider->model->setTransformFromPhysics(relativePosition, model->GetRot());
+        capsuleCollider->position = relativePosition;
+        capsuleCollider->rotation = model->GetRot();
     }
 }
 

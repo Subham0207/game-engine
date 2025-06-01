@@ -110,6 +110,38 @@ void Outliner::ModelMatrixComponent()
             {
                 std::cerr << "Failed to decompose the the matrix" << std::endl;
             }
+
+            //set radius and half height of capsule collider used on the character
+            if(!State::state->isPlay)
+            {
+                if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+                {
+                        auto capsule = character->capsuleCollider;
+
+                        ImGui::Text("Capsule Collider Settings");
+
+                        ImGui::PushItemWidth(150.0f);
+                        ImGui::InputFloat("Radius", &capsule->radius, 0.1f, 0.25f, "%.3f");
+                        ImGui::InputFloat("Half Height", &capsule->halfHeight, 0.1f, 0.25f, "%.3f");
+                        ImGui::PopItemWidth();
+
+                        // Clamp to avoid invalid geometry
+                        capsule->radius = std::max(0.01f, capsule->radius);
+                        capsule->halfHeight = std::max(0.01f, capsule->halfHeight);
+
+                        if (ImGui::Button("Apply"))
+                        {
+                            capsule->reInit(capsule->radius, capsule->halfHeight);
+                        }
+
+                        ImGui::Text("Capsule Collider position");
+                        ImGui::DragFloat("X1##translation", &character->capsuleColliderPosRelative.x, 0.005f);
+                        ImGui::SameLine();
+                        ImGui::DragFloat("Y1##translation", &character->capsuleColliderPosRelative.y, 0.005f);
+                        ImGui::SameLine();
+                        ImGui::DragFloat("Z1##translation", &character->capsuleColliderPosRelative.z, 0.005f);
+                }
+            }
         }
 }
 void Outliner::levelControlsComponent(Level &lvl)

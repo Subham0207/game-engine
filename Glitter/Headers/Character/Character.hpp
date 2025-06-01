@@ -67,6 +67,7 @@ public:
     BlendSpace2D blendSpace;
 
     Physics::Capsule* capsuleCollider;
+    glm::vec3 capsuleColliderPosRelative;
 
     void physicsUpdate() override;
     void syncTransformationToPhysicsEntity() override;
