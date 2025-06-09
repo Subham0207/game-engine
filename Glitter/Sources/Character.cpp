@@ -39,6 +39,8 @@ Character::Character(std::string filepath){
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
 
+    capsuleColliderPosRelative = glm::vec3(0.0f);
+
 };
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -139,8 +141,14 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         // float yfactor = getUIState().yblendFactor;
         getUIState().scrubbedPoint.x = xfactor;
         getUIState().scrubbedPoint.y = yfactor;
+
+        //update animation
         auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
         this->animator->PlayAnimationBlended(blendSelection);
+
+        //apply force to capsule in direction
+        capsuleCollider->movebody(xfactor,yfactor, deltaTime);
+
         playerController->update();
 
         auto capsuleWorldPos = capsuleCollider->model->GetPosition();

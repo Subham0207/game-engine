@@ -89,7 +89,7 @@ JPH::BodyID PhysicsSystemWrapper::AddCapsule(const JPH::Vec3 &pos, const JPH::Qu
         new JPH::CapsuleShape(halfHeight, radius),
         pos,
         rot,
-        dynamic ? JPH::EMotionType::Dynamic : JPH::EMotionType::Static, // or Static / Kinematic
+        JPH::EMotionType::Kinematic,
         0
     );
     return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);

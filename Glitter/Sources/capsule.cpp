@@ -50,6 +50,25 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
     model = capsule->model;
 }
 
+void Physics::Capsule::movebody(float xfactor, float yfactor, float deltaTime)
+{
+    static JPH::RVec3 verticalVelocity = JPH::RVec3(0, 0, 0);
+    auto currentPosition = physics->GetPhysicsBodyInterface().GetPosition(physicsId);
+    auto currentRotation = physics->GetPhysicsBodyInterface().GetRotation(physicsId);
+    float gravity = 0;
+
+    auto xmovement = xfactor - 1;
+    if(xmovement == 1)
+    xmovement = 0;
+    
+    auto velocity = JPH::RVec3(xmovement, 0, yfactor);
+    verticalVelocity += JPH::RVec3(0, gravity, 0);
+    auto totalVelocity = velocity + verticalVelocity;
+
+    auto newPosition = currentPosition + totalVelocity * deltaTime;
+
+    physics->GetPhysicsBodyInterface().MoveKinematic(physicsId, newPosition, currentRotation, deltaTime);
+}
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
     //The reinit does not happen during play; So we only need to update the Model geometry and not collider.
