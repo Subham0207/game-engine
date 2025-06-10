@@ -76,14 +76,14 @@ void InputHandler::handlePlay()
 
     //Shit + W to run
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS && glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    playerController->setMovement(2, 1);
+    playerController->setMovement(2, 1, glm::vec3(0,0,2));
     //W to move
     else if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-    playerController->setMovement(1, 1);
+    playerController->setMovement(1, 1, glm::vec3(0,0,1));
     else if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-    playerController->setMovement(2, 0);
+    playerController->setMovement(2, 0, glm::vec3(1,0,0));
     else if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-    playerController->setMovement(2, 2);
+    playerController->setMovement(2, 2, glm::vec3(-1,0,0));
     //space to jump
     else if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
     playerController->setJumping();

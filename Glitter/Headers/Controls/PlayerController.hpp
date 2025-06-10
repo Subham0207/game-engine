@@ -9,7 +9,7 @@ namespace Controls
     public:
         PlayerController()
             : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
-              isJumping(false), interpolationSpeed(0.1f) 
+              isJumping(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f)
         {}
 
         float movementSpeed;           // Current speed (blended)
@@ -19,11 +19,15 @@ namespace Controls
         bool isJumping;
         float interpolationSpeed;      // Controls how fast blending happens (0.1 = smooth, 1.0 = instant)
 
-        void setMovement(float speed, float direction)
+        glm::vec3 directionVector;
+
+        void setMovement(float speed, float direction, glm::vec3 dir)
         {
             targetSpeed = speed;         // Set target speed (Idle: 0, Walk: 1, Run: 2)
             targetDirection = direction; // Set target direction (Normalized X,Y)
             isJumping = false;
+
+            directionVector = dir;
         }
 
         void setJumping()
@@ -38,6 +42,8 @@ namespace Controls
             targetSpeed = 0.0f;
             targetDirection = 1.0f;
             isJumping = false;
+
+            directionVector = glm::vec3(0,0,0);
         }
 
         void update()

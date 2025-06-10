@@ -50,18 +50,14 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
     model = capsule->model;
 }
 
-void Physics::Capsule::movebody(float xfactor, float yfactor, float deltaTime)
+void Physics::Capsule::movebody(float x, float y, float z, float deltaTime)
 {
     static JPH::RVec3 verticalVelocity = JPH::RVec3(0, 0, 0);
     auto currentPosition = physics->GetPhysicsBodyInterface().GetPosition(physicsId);
     auto currentRotation = physics->GetPhysicsBodyInterface().GetRotation(physicsId);
     float gravity = 0;
-
-    auto xmovement = xfactor - 1;
-    if(xmovement == 1)
-    xmovement = 0;
     
-    auto velocity = JPH::RVec3(xmovement, 0, yfactor);
+    auto velocity = JPH::RVec3(x, y, z);
     verticalVelocity += JPH::RVec3(0, gravity, 0);
     auto totalVelocity = velocity + verticalVelocity;
 

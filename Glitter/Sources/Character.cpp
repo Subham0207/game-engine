@@ -147,7 +147,12 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         this->animator->PlayAnimationBlended(blendSelection);
 
         //apply force to capsule in direction
-        capsuleCollider->movebody(xfactor,yfactor, deltaTime);
+        capsuleCollider->movebody(
+            playerController->directionVector.x,
+            playerController->directionVector.y,
+            playerController->directionVector.z,
+            deltaTime
+        );
 
         playerController->update();
 
