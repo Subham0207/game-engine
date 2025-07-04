@@ -22,7 +22,7 @@ namespace Physics
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
         void addCustomModel(std::string modelPath) override;
-        void movebody(float x, float y, float z, float deltaTime);
+        void movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos);
 
         glm::vec3 position;
         glm::quat rotation;

@@ -40,8 +40,8 @@ public:
     JPH::BodyInterface& GetPhysicsBodyInterface();
     void RemoveBody(JPH::BodyID bodyID);
     bool isFirstPhysicsEnabledFrame = true;
+    JPH::PhysicsSystem physicsSystem;
 private:
     JPH::TempAllocatorImpl* tempAllocator;
     JPH::JobSystemThreadPool* jobSystem;
-    JPH::PhysicsSystem physicsSystem;
 };

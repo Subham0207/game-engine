@@ -151,7 +151,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
             playerController->directionVector.x,
             playerController->directionVector.y,
             playerController->directionVector.z,
-            deltaTime
+            deltaTime,
+            model->GetPosition()
         );
 
         playerController->update();
