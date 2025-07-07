@@ -84,6 +84,8 @@ void InputHandler::handlePlay()
     playerController->setMovement(2, 0, glm::vec3(1,0,0));
     else if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
     playerController->setMovement(2, 2, glm::vec3(-1,0,0));
+    else if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
+    playerController->setMovement(-1, 1, glm::vec3(0,0,-1));
     //space to jump
     else if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
     playerController->setJumping();

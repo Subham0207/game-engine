@@ -216,6 +216,7 @@ int main(int argc, char * argv[]) {
     Shared::readAnimation("E:/OpenGL/Models/Jumping.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Left.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Right.fbx");
+    Shared::readAnimation("E:/OpenGL/Models/Walking Backwards.fbx");
 
     getPhysicsSystem().Init();
     auto staticBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(5.0f,1.0f,5.0f));

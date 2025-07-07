@@ -34,6 +34,10 @@ Character::Character(std::string filepath){
     blendSpace.AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[4]);
     blendSpace.AddBlendPoint(glm::vec2(2.0f, 1.0f), getUIState().animations[5]);
 
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
+    blendSpace.AddBlendPoint(glm::vec2(2.0f, -1.0f), getUIState().animations[6]);
+
 
     // blendSpace.generateTimeWarpCurve(&skeleton->m_RootNode, animator->timewarpmap);
 
