@@ -149,7 +149,7 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         //apply force to capsule in direction
         capsuleCollider->movebody(
             playerController->directionVector.x,
-            playerController->directionVector.y,
+            0.0f,
             playerController->directionVector.z,
             deltaTime,
             model->GetPosition()

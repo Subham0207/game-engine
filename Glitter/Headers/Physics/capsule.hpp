@@ -3,7 +3,7 @@
 #include <Physics/PhysicsObject.hpp>
 #include <3DModel/capsulecolliderMesh.hpp>
 #include <glm/glm.hpp>
-
+#include <Physics/MyContactListener.hpp>
 namespace Physics
 {
     class Capsule: public PhysicsObject {
@@ -23,9 +23,22 @@ namespace Physics
         void syncTransformation() override;
         void addCustomModel(std::string modelPath) override;
         void movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos);
+        void PhysicsUpdate() override;
+        void Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
+            const JPH::RVec3 &spawn, float halfheight = 0.8f, float radius = 0.3f);
 
         glm::vec3 position;
         glm::quat rotation;
         glm::vec3 scale;
+
+        JPH::Ref<JPH::CharacterVirtualSettings> set;
+        MyContactListener *listener;
+        JPH::CharacterVirtual *character;
+
+        // std::unique_ptr<JPH::TempAllocator> m_temp;
+
+        bool grounded      = false;
+        bool landed        = false;
+        JPH::Vec3 ground_normal = JPH::Vec3::sAxisY();
     };
 }

@@ -5,6 +5,7 @@
 #include <Jolt/Physics/Collision/ShapeCast.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 using CastShapeClosestHitCollisionCollector = JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector>;
 
 Physics::Capsule::Capsule
@@ -25,19 +26,22 @@ Physics::Capsule::Capsule
 {
         addCustomModel("");
         // model->setTransform(positison, rotation, scale);
-        this->position = position;
-        this->rotation = rotation;
+        // this->position = position;
+        // this->rotation = rotation;
         // if(shouldAddToLevel)
         // {
         //     AddToLevel();
         // }
+        set = nullptr;
+        // m_temp =
+        // std::make_unique<JPH::TempAllocatorImpl>(64 * 1024);
 }
 
 void Physics::Capsule::syncTransformation()
 {
     //Get capsule dimensions from the 3d mesh
-    position = model->GetPosition();
-    rotation = model->GetRot();
+    auto position = model->GetPosition();
+    auto rotation = model->GetRot();
 
     glm::quat glmRot = glm::normalize(rotation);
     JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
@@ -45,9 +49,20 @@ void Physics::Capsule::syncTransformation()
     // Convert glm::vec3 to JPH::Vec3
     JPH::Vec3 jphPosition(position.x, position.y, position.z);
 
-    physics->RemoveBody(physicsId);
+    if(!set)
+    {
+        CreateCharacterVirtualPhysics(&physics->physicsSystem,
+            jphPosition, halfHeight, radius);
+    }
+    else
+    {
+        delete set;
+        delete character;
+        delete listener;
+        CreateCharacterVirtualPhysics(&physics->physicsSystem,
+            jphPosition, halfHeight, radius);
 
-    physicsId = physics->AddCapsule(jphPosition, jphRotation, halfHeight, radius, true);
+    }
 }
 void Physics::Capsule::addCustomModel(std::string modelPath)
 {
@@ -58,59 +73,48 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
 
 void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos)
 {
-    static JPH::RVec3 verticalVelocity = JPH::RVec3(0,0,0);
+    JPH::TempAllocatorImpl temp(64 * 1024);
+    using namespace JPH;
+    Vec3 input_move = Vec3(x,y,z);
+    bool want_jump = false;
+    auto system = &physics->physicsSystem;
 
-    JPH::RVec3 characterPos = physics->GetPhysicsBodyInterface().GetPosition(physicsId);
+    const Vec3 kGravity      = Vec3(0, -9.81f, 0);
+    const float kWalkSpeed   = 4.0f;
+    const float kJumpSpeed   = 5.0f;
 
-    auto currentRotation = physics->GetPhysicsBodyInterface().GetRotation(physicsId);
-    JPH::RefConst<JPH::Shape> shape = physics->GetPhysicsBodyInterface().GetShape(physicsId);
-    float gravity = -9.81f;
-    
-    auto velocity = JPH::RVec3(x, y, z);
-    verticalVelocity += JPH::RVec3(0, gravity * deltaTime, 0);
-    auto totalVelocity = velocity + verticalVelocity;
+    Vec3 v = character->GetGroundVelocity();
+    v += input_move * kWalkSpeed;
 
-    auto displacement = totalVelocity * deltaTime;
-    auto newPosition = characterPos + displacement;
-
-    JPH::RShapeCast shapeCast(
-        shape,
-        JPH::Vec3::sReplicate(1.0f), // scale
-        JPH::RMat44::sRotationTranslation(currentRotation, characterPos),
-        displacement
-    );
-
-    JPH::ShapeCastSettings settings;
-    settings.mUseShrunkenShapeAndConvexRadius = true;
-    settings.mReturnDeepestPoint = true;
-
-    CastShapeClosestHitCollisionCollector collector;
-    physics->physicsSystem.GetNarrowPhaseQuery().CastShape(
-        shapeCast,                           // Shape cast info
-        settings,                           // Cast settings
-        characterPos,                       // Base offset for precision
-        collector                          // Result collector
-        );
-    
-    if (collector.HadHit())
+    if (character->GetGroundState() == CharacterBase::EGroundState::OnGround)
     {
-        const JPH::ShapeCastResult &hit = collector.mHit;
-        float fraction = hit.mFraction;
-        JPH::Vec3 n = -hit.mPenetrationAxis.Normalized();
-
-        bool grounded = hit.mFraction < 1.0f && n.Dot(JPH::Vec3::sAxisY()) > 0.6f;
-        if (grounded)
-        {
-            // Snap to the hit point and cancel gravity
-            newPosition     = characterPos + displacement * hit.mFraction;
-            float skin = hit.mPenetrationDepth;
-            newPosition += n * (skin + 0.001f);
-            verticalVelocity = JPH::RVec3::sZero();
-            std::cout << "Hit ground" << std::endl;
-        }
+        if (want_jump)
+            v += kJumpSpeed * character->GetUp();
+    }
+    else
+    {
+        v += kGravity;
     }
 
-    physics->GetPhysicsBodyInterface().MoveKinematic(physicsId, newPosition, currentRotation, deltaTime);
+    character->SetLinearVelocity(v);
+
+    std::cout<< "Character location: " << character->GetPosition().GetX() << " " << character->GetPosition().GetY() << " " << character->GetPosition().GetZ() << std::endl;
+
+    CharacterVirtual::ExtendedUpdateSettings eus;
+    character->ExtendedUpdate(deltaTime,
+                                kGravity,
+                                eus,
+                                {},
+                                {},
+                                {}, {}, temp);
+
+
+    grounded     = character->GetGroundState() == CharacterBase::EGroundState::OnGround;
+    ground_normal= character->GetGroundNormal();
+    landed       = listener->has_landed_this_frame;
+    listener->has_landed_this_frame = false;
+
+    character->UpdateGroundVelocity();
 }
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
@@ -119,4 +123,44 @@ void Physics::Capsule::reInit(float radius, float halfheight)
     this->halfHeight = halfHeight;
     capsule->reGenerateCapsuleColliderMesh(radius, halfHeight);
     model = capsule->model;
+}
+
+void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
+            const JPH::RVec3 &spawn, float halfheight, float radius)
+{
+    // --- Build the settings ------------------------------------------------
+    set = new JPH::CharacterVirtualSettings();
+    set->mShape = new JPH::CapsuleShape(halfheight, radius);       // two-sphere capsule
+    set->mMaxSlopeAngle     = JPH::DegreesToRadians(55.0f);           // walkable if ≤ 55°
+    set->mSupportingVolume  = JPH::Plane(JPH::Vec3::sAxisY(), -radius);
+    set->mPredictiveContactDistance = 0.1f;                           // prevents snagging
+    set->mMass              = 80.0f;
+    // If you need the character to show up in regular overlap queries,
+    // give it an “inner” rigid body:
+    // set->mInnerBodyShape = set->mShape;   // (optional)
+
+    std::cout<< "Spawn location: " << spawn.GetX() << " " << spawn.GetY() << " " << spawn.GetZ() << std::endl;
+
+    character = new JPH::CharacterVirtual(set, spawn,
+                                            JPH::Quat::sIdentity(),
+                                            /*userData*/0, system);
+
+    listener = new MyContactListener();
+    character->SetListener(listener);                                  // ground callbacks
+}
+
+void Physics::Capsule::PhysicsUpdate()
+{
+    auto transform = character->GetPosition();
+    auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
+
+    auto rotation = character->GetRotation();
+    auto rotationglm = glm::quat(
+                        static_cast<float>(rotation.GetW()),
+                        static_cast<float>(rotation.GetX()),
+                        static_cast<float>(rotation.GetY()),
+                        static_cast<float>(rotation.GetZ())
+                    );
+
+    model->setTransformFromPhysics(transformglm, rotationglm);
 }
