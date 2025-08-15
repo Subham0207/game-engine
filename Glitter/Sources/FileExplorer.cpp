@@ -125,7 +125,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             getUIState().modelfileName = getUIState().filePath;
                             getActiveLevel().addRenderable(new Character(getUIState().filePath));
-                            getUIState().renderables = *State::state->activeLevel.renderables;    
+                            getUIState().renderables = *State::state->activeLevel->renderables;    
                             showUI = false;                       
                         }
                         break;

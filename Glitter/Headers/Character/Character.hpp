@@ -71,6 +71,8 @@ public:
 
     void physicsUpdate() override;
     void syncTransformationToPhysicsEntity() override;
+    float cameraHeight = 7;
+    float cameraDistance = 16;
 private:
     Camera* camera;
 

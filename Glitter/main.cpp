@@ -107,8 +107,14 @@ int main(int argc, char * argv[]) {
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
     // stbi_set_flip_vertically_on_load(true);
 
+    //Loading Level -- making .lvl as the extention of my levelfile
+    auto lvl = State::state->activeLevel;
+    // State::state->activeLevel = new level(); state already has a new level initialized
+    auto defaultCamera = new Camera();
+    lvl->cameras.push_back(defaultCamera);
+
     //Init clienthandler
-    clientHandler.camera = new Camera();
+    clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
 
@@ -116,13 +122,6 @@ int main(int argc, char * argv[]) {
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    //Loading Level -- making .lvl as the extention of my levelfile
-    auto lvl = new Level();
-    State::state->activeLevel = *lvl;
-    lvl->camera = clientHandler.camera;
-    lvl->cameraUp = &clientHandler.camera->cameraUp;
-    lvl->cameraFront = &clientHandler.camera->cameraFront;
-    lvl->cameraPos = &clientHandler.camera->cameraPos;
     // if(Level::checkIfLevelFileExists("Levels/Level1.lvl"))
     // {
     //     Level::loadFromFile("Levels/Level1.lvl", *lvl);
@@ -227,6 +226,9 @@ int main(int argc, char * argv[]) {
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
+
+        clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
+        
         //delta time -- making things time dependent
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;

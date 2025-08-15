@@ -142,6 +142,15 @@ void Outliner::ModelMatrixComponent()
                         ImGui::DragFloat("Z1##translation", &character->capsuleColliderPosRelative.z, 0.005f);
                 }
             }
+            else
+            {
+                if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+                {
+                    ImGui::DragFloat("camera height", &character->cameraHeight, 0.005f);
+                    ImGui::SameLine();
+                    ImGui::DragFloat("camera distance", &character->cameraDistance, 0.005f);
+                }
+            }
         }
 }
 void Outliner::levelControlsComponent(Level &lvl)

@@ -8,7 +8,7 @@ ProjectAsset::UIState &getUIState()
 
 Level &getActiveLevel()
 {
-   return State::state->activeLevel;
+   return *State::state->activeLevel;
 }
 
 PhysicsSystemWrapper &getPhysicsSystem()

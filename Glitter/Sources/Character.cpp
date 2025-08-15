@@ -1,5 +1,6 @@
 #include <Character/Character.hpp>
 #include <filesystem>
+#include <Controls/Input.hpp>
 #include <EngineState.hpp>
 namespace fs = std::filesystem;
 
@@ -45,6 +46,9 @@ Character::Character(std::string filepath){
 
     capsuleColliderPosRelative = glm::vec3(0.0f);
 
+    camera = new Camera();
+    camera->cameraPos = model->GetPosition();
+    getActiveLevel().cameras.push_back(camera);
 };
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -139,6 +143,15 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
     if(State::state->isPlay)
     {
+        State::state->activeCameraIndex = getActiveLevel().cameras.size() - 1;
+
+        camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
+        float pitchAngle = 0.3f;
+        glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
+        glm::quat newRot = pitchQuat * model->GetRot();
+        camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
+        camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
+        
         float xfactor = playerController->movementDirection;
         float yfactor = playerController->movementSpeed;
         // float xfactor = getUIState().xblendFactor;

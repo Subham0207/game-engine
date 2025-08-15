@@ -35,7 +35,9 @@ public:
     LimitedVector<std::string> warningStack = LimitedVector<std::string>(1000);
     LimitedVector<std::string> successStack = LimitedVector<std::string>(1000);
 
-    Level &activeLevel = *(new Level());//Init an empty level so this compiles
+    Level *activeLevel = new Level();//Init an empty level so this compiles
+
+    int activeCameraIndex = 0;
 
     bool isPlay = false;
 

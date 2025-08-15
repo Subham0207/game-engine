@@ -73,5 +73,5 @@ void Physics::PhysicsObject::addCustomModel(std::string modelPath)
 void Physics::PhysicsObject::AddToLevel()
 {
     getActiveLevel().addRenderable(model);
-    getUIState().renderables = *State::state->activeLevel.renderables;
+    getUIState().renderables = *State::state->activeLevel->renderables;
 }
