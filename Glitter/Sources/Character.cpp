@@ -48,6 +48,11 @@ Character::Character(std::string filepath){
 
     camera = new Camera();
     camera->cameraPos = model->GetPosition();
+    float pitchAngle = 0.3f;
+    glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
+    glm::quat newRot = pitchQuat * model->GetRot();
+    this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
+    this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
     getActiveLevel().cameras.push_back(camera);
 };
 
@@ -143,14 +148,24 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
     if(State::state->isPlay)
     {
+        //--
         State::state->activeCameraIndex = getActiveLevel().cameras.size() - 1;
 
-        camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
-        float pitchAngle = 0.3f;
-        glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
-        glm::quat newRot = pitchQuat * model->GetRot();
-        camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
-        camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
+        this->camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
+        //--
+        
+        //-- Turn to Mouse position on XZ plane
+        auto characterForward = glm::rotate( model->GetRot(), glm::vec3(0.0f, 0.0f, 1.0f));
+        auto desiredRot = playerController->faceMouseOnXZ(
+            model->GetPosition(),
+            InputHandler::currentInputHandler->lastX,
+            InputHandler::currentInputHandler->lastY,
+            this->camera->viewMatrix(),
+            this->camera->projectionMatrix()
+        );
+
+
+        //--
         
         float xfactor = playerController->movementDirection;
         float yfactor = playerController->movementSpeed;
@@ -169,7 +184,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
             0.0f,
             playerController->directionVector.z,
             deltaTime,
-            model->GetPosition()
+            model->GetPosition(),
+            desiredRot
         );
 
         playerController->update();

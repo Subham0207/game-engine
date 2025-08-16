@@ -17,7 +17,7 @@
 
 
 // Define Some Constants
-int mWidth = 1280;
-int mHeight = 800;
+extern int mWidth;
+extern int mHeight;
 
 #endif //~ Glitter Header

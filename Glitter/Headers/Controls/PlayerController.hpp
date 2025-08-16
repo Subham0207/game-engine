@@ -65,5 +65,24 @@ namespace Controls
                 movementDirection = std::round(movementDirection);
             }   
         }
+
+        bool intersectRayWithYPlane(
+        glm::vec3 rayOrigin, glm::vec3 rayDir, float planeY, glm::vec3& hitPoint)
+        {
+            const float denom = rayDir.y;
+            const float EPS = 1e-6f;
+            if (glm::abs(denom) < EPS) return false; // ray parallel to plane
+
+            const float t = (planeY - rayOrigin.y) / denom;
+            if (t < 0.0f) return false; // intersection behind the ray origin
+
+            hitPoint = rayOrigin + t * rayDir;
+            return true;
+        }
+
+        glm::quat faceMouseOnXZ(
+        glm::vec3& playerPosition,
+        float mouseX, float mouseY,
+        glm::mat4& view,glm::mat4& proj);
     };
 }

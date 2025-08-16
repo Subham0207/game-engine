@@ -228,6 +228,7 @@ int main(int argc, char * argv[]) {
     while (glfwWindowShouldClose(mWindow) == false) {
 
         clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
+        InputHandler::currentInputHandler->m_Camera = lvl->cameras[State::state->activeCameraIndex];
         
         //delta time -- making things time dependent
         float currentFrame = glfwGetTime();

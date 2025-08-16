@@ -71,7 +71,7 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
     model = capsule->model;
 }
 
-void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos)
+void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw)
 {
     JPH::TempAllocatorImpl temp(64 * 1024);
     using namespace JPH;
@@ -98,7 +98,11 @@ void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm:
 
     character->SetLinearVelocity(v);
 
-    std::cout<< "Character location: " << character->GetPosition().GetX() << " " << character->GetPosition().GetY() << " " << character->GetPosition().GetZ() << std::endl;
+    //std::cout<< "Character location: " << character->GetPosition().GetX() << " " << character->GetPosition().GetY() << " " << character->GetPosition().GetZ() << std::endl;
+
+    JPH::Quat joltYaw(glmYaw.x, glmYaw.y, glmYaw.z, glmYaw.w);
+
+    character->SetRotation(joltYaw);
 
     CharacterVirtual::ExtendedUpdateSettings eus;
     character->ExtendedUpdate(deltaTime,
