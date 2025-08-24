@@ -18,19 +18,40 @@ bool ProjectAssets::ImGuiGrid2D(
 
     float scale = 50.0f;
 
-    // Optional grid lines
-    for (float x = canvasPos.x; x <= canvasMax.x; x += gridSize.x / 10.0f)
-        drawList->AddLine(ImVec2(x, canvasPos.y), ImVec2(x, canvasMax.y), IM_COL32(100, 100, 100, 255));
-    for (float y = canvasPos.y; y <= canvasMax.y; y += gridSize.y / 10.0f)
-        drawList->AddLine(ImVec2(canvasPos.x, y), ImVec2(canvasMax.x, y), IM_COL32(100, 100, 100, 255));
+    // Calculate the center of the canvas in screen coordinates.
+    // This will be our new origin (0,0) for the grid.
+    ImVec2 canvasCenter = ImVec2(canvasPos.x + gridSize.x / 2.0f, canvasPos.y + gridSize.y / 2.0f);
+
+    // Draw grid lines and axes
+    // The previous loop only drew grid lines in the positive quadrant.
+    // We now draw them relative to the center.
+    // It's a bit more involved to draw a full grid, but we can at least draw the axes.
+
+    // X-Axis
+    drawList->AddLine(ImVec2(canvasPos.x, canvasCenter.y), ImVec2(canvasMax.x, canvasCenter.y), IM_COL32(200, 200, 200, 255));
+    // Y-Axis
+    drawList->AddLine(ImVec2(canvasCenter.x, canvasPos.y), ImVec2(canvasCenter.x, canvasMax.y), IM_COL32(200, 200, 200, 255));
+
+    // Optional: Draw sub-grid lines.
+    // We can loop through coordinates relative to the center.
+    for (float x = -gridSize.x / 2.0f; x <= gridSize.x / 2.0f; x += scale) {
+        drawList->AddLine(ImVec2(canvasCenter.x + x, canvasPos.y), ImVec2(canvasCenter.x + x, canvasMax.y), IM_COL32(100, 100, 100, 255));
+    }
+    for (float y = -gridSize.y / 2.0f; y <= gridSize.y / 2.0f; y += scale) {
+        drawList->AddLine(ImVec2(canvasPos.x, canvasCenter.y + y), ImVec2(canvasMax.x, canvasCenter.y + y), IM_COL32(100, 100, 100, 255));
+    }
 
     // Draw points and optionally blend weights
     for (const auto& point : points) {
+        // Updated coordinate mapping
+        // We now add the world coordinates (scaled) to the canvas center.
+        // We also flip the y-axis because ImGui's screen y-axis increases downwards.
         ImVec2 screenPoint = ImVec2(
-            canvasPos.x + point.position.x * scale,
-            canvasMax.y - point.position.y * scale
+            canvasCenter.x + point.position.x * scale,
+            canvasCenter.y - point.position.y * scale
         );
 
+        // This check is good for keeping points within the visible area.
         if (screenPoint.x >= canvasPos.x && screenPoint.x <= canvasMax.x &&
             screenPoint.y >= canvasPos.y && screenPoint.y <= canvasMax.y) {
 
@@ -38,6 +59,7 @@ bool ProjectAssets::ImGuiGrid2D(
 
             // Show blend weights if this point is part of the current selection
             if (selection) {
+                // ... (The rest of this block remains the same, it's correct)
                 char label[32];
                 float blendValue = -1.0f;
 
@@ -62,6 +84,7 @@ bool ProjectAssets::ImGuiGrid2D(
     }
 
     // Initialize scrubbed point
+    // This logic is fine, but you might want to handle an empty points vector gracefully.
     if (scrubbedPoint->x == 0.0f && scrubbedPoint->y == 0.0f && !points.empty()) {
         scrubbedPoint->x = points[0].position.x;
         scrubbedPoint->y = points[0].position.y;
@@ -70,15 +93,17 @@ bool ProjectAssets::ImGuiGrid2D(
     // Handle dragging
     if (isDragging) {
         ImVec2 localMouse = io.MousePos;
-        localMouse.x = (localMouse.x - canvasPos.x) / scale;
-        localMouse.y = (canvasMax.y - localMouse.y) / scale;
+        // The dragging logic also needs to be updated to be relative to the center.
+        localMouse.x = (localMouse.x - canvasCenter.x) / scale;
+        localMouse.y = (canvasCenter.y - localMouse.y) / scale; // Note the flip
         *scrubbedPoint = localMouse;
     }
 
     // Draw scrubbed point
+    // This also needs the updated coordinate mapping.
     ImVec2 screenScrub = ImVec2(
-        canvasPos.x + scrubbedPoint->x * scale,
-        canvasMax.y - scrubbedPoint->y * scale
+        canvasCenter.x + scrubbedPoint->x * scale,
+        canvasCenter.y - scrubbedPoint->y * scale
     );
 
     if (screenScrub.x >= canvasPos.x && screenScrub.x <= canvasMax.x &&

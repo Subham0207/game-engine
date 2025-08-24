@@ -78,6 +78,9 @@ private:
 
     glm::mat4 transformation;
 
+    glm::vec3 forwardVector;
+    glm::vec3 rightVector;
+
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
 
 

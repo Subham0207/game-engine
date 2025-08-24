@@ -1,6 +1,11 @@
 #pragma once
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <iostream>
+#include <glm/gtx/norm.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/epsilon.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Controls
 {
@@ -21,10 +26,28 @@ namespace Controls
 
         glm::vec3 directionVector;
 
-        void setMovement(float speed, float direction, glm::vec3 dir)
+        glm::vec3 forwardVector;
+        glm::vec3 rightVector;
+        glm::quat characterRotation;
+        glm::mat4 modelTransform;
+
+        void setMovement(float x, float z, glm::vec3 dir)
         {
-            targetSpeed = speed;         // Set target speed (Idle: 0, Walk: 1, Run: 2)
-            targetDirection = direction; // Set target direction (Normalized X,Y)
+            // The input here is actually normalized vector in world space from character position.
+            // so input alone should not decide which animation to play
+            // compare  input to forward vector to decide that
+            // so example: forward vector (0.5,0,-1), input (0.5,0,-1), same direction so moveforward
+
+            auto modelInverseTransform =  glm::inverse(modelTransform);
+            glm::vec4 worldInputDirectionHomogeneous(dir, 0.0f);
+            glm::vec4 characterInputDirection = glm::normalize(modelInverseTransform * worldInputDirectionHomogeneous);
+            characterInputDirection.x += 1;
+
+            targetSpeed = characterInputDirection.z;
+
+            targetDirection = characterInputDirection.x;
+
+
             isJumping = false;
 
             directionVector = dir;
@@ -46,8 +69,13 @@ namespace Controls
             directionVector = glm::vec3(0,0,0);
         }
 
-        void update()
+        void update(glm::vec3 forward, glm::vec3 right, glm::quat characterRotation, glm::mat4 modelTransform)
         {
+            this->forwardVector = forward;
+            this->rightVector = right;
+            this->characterRotation = characterRotation;
+            this->modelTransform = modelTransform;
+
             movementSpeed = glm::mix(movementSpeed, targetSpeed, interpolationSpeed); // Smooth transition
             movementDirection = glm::mix(movementDirection, targetDirection, interpolationSpeed);
 
@@ -80,6 +108,18 @@ namespace Controls
             return true;
         }
 
+    bool areInSameDirection(glm::vec3 v1, glm::vec3 v2, float angleDeg = 1.0f) {
+        // Reject degenerate inputs
+        if (glm::length2(v1) == 0.0f || glm::length2(v2) == 0.0f) return false;
+
+        // Normalize to make the test scale-invariant
+        v1 = glm::normalize(v1);
+        v2 = glm::normalize(v2);  // normalize returns a new vector; it doesn't mutate. :contentReference[oaicite:2]{index=2}
+
+        const float cosThresh = glm::cos(glm::radians(angleDeg));
+        const float d = glm::dot(v1, v2);
+        return d >= cosThresh;    // "same direction" within angleDeg
+    }
         glm::quat faceMouseOnXZ(
         glm::vec3& playerPosition,
         float mouseX, float mouseY,
