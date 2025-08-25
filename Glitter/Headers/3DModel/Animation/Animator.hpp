@@ -37,6 +37,10 @@ public:
 		AssimpNodeData *node,
 		std::vector<Bone> &bones)
 	{
+		// if((!blendSelection.bottomLeft && !blendSelection.bottomRight && !blendSelection.topLeft && !blendSelection.topRight) || (!blendSelection.bottomLeft->animation && !blendSelection.bottomRight->animation
+		// && !blendSelection.topLeft->animation && !blendSelection.topRight->animation))
+		// return;
+
 		m_DeltaTime = dt;
 		bonePositions.clear();
 		//Use NodeDataFrom Skeleton

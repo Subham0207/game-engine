@@ -23,24 +23,21 @@ Character::Character(std::string filepath){
     State::state->playerControllers.push_back(playerController);
     animStateMachine = new Controls::AnimationStateMachine(playerController, animator);
 
-    // blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[0]);
-    // blendSpace.AddBlendPoint(glm::vec2(2.0f, 0.0f), getUIState().animations[0]);
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
+    blendSpace.AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
+    blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
 
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
+    blendSpace.AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
     blendSpace.AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+
+    blendSpace.AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
+    blendSpace.AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
     blendSpace.AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[4]);
-    blendSpace.AddBlendPoint(glm::vec2(2.0f, 2.0f), getUIState().animations[5]);
 
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[4]);
-    blendSpace.AddBlendPoint(glm::vec2(2.0f, 1.0f), getUIState().animations[5]);
-
-    blendSpace.AddBlendPoint(glm::vec2(2.0f, 0.0f), getUIState().animations[4]);
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[5]);
-
+    blendSpace.AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
     blendSpace.AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
     blendSpace.AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
-    blendSpace.AddBlendPoint(glm::vec2(2.0f, -1.0f), getUIState().animations[6]);
 
 
     // blendSpace.generateTimeWarpCurve(&skeleton->m_RootNode, animator->timewarpmap);
@@ -184,9 +181,9 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
         //apply force to capsule in direction
         capsuleCollider->movebody(
-            playerController->directionVector.x,
+            playerController->inputXWorld,
             0.0f,
-            playerController->directionVector.z,
+            playerController->inputZWorld,
             deltaTime,
             model->GetPosition(),
             desiredRot

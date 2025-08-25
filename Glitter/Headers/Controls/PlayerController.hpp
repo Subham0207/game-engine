@@ -14,13 +14,14 @@ namespace Controls
     public:
         PlayerController()
             : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
-              isJumping(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f)
+              isJumping(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
+              inputZWorld(0.0f)
         {}
 
-        float movementSpeed;           // Current speed (blended)
-        float targetSpeed;             // Target speed (where we want to go)
-        float movementDirection;   // Current direction (blended)
-        float targetDirection;     // Target direction (where we want to go)
+        float movementSpeed = 0.0f;           // Current speed (blended)
+        float targetSpeed = 0.0f;             // Target speed (where we want to go)
+        float movementDirection = 0.0f;   // Current direction (blended)
+        float targetDirection= 0.0f;     // Target direction (where we want to go)
         bool isJumping;
         float interpolationSpeed;      // Controls how fast blending happens (0.1 = smooth, 1.0 = instant)
 
@@ -31,26 +32,34 @@ namespace Controls
         glm::quat characterRotation;
         glm::mat4 modelTransform;
 
-        void setMovement(float x, float z, glm::vec3 dir)
+        float inputXWorld;
+        float inputZWorld;
+
+        void setMovement(glm::vec3 dir)
         {
             // The input here is actually normalized vector in world space from character position.
             // so input alone should not decide which animation to play
             // compare  input to forward vector to decide that
             // so example: forward vector (0.5,0,-1), input (0.5,0,-1), same direction so moveforward
 
-            auto modelInverseTransform =  glm::inverse(modelTransform);
-            glm::vec4 worldInputDirectionHomogeneous(dir, 0.0f);
-            glm::vec4 characterInputDirection = glm::normalize(modelInverseTransform * worldInputDirectionHomogeneous);
-            characterInputDirection.x += 1;
+            auto modelRotation = glm::mat3(modelTransform);
+            auto modelInverseRotation = glm::transpose(modelRotation);
+            glm::vec3 characterInputDirection = modelInverseRotation * dir;
 
-            targetSpeed = characterInputDirection.z;
+            auto normCharacterInputDirection = glm::normalize(characterInputDirection);
+            if (glm::length(normCharacterInputDirection) > 0.00001f) {
+                targetSpeed = normCharacterInputDirection.z;
+                targetDirection = -normCharacterInputDirection.x;
+            }
+            else{
+                targetSpeed = 0.0f;
+                targetDirection = 0.0f;
+            }
 
-            targetDirection = characterInputDirection.x;
-
+            inputXWorld = dir.x;
+            inputZWorld = dir.z;
 
             isJumping = false;
-
-            directionVector = dir;
         }
 
         void setJumping()

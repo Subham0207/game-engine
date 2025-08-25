@@ -38,8 +38,8 @@ void Outliner::Render(Level &lvl) {
             if(ProjectAssets::ImGuiGrid2D(character->blendSpace.blendPoints, &getUIState().scrubbedPoint, gridSize, &character->animator->blendSelection)){
                 // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
 
-                getUIState().xblendFactor = glm::clamp(getUIState().scrubbedPoint.x, 0.0f,2.0f);
-                getUIState().yblendFactor = glm::clamp(getUIState().scrubbedPoint.y, 0.0f,2.0f);
+                getUIState().xblendFactor = glm::clamp(getUIState().scrubbedPoint.x, -2.0f,2.0f);
+                getUIState().yblendFactor = glm::clamp(getUIState().scrubbedPoint.y, -2.0f,2.0f);
             }
             else{
                 // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
@@ -291,11 +291,11 @@ void Outliner::debugOptions()
     if(State::state->playerControllers.size() > 0)
     {
         auto playerController = State::state->playerControllers[0];
-        if(playerController)
-        {
-            ImGui::SliderFloat("X blendFactor", &playerController->movementDirection, -2.0f, -4.0f);
-            ImGui::SliderFloat("Y blendFactor", &playerController->movementSpeed, -2.0f, -4.0f);
-        }
+        // if(playerController)
+        // {
+        //     ImGui::SliderFloat("X blendFactor", &playerController->movementDirection, -2.0f, -4.0f);
+        //     ImGui::SliderFloat("Y blendFactor", &playerController->movementSpeed, -2.0f, -4.0f);
+        // }
     }
 
     // ImGui::SliderFloat("X blendFactor", &getUIState().xblendFactor, 0.0f, 2.0f);

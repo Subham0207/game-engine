@@ -74,23 +74,24 @@ void InputHandler::handlePlay()
     if(!playerController)
     return;
 
-    //Shit + W to run
-    if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS && glfwGetKey(m_Window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    playerController->setMovement(2, 1, glm::vec3(0,0,2));
+    glm::vec3 directionVector(0.0f);
     //W to move
-    else if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-    playerController->setMovement(1, 1, glm::vec3(0,0,1));
-    else if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-    playerController->setMovement(2, 0, glm::vec3(1,0,0));
-    else if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-    playerController->setMovement(2, 2, glm::vec3(-1,0,0));
-    else if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
-    playerController->setMovement(-1, 1, glm::vec3(0,0,-1));
-    //space to jump
-    else if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    playerController->setJumping();
+    if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
+        directionVector += glm::vec3(0,0,1);
+    if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
+        directionVector += glm::vec3(1,0,0);
+    if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
+        directionVector += glm::vec3(-1,0,0);
+    if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
+        directionVector += glm::vec3(0,0,-1);
+
+    if (glm::length(directionVector) > 0.00001f) {
+        playerController->setMovement(glm::normalize(directionVector));
+    }
     else
-    playerController->setIdle();
+    {
+        playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
+    }
 }
 void InputHandler::handleBasicMovement(float deltaTime)
 {
