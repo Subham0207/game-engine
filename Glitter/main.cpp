@@ -218,7 +218,7 @@ int main(int argc, char * argv[]) {
     Shared::readAnimation("E:/OpenGL/Models/Walking Backwards.fbx");
 
     getPhysicsSystem().Init();
-    auto staticBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(5.0f,1.0f,5.0f));
+    auto floorBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(100.0f,1.0f,100.0f));
 
     auto dynamicBox = new Physics::Box(&getPhysicsSystem(), true, true, glm::vec3(0.0f,5.0f,0.0f), glm::angleAxis(glm::radians(40.0f), glm::vec3(1,0,0)));
 
@@ -244,7 +244,7 @@ int main(int argc, char * argv[]) {
             {
                 //make the physics objects transformations ( including scale ) same as thier model
                 getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
-                staticBox->syncTransformation();
+                floorBox->syncTransformation();
                 dynamicBox->syncTransformation();
                 box->syncTransformation();
                 
@@ -256,7 +256,7 @@ int main(int argc, char * argv[]) {
             else
             {
                 getPhysicsSystem().Update(deltaTime);
-                staticBox->PhysicsUpdate();
+                floorBox->PhysicsUpdate();
                 dynamicBox->PhysicsUpdate();
                 box->PhysicsUpdate();
 
@@ -280,8 +280,11 @@ int main(int argc, char * argv[]) {
         // render the model
         for(int i=0;i<renderables->size();i++)
         {
-            renderables->at(i)->useAttachedShader();
-            (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
+            if(renderables->at(i)->ShouldRender())
+            {
+                renderables->at(i)->useAttachedShader();
+                (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
+            }
         }
 
         for(int i=0;i<getActiveLevel().textSprites.size();i++)

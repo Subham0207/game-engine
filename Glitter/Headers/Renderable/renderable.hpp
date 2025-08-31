@@ -18,6 +18,7 @@ public:
     virtual void setFileName(std::string filename) {}
     virtual void useAttachedShader() {};
     virtual ~Renderable() = default;
+    virtual bool ShouldRender() {return true;}; // implment this method and return false for debug meshes.
 
     virtual void physicsUpdate(){};
     virtual void syncTransformationToPhysicsEntity(){};

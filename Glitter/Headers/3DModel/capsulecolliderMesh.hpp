@@ -32,7 +32,9 @@ class CapsuleColliderModel: public Renderable{
         ProjectModals::Texture* LoadTexture(std::string filePath, aiTextureType textureType) override
         {
             return model->LoadTexture(filePath, textureType);
-        }; 
+        };
+
+        bool ShouldRender() override;
 
         Model* model;
 

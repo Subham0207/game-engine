@@ -4,6 +4,7 @@
 #include "Helpers/shader.hpp"
 #include <glm/glm.hpp>
 #include <cmath>
+#include <EngineState.hpp>
 
 CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
     // getActiveLevel().addRenderable(this);
@@ -25,6 +26,10 @@ void CapsuleColliderModel::reGenerateCapsuleColliderMesh(float radius, float hal
 std::vector<Modals::Material *> CapsuleColliderModel::getMaterials()
 {
     return model->getMaterials();
+}
+
+bool CapsuleColliderModel::ShouldRender() {
+    return !State::state->isPlay;
 }
 
 void CapsuleColliderModel::GenerateCapsuleMesh(std::vector<ProjectModals::Vertex>& vertices, std::vector<unsigned int>& indices, float radius, float halfHeight, int segments, int rings)
