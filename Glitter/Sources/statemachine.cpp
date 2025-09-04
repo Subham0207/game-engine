@@ -3,39 +3,63 @@
 #include <Helpers/Shared.hpp>
 #include <EngineState.hpp>
 
-Controls::AnimationStateMachine::AnimationStateMachine(PlayerController* playerController,  Animator* animator)
+Controls::ToStateWhenCondition::ToStateWhenCondition(State* state, std::function<bool()> condition)
 {
-    this->playerController = playerController;
-    this->animator = animator;
-    currentState = AnimationState::Idle;
-    previousState = AnimationState::Idle;
-    this->blendFactor = 0.0f;
+    this->state = state;
+    this->condition = condition;
 }
 
-void Controls::AnimationStateMachine::Update() {
-    // if(playerController->isRunning)
-    //     currentState = AnimationState::Running;
-    // else if(playerController->isWalking)
-    //     currentState = AnimationState::Walking;
-    // else if(playerController->isJumping)
-    //     currentState = AnimationState::Jumping;
-    // else
-    //     currentState = AnimationState::Idle;
-
-    // if (currentState != previousState) {
-    //     PlayAnimation(currentState);
-    //     previousState = currentState;
-
-    //     blendFactor = 0.0f;
-
-    // }
-
-    // if(blendFactor <= 1)
-    // blendFactor+=0.001;
-
-    // blendFactor = getUIState().blendFactor;
-
-    PlayAnimation(AnimationState::Walking);
+Controls::State::State(std::string stateName)
+{
+    this->stateName = stateName;
+    toStateWhenCondition = new std::vector<ToStateWhenCondition>();
+    animation = NULL;
+    blendspace = NULL;
 }
 
-void Controls::AnimationStateMachine::PlayAnimation(AnimationState state) {}
+void Controls::State::Play(Controls::PlayerController* playerController, Animator* animator)
+{
+    if(animation)
+    {
+        animator->PlayAnimation(animation);
+        return;
+    }
+
+    if(blendspace)
+    {
+        float xfactor = playerController->movementDirection;
+        float yfactor = playerController->movementSpeed;
+        
+        auto blendSelection = blendspace->GetBlendSelection(glm::vec2(xfactor, yfactor));
+        animator->PlayAnimationBlended(blendSelection);
+    }
+}
+
+Controls::StateMachine::StateMachine()
+{
+    stateGraph = NULL;
+    activeState = NULL;
+};
+
+void Controls::StateMachine::tick(Controls::PlayerController* playerController, Animator* animator)
+{
+    if(!activeState)
+    return;
+
+    activeState->Play(playerController, animator);  
+
+    for (size_t i = 0; i < activeState->toStateWhenCondition->size(); i++)
+    {
+        if(activeState->toStateWhenCondition->at(i).condition)
+        {
+            activeState = activeState->toStateWhenCondition->at(i).state;
+            break;
+        }
+    }
+    
+}
+
+void Controls::StateMachine::setActiveState(State* state)
+{
+    this->activeState = state;
+}

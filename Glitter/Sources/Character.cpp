@@ -21,26 +21,47 @@ Character::Character(std::string filepath){
 
     playerController = new Controls::PlayerController();
     State::state->playerControllers.push_back(playerController);
-    animStateMachine = new Controls::AnimationStateMachine(playerController, animator);
 
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    blendSpace.AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
+    animStateMachine = new Controls::StateMachine();
+    auto locomotionState = new Controls::State("Locomotion");
+    auto jumpState = new Controls::State("Jump");
+    auto dodgeRollState = new Controls::State("DodgeRoll");
 
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
-    blendSpace.AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+    locomotionState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        jumpState,
+        [&]() { return playerController->isJumping; })
+    );
+    // locomotionState->toStates->push_back(dodgeRollState);
 
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
-    blendSpace.AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
+    jumpState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        locomotionState,
+        [&]() { return !playerController->isJumping; })
+    );
+    // dodgeRollState->toStates->push_back(locomotionState);
 
-    blendSpace.AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
-    blendSpace.AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
-    blendSpace.AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
+    animStateMachine->setActiveState(locomotionState);
 
+    locomotionState->blendspace = new BlendSpace2D();
 
-    // blendSpace.generateTimeWarpCurve(&skeleton->m_RootNode, animator->timewarpmap);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
+
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
+
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
+
+    jumpState->animation = getUIState().animations[3];
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
 
@@ -175,9 +196,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         getUIState().scrubbedPoint.x = xfactor;
         getUIState().scrubbedPoint.y = yfactor;
 
-        //update animation
-        auto blendSelection = blendSpace.GetBlendSelection(glm::vec2(xfactor, yfactor));
-        this->animator->PlayAnimationBlended(blendSelection);
+        //update animation: Remove this and add state machine
+        animStateMachine->tick(playerController, animator);
 
         //apply force to capsule in direction
         capsuleCollider->movebody(

@@ -62,9 +62,8 @@ public:
 
     Skeleton::Skeleton* skeleton;
     Controls::PlayerController* playerController;
-    Controls::AnimationStateMachine* animStateMachine;
-
-    BlendSpace2D blendSpace;
+    
+    Controls::StateMachine* animStateMachine;
 
     Physics::Capsule* capsuleCollider;
     glm::vec3 capsuleColliderPosRelative;
