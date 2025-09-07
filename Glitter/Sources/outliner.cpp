@@ -249,7 +249,7 @@ void Outliner::manageAnimationsForSelectedModel()
         // Action when the selection changes
         // std::cout << "Selected: " << animationNames[current_item] << std::endl;
     }
-    if(ImGui::Button("Play Animation"))
+    if(ImGui::Button("Play Animation") && !State::state->isPlay)
     {
         if(getUIState().selectedRenderableIndex > -1)
         {

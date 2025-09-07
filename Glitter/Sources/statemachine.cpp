@@ -22,6 +22,9 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
     if(animation)
     {
         animator->PlayAnimation(animation);
+        auto duration = animation->GetDuration();
+        if(animator->m_ElapsedTime > duration)
+        playerController->isJumping = false;
         return;
     }
 
@@ -50,9 +53,11 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
 
     for (size_t i = 0; i < activeState->toStateWhenCondition->size(); i++)
     {
-        if(activeState->toStateWhenCondition->at(i).condition)
+        auto playeThisState = activeState->toStateWhenCondition->at(i).condition();
+        if(playeThisState)
         {
             activeState = activeState->toStateWhenCondition->at(i).state;
+            animator->initNoLoopAnimation();
             break;
         }
     }

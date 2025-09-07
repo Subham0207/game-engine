@@ -17,13 +17,16 @@ public:
 		m_CurrentTime = 0.0;
 		m_CurrentAnimation = NULL;
 		m_FinalBoneMatrices.reserve(100);
+		m_DeltaTime = 0.0f;
+		m_startTime = 0.0f;
+		m_ElapsedTime = 0.0f;
 
 		currentTime1 = 0;
 		currentTime2 = 0;
 		currentTime3 = 0;
 		currentTime4 = 0;
 
-		blendSelection = BlendSelection({nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f});
+		blendSelection = NULL;
 
 		for (int i = 0; i < 100; i++)
 			m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
@@ -43,18 +46,41 @@ public:
 
 		m_DeltaTime = dt;
 		bonePositions.clear();
-		//Use NodeDataFrom Skeleton
-		// std::cout << "Skeletal Start" << std::endl;
-		setAnimationTime();
 		auto globalInverseTransform = glm::inverse(node->transformation); // make sure the first node is the rootNode and not the firstBone. This is used to position the model in the world space.
-		CalculateBoneTransformBlended(
-		node,
-		globalInverseTransform,
-		boneInfoMap,
-		modelMatrix,
-		bonePositions,
-		bones,
-		globalInverseTransform);
+
+		if(blendSelection)
+		{
+			setAnimationTime();
+			CalculateBoneTransformBlended(
+			node,
+			globalInverseTransform,
+			boneInfoMap,
+			modelMatrix,
+			bonePositions,
+			bones,
+			globalInverseTransform);
+		}
+		else if (m_CurrentAnimation)
+		{
+			m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
+			m_ElapsedTime = m_CurrentTime;
+			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+
+			CalculateBoneTransform(
+				node,
+				globalInverseTransform,
+				boneInfoMap,
+				modelMatrix,
+				bonePositions,
+				bones,
+				globalInverseTransform);
+		}
+	}
+
+	void initNoLoopAnimation()
+	{
+		m_startTime = m_DeltaTime;
+		m_CurrentTime = 0.0f;
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -62,18 +88,20 @@ public:
 		if(pAnimation)
 		{
 			m_CurrentAnimation = pAnimation;
-			m_CurrentTime = 0.0f;
+			// m_CurrentTime = 0.0f;
 			isAnimationPlaying = true;
+			blendSelection = NULL;
 		}
 	}
 
-	void PlayAnimationBlended(BlendSelection blendSelection)
+	void PlayAnimationBlended(BlendSelection* blendSelection)
 	{
 		this->blendSelection = blendSelection;
-		if(blendSelection.bottomLeft && blendSelection.bottomRight && 
-			blendSelection.topLeft && blendSelection.topRight)
+		if(blendSelection->bottomLeft && blendSelection->bottomRight && 
+			blendSelection->topLeft && blendSelection->topRight)
 		{
 			isAnimationPlaying = true;
+			m_CurrentAnimation = NULL;
 		}
 	}
 
@@ -167,20 +195,22 @@ public:
 	bool isAnimationPlaying = false;
 	Animation* m_CurrentAnimation;
 
-	BlendSelection blendSelection;
+	BlendSelection* blendSelection;
 	float currentTime1;
 	float currentTime2;
 	float currentTime3;
 	float currentTime4;
 
+	float m_CurrentTime;
+	float m_ElapsedTime;
+
 	std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> timewarpmap; // pair{index of blendpoint, index of point blendpoint} like 1->3
 	
 private:
 	std::vector<glm::mat4> m_FinalBoneMatrices;
-	float m_CurrentTime;
 	float m_DeltaTime;
 	float maxDuration;
-	float m_ElapsedTime;
+	float m_startTime;
 
 	glm::mat4 calculateLocalInterpolatedtransformForBone(Bone *boneTL, Bone *boneTR, Bone *boneBL, Bone *boneBR,
 		float topLeftBlendFactor, float topRightBlendFactor, float bottomLeftBlendFactor, float bottomRightBlendFactor, glm::mat4 bindPoseTransform);

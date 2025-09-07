@@ -58,8 +58,6 @@ namespace Controls
 
             inputXWorld = dir.x;
             inputZWorld = dir.z;
-
-            isJumping = false;
         }
 
         void setJumping()

@@ -32,7 +32,7 @@ public:
         blendPoints.push_back({ pos, anim });
     }
 
-    BlendSelection GetBlendSelection(glm::vec2 input);
+    BlendSelection* GetBlendSelection(glm::vec2 input);
 
     void generateTimeWarpCurve(AssimpNodeData* rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
     std::vector<BlendPoint> blendPoints;

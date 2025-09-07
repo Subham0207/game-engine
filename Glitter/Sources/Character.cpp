@@ -30,14 +30,14 @@ Character::Character(std::string filepath){
     locomotionState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         jumpState,
-        [&]() { return playerController->isJumping; })
+        [this]() { return playerController && playerController->isJumping; })
     );
     // locomotionState->toStates->push_back(dodgeRollState);
 
     jumpState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
-        [&]() { return !playerController->isJumping; })
+        [this]() { return playerController && !playerController->isJumping; })
     );
     // dodgeRollState->toStates->push_back(locomotionState);
 

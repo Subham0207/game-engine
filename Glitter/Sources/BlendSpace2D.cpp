@@ -2,8 +2,8 @@
 #include <iostream>
 #include <vector>
 
-BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
-    BlendSelection result{nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
+BlendSelection* BlendSpace2D::GetBlendSelection(glm::vec2 input) {
+    auto result = new BlendSelection {nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
 
     if (blendPoints.empty()) return result; // No animations available
 
@@ -44,12 +44,12 @@ BlendSelection BlendSpace2D::GetBlendSelection(glm::vec2 input) {
         }
     }
 
-    calculateBlendFactors(input, result, *topLeft, *topRight, *bottomLeft, *bottomRight);
+    calculateBlendFactors(input, *result, *topLeft, *topRight, *bottomLeft, *bottomRight);
     
-    result.bottomLeft = bottomLeft;
-    result.bottomRight = bottomRight;
-    result.topLeft = topLeft;
-    result.topRight = topRight;
+    result->bottomLeft = bottomLeft;
+    result->bottomRight = bottomRight;
+    result->topLeft = topLeft;
+    result->topRight = topRight;
 
     return result;
 }
