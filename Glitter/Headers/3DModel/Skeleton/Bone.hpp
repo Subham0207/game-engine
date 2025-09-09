@@ -106,6 +106,14 @@ public:
 		m_LocalTransform = translation * rotation * scale;
 	}
 
+	void UpdateWithInterpolation(float animationTime)
+	{
+		glm::vec3 interpolatedPos = InterpolatePositionVec(animationTime);
+		glm::quat rot = InterpolateRotationInQuat(animationTime);
+		glm::vec3 interpolatedScale = InterpolateScalingVec(animationTime);
+		m_LocalTransform = glm::translate(glm::mat4(1.0f), interpolatedPos) * glm::toMat4(rot) * glm::scale(glm::mat4(1.0f), interpolatedScale);
+	}
+
 	glm::mat4 GetLocalTransform() { return m_LocalTransform; }
 	std::string GetBoneName() const { return m_Name; }
 	int GetBoneID() { return m_ID; }

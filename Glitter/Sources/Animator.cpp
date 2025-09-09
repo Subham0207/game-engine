@@ -2,6 +2,92 @@
 #include <EngineState.hpp>
 #include <glm/glm.hpp>
 
+void Animator::onPoseTransitionInProgress(
+    const AssimpNodeData* node,
+    glm::mat4 parentTransform,
+    std::map<std::string, BoneInfo> &boneInfoMap,
+    glm::mat4 &globalInverseTransform
+)
+{
+    currentTransitionTime += m_DeltaTime;
+    float blendFactor = glm::clamp(currentTransitionTime / maxTransitionDuration, 0.0f, 1.0f);
+    if (currentTransitionTime >= maxTransitionDuration) 
+    {
+        poseTransitionInProgress = false;
+        currentTransitionTime = 0.0f;
+    }
+    else
+    {
+        CalculateBoneTransformDuringTransition
+        (
+            node,
+            globalInverseTransform,
+            boneInfoMap,
+            globalInverseTransform,
+            blendFactor
+        );
+    }
+}
+
+glm::mat4 Animator::blendTransforms(const glm::mat4& A, const glm::mat4& B, float t) {
+    glm::vec3 scaleA, translationA, skew;
+    glm::vec4 perspectiveA;
+    glm::quat rotA;
+    glm::decompose(A, scaleA, rotA, translationA, skew, perspectiveA);
+
+    glm::vec3 scaleB, translationB;
+    glm::quat rotB;
+    glm::decompose(B, scaleB, rotB, translationB, skew, perspectiveA); // reuse variables
+
+    glm::vec3 scale = glm::mix(scaleA, scaleB, t);
+    glm::vec3 translation = glm::mix(translationA, translationB, t);
+    glm::quat rotation = glm::slerp(rotA, rotB, t);
+
+    glm::mat4 result = glm::translate(glm::mat4(1.0f), translation)
+                     * glm::mat4_cast(rotation)
+                     * glm::scale(glm::mat4(1.0f), scale);
+
+    return result;
+}
+
+void Animator::CalculateBoneTransformDuringTransition(
+    const AssimpNodeData* node,
+    glm::mat4 parentTransform,
+    std::map<std::string, BoneInfo> &boneInfoMap,
+    glm::mat4 &globalInverseTransform,
+    float blendFactor
+)
+{
+    std::string nodeName = node->name;
+
+    glm::mat4 nodeTransform = node->transformation;
+
+    glm::mat4 globalTransformation = parentTransform * nodeTransform;
+    
+    if (boneInfoMap.find(nodeName) != boneInfoMap.end())
+    {
+        int index = boneInfoMap[nodeName].id;
+        
+        glm::mat4 sourceTransform = transitionSourcePose->at(index);
+        glm::mat4 destTransform = transitionDestinationPose->at(index);
+        
+        glm::mat4 blendedTransform = blendTransforms(sourceTransform, destTransform, blendFactor);
+
+        globalTransformation = parentTransform * blendedTransform;
+
+        boneInfoMap[nodeName].transform = globalTransformation;
+        glm::mat4 offset = boneInfoMap[nodeName].offset;
+        
+        m_FinalBoneMatrices[index] = globalInverseTransform * globalTransformation * offset;
+
+        glm::vec3 currentBonePosition = glm::vec3(globalTransformation * glm::vec4(0, 0, 0, 1));
+        glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
+    }
+
+    for (int i = 0; i < node->childrenCount; i++)
+        CalculateBoneTransformDuringTransition(node->children[i], globalTransformation, boneInfoMap, globalInverseTransform, blendFactor);
+}
+
 void Animator::CalculateBoneTransform(
     const AssimpNodeData* node,
     glm::mat4 parentTransform,
@@ -9,7 +95,8 @@ void Animator::CalculateBoneTransform(
     glm::mat4 &modelMatrix,
     std::vector<glm::vec3> &bonePositions,
     std::vector<Bone> &bones,
-    glm::mat4 &globalInverseTransform
+    glm::mat4 &globalInverseTransform,
+    float currentTime
     )
 {
     std::string nodeName = node->name;
@@ -21,7 +108,7 @@ void Animator::CalculateBoneTransform(
         auto animBone = m_CurrentAnimation->FindBone(nodeName);
         if(animBone)
         {
-            animBone->Update(m_CurrentTime);
+            animBone->Update(currentTime);
             nodeTransform = animBone->GetLocalTransform();
         }
     }
@@ -34,6 +121,7 @@ void Animator::CalculateBoneTransform(
         boneInfoMap[nodeName].transform = globalTransformation;
         glm::mat4 offset = boneInfoMap[nodeName].offset;
         m_FinalBoneMatrices[index] = globalInverseTransform * globalTransformation * offset;
+        m_FinalBoneMatricesLocal[index] = nodeTransform;
 
         glm::vec3 currentBonePosition = glm::vec3(globalTransformation * glm::vec4(0, 0, 0, 1));
         glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
@@ -50,7 +138,7 @@ void Animator::CalculateBoneTransform(
     }
 
     for (int i = 0; i < node->childrenCount; i++)
-        CalculateBoneTransform(node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform);
+        CalculateBoneTransform(node->children[i], globalTransformation, boneInfoMap, modelMatrix, bonePositions, bones, globalInverseTransform, currentTime);
 }
 void Animator::CalculateBoneTransformBlended(
     const AssimpNodeData *node,
@@ -106,6 +194,7 @@ void Animator::CalculateBoneTransformBlended(
         boneInfoMap[nodeName].transform = globalTransformation;
         glm::mat4 offset = boneInfoMap[nodeName].offset;
         m_FinalBoneMatrices[index] = globalInverseTransform * globalTransformation * offset;
+        m_FinalBoneMatricesLocal[index] = nodeTransform;
 
         glm::vec3 currentBonePosition = glm::vec3(globalTransformation * glm::vec4(0, 0, 0, 1));
         glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));

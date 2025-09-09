@@ -25,7 +25,10 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
         // Logic to excecute animation only once -- AnimNotify
         auto duration = animation->GetDuration();
         if(stateName == "DodgeRoll" && animator->m_ElapsedTime > duration)
+        {
             playerController->dodgeStart = false;
+            animator->m_ElapsedTime = 0.0f;
+        }
         return;
     }
 
@@ -50,8 +53,8 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
     if(!activeState)
     return;
 
-    activeState->Play(playerController, animator);  
-
+    //Order of execution here is very importatant to correctly apply pose transition
+    //1. first setPoseTransition bool if present.
     for (size_t i = 0; i < activeState->toStateWhenCondition->size(); i++)
     {
         auto playeThisState = activeState->toStateWhenCondition->at(i).condition();
@@ -62,7 +65,10 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
             break;
         }
     }
-    
+
+    //2. then set blendselection and m_currentAnimation
+    activeState->Play(playerController, animator);
+    //3. not here but executes: it is the actual poseTransition logic
 }
 
 void Controls::StateMachine::setActiveState(State* state)

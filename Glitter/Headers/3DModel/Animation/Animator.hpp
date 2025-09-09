@@ -17,6 +17,7 @@ public:
 		m_CurrentTime = 0.0;
 		m_CurrentAnimation = NULL;
 		m_FinalBoneMatrices.reserve(100);
+		m_FinalBoneMatricesLocal.reserve(100);
 		m_DeltaTime = 0.0f;
 		m_startTime = 0.0f;
 		m_ElapsedTime = 0.0f;
@@ -29,7 +30,10 @@ public:
 		blendSelection = NULL;
 
 		for (int i = 0; i < 100; i++)
+		{
 			m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
+			m_FinalBoneMatricesLocal.push_back(glm::mat4(1.0f));
+		}
 	}
 
 	void UpdateAnimation(
@@ -50,37 +54,109 @@ public:
 
 		if(blendSelection)
 		{
-			setAnimationTime();
-			CalculateBoneTransformBlended(
-			node,
-			globalInverseTransform,
-			boneInfoMap,
-			modelMatrix,
-			bonePositions,
-			bones,
-			globalInverseTransform);
+			if(poseTransitionStarted)
+			{
+				transitionSourcePose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
+				currentTime1 = currentTime2 = currentTime3 = currentTime4 = 0.0f;
+				CalculateBoneTransformBlended(
+					node,
+					globalInverseTransform,
+					boneInfoMap,
+					modelMatrix,
+					bonePositions,
+					bones,
+					globalInverseTransform);
+				transitionDestinationPose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
+				poseTransitionStarted = false;
+				poseTransitionInProgress = true;
+			}
+
+			if (poseTransitionInProgress)
+			{
+				onPoseTransitionInProgress(
+					node,
+					globalInverseTransform,
+					boneInfoMap,
+					globalInverseTransform
+				);
+			}	
+			else
+			{
+				setAnimationTime();
+				CalculateBoneTransformBlended(
+					node,
+					globalInverseTransform,
+					boneInfoMap,
+					modelMatrix,
+					bonePositions,
+					bones,
+					globalInverseTransform);
+			}
 		}
 		else if (m_CurrentAnimation)
 		{
-			m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
-			m_ElapsedTime = m_CurrentTime;
-			m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+			if(poseTransitionStarted)
+			{
+				//Here m_FinalBoneMatricesLocal will be from last pose.
+				transitionSourcePose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
+				//Here we re-compute m_FinalBoneMatricesLocal for destination animation first frame.
+				CalculateBoneTransform(
+					node,
+					globalInverseTransform,
+					boneInfoMap,
+					modelMatrix,
+					bonePositions,
+					bones,
+					globalInverseTransform,
+					0.0f					
+				);
+				transitionDestinationPose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
+				poseTransitionStarted = false;
+				poseTransitionInProgress = true;
+			}
 
-			CalculateBoneTransform(
-				node,
-				globalInverseTransform,
-				boneInfoMap,
-				modelMatrix,
-				bonePositions,
-				bones,
-				globalInverseTransform);
+			
+			if (poseTransitionInProgress) 
+			{
+				onPoseTransitionInProgress(
+					node,
+					globalInverseTransform,
+					boneInfoMap,
+					globalInverseTransform
+				);
+			}	
+			else
+			{
+				m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
+				m_ElapsedTime = m_CurrentTime;
+				m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+
+				CalculateBoneTransform(
+					node,
+					globalInverseTransform,
+					boneInfoMap,
+					modelMatrix,
+					bonePositions,
+					bones,
+					globalInverseTransform,
+					m_CurrentTime);
+			}
 		}
 	}
+
+	void onPoseTransitionInProgress(
+		const AssimpNodeData* node,
+		glm::mat4 parentTransform,
+		std::map<std::string, BoneInfo> &boneInfoMap,
+		glm::mat4 &globalInverseTransform
+	);
 
 	void initNoLoopAnimation()
 	{
 		m_startTime = m_DeltaTime;
 		m_CurrentTime = 0.0f;
+		poseTransitionStarted = true;
+		poseTransitionInProgress = false;
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -113,7 +189,16 @@ public:
 		glm::mat4 &modelMatrix,
 		std::vector<glm::vec3> &bonePositions,
 		std::vector<Bone> &bones,
-		glm::mat4 &globalInverseTransform
+		glm::mat4 &globalInverseTransform,
+		float currentTime
+		);
+
+	void CalculateBoneTransformDuringTransition(
+		const AssimpNodeData* node,
+		glm::mat4 parentTransform,
+		std::map<std::string, BoneInfo> &boneInfoMap,
+		glm::mat4 &globalInverseTransform,
+		float blendFactor
 		);
 
 	void CalculateBoneTransformBlended(
@@ -193,7 +278,16 @@ public:
 	}
 
 	bool isAnimationPlaying = false;
+
+	std::vector<glm::mat4> *transitionSourcePose;
+	std::vector<glm::mat4> *transitionDestinationPose;
+
 	Animation* m_CurrentAnimation;
+
+	bool poseTransitionStarted = false;
+	bool poseTransitionInProgress = false;
+	float currentTransitionTime = 0;
+	float maxTransitionDuration = 0.25;
 
 	BlendSelection* blendSelection;
 	float currentTime1;
@@ -207,7 +301,8 @@ public:
 	std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> timewarpmap; // pair{index of blendpoint, index of point blendpoint} like 1->3
 	
 private:
-	std::vector<glm::mat4> m_FinalBoneMatrices;
+	std::vector<glm::mat4> m_FinalBoneMatrices; // this is in world space
+	std::vector<glm::mat4> m_FinalBoneMatricesLocal; // this is in bone's local space.
 	float m_DeltaTime;
 	float maxDuration;
 	float m_startTime;
@@ -216,6 +311,8 @@ private:
 		float topLeftBlendFactor, float topRightBlendFactor, float bottomLeftBlendFactor, float bottomRightBlendFactor, glm::mat4 bindPoseTransform);
 
 	void setAnimationTime();
+
+	glm::mat4 blendTransforms(const glm::mat4& A, const glm::mat4& B, float t);
 
 	friend class boost::serialization::access;
     template<class Archive>
