@@ -22,9 +22,10 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
     if(animation)
     {
         animator->PlayAnimation(animation);
-        auto duration = animation->GetDuration();
-        if(animator->m_ElapsedTime > duration)
-        playerController->isJumping = false;
+        // Logic to excecute animation only once -- AnimNotify
+        // auto duration = animation->GetDuration();
+        // if(animator->m_ElapsedTime > duration)
+        // playerController->isJumping = false;
         return;
     }
 

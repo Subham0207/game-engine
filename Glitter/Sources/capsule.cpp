@@ -71,53 +71,58 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
     model = capsule->model;
 }
 
-void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw)
+void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw, bool& want_jump)
 {
-    JPH::TempAllocatorImpl temp(64 * 1024);
     using namespace JPH;
-    Vec3 input_move = Vec3(x,y,z);
-    bool want_jump = false;
-    auto system = &physics->physicsSystem;
+    TempAllocatorImpl temp(64 * 1024);
 
-    const Vec3 kGravity      = Vec3(0, -9.81f, 0);
-    const float kWalkSpeed   = 4.0f;
-    const float kJumpSpeed   = 5.0f;
+    // Choose sane units (meters). Tune from here if your world is scaled.
+    const Vec3 kGravity = Vec3(0.0f, -9.81f, 0.0f);
+    const float kWalkSpeed = 4.0f;     // m/s
+    const float kJumpSpeed = 6.0f;     // m/s (try 4–8 first, not 900)
 
-    Vec3 v = character->GetGroundVelocity();
-    v += input_move * kWalkSpeed;
+    // Desired horizontal velocity from input (x,z). Keep y = 0
+    Vec3 desired_horizontal = Vec3(x, 0.0f, z) * kWalkSpeed;
 
+    Vec3 v;
+
+    std::cout << "want_jump" << want_jump << " ";
     if (character->GetGroundState() == CharacterBase::EGroundState::OnGround)
     {
-        if (want_jump)
+        // Start from ground’s velocity only while supported
+        v = character->GetGroundVelocity() + desired_horizontal;
+
+        if (want_jump == true)
+        {
+            // Add an instant vertical impulse along the up axis once
+            std::cout << " jump pressed ";
             v += kJumpSpeed * character->GetUp();
+            want_jump = false;
+        }
     }
     else
     {
-        v += kGravity;
+        // In air: keep the *current* vertical velocity, add horizontal + gravity
+        v = character->GetLinearVelocity();
+        v.SetX(desired_horizontal.GetX());
+        v.SetZ(desired_horizontal.GetZ());
     }
 
+    std::cout << "isOnGround " << grounded << " " << "vertical velocity " << v.GetY() << std::endl;
+
+    v += kGravity * deltaTime;
     character->SetLinearVelocity(v);
 
-    //std::cout<< "Character location: " << character->GetPosition().GetX() << " " << character->GetPosition().GetY() << " " << character->GetPosition().GetZ() << std::endl;
-
+    // Rotation handoff (GLM wxyz -> Jolt xyzw ctor)
     JPH::Quat joltYaw(glmYaw.x, glmYaw.y, glmYaw.z, glmYaw.w);
-
     character->SetRotation(joltYaw);
 
     CharacterVirtual::ExtendedUpdateSettings eus;
-    character->ExtendedUpdate(deltaTime,
-                                kGravity,
-                                eus,
-                                {},
-                                {},
-                                {}, {}, temp);
+    character->ExtendedUpdate(deltaTime, kGravity, eus, {}, {}, {}, {}, temp);
 
-
-    grounded     = character->GetGroundState() == CharacterBase::EGroundState::OnGround;
-    ground_normal= character->GetGroundNormal();
-    landed       = listener->has_landed_this_frame;
-    listener->has_landed_this_frame = false;
-
+    grounded      = character->GetGroundState() == CharacterBase::EGroundState::OnGround;
+    ground_normal = character->GetGroundNormal();
+    landed        = listener->has_landed_this_frame; // if you track it
     character->UpdateGroundVelocity();
 }
 void Physics::Capsule::reInit(float radius, float halfheight)
@@ -151,6 +156,17 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
 
     listener = new MyContactListener();
     character->SetListener(listener);                                  // ground callbacks
+
+    auto body_id = character->GetInnerBodyID();
+    auto &lock_interface = physics->physicsSystem.GetBodyLockInterface();
+    {
+        JPH::BodyLockWrite lock(lock_interface, character->GetInnerBodyID());
+        if (lock.Succeeded())
+        {
+            JPH::Body &body = lock.GetBody();
+            body.SetRestitution(0.0f);
+        }
+    }
 }
 
 void Physics::Capsule::PhysicsUpdate()

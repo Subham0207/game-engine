@@ -22,7 +22,7 @@ namespace Physics
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
         void addCustomModel(std::string modelPath) override;
-        void movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw);
+        void movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw, bool& want_jump);
         void PhysicsUpdate() override;
         void Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
             const JPH::RVec3 &spawn, float halfheight = 0.8f, float radius = 0.3f);

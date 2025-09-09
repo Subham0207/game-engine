@@ -30,14 +30,14 @@ Character::Character(std::string filepath){
     locomotionState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         jumpState,
-        [this]() { return playerController && playerController->isJumping; })
+        [this]() { return playerController && !playerController->grounded; })
     );
     // locomotionState->toStates->push_back(dodgeRollState);
 
     jumpState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
-        [this]() { return playerController && !playerController->isJumping; })
+        [this]() { return playerController && playerController->grounded; })
     );
     // dodgeRollState->toStates->push_back(locomotionState);
 
@@ -61,7 +61,7 @@ Character::Character(std::string filepath){
     locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
     locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
 
-    jumpState->animation = getUIState().animations[3];
+    jumpState->animation = getUIState().animations[7];
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
 
@@ -196,7 +196,6 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         getUIState().scrubbedPoint.x = xfactor;
         getUIState().scrubbedPoint.y = yfactor;
 
-        //update animation: Remove this and add state machine
         animStateMachine->tick(playerController, animator);
 
         //apply force to capsule in direction
@@ -206,9 +205,11 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
             playerController->inputZWorld,
             deltaTime,
             model->GetPosition(),
-            desiredRot
+            desiredRot,
+            playerController->isJumping
         );
 
+        playerController->grounded = capsuleCollider->grounded;
         playerController->update(forwardVector, rightVector, model->GetRot(), model->getModelMatrix());
 
         auto capsuleWorldPos = capsuleCollider->model->GetPosition();

@@ -84,7 +84,7 @@ void InputHandler::handlePlay()
         directionVector += glm::vec3(-1,0,0);
     if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
         directionVector += glm::vec3(0,0,-1);
-    if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS && playerController->grounded)
         playerController->isJumping = true;
 
     if (glm::length(directionVector) > 0.00001f) {
