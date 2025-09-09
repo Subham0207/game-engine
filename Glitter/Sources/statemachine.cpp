@@ -23,9 +23,9 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
     {
         animator->PlayAnimation(animation);
         // Logic to excecute animation only once -- AnimNotify
-        // auto duration = animation->GetDuration();
-        // if(animator->m_ElapsedTime > duration)
-        // playerController->isJumping = false;
+        auto duration = animation->GetDuration();
+        if(stateName == "DodgeRoll" && animator->m_ElapsedTime > duration)
+            playerController->dodgeStart = false;
         return;
     }
 

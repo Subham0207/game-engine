@@ -71,22 +71,20 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
     model = capsule->model;
 }
 
-void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw, bool& want_jump)
+void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw, bool& want_jump, float walkSpeed)
 {
     using namespace JPH;
     TempAllocatorImpl temp(64 * 1024);
 
     // Choose sane units (meters). Tune from here if your world is scaled.
     const Vec3 kGravity = Vec3(0.0f, -9.81f, 0.0f);
-    const float kWalkSpeed = 4.0f;     // m/s
     const float kJumpSpeed = 6.0f;     // m/s (try 4–8 first, not 900)
 
     // Desired horizontal velocity from input (x,z). Keep y = 0
-    Vec3 desired_horizontal = Vec3(x, 0.0f, z) * kWalkSpeed;
+    Vec3 desired_horizontal = Vec3(x, 0.0f, z) * walkSpeed;
 
     Vec3 v;
 
-    std::cout << "want_jump" << want_jump << " ";
     if (character->GetGroundState() == CharacterBase::EGroundState::OnGround)
     {
         // Start from ground’s velocity only while supported
@@ -95,7 +93,6 @@ void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm:
         if (want_jump == true)
         {
             // Add an instant vertical impulse along the up axis once
-            std::cout << " jump pressed ";
             v += kJumpSpeed * character->GetUp();
             want_jump = false;
         }
@@ -107,8 +104,6 @@ void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm:
         v.SetX(desired_horizontal.GetX());
         v.SetZ(desired_horizontal.GetZ());
     }
-
-    std::cout << "isOnGround " << grounded << " " << "vertical velocity " << v.GetY() << std::endl;
 
     v += kGravity * deltaTime;
     character->SetLinearVelocity(v);

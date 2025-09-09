@@ -32,14 +32,25 @@ Character::Character(std::string filepath){
         jumpState,
         [this]() { return playerController && !playerController->grounded; })
     );
-    // locomotionState->toStates->push_back(dodgeRollState);
-
+    
     jumpState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
         [this]() { return playerController && playerController->grounded; })
     );
-    // dodgeRollState->toStates->push_back(locomotionState);
+
+    locomotionState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        dodgeRollState,
+        [this]() { return playerController && playerController->dodgeStart; })
+    );
+
+    dodgeRollState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        locomotionState,
+        [this]() { return playerController && !playerController->dodgeStart; })
+    );
+
 
     animStateMachine->setActiveState(locomotionState);
 
@@ -62,6 +73,7 @@ Character::Character(std::string filepath){
     locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
 
     jumpState->animation = getUIState().animations[7];
+    dodgeRollState->animation = getUIState().animations[8];
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
 
@@ -200,13 +212,14 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
         //apply force to capsule in direction
         capsuleCollider->movebody(
-            playerController->inputXWorld,
+            playerController->dodgeStart ? playerController->lookDirection.x :playerController->inputXWorld,
             0.0f,
-            playerController->inputZWorld,
+            playerController->dodgeStart ? playerController->lookDirection.z :playerController->inputZWorld,
             deltaTime,
             model->GetPosition(),
             desiredRot,
-            playerController->isJumping
+            playerController->isJumping,
+            playerController->dodgeStart ? 8.0f: 4.0f
         );
 
         playerController->grounded = capsuleCollider->grounded;

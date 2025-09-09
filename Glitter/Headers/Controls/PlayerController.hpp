@@ -14,8 +14,8 @@ namespace Controls
     public:
         PlayerController()
             : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
-              isJumping(false), grounded(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
-              inputZWorld(0.0f)
+              isJumping(false), grounded(false), dodgeStart(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
+              inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f)
         {}
 
         float movementSpeed = 0.0f;           // Current speed (blended)
@@ -24,7 +24,10 @@ namespace Controls
         float targetDirection= 0.0f;     // Target direction (where we want to go)
         bool isJumping;
         bool grounded;
+        bool dodgeStart;
         float interpolationSpeed;      // Controls how fast blending happens (0.1 = smooth, 1.0 = instant)
+
+        glm::vec3 lookDirection;
 
         glm::vec3 directionVector;
 

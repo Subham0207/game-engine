@@ -217,6 +217,7 @@ int main(int argc, char * argv[]) {
     Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Right.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Walking Backwards.fbx");
     Shared::readAnimation("E:/OpenGL/Models/Falling Idle.fbx");
+    Shared::readAnimation("E:/OpenGL/Models/Sprinting Forward Roll.fbx");
 
     getPhysicsSystem().Init();
     auto floorBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(100.0f,1.0f,100.0f));

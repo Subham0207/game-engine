@@ -13,7 +13,7 @@ glm::quat Controls::PlayerController::faceMouseOnXZ(
     float t = -rayOrigin.y / rayDir.y;
     glm::vec3 mouseWorldPos = rayOrigin + t * rayDir;
 
-    glm::vec3 lookDirection = mouseWorldPos - playerPosition;
+    lookDirection = mouseWorldPos - playerPosition;
     lookDirection.y = 0; // Ensure it's flat on the XZ plane
 
     if (glm::length(lookDirection) > 0.01f) { // Avoid division by zero if mouse is exactly on player
