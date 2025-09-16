@@ -25,7 +25,7 @@ namespace Sprites{
             }
             void setup()
             {
-                shader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/textShader.vert","E:/OpenGL/Glitter/Glitter/Shaders/textShader.frag");
+                shader = new Shader("./Shaders/textShader.vert","./Shaders/textShader.frag");
                 shader->use();
 
                 stbtt_fontinfo font;
@@ -33,7 +33,7 @@ namespace Sprites{
                 auto bitmap = new unsigned char[512 * 512];  // 256 KB bitmap
 
                 // Load the font
-                FILE* fontFile = fopen("E:/OpenGL/Glitter/EngineAssets/Roboto/Roboto-Regular.ttf", "rb");
+                FILE* fontFile = fopen("./EngineAssets/Roboto/Roboto-Regular.ttf", "rb");
                 fread(ttfBuffer, 1, 1 << 20, fontFile);
                 fclose(fontFile);
 

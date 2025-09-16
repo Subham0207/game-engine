@@ -123,3 +123,15 @@ add_custom_command(
     DEPENDS ${PROJECT_SHADERS})
 
 add_subdirectory(Tests)
+
+add_custom_command(TARGET Glitter POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          "${CMAKE_SOURCE_DIR}/EngineAssets"
+          "$<TARGET_FILE_DIR:Glitter>/EngineAssets"
+)
+
+add_custom_command(TARGET Glitter POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          "${CMAKE_SOURCE_DIR}/Glitter/Shaders"
+          "$<TARGET_FILE_DIR:Glitter>/Shaders"
+)

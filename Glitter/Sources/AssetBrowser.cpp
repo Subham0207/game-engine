@@ -96,7 +96,7 @@ namespace ProjectAsset
                 case AssetType::Directory:
                 {
                     asset->textureId = Shared::TextureFromFile(
-                        "E:/OpenGL/Glitter/EngineAssets/folder.png",
+                        "./EngineAssets/folder.png",
                         "folder.png",
                         false);
                         break;
@@ -104,7 +104,7 @@ namespace ProjectAsset
                 default: 
                 {
                     asset->textureId = Shared::TextureFromFile(
-                        "E:/OpenGL/Glitter/EngineAssets/unknown.png",
+                        "./EngineAssets/unknown.png",
                         "unknown.png",
                         false);
                 }

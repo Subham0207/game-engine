@@ -74,7 +74,7 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 void Skeleton::Skeleton::setup(Animator *animator, glm::mat4 modelMatrix)
 {
     this->animator = animator;
-    bonesShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/boneShader.vert", "E:/OpenGL/Glitter/Glitter/Shaders/boneShader.frag");
+    bonesShader = new Shader("./Shaders/boneShader.vert", "./Shaders/boneShader.frag");
     bonesShader->use();
     auto transforms = animator->GetFinalBoneMatrices();
 

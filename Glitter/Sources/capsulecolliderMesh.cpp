@@ -138,7 +138,7 @@ Model* CapsuleColliderModel::createCapsuleModel(float radius, float halfHeight, 
     GenerateCapsuleMesh(capsuleVertices, capsuleIndices, radius, halfHeight, 16, 8);
 
     auto model = new Model();
-    model->shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/staticShader.vert","E:/OpenGL/Glitter/Glitter/Shaders/staticShader.frag");
+    model->shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
     model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices));
     return model;
 }

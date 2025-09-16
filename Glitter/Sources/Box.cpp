@@ -12,7 +12,7 @@ Physics::Box::Box(
     glm::vec3 scale
 ) : PhysicsObject(
         physics,
-        "E:/OpenGL/Glitter/EngineAssets/cube.fbx",
+        "./EngineAssets/cube.fbx",
         isDynamic,
         shouldAddToLevel,
         position,

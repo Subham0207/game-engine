@@ -30,11 +30,11 @@ public:
     {
         if(m_BoneInfoMap && m_BoneCounter)
         {
-            shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/basic.vert","E:/OpenGL/Glitter/Glitter/Shaders/pbr.frag");
+            shader =  new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
         }
         else
         {
-            shader =  new Shader("E:/OpenGL/Glitter/Glitter/Shaders/staticShader.vert","E:/OpenGL/Glitter/Glitter/Shaders/staticShader.frag");
+            shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
         }
         shader->use();
         loadModel(path, m_BoneInfoMap, m_BoneCounter);

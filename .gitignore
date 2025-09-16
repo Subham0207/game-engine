@@ -6,3 +6,4 @@ Glitter/DepsHeaderAndLibs/*
 Assets/
 .idea/*
 cmake-build-debug/*
+EngineAssets/*

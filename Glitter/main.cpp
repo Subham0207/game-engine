@@ -128,12 +128,12 @@ int main(int argc, char * argv[]) {
     // }
     
     //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
-    auto cubeMap = new CubeMap("E:/OpenGL/Models/rostock_laage_airport_8k.hdr");
-    auto equirectangularToCubemapShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/equirectanglular_to_cubemap.frag");
-    auto irradianceShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/irradiance_convolution.frag");
-    auto prefilterShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/cubemap.vert","E:/OpenGL/Glitter/Glitter/Shaders/prefilter.frag");
-    auto brdfShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/brdf.vert","E:/OpenGL/Glitter/Glitter/Shaders/brdf.frag");
-    auto backgroundShader = new Shader("E:/OpenGL/Glitter/Glitter/Shaders/background.vert","E:/OpenGL/Glitter/Glitter/Shaders/background.frag");
+    auto cubeMap = new CubeMap("./EngineAssets/rostock_laage_airport_8k.hdr");
+    auto equirectangularToCubemapShader = new Shader("./Shaders/cubemap.vert","./Shaders/equirectanglular_to_cubemap.frag");
+    auto irradianceShader = new Shader("./Shaders/cubemap.vert","./Shaders/irradiance_convolution.frag");
+    auto prefilterShader = new Shader("./Shaders/cubemap.vert","./Shaders/prefilter.frag");
+    auto brdfShader = new Shader("./Shaders/brdf.vert","./Shaders/brdf.frag");
+    auto backgroundShader = new Shader("./Shaders/background.vert","./Shaders/background.frag");
     cubeMap->setup(mWindow,
     *equirectangularToCubemapShader, *irradianceShader, *prefilterShader, *brdfShader);
 
@@ -151,9 +151,8 @@ int main(int argc, char * argv[]) {
     //Create different shaders for the each model
     
     auto rayCastshader =  new Shader(
-        "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.vert",
-        "E:/OpenGL/Glitter/Glitter/Shaders/rayCast.frag");
-    // auto model3d = new ModelType("E:/OpenGL/backpack/backpack.obj");
+        "./Shaders/rayCast.vert",
+        "./Shaders/rayCast.frag");
     
     //Lights setup
     auto lights = new Lights(); //for PBR removing directional lights and spotlight; Set them back up later.
@@ -209,15 +208,15 @@ int main(int argc, char * argv[]) {
     glDebugMessageCallback(glDebugOutput, nullptr);
 
     //Init
-    Shared::readAnimation("E:/OpenGL/Models/Idle.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Standard Walk.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Running.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Jumping.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Left.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Jog Strafe Right.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Walking Backwards.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Falling Idle.fbx");
-    Shared::readAnimation("E:/OpenGL/Models/Sprinting Forward Roll.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Idle.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Standard Walk.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Running.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Jumping.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Left.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Right.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Walking Backwards.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Falling Idle.fbx");
+    Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
 
     getPhysicsSystem().Init();
     auto floorBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(100.0f,1.0f,100.0f));
