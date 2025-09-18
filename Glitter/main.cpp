@@ -40,9 +40,11 @@
 #include <PhysicsSystem.hpp>
 #include <Physics/Box.hpp>
 #include <Physics/capsule.hpp>
+#include <UI/ProjectManager.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
+GLFWwindow *mWindow;
 
 //This is default stuff
 struct ClientHandler {
@@ -64,16 +66,83 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-int main(int argc, char * argv[]) {
+int initAWindow();
+void imguiBackend()
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
 
-    char cwd[MAX_PATH];
-    if (GetCurrentDirectory(MAX_PATH, cwd)) {
-        std::cout << "Current working dir: " << cwd << std::endl;
-    } else {
-        std::cerr << "Failed to get current working directory." << std::endl;
+    ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your GLSL version
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+}
+int openEditor(int argc, char * argv[]);
+int main(int argc, char * argv[])
+{
+    if (fs::exists(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json")) {
+        std::ifstream infile(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json");
+        std::string line;
+        while (std::getline(infile, line)) {
+            // Check if the line is not empty before adding.
+            if (!line.empty()) {
+                getUIState().recent_projects.push_back(fs::path(line));
+            }
+        }
+        infile.close();
     }
 
-    // Load GLFW and Create a Window
+    initAWindow();
+
+    imguiBackend();
+
+    while (glfwWindowShouldClose(mWindow) == false)
+    {
+
+        glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        //////Code changes go here//////
+        UI::projectManager();
+        ////////////////////////////////
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glfwSwapBuffers(mWindow);
+        glfwPollEvents();
+
+         // Now it's safe to leave the loop
+        if(State::state->currentActiveProjectDirectory != "")
+        break;
+
+    }   
+    
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwTerminate();
+
+
+    if(State::state->currentActiveProjectDirectory != "")
+    {
+        deltaTime = 0.0f;
+        lastFrame = 0.0f;
+        return openEditor(argc, argv);
+    }
+    
+    return EXIT_SUCCESS;
+}
+
+int initAWindow()
+{
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -87,7 +156,7 @@ int main(int argc, char * argv[]) {
 
     mWidth = mode->width;
     mHeight = mode->height;
-    auto mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
+    mWindow = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
 
     // Check for Valid Context
     if (mWindow == nullptr) {
@@ -102,6 +171,20 @@ int main(int argc, char * argv[]) {
     
 
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
+}
+
+int openEditor(int argc, char * argv[]) {
+
+    char cwd[MAX_PATH];
+    if (GetCurrentDirectory(MAX_PATH, cwd)) {
+        std::cout << "Current working dir: " << cwd << std::endl;
+    } else {
+        std::cerr << "Failed to get current working directory." << std::endl;
+    }
+
+    // Load GLFW and Create a Window
+    initAWindow();
+    imguiBackend();
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
@@ -180,23 +263,6 @@ int main(int argc, char * argv[]) {
     auto renderables = lvl->renderables;
     
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-
-    //imgui
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
-
-    ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
-    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your GLSL version
-
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    // Setup Platform/Renderer backends
 
     auto outliner = new Outliner(*renderables);
     auto assetBrowser = new ProjectAsset::AssetBrowser();

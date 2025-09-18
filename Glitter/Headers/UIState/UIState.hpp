@@ -25,8 +25,11 @@ namespace ProjectAsset {
         int coordinateSpace = -1;
         bool isFirstFrame = true;
 
+        //ProjectManager
         bool createANewProject = false;
+        bool openAProject = false;
         std::string newProjectName;
+        std::vector<fs::path> recent_projects;
 
         bool selectAFile = false;
         bool saveAFile = false;

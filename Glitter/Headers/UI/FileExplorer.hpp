@@ -24,4 +24,10 @@ namespace ProjectAsset{
         std::string& currentPath,
         std::vector<std::string>& fileNames,
         bool& showUI);
+
+    void openAProject(
+        std::string& currentPath,
+        std::vector<std::string>& fileNames,
+        bool& showUI
+    );
 };

@@ -1,5 +1,6 @@
 #include <UI/outliner.hpp>
 #include <UI/materialManager.hpp>
+#include <UI/ProjectManager.hpp>
  
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))

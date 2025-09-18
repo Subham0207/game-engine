@@ -239,19 +239,39 @@ void ProjectAsset::createANewProject(
     }
 }
 
-bool ProjectAsset::InputText(const char* label, std::string& str, ImGuiInputTextFlags flags) {
-        // Ensure the buffer is large enough to hold the text
-        char buffer[256];
-        std::strncpy(buffer, str.c_str(), sizeof(buffer));
-        buffer[sizeof(buffer) - 1] = '\0';
+void ProjectAsset::openAProject(std::string &currentPath, std::vector<std::string> &fileNames, bool &showUI)
+{
+    if(ImGui::Begin("FileExplorer", &showUI))
+    {
+        ProjectAsset::RenderFileExplorer(currentPath, fileNames);
+        InputText("##NEW_PROJECT_NAME", getUIState().newProjectName);
 
-        // Create the InputText widget
-        bool result = ImGui::InputText(label, buffer, sizeof(buffer), flags);
-
-        // Update the std::string if the text was modified
-        if (result) {
-            str = std::string(buffer);
+        if (ImGui::Button("Save"))
+        {
+            create_new_project(
+                currentPath,
+                getUIState().newProjectName);
+            showUI = false;
         }
 
-        return result;
+        ImGui::End();
     }
+}
+bool ProjectAsset::InputText(const char *label, std::string &str, ImGuiInputTextFlags flags)
+{
+    // Ensure the buffer is large enough to hold the text
+    char buffer[256];
+    std::strncpy(buffer, str.c_str(), sizeof(buffer));
+    buffer[sizeof(buffer) - 1] = '\0';
+
+    // Create the InputText widget
+    bool result = ImGui::InputText(label, buffer, sizeof(buffer), flags);
+
+    // Update the std::string if the text was modified
+    if (result)
+    {
+        str = std::string(buffer);
+    }
+
+    return result;
+}
