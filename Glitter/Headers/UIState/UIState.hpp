@@ -25,6 +25,8 @@ namespace ProjectAsset {
         int coordinateSpace = -1;
         bool isFirstFrame = true;
 
+        bool createANewProject = false;
+        std::string newProjectName;
 
         bool selectAFile = false;
         bool saveAFile = false;

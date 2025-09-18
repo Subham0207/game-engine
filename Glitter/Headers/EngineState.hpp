@@ -21,7 +21,9 @@ public:
 
     bool isWorldSpace = true;
 
-    std::string projectRootLocation = fs::current_path().string();
+    std::string engineInstalledDirctory = fs::current_path().string();
+
+    std::string currentActiveProjectDirectory = "";
 
     void printMat4(glm::mat4 mat)
     {

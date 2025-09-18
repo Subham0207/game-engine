@@ -19,4 +19,9 @@ namespace ProjectAsset{
                 bool& showUI);
 
     bool InputText(const char* label, std::string& str, ImGuiInputTextFlags flags = 0);
+
+    void createANewProject(
+        std::string& currentPath,
+        std::vector<std::string>& fileNames,
+        bool& showUI);
 };

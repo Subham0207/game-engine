@@ -42,16 +42,6 @@ class Level{
                 }
             }
 
-            for (size_t i = 0; i < lvl.modelFilePaths.size(); i++)
-            {
-                std::cout << "Saving...." << std::endl;
-                std::cout << "mat[0]: " << lvl.modelTransformations[i][0][0].x <<" "<< lvl.modelTransformations[i][0][0].y <<" "<< lvl.modelTransformations[i][0][0].z << " " << lvl.modelTransformations[i][0][0].w << std::endl;
-                std::cout << "mat[0]: " << lvl.modelTransformations[i][0][1].x <<" "<< lvl.modelTransformations[i][0][1].y <<" "<< lvl.modelTransformations[i][0][1].z << " " << lvl.modelTransformations[i][0][1].w << std::endl;
-                std::cout << "mat[0]: " << lvl.modelTransformations[i][0][2].x <<" "<< lvl.modelTransformations[i][0][2].y <<" "<< lvl.modelTransformations[i][0][2].z << " " << lvl.modelTransformations[i][0][2].w << std::endl;
-                std::cout << "mat[0]: " << lvl.modelTransformations[i][0][3].x <<" "<< lvl.modelTransformations[i][0][3].y <<" "<< lvl.modelTransformations[i][0][3].z << " " << lvl.modelTransformations[i][0][3].w << std::endl;
-            }
-
-
             std::ofstream ofs(filename);
             boost::archive::text_oarchive oa(ofs);
             oa << lvl;

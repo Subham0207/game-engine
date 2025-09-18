@@ -4,6 +4,12 @@
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
     {
+
+        if(ImGui::Button("Create a new Project"))
+        {
+            getUIState().createANewProject = true;
+        }
+
         levelControlsComponent(lvl);
 
         coordinateSystemSelectorComponent();
@@ -47,6 +53,13 @@ void Outliner::Render(Level &lvl) {
     //     }
     //     ImGui::End();
     // }
+
+    if(getUIState().createANewProject)
+    {
+        ProjectAsset::createANewProject(
+        getUIState().currentPath, State::state->uiState.fileNames, getUIState().createANewProject 
+        );
+    }
     
     handlerForUIComponentsvisibility();
 
@@ -158,7 +171,9 @@ void Outliner::levelControlsComponent(Level &lvl)
     ImGui::Text("Current Level %s", lvl.levelname.c_str());
     if(ImGui::Button("Save Level"))
     {
-        Level::saveToFile(lvl.levelname, lvl);
+        Level::saveToFile(
+            (fs::path(State::state->currentActiveProjectDirectory) / "Levels" / lvl.levelname).string() + ".lvl",
+            lvl);
     }
     if(ImGui::Button("Save Level as"))
     {

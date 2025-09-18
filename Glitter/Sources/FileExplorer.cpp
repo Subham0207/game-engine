@@ -4,6 +4,7 @@
 #include <EngineState.hpp>
 #include <Character/Character.hpp>
 #include <Helpers/Shared.hpp>
+#include <Helpers/createNewProject.hpp>
 #include <filesystem>
 namespace fs = std::filesystem;
 
@@ -23,7 +24,7 @@ void ProjectAsset::RenderFileExplorer(
     if(ImGui::Button("Go to Root of project"))
     {
         fileNames.clear();
-        currentPath = State::state->projectRootLocation;
+        currentPath = State::state->currentActiveProjectDirectory;
     }
 
     if(State::state->errorStack.size() != 0)
@@ -75,7 +76,10 @@ void ProjectAsset::saveAFile(std::string& currentPath,
                 if (ImGui::Button("Save"))
                 {
                     getActiveLevel().levelname = getUIState().saveAsFileName;
-                    Level::saveToFile("Assets/" + getUIState().saveAsFileName, getActiveLevel());
+                    
+                    Level::saveToFile(
+                        (fs::path(State::state->currentActiveProjectDirectory) / "Levels" / getUIState().saveAsFileName).string() + ".lvl"
+                        , getActiveLevel());
                     showUI = false;
                 }
             }
@@ -209,6 +213,28 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                 }
             }
         }
+        ImGui::End();
+    }
+}
+
+void ProjectAsset::createANewProject(
+    std::string& currentPath,
+    std::vector<std::string>& fileNames,
+    bool &showUI)
+{
+    if(ImGui::Begin("FileExplorer", &showUI))
+    {
+        ProjectAsset::RenderFileExplorer(currentPath, fileNames);
+        InputText("##NEW_PROJECT_NAME", getUIState().newProjectName);
+
+        if (ImGui::Button("Save"))
+        {
+            create_new_project(
+                currentPath,
+                getUIState().newProjectName);
+            showUI = false;
+        }
+
         ImGui::End();
     }
 }
