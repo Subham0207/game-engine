@@ -80,7 +80,7 @@ void imguiBackend()
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 }
-int openEditor(int argc, char * argv[]);
+int openEditor();
 int main(int argc, char * argv[])
 {
     if (fs::exists(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json")) {
@@ -135,7 +135,7 @@ int main(int argc, char * argv[])
     {
         deltaTime = 0.0f;
         lastFrame = 0.0f;
-        return openEditor(argc, argv);
+        return openEditor();
     }
     
     return EXIT_SUCCESS;
@@ -173,7 +173,7 @@ int initAWindow()
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 }
 
-int openEditor(int argc, char * argv[]) {
+int openEditor() {
 
     char cwd[MAX_PATH];
     if (GetCurrentDirectory(MAX_PATH, cwd)) {
@@ -191,11 +191,14 @@ int openEditor(int argc, char * argv[]) {
     // stbi_set_flip_vertically_on_load(true);
 
     //Loading Level -- making .lvl as the extention of my levelfile
+    auto level = new Level();
+    level->loadMainLevelOfCurrentProject();
+    State::state->activeLevel = level;
     auto lvl = State::state->activeLevel;
     // State::state->activeLevel = new level(); state already has a new level initialized
     auto defaultCamera = new Camera();
     lvl->cameras.push_back(defaultCamera);
-
+    
     //Init clienthandler
     clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);

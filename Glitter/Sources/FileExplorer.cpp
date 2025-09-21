@@ -77,9 +77,8 @@ void ProjectAsset::saveAFile(std::string& currentPath,
                 {
                     getActiveLevel().levelname = getUIState().saveAsFileName;
                     
-                    Level::saveToFile(
-                        (fs::path(State::state->currentActiveProjectDirectory) / "Levels" / getUIState().saveAsFileName).string() + ".lvl"
-                        , getActiveLevel());
+                    getActiveLevel().save(
+                        fs::path(State::state->currentActiveProjectDirectory) / "Levels");
                     showUI = false;
                 }
             }
@@ -121,7 +120,8 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                 {
                     case FileTypeOperation::LoadLvlFile:
                         {
-                            Level::loadFromFile(getUIState().filePath, getActiveLevel());
+                            auto level = new Level();
+                            level->load(fs::path(getUIState().filePath), "main.lvl");
                             showUI = false;
                         }
                         break;

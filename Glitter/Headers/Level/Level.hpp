@@ -7,14 +7,18 @@
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/string.hpp"
 #include "boost/serialization/access.hpp"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "3DModel/model.hpp"
 #include "Camera/Camera.hpp"
 #include <Character/Character.hpp>
 #include <Renderable/renderable.hpp>
 #include <Sprites/text.hpp>
+#include <Serializable.hpp>
 
 namespace fs = std::filesystem;
+namespace bs = boost::property_tree;
 
 struct LevelDetails
 {
@@ -25,44 +29,9 @@ struct LevelDetails
     : modelFilePath(_modelFilePath), modelFile(_modelFile) {}
 };
 
-class Level{
+class Level: public Serializable{
     public:
         Level()=default;
-
-        void static saveToFile(const std::string &filename, const Level &lvl) {
-            fs::path dir = fs::path(filename).parent_path();
-            if (dir.empty()) {
-                // Set the directory to the current working directory
-                dir = fs::current_path();
-            }
-            if (!fs::exists(dir)) {
-                if (!fs::create_directories(dir)) {
-                    std::cerr << "Failed to create directories: " << dir << std::endl;
-                    return;
-                }
-            }
-
-            std::ofstream ofs(filename);
-            boost::archive::text_oarchive oa(ofs);
-            oa << lvl;
-        }
-
-        Level static loadFromFile(const std::string &filename, Level &lvl) {
-            std::ifstream ifs(filename);
-            boost::archive::text_iarchive ia(ifs);
-            ia >> lvl;
-            for (size_t i = 0; i < lvl.modelFilePaths.size(); i++)
-            {
-                auto model = new Model();
-                Model::loadFromFile(lvl.modelFilePaths[i], *model);// this also sets modelMatrix to identityMatrix
-                model->setModelMatrix(*lvl.modelTransformations[i]); // Set modelMatrix
-                lvl.renderables->push_back(model);
-                delete lvl.modelTransformations[i];                 
-                lvl.modelTransformations[i] = &model->getModelMatrix();//point lvl's ModelMatrix back to ModelType's Matrix;
-            }
-
-            return lvl;
-        }
 
         bool static checkIfLevelFileExists(std::string  filename)
         {
@@ -71,6 +40,8 @@ class Level{
                 }
                 return false;
         }
+
+        void loadMainLevelOfCurrentProject();
 
         void addRenderable(Renderable *renderable){
             modelFilePaths.push_back(renderable->getName());
@@ -85,6 +56,13 @@ class Level{
         std::string levelname = "level1";
 
         std::vector<Camera*> cameras;
+
+        const std::string contentName() const override { return levelname;}
+        const std::string typeName() const override {return "lvl";}
+    protected:
+        
+        void saveContent(std::ostream& os) const override {}
+        void loadContent(std::istream& is) override {}
 
     private:
 

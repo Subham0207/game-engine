@@ -81,6 +81,8 @@ int create_new_project(const std::string& currentDir, const std::string& project
     fs::create_directories(root / "Library"); // cache/imports (ignore in VCS)
 
     // Manifest (keep it tiny; add fields as you grow)
+    auto lvl = new Level();
+
     std::string manifest = std::string(R"({
         "engineVersion": "0.1.0",
         "projectName": ")") + projectName + R"(",
@@ -91,7 +93,7 @@ int create_new_project(const std::string& currentDir, const std::string& project
             "config": "Config/",
             "cache": "Library/"
         },
-        "defaultScene": "Levels/Main.lvl",
+        "defaultLevel": "Levels/)" + lvl->contentName() + "." + lvl->typeName() + R"(",
         "plugins": []
         }
         )";
@@ -99,8 +101,7 @@ int create_new_project(const std::string& currentDir, const std::string& project
     write_text(root / "Project.manifest.json", manifest);
     update_recent_projects_list(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json", root);
 
-    auto lvl = new Level();
-    lvl->saveToFile((root / "Levels" / "Main.lvl").string(), *lvl);
+    lvl->save(root / "Levels");
 
     State::state->currentActiveProjectDirectory = root.string();
 

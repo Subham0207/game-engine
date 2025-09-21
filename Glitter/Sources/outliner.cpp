@@ -172,9 +172,8 @@ void Outliner::levelControlsComponent(Level &lvl)
     ImGui::Text("Current Level %s", lvl.levelname.c_str());
     if(ImGui::Button("Save Level"))
     {
-        Level::saveToFile(
-            (fs::path(State::state->currentActiveProjectDirectory) / "Levels" / lvl.levelname).string() + ".lvl",
-            lvl);
+        lvl.save(
+            (fs::path(State::state->currentActiveProjectDirectory) / "Levels"));
     }
     if(ImGui::Button("Save Level as"))
     {
