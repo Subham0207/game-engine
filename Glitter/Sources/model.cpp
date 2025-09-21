@@ -297,6 +297,22 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
 
 	for (unsigned int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader);
+
+
+    if(physicsObject)
+    {
+        if(State::state->isPlay)
+        {
+            this->setTransformFromPhysics(physicsObject->model->GetPosition(), physicsObject->model->GetRot());
+        }
+        else
+        {
+            auto pos = GetPosition();
+            auto rot = GetRot();
+            physicsObject->model->setTransformFromPhysics(pos, rot);
+        }
+
+    }
 }
 
 void Model::bindCubeMapTextures(CubeMap *cubeMap)
@@ -410,4 +426,42 @@ void Model::loadFromFile(const std::string &filename, Model &model)
 void UpdateEngineStateWithFoundTexture(aiTextureType type)
 {
 
+}
+
+void Model::attachPhysicsObject(Physics::PhysicsObject* physicsObj)
+{
+    this->physicsObject = physicsObj;
+}
+
+void Model::syncTransformationToPhysicsEntity()
+{
+    if(this->physicsObject)
+    {
+        physicsObject->model->setModelMatrix(getModelMatrix());
+        physicsObject->syncTransformation();
+    }
+}
+
+void Model::physicsUpdate()
+{
+    if(this->physicsObject)
+    physicsObject->PhysicsUpdate();
+}
+
+Model::Model(std::string path,
+std::map<std::string, BoneInfo>* m_BoneInfoMap,
+int* m_BoneCounter)
+{
+    if(m_BoneInfoMap && m_BoneCounter)
+    {
+        shader =  new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
+    }
+    else
+    {
+        shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
+    }
+    shader->use();
+    loadModel(path, m_BoneInfoMap, m_BoneCounter);
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 }

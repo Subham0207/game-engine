@@ -1,6 +1,9 @@
 #include <Physics/PhysicsObject.hpp>
 #include <EngineState.hpp>
 
+
+// These are physics object whose model should not be rendered on play. The model attached to the physics body is for visualization.
+
 Physics::PhysicsObject::PhysicsObject(
     PhysicsSystemWrapper *physics,
     const char* modelPath,
@@ -15,10 +18,6 @@ Physics::PhysicsObject::PhysicsObject(
     {
         addCustomModel(modelPath);
         model->setTransform(position, rotation, scale);
-        if(shouldAddToLevel)
-        {
-            AddToLevel();
-        }
     }
     this->physics = physics;
     this->isDynamic = isDynamic;

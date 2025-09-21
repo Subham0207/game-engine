@@ -2,7 +2,9 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/BodyID.h>
 #include <PhysicsSystem.hpp>
-#include <3DModel/model.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+class Model; 
 
 namespace Physics
 {

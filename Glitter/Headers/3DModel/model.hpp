@@ -19,6 +19,9 @@
 #include <Lights/cubemap.hpp>
 #include <Renderable/renderable.hpp>
 #include <Lights/light.hpp>
+namespace Physics {
+    class PhysicsObject;
+}
 
 class Model: public Renderable
 {
@@ -26,21 +29,7 @@ public:
     Model()=default;
     Model(std::string path,
     std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
-    int* m_BoneCounter = nullptr)
-    {
-        if(m_BoneInfoMap && m_BoneCounter)
-        {
-            shader =  new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
-        }
-        else
-        {
-            shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
-        }
-        shader->use();
-        loadModel(path, m_BoneInfoMap, m_BoneCounter);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
-    }
+    int* m_BoneCounter = nullptr);
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
 
@@ -133,6 +122,10 @@ public:
 
     void static loadFromFile(const std::string &filename, Model &model);
 
+    void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
+    void syncTransformationToPhysicsEntity() override;
+    void physicsUpdate() override;
+
     Shader* shader;
     std::vector<Mesh> meshes;
 private:
@@ -142,6 +135,8 @@ private:
     std::string directory;
     aiAABB* boundingBox;
     glm::mat4 modelMatrix = glm::mat4(1.0f);
+
+    Physics::PhysicsObject* physicsObject = NULL;
 
 
     void loadModel(std::string path,

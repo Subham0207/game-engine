@@ -288,11 +288,10 @@ int openEditor() {
     Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
 
     getPhysicsSystem().Init();
-    auto floorBox = new Physics::Box(&getPhysicsSystem(), false, true, glm::vec3(0.0f,-1.0f,0.0f), glm::quat(), glm::vec3(100.0f,1.0f,100.0f));
-
-    auto dynamicBox = new Physics::Box(&getPhysicsSystem(), true, true, glm::vec3(0.0f,5.0f,0.0f), glm::angleAxis(glm::radians(40.0f), glm::vec3(1,0,0)));
-
-    auto box = new Physics::Box(&getPhysicsSystem(), true, true, glm::vec3(0.0f,10.0f,0.0f));
+    auto floorBox = new Model("./EngineAssets/cube.fbx");
+    getActiveLevel().addRenderable(floorBox);
+    getUIState().renderables = *State::state->activeLevel->renderables;
+    floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
@@ -314,9 +313,6 @@ int openEditor() {
             {
                 //make the physics objects transformations ( including scale ) same as thier model
                 getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
-                floorBox->syncTransformation();
-                dynamicBox->syncTransformation();
-                box->syncTransformation();
                 
                 for(int i=0;i<renderables->size();i++)
                 {
@@ -326,9 +322,6 @@ int openEditor() {
             else
             {
                 getPhysicsSystem().Update(deltaTime);
-                floorBox->PhysicsUpdate();
-                dynamicBox->PhysicsUpdate();
-                box->PhysicsUpdate();
 
                 for(int i=0;i<renderables->size();i++)
                 {
