@@ -11,6 +11,9 @@ public:
     virtual void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) = 0;
     virtual std::vector<Mesh>* getMeshes() = 0;
     virtual glm::mat4& getModelMatrix() = 0;
+    virtual glm::vec3 GetPosition() = 0;
+    virtual glm::quat GetRot() = 0;
+    virtual glm::vec3 GetScale() = 0;
     virtual std::string getName() = 0;
     virtual ProjectModals::Texture* LoadTexture(std::string filePath, aiTextureType textureType) = 0;
     virtual std::vector<Modals::Material *> getMaterials() = 0;
@@ -22,4 +25,6 @@ public:
 
     virtual void physicsUpdate(){};
     virtual void syncTransformationToPhysicsEntity(){};
+
+    virtual std::string GetGuid() = 0;
 };

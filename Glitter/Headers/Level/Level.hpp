@@ -59,10 +59,14 @@ class Level: public Serializable{
 
         const std::string contentName() const override { return levelname;}
         const std::string typeName() const override {return "lvl";}
+
+        std::string GetGuid() {
+            return getGUID();
+        }
     protected:
         
-        void saveContent(std::ostream& os) const override {}
-        void loadContent(std::istream& is) override {}
+        void saveContent(fs::path contentFile, std::ostream& os) override;
+        void loadContent(fs::path contentFile, std::istream& is) override {}
 
     private:
 

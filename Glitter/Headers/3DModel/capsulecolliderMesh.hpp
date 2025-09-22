@@ -34,6 +34,25 @@ class CapsuleColliderModel: public Renderable{
             return model->LoadTexture(filePath, textureType);
         };
 
+        virtual glm::vec3 GetPosition()
+        {
+            return model->GetPosition();
+        }
+
+        virtual glm::vec3 GetScale()
+        {
+            return model->GetScale();
+        }
+
+        virtual glm::quat GetRot()
+        {
+            return model->GetRot();
+        }
+
+        virtual std::string GetGuid() override {
+            return "random_guid";
+        }
+
         bool ShouldRender() override;
 
         Model* model;

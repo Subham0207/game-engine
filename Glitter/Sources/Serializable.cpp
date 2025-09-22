@@ -12,7 +12,7 @@ namespace bs = boost::property_tree;
 
 void Serializable::save(fs::path &assetRoot)
 {
-    auto guid = boost::uuids::to_string(boost::uuids::random_generator()()); 
+    guid_ = boost::uuids::to_string(boost::uuids::random_generator()()); 
     // 1) ensure folder exists
     fs::create_directories(assetRoot);
 
@@ -23,13 +23,14 @@ void Serializable::save(fs::path &assetRoot)
     // 3) give child an ostream to serialize *its* content only
     {
         std::ofstream os(contentFile, std::ios::binary);
+        bs::ptree contentInJson;
         if (!os) throw std::runtime_error("Failed to open content file: " + contentFile.string());
-        saveContent(os);
+        saveContent(contentFile, os);
     }
 
     // 4) write meta (parent-owned)
     bs::ptree meta;
-    meta.put("guid", guid);
+    meta.put("guid", &guid_);
     meta.put("type", typeName());
     meta.put("version", version_);
     meta.put("content.relative_path", contentFile.filename().string());
@@ -41,6 +42,11 @@ void Serializable::save(fs::path &assetRoot)
 std::string Serializable::guid()
 {
     return boost::uuids::to_string(boost::uuids::random_generator()());
+}
+
+std::string Serializable::getGUID()
+{
+    return guid_;
 }
 
 void Serializable::load(fs::path& assetRoot, std::string filename) {
@@ -58,5 +64,5 @@ void Serializable::load(fs::path& assetRoot, std::string filename) {
 
     std::ifstream is(contentFile, std::ios::binary);
     if (!is) throw std::runtime_error("Failed to open content file: " + contentFile.string());
-    loadContent(is);
+    loadContent(contentFile,is);
 }

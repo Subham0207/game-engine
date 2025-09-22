@@ -465,3 +465,9 @@ int* m_BoneCounter)
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 }
+
+void Model::saveContent(fs::path contentFile, std::ostream& os)
+{
+    guid();
+    Model::saveSerializedModel(contentFile.string(), *this);
+}

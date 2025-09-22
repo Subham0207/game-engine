@@ -9,6 +9,7 @@
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <Level/Level.hpp>
+#include <Physics/box.hpp>
 #include <EngineState.hpp>
 namespace fs = std::filesystem;
 
@@ -100,6 +101,11 @@ int create_new_project(const std::string& currentDir, const std::string& project
 
     write_text(root / "Project.manifest.json", manifest);
     update_recent_projects_list(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json", root);
+
+    auto floorBox = new Model("./EngineAssets/cube.fbx");
+    floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
+    lvl->addRenderable(floorBox);
+    floorBox->save(root/ "Assets");
 
     lvl->save(root / "Levels");
 

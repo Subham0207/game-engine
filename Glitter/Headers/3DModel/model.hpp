@@ -19,11 +19,12 @@
 #include <Lights/cubemap.hpp>
 #include <Renderable/renderable.hpp>
 #include <Lights/light.hpp>
+#include <Serializable.hpp>
 namespace Physics {
     class PhysicsObject;
 }
 
-class Model: public Renderable
+class Model: public Renderable, public Serializable
 {
 public:
     Model()=default;
@@ -59,12 +60,12 @@ public:
         modelMatrix = matrix;
     };
 
-    glm::vec3 GetPosition()
+    virtual glm::vec3 GetPosition()
     {
         return glm::vec3(modelMatrix[3]);
     }
 
-    glm::vec3 GetScale()
+    virtual glm::vec3 GetScale()
     {
         glm::vec3 scale;
         scale.x = glm::length(glm::vec3(modelMatrix[0])); // X column
@@ -73,7 +74,7 @@ public:
         return scale;
     }
 
-    glm::quat GetRot()
+    virtual glm::quat GetRot()
     {
         glm::vec3 scale;
         scale.x = glm::length(glm::vec3(modelMatrix[0]));
@@ -88,6 +89,10 @@ public:
         rotMat[2] /= scale.z;
 
         return glm::quat_cast(rotMat);
+    }
+
+    virtual std::string GetGuid() override {
+        return getGUID();
     }
 
     void setTransform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
@@ -125,6 +130,12 @@ public:
     void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
     void syncTransformationToPhysicsEntity() override;
     void physicsUpdate() override;
+
+    const std::string contentName() const override { return directory;}
+    const std::string typeName() const override {return "model";}
+
+    void saveContent(fs::path contentFile, std::ostream& os) override;
+    void loadContent(fs::path contentFile, std::istream& is) override {}
 
     Shader* shader;
     std::vector<Mesh> meshes;

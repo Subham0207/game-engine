@@ -72,6 +72,26 @@ public:
     void syncTransformationToPhysicsEntity() override;
     float cameraHeight = 7;
     float cameraDistance = 16;
+
+    virtual glm::vec3 GetPosition()
+    {
+        return model->GetPosition();
+    }
+
+    virtual glm::vec3 GetScale()
+    {
+        return model->GetScale();
+    }
+
+    virtual glm::quat GetRot()
+    {
+        return model->GetRot();
+    }
+
+    virtual std::string GetGuid() override {
+        return "random_guid";
+    }
+
 private:
     Camera* camera;
 
