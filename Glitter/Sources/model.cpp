@@ -12,6 +12,7 @@
 #include <stb_image_write.h>
 #include <EngineState.hpp>
 #include "ImGuizmo.h"
+#include <Physics/box.hpp>
 
 // using namespace std;
 namespace fs = std::filesystem;
@@ -468,6 +469,13 @@ int* m_BoneCounter)
 
 void Model::saveContent(fs::path contentFile, std::ostream& os)
 {
-    guid();
+    // guid();
     Model::saveSerializedModel(contentFile.string(), *this);
+}
+
+void Model::loadContent(fs::path contentFile, std::istream& is)
+{
+    Model::loadFromFile(contentFile.string(), *this);
+    shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
+    this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 }

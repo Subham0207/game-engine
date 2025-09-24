@@ -30,7 +30,7 @@ void Serializable::save(fs::path &assetRoot)
 
     // 4) write meta (parent-owned)
     bs::ptree meta;
-    meta.put("guid", &guid_);
+    meta.put("guid", guid_);
     meta.put("type", typeName());
     meta.put("version", version_);
     meta.put("content.relative_path", contentFile.filename().string());

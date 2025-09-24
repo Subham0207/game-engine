@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <Controls/PlayerController.hpp>
 #include <PhysicsSystem.hpp>
+#include <EngineRegistry.hpp>
 namespace fs = std::filesystem;
 
 class State{
@@ -24,6 +25,8 @@ public:
     std::string engineInstalledDirctory = fs::current_path().string();
 
     std::string currentActiveProjectDirectory = "";
+
+    Engine::Registry* engineRegistry = new Engine::Registry();
 
     void printMat4(glm::mat4 mat)
     {

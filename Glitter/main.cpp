@@ -185,6 +185,7 @@ int openEditor() {
     // Load GLFW and Create a Window
     initAWindow();
     imguiBackend();
+    State::state->engineRegistry->init();
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
@@ -288,10 +289,10 @@ int openEditor() {
     Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
 
     getPhysicsSystem().Init();
-    auto floorBox = new Model("./EngineAssets/cube.fbx");
-    getActiveLevel().addRenderable(floorBox);
-    getUIState().renderables = *State::state->activeLevel->renderables;
-    floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
+    // auto floorBox = new Model("./EngineAssets/cube.fbx");
+    // getActiveLevel().addRenderable(floorBox);
+    // getUIState().renderables = *State::state->activeLevel->renderables;
+    // floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {

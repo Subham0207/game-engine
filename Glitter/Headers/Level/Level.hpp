@@ -66,7 +66,7 @@ class Level: public Serializable{
     protected:
         
         void saveContent(fs::path contentFile, std::ostream& os) override;
-        void loadContent(fs::path contentFile, std::istream& is) override {}
+        void loadContent(fs::path contentFile, std::istream& is) override;
 
     private:
 

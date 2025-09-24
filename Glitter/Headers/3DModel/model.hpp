@@ -135,7 +135,7 @@ public:
     const std::string typeName() const override {return "model";}
 
     void saveContent(fs::path contentFile, std::ostream& os) override;
-    void loadContent(fs::path contentFile, std::istream& is) override {}
+    void loadContent(fs::path contentFile, std::istream& is) override;
 
     Shader* shader;
     std::vector<Mesh> meshes;
@@ -148,6 +148,7 @@ private:
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     Physics::PhysicsObject* physicsObject = NULL;
+    std::string physicsBodyType = "Box";
 
 
     void loadModel(std::string path,
@@ -181,6 +182,7 @@ private:
         ar & modelMatrix;
         ar & materials;
         ar & directory;
+        ar & physicsBodyType;
     }
     
 };
