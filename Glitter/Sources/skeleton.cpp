@@ -71,14 +71,10 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 
     glEnable(GL_DEPTH_TEST);
 }
-void Skeleton::Skeleton::setup(Animator *animator, glm::mat4 modelMatrix)
+void Skeleton::Skeleton::setup()
 {
-    this->animator = animator;
     bonesShader = new Shader("./Shaders/boneShader.vert", "./Shaders/boneShader.frag");
     bonesShader->use();
-    auto transforms = animator->GetFinalBoneMatrices();
-
-
     setupBoneBuffersOnGPU();
 }
 

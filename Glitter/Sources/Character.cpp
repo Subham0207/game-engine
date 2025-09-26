@@ -7,15 +7,19 @@ namespace fs = std::filesystem;
 Character::Character(std::string filepath){
     animator = new Animator();
     skeleton = new Skeleton::Skeleton();
-    model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter);
-    skeleton->setup(animator, this->model->getModelMatrix());
+    skeleton->setup();
 
-    Assimp::Importer import;
-    const aiScene* scene = import.ReadFile(filepath, aiProcess_Triangulate | aiProcess_FlipUVs);
-    skeleton->ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
+    auto onModelComponentsLoad = [this, filepath](Assimp::Importer* import, const aiScene* scene) {
+        if (!scene) {
+            std::cerr << "Scene is null!\n";
+            return;
+        }
+        skeleton->ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
+        //The animation ReadMissingBone and this function seems to do the same thing
+        Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
+    };
 
-    //The animation ReadMissingBone and this function seems to do the same thing
-    Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
+    model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter, onModelComponentsLoad);
 
     skeleton->BuildBoneHierarchy();
 

@@ -20,7 +20,8 @@ namespace fs = std::filesystem;
 void Model::loadModel(
     std::string path,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter)
+    int* m_BoneCounter,
+    std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -36,6 +37,9 @@ void Model::loadModel(
 
 
     processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
+
+    if(onModelComponentsLoad)
+    onModelComponentsLoad(&import, scene);
 }
 
 void Model::saveSerializedModel(std::string filename, Model &model)
@@ -451,7 +455,8 @@ void Model::physicsUpdate()
 
 Model::Model(std::string path,
 std::map<std::string, BoneInfo>* m_BoneInfoMap,
-int* m_BoneCounter)
+int* m_BoneCounter,
+std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 {
     if(m_BoneInfoMap && m_BoneCounter)
     {
@@ -462,7 +467,7 @@ int* m_BoneCounter)
         shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
     }
     shader->use();
-    loadModel(path, m_BoneInfoMap, m_BoneCounter);
+    loadModel(path, m_BoneInfoMap, m_BoneCounter, onModelComponentsLoad);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 }

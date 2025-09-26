@@ -20,6 +20,7 @@
 #include <Renderable/renderable.hpp>
 #include <Lights/light.hpp>
 #include <Serializable.hpp>
+#include <functional>
 namespace Physics {
     class PhysicsObject;
 }
@@ -30,7 +31,8 @@ public:
     Model()=default;
     Model(std::string path,
     std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
-    int* m_BoneCounter = nullptr);
+    int* m_BoneCounter = nullptr,
+    std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
 
@@ -153,7 +155,8 @@ private:
 
     void loadModel(std::string path,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter);
+    int* m_BoneCounter,
+    std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
 
     void processNode(
     aiNode* node,

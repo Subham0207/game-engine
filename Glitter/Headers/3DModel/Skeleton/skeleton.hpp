@@ -158,7 +158,7 @@ namespace Skeleton {
         bool isClose(glm::vec3 parentEndpoint, glm::vec3 childPosition, float tolerance);
 
         void draw(Camera* camera, glm::mat4 &modelMatrix);
-        void setup(Animator* animator, glm::mat4 modelMatrix);
+        void setup();
 
     private:
     };
