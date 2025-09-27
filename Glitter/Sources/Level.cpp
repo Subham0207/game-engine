@@ -9,6 +9,7 @@ namespace fs = std::filesystem;
 void Level::loadMainLevelOfCurrentProject()
 {
     // read the project.manifest file and find the which level is entry point
+    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
     auto manifestDir = fs::path(State::state->currentActiveProjectDirectory) / "project.manifest.json";
     bs::ptree manifest;
     bs::read_json(manifestDir.string(), manifest);
@@ -41,8 +42,14 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             if(extension ==  ".model")
             {
                 auto model = new Model();
-                model->load(contentFilePath.parent_path(), contentFilePath.filename().string());
+                model->load(contentFilePath.parent_path(), id);
                 this->renderables->push_back(model);
+            }
+            if(extension ==  ".character")
+            {
+                auto character = new Character();
+                character->load(contentFilePath.parent_path(), id);
+                this->renderables->push_back(character);
             }
 
             // Read transform.t

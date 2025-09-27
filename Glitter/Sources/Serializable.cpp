@@ -35,7 +35,7 @@ void Serializable::save(fs::path &assetRoot)
     meta.put("version", version_);
     meta.put("content.relative_path", contentFile.filename().string());
 
-    const fs::path metaFile = assetRoot / (contentName() + ".meta.json");
+    const fs::path metaFile = assetRoot / (guid_ +  ".meta.json");
     write_json(metaFile.string(), meta);
 }
 

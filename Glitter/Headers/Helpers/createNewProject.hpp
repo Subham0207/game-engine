@@ -81,8 +81,22 @@ int create_new_project(const std::string& currentDir, const std::string& project
     fs::create_directories(root / "Config");
     fs::create_directories(root / "Library"); // cache/imports (ignore in VCS)
 
+    State::state->currentActiveProjectDirectory = root.string();
+
     // Manifest (keep it tiny; add fields as you grow)
     auto lvl = new Level();
+
+    auto floorBox = new Model("./EngineAssets/cube.fbx");
+    floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
+    floorBox->save(root/ "Assets");
+    lvl->addRenderable(floorBox);
+    
+    auto character = new Character("./EngineAssets/Aj.fbx");
+    character->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
+    character->save(root/ "Assets");
+    lvl->addRenderable(character);
+
+    lvl->save(root / "Levels");
 
     std::string manifest = std::string(R"({
         "engineVersion": "0.1.0",
@@ -94,26 +108,15 @@ int create_new_project(const std::string& currentDir, const std::string& project
             "config": "Config/",
             "cache": "Library/"
         },
-        "defaultLevel": "Levels/)" + lvl->contentName() + "." + lvl->typeName() + R"(",
+        "defaultLevel": "Levels/)" + lvl->GetGuid() + R"(",
         "plugins": []
         }
         )";
 
     write_text(root / "Project.manifest.json", manifest);
+
     update_recent_projects_list(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json", root);
 
-    auto floorBox = new Model("./EngineAssets/cube.fbx");
-    floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
-    lvl->addRenderable(floorBox);
-    floorBox->save(root/ "Assets");
-    
-    auto character = new Character("./EngineAssets/Aj.fbx");
-    lvl->addRenderable(character);
-    character->save(root/ "Assets");
-
-    lvl->save(root / "Levels");
-
-    State::state->currentActiveProjectDirectory = root.string();
 
     std::cout << "Created project '" << projectName << "' at " << root << "\n";
     std::cout << "Project ID: " << projectId << "\n";

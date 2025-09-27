@@ -26,60 +26,62 @@ Character::Character(std::string filepath){
     playerController = new Controls::PlayerController();
     State::state->playerControllers.push_back(playerController);
 
-    // animStateMachine = new Controls::StateMachine();
-    // auto locomotionState = new Controls::State("Locomotion");
-    // auto jumpState = new Controls::State("Jump");
-    // auto dodgeRollState = new Controls::State("DodgeRoll");
+    filename = fs::path(filepath).filename().string();
 
-    // locomotionState->toStateWhenCondition->push_back(
-    //     Controls::ToStateWhenCondition(
-    //     jumpState,
-    //     [this]() { return playerController && !playerController->grounded; })
-    // );
+    animStateMachine = new Controls::StateMachine();
+    auto locomotionState = new Controls::State("Locomotion");
+    auto jumpState = new Controls::State("Jump");
+    auto dodgeRollState = new Controls::State("DodgeRoll");
+
+    locomotionState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        jumpState,
+        [this]() { return playerController && !playerController->grounded; })
+    );
     
-    // jumpState->toStateWhenCondition->push_back(
-    //     Controls::ToStateWhenCondition(
-    //     locomotionState,
-    //     [this]() { return playerController && playerController->grounded; })
-    // );
+    jumpState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        locomotionState,
+        [this]() { return playerController && playerController->grounded; })
+    );
 
-    // locomotionState->toStateWhenCondition->push_back(
-    //     Controls::ToStateWhenCondition(
-    //     dodgeRollState,
-    //     [this]() { return playerController && playerController->dodgeStart; })
-    // );
+    locomotionState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        dodgeRollState,
+        [this]() { return playerController && playerController->dodgeStart; })
+    );
 
-    // dodgeRollState->toStateWhenCondition->push_back(
-    //     Controls::ToStateWhenCondition(
-    //     locomotionState,
-    //     [this]() { return playerController && !playerController->dodgeStart; })
-    // );
+    dodgeRollState->toStateWhenCondition->push_back(
+        Controls::ToStateWhenCondition(
+        locomotionState,
+        [this]() { return playerController && !playerController->dodgeStart; })
+    );
 
 
-    // animStateMachine->setActiveState(locomotionState);
+    animStateMachine->setActiveState(locomotionState);
 
-    // locomotionState->blendspace = new BlendSpace2D();
+    locomotionState->blendspace = new BlendSpace2D();
 
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
 
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
 
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
 
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
 
-    // jumpState->animation = getUIState().animations[7];
-    // dodgeRollState->animation = getUIState().animations[8];
+    jumpState->animation = getUIState().animations[7];
+    dodgeRollState->animation = getUIState().animations[8];
 
-    capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
+    capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
 
     capsuleColliderPosRelative = glm::vec3(0.0f);
 
@@ -106,7 +108,6 @@ void Character::saveToFile(std::string filename, Character &character)
             return;
         }
     }
-    character.name = filename;
     std::ofstream ofs(filename);
     boost::archive::text_oarchive oa(ofs);
     oa << character;
@@ -115,6 +116,9 @@ void Character::saveToFile(std::string filename, Character &character)
 
 void Character::loadFromFile(const std::string &filename, Character &character)
 {
+        std::ifstream ifs(filename);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> character;
 }
 
 void Character::updateFinalBoneMatrix(float deltatime)
@@ -176,79 +180,95 @@ void Character::updateFinalBoneMatrix(float deltatime)
 
 void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
+    if(animator)
     updateFinalBoneMatrix(deltaTime);
+
+    if(model)
     model->draw(deltaTime, camera, lights, cubeMap);
 
+    if(skeleton)
     skeleton->draw(camera, getModelMatrix());
-
-
 
     if(State::state->isPlay)
     {
         //--
-        State::state->activeCameraIndex = getActiveLevel().cameras.size() - 1;
-
-        this->camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
+        if(this->camera)
+        {
+            State::state->activeCameraIndex = getActiveLevel().cameras.size() - 1;
+    
+            this->camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
+        }
         //--
         
         //-- Turn to Mouse position on XZ plane
         forwardVector = glm::rotate( model->GetRot(), glm::vec3(0.0f, 0.0f, 1.0f));
         rightVector = model->GetRot() * glm::vec3(1.0f, 0.0f, 0.0f);
-        auto desiredRot = playerController->faceMouseOnXZ(
-            model->GetPosition(),
-            InputHandler::currentInputHandler->lastX,
-            InputHandler::currentInputHandler->lastY,
-            this->camera->viewMatrix(),
-            this->camera->projectionMatrix()
-        );
 
+        if(playerController)
+        {
+            auto desiredRot = playerController->faceMouseOnXZ(
+                model->GetPosition(),
+                InputHandler::currentInputHandler->lastX,
+                InputHandler::currentInputHandler->lastY,
+                this->camera->viewMatrix(),
+                this->camera->projectionMatrix()
+            );
 
-        //--
-        
-        float xfactor = playerController->movementDirection;
-        float yfactor = playerController->movementSpeed;
-        // float xfactor = getUIState().xblendFactor;
-        // float yfactor = getUIState().yblendFactor;
-        getUIState().scrubbedPoint.x = xfactor;
-        getUIState().scrubbedPoint.y = yfactor;
-
-        animStateMachine->tick(playerController, animator);
-
-        //apply force to capsule in direction
-        capsuleCollider->movebody(
-            playerController->dodgeStart ? playerController->lookDirection.x :playerController->inputXWorld,
-            0.0f,
-            playerController->dodgeStart ? playerController->lookDirection.z :playerController->inputZWorld,
-            deltaTime,
-            model->GetPosition(),
-            desiredRot,
-            playerController->isJumping,
-            playerController->dodgeStart ? 8.0f: 4.0f
-        );
-
-        playerController->grounded = capsuleCollider->grounded;
-        playerController->update(forwardVector, rightVector, model->GetRot(), model->getModelMatrix());
-
-        auto capsuleWorldPos = capsuleCollider->model->GetPosition();
-        auto relativePosition = glm::vec3(
-        capsuleWorldPos.x + capsuleColliderPosRelative.x,
-        capsuleWorldPos.y + capsuleColliderPosRelative.y,
-        capsuleWorldPos.z + capsuleColliderPosRelative.z
-        );
-        model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
+            
+            
+            //--
+            
+            float xfactor = playerController->movementDirection;
+            float yfactor = playerController->movementSpeed;
+            getUIState().scrubbedPoint.x = xfactor;
+            getUIState().scrubbedPoint.y = yfactor;
+            
+            if(animStateMachine)
+            animStateMachine->tick(playerController, animator);
+            
+            //apply force to capsule in direction
+            if(capsuleCollider && capsuleCollider->physics)
+            {
+                capsuleCollider->movebody(
+                    playerController->dodgeStart ? playerController->lookDirection.x :playerController->inputXWorld,
+                    0.0f,
+                    playerController->dodgeStart ? playerController->lookDirection.z :playerController->inputZWorld,
+                    deltaTime,
+                    model->GetPosition(),
+                    desiredRot,
+                    playerController->isJumping,
+                    playerController->dodgeStart ? 8.0f: 4.0f
+                );
+                
+                playerController->grounded = capsuleCollider ? capsuleCollider->grounded: false;
+                playerController->update(forwardVector, rightVector, model->GetRot(), model->getModelMatrix());
+                
+                auto capsuleWorldPos = capsuleCollider->model->GetPosition();
+                auto relativePosition =  glm::vec3(
+                    capsuleWorldPos.x + capsuleColliderPosRelative.x,
+                    capsuleWorldPos.y + capsuleColliderPosRelative.y,
+                    capsuleWorldPos.z + capsuleColliderPosRelative.z
+                );
+                
+                model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
+            }
+        }
     }
     else
     {
-        auto characterWorldPos = model->GetPosition();
-        auto relativePosition = glm::vec3(
-            characterWorldPos.x - capsuleColliderPosRelative.x,
-            characterWorldPos.y - capsuleColliderPosRelative.y,
-            characterWorldPos.z - capsuleColliderPosRelative.z
-        );
-
-        capsuleCollider->model->setTransformFromPhysics(relativePosition, model->GetRot());
-        capsuleCollider->position = relativePosition;
-        capsuleCollider->rotation = model->GetRot();
+        if(capsuleCollider && capsuleCollider->physics)
+        {
+            auto characterWorldPos = model->GetPosition();
+            auto relativePosition =  glm::vec3(
+                characterWorldPos.x - capsuleColliderPosRelative.x,
+                characterWorldPos.y - capsuleColliderPosRelative.y,
+                characterWorldPos.z - capsuleColliderPosRelative.z
+            );
+    
+            capsuleCollider->model->setTransformFromPhysics(relativePosition, model->GetRot());
+            capsuleCollider->position = relativePosition;
+            capsuleCollider->rotation = model->GetRot();
+        }
     }
 }
 
@@ -300,5 +320,12 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     auto model_location = fs::path(filesMap[model_guid]);
     auto model = new Model();
-    model->load(model_location.parent_path(), model_location.filename().string());
+    model->load(model_location.parent_path(), model_guid);
+    this->model = model;
+
+    auto radius = this->capsuleCollider->radius;
+    auto halfHeight = this->capsuleCollider->halfHeight;
+    delete this->capsuleCollider;
+
+    this->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), radius, halfHeight, true, true);
 }

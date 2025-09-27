@@ -8,16 +8,19 @@ namespace Physics
 {
     class Capsule: public PhysicsObject {
     public:
+        Capsule (): PhysicsObject() {};
         Capsule(
             PhysicsSystemWrapper* physics,
+            float radius = 0.5f,
+            float halfHeight = 1.0f,
             bool isDynamic = false,
             bool shouldAddToLevel = false,
             glm::vec3 position = glm::vec3(0.0f),
             glm::quat rotation = glm::quat(),
             glm::vec3 scale = glm::vec3(1.0f)
         );
-        float radius = 0.5f;
-        float halfHeight = 1.0f;
+        float radius;
+        float halfHeight;
         CapsuleColliderModel *capsule;
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
@@ -41,6 +44,7 @@ namespace Physics
         bool landed        = false;
         JPH::Vec3 ground_normal = JPH::Vec3::sAxisY();
 
+    private:
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {

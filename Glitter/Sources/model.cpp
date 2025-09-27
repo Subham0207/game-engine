@@ -419,6 +419,7 @@ void UpdateEngineStateWithFoundTexture(aiTextureType type)
 
 void Model::attachPhysicsObject(Physics::PhysicsObject* physicsObj)
 {
+    this->physicsBodyType = "Box";
     this->physicsObject = physicsObj;
 }
 
@@ -454,6 +455,8 @@ std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsL
     loadModel(path, m_BoneInfoMap, m_BoneCounter, onModelComponentsLoad);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    filename = fs::path(path).filename().string();
 }
 
 void Model::saveContent(fs::path contentFile, std::ostream& os)
@@ -466,7 +469,8 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
 {
     Model::loadFromFile(contentFile.string(), *this);
     shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
-    this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
+    if(physicsBodyType != "")
+        this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 }
 
 void Model::initOnGPU(Model* model)

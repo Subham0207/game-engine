@@ -135,7 +135,7 @@ public:
 
     void static initOnGPU(Model* model);
 
-    const std::string contentName() override { return directory;}
+    const std::string contentName() override { return filename;}
     const std::string typeName() const override {return "model";}
 
     void saveContent(fs::path contentFile, std::ostream& os) override;
@@ -143,6 +143,8 @@ public:
 
     Shader* shader;
     std::vector<Mesh> meshes;
+    
+    std::string filename;
 private:
     // model data
     std::vector<Modals::Material*> materials;
@@ -152,7 +154,7 @@ private:
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     Physics::PhysicsObject* physicsObject = NULL;
-    std::string physicsBodyType = "Box";
+    std::string physicsBodyType = "";
 
 
     void loadModel(std::string path,

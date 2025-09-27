@@ -10,6 +10,7 @@ namespace Physics
 {
     class PhysicsObject {
     public:
+        PhysicsObject() = default;
         PhysicsObject(
             PhysicsSystemWrapper* physics,
             const char* modelPath,

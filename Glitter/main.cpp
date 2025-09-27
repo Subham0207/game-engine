@@ -193,8 +193,8 @@ int openEditor() {
 
     //Loading Level -- making .lvl as the extention of my levelfile
     auto level = new Level();
+    State::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
     level->loadMainLevelOfCurrentProject();
-    State::state->activeLevel = level;
     auto lvl = State::state->activeLevel;
     // State::state->activeLevel = new level(); state already has a new level initialized
     auto defaultCamera = new Camera();

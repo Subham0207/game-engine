@@ -17,13 +17,14 @@
 class Character: public Renderable, public Serializable
 {
 public:
+    Character() = default;
     Character(std::string filepath);
 
     Model* model;
     std::string model_guid;
 
     Animator* animator;
-    std::string name;
+    std::string filename;
 
     void static saveToFile(std::string filename,  Character &character);
 
@@ -95,12 +96,12 @@ public:
     }
 
     virtual std::string GetGuid() override {
-        return "random_guid";
+        return getGUID();
     }
 
 protected:
     virtual const std::string typeName() const override {return "character"; }
-    virtual const std::string contentName() override {return "character"; }
+    virtual const std::string contentName() override {return filename; }
 
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
@@ -123,7 +124,7 @@ private:
         ar & capsuleColliderPosRelative;
         ar & camera;
         ar & transformation;
-        ar & name;
+        ar & filename;
         ar & model_guid;
         ar & animStateMachine_guid;
         ar & skeleton_guid;

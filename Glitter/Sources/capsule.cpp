@@ -10,6 +10,8 @@ using CastShapeClosestHitCollisionCollector = JPH::ClosestHitCollisionCollector<
 
 Physics::Capsule::Capsule
     (PhysicsSystemWrapper *physics,
+    float radius,
+    float halfHeight,
     bool isDynamic,
     bool shouldAddToLevel,
     glm::vec3 position,
@@ -25,16 +27,9 @@ Physics::Capsule::Capsule
     )
 {
         addCustomModel("");
-        // model->setTransform(positison, rotation, scale);
-        // this->position = position;
-        // this->rotation = rotation;
-        // if(shouldAddToLevel)
-        // {
-        //     AddToLevel();
-        // }
         set = nullptr;
-        // m_temp =
-        // std::make_unique<JPH::TempAllocatorImpl>(64 * 1024);
+        this->radius = radius;
+        this->halfHeight = halfHeight;
 }
 
 void Physics::Capsule::syncTransformation()
