@@ -57,7 +57,7 @@ class Level: public Serializable{
 
         std::vector<Camera*> cameras;
 
-        const std::string contentName() const override { return levelname;}
+        const std::string contentName() override { return levelname;}
         const std::string typeName() const override {return "lvl";}
 
         std::string GetGuid() {

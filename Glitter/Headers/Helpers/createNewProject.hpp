@@ -106,6 +106,10 @@ int create_new_project(const std::string& currentDir, const std::string& project
     floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
     lvl->addRenderable(floorBox);
     floorBox->save(root/ "Assets");
+    
+    auto character = new Character("./EngineAssets/Aj.fbx");
+    lvl->addRenderable(character);
+    character->save(root/ "Assets");
 
     lvl->save(root / "Levels");
 

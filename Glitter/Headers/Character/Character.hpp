@@ -12,13 +12,16 @@
 #include <Controls/PlayerController.hpp>
 #include <Controls/statemachine.hpp>
 #include <Physics/capsule.hpp>
+#include <Serializable.hpp>
 
-class Character: public Renderable
+class Character: public Renderable, public Serializable
 {
 public:
     Character(std::string filepath);
 
     Model* model;
+    std::string model_guid;
+
     Animator* animator;
     std::string name;
 
@@ -61,9 +64,12 @@ public:
     }
 
     Skeleton::Skeleton* skeleton;
+    std::string skeleton_guid;
+    
     Controls::PlayerController* playerController;
     
     Controls::StateMachine* animStateMachine;
+    std::string animStateMachine_guid;
 
     Physics::Capsule* capsuleCollider;
     glm::vec3 capsuleColliderPosRelative;
@@ -92,6 +98,13 @@ public:
         return "random_guid";
     }
 
+protected:
+    virtual const std::string typeName() const override {return "character"; }
+    virtual const std::string contentName() override {return "character"; }
+
+    virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
+    virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
+
 private:
     Camera* camera;
 
@@ -106,10 +119,13 @@ private:
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version) {
-        ar & model;
-        ar & animator;
+        ar & capsuleCollider;
+        ar & capsuleColliderPosRelative;
         ar & camera;
         ar & transformation;
         ar & name;
+        ar & model_guid;
+        ar & animStateMachine_guid;
+        ar & skeleton_guid;
     }
 };

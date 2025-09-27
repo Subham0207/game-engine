@@ -133,7 +133,9 @@ public:
     void syncTransformationToPhysicsEntity() override;
     void physicsUpdate() override;
 
-    const std::string contentName() const override { return directory;}
+    void static initOnGPU(Model* model);
+
+    const std::string contentName() override { return directory;}
     const std::string typeName() const override {return "model";}
 
     void saveContent(fs::path contentFile, std::ostream& os) override;

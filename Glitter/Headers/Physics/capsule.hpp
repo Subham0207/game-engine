@@ -40,5 +40,12 @@ namespace Physics
         bool grounded      = false;
         bool landed        = false;
         JPH::Vec3 ground_normal = JPH::Vec3::sAxisY();
+
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive &ar, const unsigned int version) {
+            ar & radius;
+            ar & halfHeight;
+        }
     };
 }

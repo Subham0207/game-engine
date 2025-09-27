@@ -13,7 +13,7 @@ class Serializable
         virtual void loadContent(fs::path contentFileLocation, std::istream& is) = 0;
 
         virtual const std::string typeName()          const = 0;
-        virtual const std::string contentName()  const = 0;
+        virtual const std::string contentName() = 0;
 
         std::string guid();
         std::string getGUID();

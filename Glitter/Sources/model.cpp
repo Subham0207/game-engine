@@ -409,23 +409,7 @@ void Model::loadFromFile(const std::string &filename, Model &model)
         std::cout << "Exception while opening the model file: " << e.what();
     }
 
-    //Load textures to GPU
-    //Read from the filenames that need to be loaded
-    for (size_t i = 0; i < model.meshes.size(); i++)
-    {
-        //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
-        model.meshes[i].setupMesh();
-
-        //Attach correct texture to each meshes;
-        //model.meshes[i].albedo.Filename = model.textureIds.findTexture(model.meshes[i].albedo.Filename)
-    }
-    for (size_t i = 0; i < model.textureIds.size(); i++)
-    {
-        //Just need to generate new textureIds for the texture
-        int width, height, nrComponents;
-        unsigned char* data = stbi_load(model.textureIds[i]->name.c_str(), &width, &height, &nrComponents, 0);
-        model.textureIds[i]->id = Shared::sendTextureToGPU(data, width, height, nrComponents);
-    }
+    Model::initOnGPU(&model);
 }
 
 void UpdateEngineStateWithFoundTexture(aiTextureType type)
@@ -483,4 +467,25 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
     Model::loadFromFile(contentFile.string(), *this);
     shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
     this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
+}
+
+void Model::initOnGPU(Model* model)
+{
+    //Load textures to GPU
+    //Read from the filenames that need to be loaded
+    for (size_t i = 0; i < model->meshes.size(); i++)
+    {
+        //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
+        model->meshes[i].setupMesh();
+
+        //Attach correct texture to each meshes;
+        //model.meshes[i].albedo.Filename = model.textureIds.findTexture(model.meshes[i].albedo.Filename)
+    }
+    for (size_t i = 0; i < model->textureIds.size(); i++)
+    {
+        //Just need to generate new textureIds for the texture
+        int width, height, nrComponents;
+        unsigned char* data = stbi_load(model->textureIds[i]->name.c_str(), &width, &height, &nrComponents, 0);
+        model->textureIds[i]->id = Shared::sendTextureToGPU(data, width, height, nrComponents);
+    }
 }

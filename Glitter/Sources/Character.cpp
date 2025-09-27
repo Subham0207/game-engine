@@ -26,58 +26,58 @@ Character::Character(std::string filepath){
     playerController = new Controls::PlayerController();
     State::state->playerControllers.push_back(playerController);
 
-    animStateMachine = new Controls::StateMachine();
-    auto locomotionState = new Controls::State("Locomotion");
-    auto jumpState = new Controls::State("Jump");
-    auto dodgeRollState = new Controls::State("DodgeRoll");
+    // animStateMachine = new Controls::StateMachine();
+    // auto locomotionState = new Controls::State("Locomotion");
+    // auto jumpState = new Controls::State("Jump");
+    // auto dodgeRollState = new Controls::State("DodgeRoll");
 
-    locomotionState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        jumpState,
-        [this]() { return playerController && !playerController->grounded; })
-    );
+    // locomotionState->toStateWhenCondition->push_back(
+    //     Controls::ToStateWhenCondition(
+    //     jumpState,
+    //     [this]() { return playerController && !playerController->grounded; })
+    // );
     
-    jumpState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        locomotionState,
-        [this]() { return playerController && playerController->grounded; })
-    );
+    // jumpState->toStateWhenCondition->push_back(
+    //     Controls::ToStateWhenCondition(
+    //     locomotionState,
+    //     [this]() { return playerController && playerController->grounded; })
+    // );
 
-    locomotionState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        dodgeRollState,
-        [this]() { return playerController && playerController->dodgeStart; })
-    );
+    // locomotionState->toStateWhenCondition->push_back(
+    //     Controls::ToStateWhenCondition(
+    //     dodgeRollState,
+    //     [this]() { return playerController && playerController->dodgeStart; })
+    // );
 
-    dodgeRollState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        locomotionState,
-        [this]() { return playerController && !playerController->dodgeStart; })
-    );
+    // dodgeRollState->toStateWhenCondition->push_back(
+    //     Controls::ToStateWhenCondition(
+    //     locomotionState,
+    //     [this]() { return playerController && !playerController->dodgeStart; })
+    // );
 
 
-    animStateMachine->setActiveState(locomotionState);
+    // animStateMachine->setActiveState(locomotionState);
 
-    locomotionState->blendspace = new BlendSpace2D();
+    // locomotionState->blendspace = new BlendSpace2D();
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
 
-    jumpState->animation = getUIState().animations[7];
-    dodgeRollState->animation = getUIState().animations[8];
+    // jumpState->animation = getUIState().animations[7];
+    // dodgeRollState->animation = getUIState().animations[8];
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), true, true);
 
@@ -273,4 +273,32 @@ void Character::syncTransformationToPhysicsEntity()
     //The capsule mesh will be attached to the character so when character moves that mesh updates
     //that should be enough to update the physics collider correctly
     capsuleCollider->syncTransformation();
+}
+
+
+void Character::saveContent(fs::path contentFile, std::ostream& os)
+{
+    auto loc = State::state->currentActiveProjectDirectory;
+
+    //save model
+    this->model->save(contentFile.parent_path());
+    this->model_guid = model->GetGuid();
+
+    //save skeleton
+
+    //save statemachine
+
+    Character::saveToFile(contentFile.string(), *this);
+}
+
+void Character::loadContent(fs::path contentFile, std::istream& is)
+{
+    Character::loadFromFile(contentFile.string(), *this);
+    auto model_guid = this->model_guid;
+
+    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
+
+    auto model_location = fs::path(filesMap[model_guid]);
+    auto model = new Model();
+    model->load(model_location.parent_path(), model_location.filename().string());
 }
