@@ -500,4 +500,40 @@ void Model::initOnGPU(Model* model)
         unsigned char* data = stbi_load(model->textureIds[i]->name.c_str(), &width, &height, &nrComponents, 0);
         model->textureIds[i]->id = Shared::sendTextureToGPU(data, width, height, nrComponents);
     }
+
+   for (size_t i = 0; i < model->meshes.size(); i++) {
+        // Ensure mesh and material exist
+        if(model->meshes[i].material){
+            
+            // Helper lambda to find and assign the ID
+            auto assign_id = [&](std::shared_ptr<ProjectModals::Texture>& texturePtr) {
+                if (texturePtr) {
+                    // Find the matching texture in the global textureIds vector by name
+                    auto it = std::find_if(
+                        model->textureIds.begin(),
+                        model->textureIds.end(),
+                        [&](const std::shared_ptr<ProjectModals::Texture>& globalTexturePtr) {
+                            // Check if the global texture pointer is valid and the names match
+                            return globalTexturePtr && globalTexturePtr->name == texturePtr->name;
+                        }
+                    );
+
+                    // If a match is found, assign the ID
+                    if (it != model->textureIds.end()) {
+                        texturePtr->id = (*it)->id;
+                    }
+                    // Optional: Handle case where texture name is not found, e.g., set ID to 0 or log a warning
+                }
+            };
+
+            auto material = model->meshes[i].material;
+
+            if (material->albedo)    assign_id(material->albedo);
+            if (material->ao)        assign_id(material->ao);
+            if (material->metalness) assign_id(material->metalness);
+            if (material->normal)    assign_id(material->normal);
+            if (material->roughness) assign_id(material->roughness);
+        }
+    }
+    
 }

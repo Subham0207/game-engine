@@ -33,7 +33,7 @@ void Mesh::Draw(Shader* shader)
             case aiTextureType_DIFFUSE:
             {
                 glActiveTexture(GL_TEXTURE0 + 1);
-                if(material->albedo != nullptr)
+                if(material &&  material->albedo)
                 {
                     glBindTexture(GL_TEXTURE_2D, material->albedo->id);
                 }
@@ -45,7 +45,7 @@ void Mesh::Draw(Shader* shader)
             case aiTextureType_NORMALS:
             {
                 glActiveTexture(GL_TEXTURE0 + 2);
-                if(material->normal != nullptr)
+                if(material &&  material->normal)
                 {
                     glBindTexture(GL_TEXTURE_2D, material->normal->id);
                 }
@@ -57,7 +57,7 @@ void Mesh::Draw(Shader* shader)
             case aiTextureType_METALNESS:
             {
                 glActiveTexture(GL_TEXTURE0 + 3);
-                if(material->metalness != nullptr)
+                if(material &&  material->metalness)
                 {
                     glBindTexture(GL_TEXTURE_2D, material->metalness->id);
                 }
@@ -69,7 +69,7 @@ void Mesh::Draw(Shader* shader)
             case aiTextureType_DIFFUSE_ROUGHNESS:
             {
                 glActiveTexture(GL_TEXTURE0 + 4);
-                if(material->roughness != nullptr)
+                if(material &&  material->roughness)
                 {
                     glBindTexture(GL_TEXTURE_2D, material->roughness->id);
                 }
@@ -81,7 +81,7 @@ void Mesh::Draw(Shader* shader)
             case aiTextureType_AMBIENT_OCCLUSION:
             {
                 glActiveTexture(GL_TEXTURE0 + 5);
-                if(material->ao != nullptr)
+                if(material &&  material->ao)
                 {
                     glBindTexture(GL_TEXTURE_2D, material->ao->id);
                 }

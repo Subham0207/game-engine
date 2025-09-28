@@ -45,5 +45,6 @@
         void serialize(Archive &ar, const unsigned int version) {
             ar & vertices;
             ar & indices;
+            ar & material;
         }
     };

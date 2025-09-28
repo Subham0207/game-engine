@@ -190,6 +190,7 @@ private:
         ar & meshes;
         ar & modelMatrix;
         ar & materials;
+        ar & textureIds;
         ar & directory;
         ar & physicsBodyType;
     }
