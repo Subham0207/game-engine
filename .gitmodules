@@ -26,11 +26,11 @@
     path = Glitter/Vendor/imgui
     url = https://github.com/ocornut/imgui.git
     branch = master
-[submodule "Glitter/Vendor/imguizmo"]
-    path = Glitter/Vendor/imguizmo
+[submodule "Glitter/Vendor/ImGuizmo"]
+    path = Glitter/Vendor/ImGuizmo
     url = https://github.com/CedricGuillemet/ImGuizmo.git
     branch = master
-[submodule "Glitter/Vendor/jolt"]
-    path = Glitter/Vendor/jolt
+[submodule "Glitter/Vendor/JoltPhysics"]
+    path = Glitter/Vendor/JoltPhysics
     url = https://github.com/jrouwe/JoltPhysics.git
     branch = master

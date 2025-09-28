@@ -1,7 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include "glad/glad.h"
-#include "stb_truetype/stb_truetype.h"
+#include <stb_truetype.h>
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <Helpers/shader.hpp>

@@ -87,17 +87,30 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
+set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/Glitter/Vendor/boost_1_89_0")
+set(Boost_USE_STATIC_LIBS ON) 
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+set(Boost_DEBUG ON)
+
+find_package(Boost 1.89.0 REQUIRED COMPONENTS serialization)
+
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_HEADERS} ${IMGUIZMO_IMPL_SOURCES})
+
+target_include_directories(${PROJECT_NAME} 
+    PRIVATE 
+    ${Boost_INCLUDE_DIRS}
+)
+
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath
-                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-gd-x64-1_85.lib
-                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
                       Jolt::Jolt
+                      Boost::serialization
                       )
 
 list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/main.cpp)
@@ -109,9 +122,8 @@ ${IMGUI_IMPL_HEADERS} ${IMGUIZMO_IMPL_HEADERS} ${VENDORS_SOURCES})
 target_link_libraries(GlitterLib assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath
-                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-gd-x64-1_85.lib
-                      ${CMAKE_SOURCE_DIR}/Glitter/DepsHeaderAndLibs/Libs/libboost_serialization-vc143-mt-x64-1_85.lib
                       Jolt::Jolt
+                      Boost::serialization
                       )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

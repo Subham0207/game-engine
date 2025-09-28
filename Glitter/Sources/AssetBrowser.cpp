@@ -49,9 +49,15 @@ namespace ProjectAsset
                             ImGui::TableNextColumn();
 
                             RenderAsset(&assets[i]);
-                            if(ImGui::ImageButton((void*)(intptr_t)assets[i].textureId,
-                            ImVec2(itemSize, itemSize),ImVec2(0,0),ImVec2(1,1),
-                            -1, ImVec4(0,0,0,0),ImVec4(1,1,1,1)))
+                            if(ImGui::ImageButton(
+                                ("##image" + std::to_string(i)).c_str(),   // Unique label for ImGui ID system
+                                (ImTextureID)(intptr_t)assets[i].textureId,
+                                ImVec2(itemSize, itemSize),
+                                ImVec2(0, 0),
+                                ImVec2(1, 1),
+                                ImVec4(0, 0, 0, 0),
+                                ImVec4(1, 1, 1, 1)
+                            ))
                             {
                                 if(assets[i].assetType == AssetType::Directory)
                                 {
