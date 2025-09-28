@@ -119,6 +119,11 @@ add_library(GlitterLib ${PROJECT_SOURCES} ${PROJECT_HEADERS}
 ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
 ${IMGUI_IMPL_HEADERS} ${IMGUIZMO_IMPL_HEADERS} ${VENDORS_SOURCES})
 
+target_include_directories(GlitterLib
+    PRIVATE 
+    ${Boost_INCLUDE_DIRS}
+)
+
 target_link_libraries(GlitterLib assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath
