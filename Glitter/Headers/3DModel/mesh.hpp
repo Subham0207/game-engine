@@ -16,6 +16,8 @@
 #include "boost/serialization/serialization.hpp"
 #include "boost/serialization/string.hpp"
 #include "boost/serialization/access.hpp"
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/base_object.hpp>
 
 #include <Modals/vertex.hpp>
 #include <Modals/material.hpp>
@@ -26,7 +28,7 @@
         std::vector<ProjectModals::Vertex>       vertices;
         std::vector<unsigned int> indices;
 
-        Modals::Material* material = new Modals::Material();
+        std::shared_ptr<Modals::Material> material{};
 
         Mesh()=default;
         Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices);

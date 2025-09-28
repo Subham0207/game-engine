@@ -7,7 +7,7 @@ namespace UI{
     void materialsFoundInModel();
 
     void UpdateOrDisplayTexture(
-    ProjectModals::Texture* texture,
+    std::shared_ptr<ProjectModals::Texture> texture,
     int materialIndex, int textureIndex,
     ProjectAsset::FileTypeOperation textureType
     );

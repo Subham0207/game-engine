@@ -55,11 +55,11 @@ public:
         return model->getName();
     }
 
-    ProjectModals::Texture* LoadTexture(std::string filePath, aiTextureType textureType) override{
+    std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string filePath, aiTextureType textureType) override{
         return model->LoadTexture(filePath, textureType);
     }
 
-    std::vector<Modals::Material *> getMaterials() override
+    std::vector<std::shared_ptr<Modals::Material>> getMaterials() override
     {
         return model->getMaterials();
     }

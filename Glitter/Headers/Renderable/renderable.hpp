@@ -15,8 +15,8 @@ public:
     virtual glm::quat GetRot() = 0;
     virtual glm::vec3 GetScale() = 0;
     virtual std::string getName() = 0;
-    virtual ProjectModals::Texture* LoadTexture(std::string filePath, aiTextureType textureType) = 0;
-    virtual std::vector<Modals::Material *> getMaterials() = 0;
+    virtual std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string filePath, aiTextureType textureType) = 0;
+    virtual std::vector<std::shared_ptr<Modals::Material>> getMaterials() = 0;
     virtual void setModelMatrix(glm::mat4 matrix) {}
     virtual void setFileName(std::string filename) {}
     virtual void useAttachedShader() {};

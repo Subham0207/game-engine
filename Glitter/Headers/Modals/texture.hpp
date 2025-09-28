@@ -13,7 +13,12 @@ namespace ProjectModals{
     aiTextureType type;
     std::string name;
 
-    Texture()=default;
+    Texture()
+    {
+        id = 100000;
+        type = aiTextureType_NONE;
+        name = "";
+    }
     Texture(unsigned int textureId, aiTextureType textureType, std::string filename)
         : id(textureId), type(textureType), name(filename) {}
 

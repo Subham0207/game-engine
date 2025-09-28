@@ -64,7 +64,7 @@ void Model::saveSerializedModel(std::string filename, Model &model)
     //They will need to bound again to GPU
 }
 
-ProjectModals::Texture* Model::processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type)
+std::shared_ptr<ProjectModals::Texture> Model::processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type)
 {
     aiString texturePath;
     if (material->GetTexture(type, 0, &texturePath) == AI_SUCCESS) {
@@ -90,12 +90,13 @@ ProjectModals::Texture* Model::processEmbeddedTexture(const aiScene* scene, aiMa
             }
         }
     }
-    return nullptr;
+    return shared_ptr<ProjectModals::Texture>(nullptr);
 }
 
-ProjectModals::Texture* Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType)
+std::shared_ptr<ProjectModals::Texture> Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType)
 {
-    auto filename = "Assets/" + fs::path(texture->mFilename.C_Str()).filename().string();
+    auto currentProjectLocation = fs::path(State::state->currentActiveProjectDirectory);
+    auto filename = (currentProjectLocation / "Assets" / fs::path(texture->mFilename.C_Str()).filename().string()).string();
     if(textureIds.size() > 0)
     {
         for (size_t i = 0; i < textureIds.size(); i++)
@@ -113,7 +114,7 @@ ProjectModals::Texture* Model::loadEmbeddedTexture(const aiTexture* texture, aiT
     stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = Shared::sendTextureToGPU(data, mWidth, mheight, nrComponents);
     auto filepath = fs::current_path().append(filename).string();
-    auto newTexture = new ProjectModals::Texture(textureID, textureType, filepath);
+    auto newTexture = std::make_shared<ProjectModals::Texture>(textureID, textureType, filepath);
     textureIds.push_back(newTexture);
     return textureIds[textureIds.size() - 1];
 }
@@ -241,7 +242,14 @@ Mesh Model::processMesh(
     };
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    // if (justMesh.material) {
+    //     justMesh.material.reset();
+    // }
+    justMesh.material = std::make_shared<Modals::Material>();
     for (aiTextureType type : textureTypes) {
+        if (!justMesh.material) { 
+            break; 
+        } 
         switch (type)
         {
             case aiTextureType_DIFFUSE:
@@ -373,13 +381,13 @@ void Model::calculateBoundingBox(const aiScene* scene) {
     }
 }
 
-ProjectModals::Texture* Model::LoadTexture(std::string texturePath, aiTextureType typeName)
+std::shared_ptr<ProjectModals::Texture> Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 {
     fs::path fsPath(texturePath);
     std::string filename = "Assets/"+fsPath.filename().string();
     unsigned int id = Shared::TextureFromFile(texturePath.c_str(), filename);
     auto filepath = fs::current_path().append(filename).string();
-    auto texture = new ProjectModals::Texture(id, typeName, filepath);
+    auto texture = std::make_shared<ProjectModals::Texture>(id, typeName, filepath);
     //Load Texture in GPU. Get the ID.
     // texture.path = texturePath.c_str();
 

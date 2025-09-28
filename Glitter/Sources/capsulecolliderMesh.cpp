@@ -23,7 +23,7 @@ void CapsuleColliderModel::reGenerateCapsuleColliderMesh(float radius, float hal
     model = createCapsuleModel(radius, halfheight); //TODO: add destructor to Model class.
 }
 
-std::vector<Modals::Material *> CapsuleColliderModel::getMaterials()
+std::vector<std::shared_ptr<Modals::Material>> CapsuleColliderModel::getMaterials()
 {
     return model->getMaterials();
 }

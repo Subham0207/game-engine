@@ -11,7 +11,7 @@ class CapsuleColliderModel: public Renderable{
 
         void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
 
-        std::vector<Modals::Material *> getMaterials() override;
+        std::vector<std::shared_ptr<Modals::Material>> getMaterials() override;
 
         void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override
         {
@@ -29,7 +29,7 @@ class CapsuleColliderModel: public Renderable{
         {
             return model->getName();
         };
-        ProjectModals::Texture* LoadTexture(std::string filePath, aiTextureType textureType) override
+        std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string filePath, aiTextureType textureType) override
         {
             return model->LoadTexture(filePath, textureType);
         };

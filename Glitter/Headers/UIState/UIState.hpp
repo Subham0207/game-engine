@@ -53,7 +53,7 @@ namespace ProjectAsset {
 
         // Details of ModelType selection window
         std::string modelfileName="";
-        std::vector<Modals::Material*> materials;
+        std::vector<std::shared_ptr<Modals::Material>> materials;
         std::string saveAsFileName = "";
 
         std::vector<Animation*> animations;

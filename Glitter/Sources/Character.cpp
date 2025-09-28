@@ -62,24 +62,24 @@ Character::Character(std::string filepath){
 
     locomotionState->blendspace = new BlendSpace2D();
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
+    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
 
-    jumpState->animation = getUIState().animations[7];
-    dodgeRollState->animation = getUIState().animations[8];
+    // jumpState->animation = getUIState().animations[7];
+    // dodgeRollState->animation = getUIState().animations[8];
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
 

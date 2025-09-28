@@ -21,6 +21,9 @@
 #include <Lights/light.hpp>
 #include <Serializable.hpp>
 #include <functional>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/base_object.hpp>
+
 namespace Physics {
     class PhysicsObject;
 }
@@ -43,7 +46,7 @@ public:
     void useAttachedShader() override;
 
     aiAABB* GetBoundingBox();
-    ProjectModals::Texture* LoadTexture(std::string texturePath, aiTextureType typeName) override;
+    std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string texturePath, aiTextureType typeName) override;
 
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override;
 
@@ -62,12 +65,12 @@ public:
         modelMatrix = matrix;
     };
 
-    virtual glm::vec3 GetPosition()
+    virtual glm::vec3 GetPosition() override
     {
         return glm::vec3(modelMatrix[3]);
     }
 
-    virtual glm::vec3 GetScale()
+    virtual glm::vec3 GetScale() override
     {
         glm::vec3 scale;
         scale.x = glm::length(glm::vec3(modelMatrix[0])); // X column
@@ -76,7 +79,7 @@ public:
         return scale;
     }
 
-    virtual glm::quat GetRot()
+    virtual glm::quat GetRot() override
     {
         glm::vec3 scale;
         scale.x = glm::length(glm::vec3(modelMatrix[0]));
@@ -116,7 +119,7 @@ public:
     }
 
 
-    std::vector<Modals::Material *> getMaterials() override
+    std::vector<std::shared_ptr<Modals::Material>> getMaterials() override
     {
         return materials;
     }
@@ -145,10 +148,9 @@ public:
     std::vector<Mesh> meshes;
     
     std::string filename;
+    std::vector<std::shared_ptr<Modals::Material>> materials;
+    std::vector<std::shared_ptr<ProjectModals::Texture>> textureIds;
 private:
-    // model data
-    std::vector<Modals::Material*> materials;
-    std::vector<ProjectModals::Texture*> textureIds;
     std::string directory;
     aiAABB* boundingBox;
     glm::mat4 modelMatrix = glm::mat4(1.0f);
@@ -168,7 +170,7 @@ private:
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter);
 
-    ProjectModals::Texture* processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type);
+    std::shared_ptr<ProjectModals::Texture> processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type);
     
     Mesh processMesh(
     aiMesh* mesh,
@@ -178,7 +180,7 @@ private:
 
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
 
-    ProjectModals::Texture* loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
+    std::shared_ptr<ProjectModals::Texture> loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
 
     void calculateBoundingBox(const aiScene* scene);
 

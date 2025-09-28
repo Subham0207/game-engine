@@ -230,9 +230,9 @@ int openEditor() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Generate textureIds for Some Default texture
-    getUIState().metalicTextureID = Shared::generateMetallicTexture();
-    getUIState().nonMetalicTextureID = Shared::generateMetallicTexture();
-    getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
+    // getUIState().metalicTextureID = Shared::generateMetallicTexture();
+    // getUIState().nonMetalicTextureID = Shared::generateMetallicTexture();
+    // getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
 
 
     //Create different shaders for the each model
