@@ -278,15 +278,15 @@ int openEditor() {
     glDebugMessageCallback(glDebugOutput, nullptr);
 
     //Init
-    Shared::readAnimation("./EngineAssets/Animations/Idle.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Standard Walk.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Running.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Jumping.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Left.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Right.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Walking Backwards.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Falling Idle.fbx");
-    Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Idle.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Standard Walk.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Running.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Jumping.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Left.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Right.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Walking Backwards.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Falling Idle.fbx");
+    // Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
 
     getPhysicsSystem().Init();
     // auto floorBox = new Model("./EngineAssets/cube.fbx");
