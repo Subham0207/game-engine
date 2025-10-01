@@ -6,10 +6,11 @@
 #include <Helpers/Shader.hpp>
 #include <Renderable/renderable.hpp>
 #include <3DModel/Animation/Animator.hpp>
+#include <Serializable.hpp>
 
 
 namespace Skeleton {
-    class Skeleton {
+    class Skeleton: public Serializable {
     
     public:
         Skeleton()
@@ -25,6 +26,7 @@ namespace Skeleton {
         unsigned int bonesColorVBO;
         Shader* bonesShader;
         Animator* animator;
+        std::string filename;
 
         void static ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
         {
@@ -158,8 +160,26 @@ namespace Skeleton {
         bool isClose(glm::vec3 parentEndpoint, glm::vec3 childPosition, float tolerance);
 
         void draw(Camera* camera, glm::mat4 &modelMatrix);
-        void setup();
+        void setup(std::string filename);
+
+    protected:
+        virtual const std::string typeName() const override {return "skeleton"; }
+        virtual const std::string contentName() override {return filename; }
+
+        virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
+        virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 
     private:
+
+        friend class boost::serialization::access;
+        template<class Archive>
+        void serialize(Archive &ar, const unsigned int version) {
+            ar & m_BoneInfoMap;
+            ar & m_BoneCounter;
+            ar & bonePositions;
+            ar & m_RootNode;
+            ar & m_Bones;
+        }
+
     };
 }

@@ -71,8 +71,9 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 
     glEnable(GL_DEPTH_TEST);
 }
-void Skeleton::Skeleton::setup()
+void Skeleton::Skeleton::setup(std::string filename)
 {
+    this->filename = filename;
     bonesShader = new Shader("./Shaders/boneShader.vert", "./Shaders/boneShader.frag");
     bonesShader->use();
     setupBoneBuffersOnGPU();
@@ -85,4 +86,30 @@ void Skeleton::Skeleton::updateModelAndViewPosMatrix(Camera *camera, glm::mat4 &
     bonesShader->setMat4("projection", projection);
     bonesShader->setMat4("view", view);
     bonesShader->setMat4("model", modelMatrix);
+}
+
+void Skeleton::Skeleton::saveContent(fs::path contentFile, std::ostream& os)
+{
+    fs::path dir = fs::path(contentFile.string()).parent_path();
+    if (dir.empty()) {
+        // Set the directory to the current working directory
+        dir = fs::current_path();
+    }
+    if (!fs::exists(dir)) {
+        if (!fs::create_directories(dir)) {
+            std::cerr << "Failed to create directories: " << dir << std::endl;
+            return;
+        }
+    }
+    std::ofstream ofs(contentFile.string());
+    boost::archive::text_oarchive oa(ofs);
+    oa << *this;
+    ofs.close();
+}
+
+void Skeleton::Skeleton::loadContent(fs::path contentFile, std::istream& is)
+{
+        std::ifstream ifs(filename);
+        boost::archive::text_iarchive ia(ifs);
+        ia >> *this;
 }

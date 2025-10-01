@@ -5,9 +5,11 @@
 namespace fs = std::filesystem;
 
 Character::Character(std::string filepath){
+    filename = fs::path(filepath).filename().string();
+
     animator = new Animator();
     skeleton = new Skeleton::Skeleton();
-    skeleton->setup();
+    skeleton->setup(filename);
 
     auto onModelComponentsLoad = [this, filepath](Assimp::Importer* import, const aiScene* scene) {
         if (!scene) {
@@ -26,7 +28,6 @@ Character::Character(std::string filepath){
     playerController = new Controls::PlayerController();
     State::state->playerControllers.push_back(playerController);
 
-    filename = fs::path(filepath).filename().string();
 
     animStateMachine = new Controls::StateMachine();
     auto locomotionState = new Controls::State("Locomotion");
@@ -305,6 +306,8 @@ void Character::saveContent(fs::path contentFile, std::ostream& os)
     this->model_guid = model->GetGuid();
 
     //save skeleton
+    this->skeleton->save(contentFile.parent_path());
+    this->skeleton_guid = skeleton->getGUID();
 
     //save statemachine
 
