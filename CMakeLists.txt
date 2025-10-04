@@ -101,9 +101,26 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_HEADERS} ${IMGUIZMO_IMPL_SOURCES})
 
+set(LUA_INCLUDE_DIR 
+    "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/include/" 
+    CACHE PATH "The path to the Lua headers" FORCE)
+set(LUA_LIBRARY 
+    "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.lib" 
+    CACHE FILEPATH "The full path to the Lua library file" FORCE)
+find_package(Lua 5.4.2 REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(
+  sol2
+  GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+  GIT_TAG        v3.3.0
+)
+FetchContent_MakeAvailable(sol2)
+
 target_include_directories(${PROJECT_NAME} 
     PRIVATE 
     ${Boost_INCLUDE_DIRS}
+    ${LUA_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} assimp glfw
@@ -111,6 +128,8 @@ target_link_libraries(${PROJECT_NAME} assimp glfw
                       BulletDynamics BulletCollision LinearMath
                       Jolt::Jolt
                       Boost::serialization
+                      Lua
+                      sol2::sol2
                       )
 
 list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/main.cpp)
@@ -120,8 +139,9 @@ ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
 ${IMGUI_IMPL_HEADERS} ${IMGUIZMO_IMPL_HEADERS} ${VENDORS_SOURCES})
 
 target_include_directories(GlitterLib
-    PRIVATE 
+    PUBLIC 
     ${Boost_INCLUDE_DIRS}
+    ${LUA_INCLUDE_DIR}      
 )
 
 target_link_libraries(GlitterLib assimp glfw
@@ -129,6 +149,8 @@ target_link_libraries(GlitterLib assimp glfw
                       BulletDynamics BulletCollision LinearMath
                       Jolt::Jolt
                       Boost::serialization
+                      Lua
+                      sol2::sol2
                       )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

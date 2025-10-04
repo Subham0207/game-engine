@@ -20,6 +20,12 @@ cd Build
 Now, run build from vs code or execute `.\run_debug.bat` to generate build files
 Then make sure in build/cmakecache.txt to make -- `gtest_force_shared_crt:BOOL=ON`. Read More detail on this in Documention file of this project.
 
+# Integrating Lua and sol2 libraries:
+Lua is a scripting library. Sol2 simplifies the use of Lua.
+1. Download binaries of Lua from https://luabinaries.sourceforge.net/
+2. Place it under ./Glitter/Vendor/ and things should work
+3. sol2 is being fetched by project cmakefile using fetch content.
+
 ## Documentation
 
 Functionality           | Library
