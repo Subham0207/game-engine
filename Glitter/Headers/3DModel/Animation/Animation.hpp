@@ -10,6 +10,7 @@
 #include <functional>
 #include "3DModel/Skeleton/AnimData.hpp"
 #include <serializeAClass.hpp>
+#include <Serializable.hpp>
 
 struct AssimpNodeData
 {
@@ -28,7 +29,7 @@ struct AssimpNodeData
     }
 };
 
-class Animation
+class Animation: public Serializable
 {
 public:
 	Animation() = default;
@@ -88,6 +89,14 @@ public:
 			m_Bones.push_back(Bone(channel->mNodeName.data, channel));
 		}
 	}
+
+protected:
+    virtual const std::string typeName() const override {return "animation"; }
+    virtual const std::string contentName() override {return animationName; }
+
+    virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
+    virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
+
 
 private:
 	void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)

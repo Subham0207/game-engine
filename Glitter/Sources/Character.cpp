@@ -30,9 +30,9 @@ Character::Character(std::string filepath){
 
 
     animStateMachine = new Controls::StateMachine();
-    auto locomotionState = new Controls::State("Locomotion");
-    auto jumpState = new Controls::State("Jump");
-    auto dodgeRollState = new Controls::State("DodgeRoll");
+    auto locomotionState = std::make_shared<Controls::State>("Locomotion");
+    auto jumpState = std::make_shared<Controls::State>("Jump");
+    auto dodgeRollState = std::make_shared<Controls::State>("DodgeRoll");
 
     locomotionState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
