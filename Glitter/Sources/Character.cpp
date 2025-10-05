@@ -27,7 +27,7 @@ Character::Character(std::string filepath){
 
     playerController = new Controls::PlayerController();
     State::state->playerControllers.push_back(playerController);
-
+    playerController->register_bindings(getLuaEngine());
 
     animStateMachine = new Controls::StateMachine();
     auto locomotionState = std::make_shared<Controls::State>("Locomotion");
@@ -37,25 +37,41 @@ Character::Character(std::string filepath){
     locomotionState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         jumpState,
-        [this]() { return playerController && !playerController->grounded; })
+        R"(
+            return function(playerController)
+                return playerController ~= nil and (not playerController.grounded)
+        end
+        )")
     );
     
     jumpState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
-        [this]() { return playerController && playerController->grounded; })
+        R"(
+            return function(playerController)
+                return playerController ~= nil and (playerController.grounded)
+        end
+        )")
     );
 
     locomotionState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         dodgeRollState,
-        [this]() { return playerController && playerController->dodgeStart; })
+        R"(
+            return function(playerController)
+                return playerController ~= nil and (playerController.dodgeStart)
+        end
+        )")
     );
 
     dodgeRollState->toStateWhenCondition->push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
-        [this]() { return playerController && !playerController->dodgeStart; })
+        R"(
+            return function(playerController)
+                return playerController ~= nil and (not playerController.dodgeStart)
+        end
+        )")
     );
 
 

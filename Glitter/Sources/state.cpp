@@ -15,3 +15,8 @@ PhysicsSystemWrapper &getPhysicsSystem()
 {
     return *State::state->physics;
 }
+
+LuaEngine& getLuaEngine()
+{
+    return *State::state->luaEngine;
+}

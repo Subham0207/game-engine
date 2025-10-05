@@ -107,7 +107,18 @@ set(LUA_INCLUDE_DIR
 set(LUA_LIBRARY 
     "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.lib" 
     CACHE FILEPATH "The full path to the Lua library file" FORCE)
-find_package(Lua 5.4.2 REQUIRED)
+set(LUA_DLL 
+    "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll" 
+    CACHE FILEPATH "The full path to the Lua library file" FORCE)
+
+if (NOT TARGET Lua::Lua)
+  add_library(Lua::Lua SHARED IMPORTED)
+  set_target_properties(Lua::Lua PROPERTIES
+    IMPORTED_LOCATION                   "${LUA_DLL}"
+    IMPORTED_IMPLIB               "${LUA_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+  )
+endif()
 
 include(FetchContent)
 FetchContent_Declare(
@@ -128,7 +139,7 @@ target_link_libraries(${PROJECT_NAME} assimp glfw
                       BulletDynamics BulletCollision LinearMath
                       Jolt::Jolt
                       Boost::serialization
-                      Lua
+                      Lua::Lua
                       sol2::sol2
                       )
 
@@ -149,7 +160,7 @@ target_link_libraries(GlitterLib assimp glfw
                       BulletDynamics BulletCollision LinearMath
                       Jolt::Jolt
                       Boost::serialization
-                      Lua
+                      Lua::Lua
                       sol2::sol2
                       )
 
@@ -173,4 +184,11 @@ add_custom_command(TARGET Glitter POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
           "${CMAKE_SOURCE_DIR}/Glitter/Shaders"
           "$<TARGET_FILE_DIR:Glitter>/Shaders"
+)
+
+# copy lua dll into exe directory
+add_custom_command(TARGET Glitter POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll"
+          "$<TARGET_FILE_DIR:Glitter>/"
 )

@@ -69,6 +69,7 @@ Solved: We need to first pass input values to imgui then you can check if imgui 
 11. I was trying to move the main.cpp around so the correct way is to modify what it is called in project_sources file. Don't create another file decalartion with same identifier.
 12. I used clion to refactor the code. Right now cpp extension doesnot have that kind of sophisticated support.
 13. Wrote a little tasks.json to create cpp file from a hpp file
+14. cpp program `exited with code -1073741515 (0xc0000135)`: means STATUS_DLL_NOT_FOUND. You need to place any dll files requird by the program in the same directory as the executable.
 
 
 ## How does Level file works

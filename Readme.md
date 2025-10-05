@@ -25,6 +25,7 @@ Lua is a scripting library. Sol2 simplifies the use of Lua.
 1. Download binaries of Lua from https://luabinaries.sourceforge.net/
 2. Place it under ./Glitter/Vendor/ and things should work
 3. sol2 is being fetched by project cmakefile using fetch content.
+4. the cmake file automatically copies the lua dll from lua directory into exe's directory. if it fails check directory names.
 
 ## Documentation
 

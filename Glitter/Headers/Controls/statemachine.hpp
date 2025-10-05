@@ -9,6 +9,7 @@
 #include <Serializable.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <LuaEngine/LuaCondition.hpp>
 
 namespace Controls
 {
@@ -16,14 +17,10 @@ namespace Controls
     struct ToStateWhenCondition
     {
         std::shared_ptr<State> state = NULL;
-        std::function<bool()> condition;
+        LuaCondition condition;
 
-        ToStateWhenCondition(std::shared_ptr<State> state, std::function<bool()> condition);
-
-        template <typename Owner>
-        void rebind(Owner* owner) {
-            condition = buildPredicate(owner, spec);
-        }
+        ToStateWhenCondition()=default;
+        ToStateWhenCondition(std::shared_ptr<State> state, std::string condition);
 
         private:
             friend class boost::serialization::access;
@@ -38,13 +35,14 @@ namespace Controls
     {
         std::string stateName;
         std::vector<ToStateWhenCondition>* toStateWhenCondition;
-
+        
         std::string animationGuid;
         Animation* animation;
-
+        
         std::string blendspaceGuid;
         BlendSpace2D* blendspace;
-
+        
+        State()=default;
         State(std::string stateName);
         void Play(Controls::PlayerController* playerController, Animator* animator);
 

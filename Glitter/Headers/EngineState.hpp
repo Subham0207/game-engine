@@ -8,6 +8,7 @@
 #include <Controls/PlayerController.hpp>
 #include <PhysicsSystem.hpp>
 #include <EngineRegistry.hpp>
+#include <LuaEngine/LuaEngine.hpp>
 namespace fs = std::filesystem;
 
 class State{
@@ -52,8 +53,11 @@ public:
     ProjectAsset::UIState uiState;
 
     PhysicsSystemWrapper* physics = new PhysicsSystemWrapper();
+
+    LuaEngine* luaEngine = new LuaEngine();
 };
 
 ProjectAsset::UIState& getUIState();
 Level& getActiveLevel();
 PhysicsSystemWrapper& getPhysicsSystem();
+LuaEngine& getLuaEngine();

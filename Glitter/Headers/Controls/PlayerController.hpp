@@ -6,6 +6,7 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/gtc/epsilon.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <LuaEngine/LuaEngine.hpp>
 
 namespace Controls
 {
@@ -135,5 +136,16 @@ namespace Controls
         glm::vec3& playerPosition,
         float mouseX, float mouseY,
         glm::mat4& view,glm::mat4& proj);
+
+
+    
+    inline void register_bindings(LuaEngine& eng) {
+        auto& L = eng.state();
+        L.new_usertype<PlayerController>("PlayerController",
+            "grounded", &PlayerController::grounded,
+            "dodgeStart", &PlayerController::dodgeStart
+        );
+    }
+
     };
 }

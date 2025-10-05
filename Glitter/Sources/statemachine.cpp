@@ -3,10 +3,10 @@
 #include <Helpers/Shared.hpp>
 #include <EngineState.hpp>
 
-Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> state, std::function<bool()> condition)
+Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> state, std::string condition)
 {
     this->state = state;
-    this->condition = condition;
+    this->condition = LuaCondition{condition};
 }
 
 Controls::State::State(std::string stateName)
@@ -57,7 +57,7 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
     //1. first setPoseTransition bool if present.
     for (size_t i = 0; i < activeState->toStateWhenCondition->size(); i++)
     {
-        auto playeThisState = activeState->toStateWhenCondition->at(i).condition();
+        auto playeThisState = activeState->toStateWhenCondition->at(i).condition.evaluate(getLuaEngine());
         if(playeThisState)
         {
             activeState = activeState->toStateWhenCondition->at(i).state;
