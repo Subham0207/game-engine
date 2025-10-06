@@ -109,7 +109,7 @@ void Skeleton::Skeleton::saveContent(fs::path contentFile, std::ostream& os)
 
 void Skeleton::Skeleton::loadContent(fs::path contentFile, std::istream& is)
 {
-        std::ifstream ifs(filename);
+        std::ifstream ifs(contentFile.string());    
         boost::archive::text_iarchive ia(ifs);
         ia >> *this;
 }

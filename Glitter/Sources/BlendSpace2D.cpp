@@ -1,6 +1,9 @@
 #include <Controls/BlendSpace2D.hpp>
 #include <iostream>
 #include <vector>
+#include <EngineState.hpp>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 BlendSelection* BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     auto result = new BlendSelection {nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -161,4 +164,40 @@ void BlendSpace2D::calculateBlendFactors(
     result.topRightBlendFactor = tr;
     result.bottomLeftBlendFactor = bl;
     result.bottomRightBlendFactor = br;
+}
+
+void BlendSpace2D::saveContent(fs::path contentFile, std::ostream& os)
+{
+    fs::path dir = fs::path(contentFile.string()).parent_path();
+    if (dir.empty()) {
+        // Set the directory to the current working directory
+        dir = fs::current_path();
+    }
+    if (!fs::exists(dir)) {
+        if (!fs::create_directories(dir)) {
+            std::cerr << "Failed to create directories: " << dir << std::endl;
+            return;
+        }
+    }
+    std::ofstream ofs(contentFile.string());
+    boost::archive::text_oarchive oa(ofs);
+    oa << *this;
+    ofs.close();
+}
+
+void BlendSpace2D::loadContent(fs::path contentFile, std::istream& is)
+{
+    std::ifstream ifs(contentFile.string());
+    boost::archive::text_iarchive ia(ifs);
+    ia >> *this;
+
+    auto filesMap = getEngineRegistryFilesMap();
+    for (size_t i = 0; i < this->blendPoints.size(); i++)
+    {
+        auto animationGuid = blendPoints[i].animationGuid;
+        auto animationLocation = fs::path(filesMap[animationGuid]);
+        blendPoints[i].animation = new Animation();
+        blendPoints[i].animation->load(animationLocation.parent_path(), animationGuid);
+    }
+    
 }

@@ -16,7 +16,7 @@ class Serializable
         virtual const std::string typeName()          const = 0;
         virtual const std::string contentName() = 0;
 
-        std::string guid();
+        void generate_guid();
     private:
         std::string version_ = "1";
         std::string guid_;

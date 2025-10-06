@@ -20,3 +20,8 @@ LuaEngine& getLuaEngine()
 {
     return *State::state->luaEngine;
 }
+
+std::map<std::string, std::string> getEngineRegistryFilesMap()
+{
+    return State::state->engineRegistry->renderableSaveFileMap;
+}

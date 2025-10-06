@@ -61,3 +61,4 @@ ProjectAsset::UIState& getUIState();
 Level& getActiveLevel();
 PhysicsSystemWrapper& getPhysicsSystem();
 LuaEngine& getLuaEngine();
+std::map<std::string, std::string> getEngineRegistryFilesMap();

@@ -12,7 +12,8 @@ namespace bs = boost::property_tree;
 
 void Serializable::save(fs::path &assetRoot)
 {
-    guid_ = boost::uuids::to_string(boost::uuids::random_generator()()); 
+    if(guid_.empty())
+        generate_guid();
     // 1) ensure folder exists
     fs::create_directories(assetRoot);
 
@@ -39,9 +40,9 @@ void Serializable::save(fs::path &assetRoot)
     write_json(metaFile.string(), meta);
 }
 
-std::string Serializable::guid()
+void Serializable::generate_guid()
 {
-    return boost::uuids::to_string(boost::uuids::random_generator()());
+    guid_ = boost::uuids::to_string(boost::uuids::random_generator()());
 }
 
 std::string Serializable::getGUID()

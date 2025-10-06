@@ -45,6 +45,8 @@ namespace Controls
         State()=default;
         State(std::string stateName);
         void Play(Controls::PlayerController* playerController, Animator* animator);
+        void assignBlendspace(BlendSpace2D* blendspace);
+        void assignAnimation(Animation* animation);
 
         private:
             friend class boost::serialization::access;
@@ -71,6 +73,8 @@ namespace Controls
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
         private:
+            void traverseAndLoadstateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap);
+
             std::shared_ptr<State> stateGraph;
             std::shared_ptr<State> activeState;
             std::string filename;

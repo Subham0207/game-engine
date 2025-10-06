@@ -29,75 +29,6 @@ Character::Character(std::string filepath){
     State::state->playerControllers.push_back(playerController);
     playerController->register_bindings(getLuaEngine());
 
-    animStateMachine = new Controls::StateMachine();
-    auto locomotionState = std::make_shared<Controls::State>("Locomotion");
-    auto jumpState = std::make_shared<Controls::State>("Jump");
-    auto dodgeRollState = std::make_shared<Controls::State>("DodgeRoll");
-
-    locomotionState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        jumpState,
-        R"(
-            return function(playerController)
-                return playerController ~= nil and (not playerController.grounded)
-        end
-        )")
-    );
-    
-    jumpState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        locomotionState,
-        R"(
-            return function(playerController)
-                return playerController ~= nil and (playerController.grounded)
-        end
-        )")
-    );
-
-    locomotionState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        dodgeRollState,
-        R"(
-            return function(playerController)
-                return playerController ~= nil and (playerController.dodgeStart)
-        end
-        )")
-    );
-
-    dodgeRollState->toStateWhenCondition->push_back(
-        Controls::ToStateWhenCondition(
-        locomotionState,
-        R"(
-            return function(playerController)
-                return playerController ~= nil and (not playerController.dodgeStart)
-        end
-        )")
-    );
-
-
-    animStateMachine->setActiveState(locomotionState);
-
-    locomotionState->blendspace = new BlendSpace2D();
-
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), getUIState().animations[0]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), getUIState().animations[4]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), getUIState().animations[5]);
-
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), getUIState().animations[1]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), getUIState().animations[1]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), getUIState().animations[1]);
-
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), getUIState().animations[2]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), getUIState().animations[2]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), getUIState().animations[2]);
-
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), getUIState().animations[6]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), getUIState().animations[6]);
-    // locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), getUIState().animations[6]);
-
-    // jumpState->animation = getUIState().animations[7];
-    // dodgeRollState->animation = getUIState().animations[8];
-
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
 
     capsuleColliderPosRelative = glm::vec3(0.0f);
@@ -326,6 +257,8 @@ void Character::saveContent(fs::path contentFile, std::ostream& os)
     this->skeleton_guid = skeleton->getGUID();
 
     //save statemachine
+    this->animStateMachine->save(contentFile.parent_path());
+    this->animStateMachine_guid = animStateMachine->getGUID();
 
     Character::saveToFile(contentFile.string(), *this);
 }
@@ -334,17 +267,50 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 {
     Character::loadFromFile(contentFile.string(), *this);
     auto model_guid = this->model_guid;
+    auto skeleton_guid = this->skeleton_guid;
+    auto stateMachine_guid = this->animStateMachine_guid;
 
     auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
 
+    //load model
     auto model_location = fs::path(filesMap[model_guid]);
     auto model = new Model();
     model->load(model_location.parent_path(), model_guid);
     this->model = model;
 
+    //create new animator
+    this->animator = new Animator();
+
+    //load skeleton
+    auto skeleton_Location = fs::path(filesMap[skeleton_guid]);
+    this->skeleton = new Skeleton::Skeleton();
+    this->skeleton->load(skeleton_Location.parent_path(), skeleton_guid);
+
+    //create new player controller 
+    playerController = new Controls::PlayerController();
+    State::state->playerControllers.push_back(playerController);
+    playerController->register_bindings(getLuaEngine());
+
+    //load statemachine
+    auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);
+    this->animStateMachine = new Controls::StateMachine();
+    this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
+
+
     auto radius = this->capsuleCollider->radius;
     auto halfHeight = this->capsuleCollider->halfHeight;
     delete this->capsuleCollider;
 
+    //Create new capsule collider
     this->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), radius, halfHeight, true, true);
+
+    //Create new camera
+    camera = new Camera();
+    camera->cameraPos = model->GetPosition();
+    float pitchAngle = 0.3f;
+    glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
+    glm::quat newRot = pitchQuat * model->GetRot();
+    this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
+    this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
+    getActiveLevel().cameras.push_back(camera);
 }

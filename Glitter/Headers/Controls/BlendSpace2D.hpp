@@ -4,6 +4,9 @@
 #include <vector>
 #include <3DModel/Animation/Timewarp.hpp>
 #include <serializeAClass.hpp>
+#include <Serializable.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/base_object.hpp>
 
 struct BlendPoint {
     glm::vec2 position;  // (X, Y) coordinates in the blend space
@@ -13,6 +16,7 @@ struct BlendPoint {
 
     int blendPointIndex = 0;
 
+    BlendPoint()=default;
     BlendPoint(glm::vec2 pos, Animation* animation){
         animationGuid = animation->getGUID();
         position = pos;
@@ -40,10 +44,13 @@ struct BlendSelection {
     float topRightBlendFactor;
 };
 
-class BlendSpace2D {
+class BlendSpace2D: public Serializable {
 public:
-    BlendSpace2D(){
+    BlendSpace2D()=default;
+    BlendSpace2D(std::string blendspaceName){
         blendPoints = std::vector<BlendPoint>();
+        this->blendspaceName = blendspaceName;
+        generate_guid();
     };
     
     void AddBlendPoint(glm::vec2 pos, Animation* anim) {
@@ -55,7 +62,15 @@ public:
     void generateTimeWarpCurve(AssimpNodeData* rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
     std::vector<BlendPoint> blendPoints;
 
+protected:
+    virtual const std::string typeName() const override {return "blendspace"; }
+    virtual const std::string contentName() override {return blendspaceName; }
+
+    virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
+    virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
+
 private:
+    std::string blendspaceName;
     void calculateBlendFactors(
         glm::vec2 input,
         BlendSelection& result,

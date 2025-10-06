@@ -36,6 +36,7 @@ public:
 
 	Animation(std::string& animationPath)
 	{
+		generate_guid();
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
 		assert(scene && scene->mRootNode);

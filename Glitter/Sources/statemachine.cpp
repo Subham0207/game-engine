@@ -42,6 +42,17 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
     }
 }
 
+void Controls::State::assignBlendspace(BlendSpace2D* blendspace)
+{
+    this->blendspaceGuid =  blendspace->getGUID();
+    this->blendspace = blendspace;
+}
+void Controls::State::assignAnimation(Animation* animation)
+{
+    this->animationGuid = animation->getGUID();
+    this->animation = animation;
+}
+
 Controls::StateMachine::StateMachine()
 {
     stateGraph = NULL;
@@ -97,7 +108,39 @@ void Controls::StateMachine::saveContent(fs::path contentFile, std::ostream& os)
 
 void Controls::StateMachine::loadContent(fs::path contentFile, std::istream& is)
 {
-        std::ifstream ifs(filename);
+        std::ifstream ifs(contentFile.string());
         boost::archive::text_iarchive ia(ifs);
         ia >> *this;
+
+        //states in state graph are loaded but the animation will need to repointed correctly.
+        auto filesMap = getEngineRegistryFilesMap();
+        auto currentTraversedState = activeState;
+        traverseAndLoadstateGraph(currentTraversedState, filesMap);
+}
+
+void Controls::StateMachine::traverseAndLoadstateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap)
+{
+    if(!state)
+    return;
+
+    if(!state->animationGuid.empty())
+    {
+        auto animationGuid = state->animationGuid;
+        auto animation_location = fs::path(filesMap[animationGuid]);
+        state->animation = new Animation();
+        state->animation->load(animation_location.parent_path(), animationGuid);
+    }
+    
+    if(!state->blendspaceGuid.empty())    
+    {
+        auto blendspaceGuid = state->blendspaceGuid;
+        auto blendspace_location = fs::path(filesMap[blendspaceGuid]);
+        state->blendspace = new BlendSpace2D();
+        state->blendspace->load(blendspace_location.parent_path(), blendspaceGuid);
+    }
+
+    for (size_t i = 0; i < state->toStateWhenCondition->size(); i++)
+    {
+        traverseAndLoadstateGraph(state->toStateWhenCondition->at(i).state, filesMap);
+    }
 }
