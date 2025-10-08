@@ -88,7 +88,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
     }
 
     //state machine
-    auto animStateMachine = new Controls::StateMachine();
+    auto animStateMachine = new Controls::StateMachine("characterMovements");
     auto locomotionState = std::make_shared<Controls::State>("Locomotion");
     auto jumpState = std::make_shared<Controls::State>("Jump");
     auto dodgeRollState = std::make_shared<Controls::State>("DodgeRoll");
@@ -152,6 +152,8 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
     locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), animations->at(6));
     locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), animations->at(6));
     locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), animations->at(6));
+
+    locomotionState->blendspace->save(projectAssetDirectory);
 
     jumpState->assignAnimation(animations->at(7));
     dodgeRollState->assignAnimation(animations->at(8));

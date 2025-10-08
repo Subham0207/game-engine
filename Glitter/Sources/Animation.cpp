@@ -16,6 +16,10 @@ void Animation::saveContent(fs::path contentFile, std::ostream& os)
         }
     }
     std::ofstream ofs(contentFile.string());
+    if (!ofs.is_open()) {
+        std::cerr << "Failed to open file for writing: " << contentFile << std::endl;
+        return;
+    }
     boost::archive::text_oarchive oa(ofs);
     oa << *this;
     ofs.close();

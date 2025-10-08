@@ -53,10 +53,11 @@ void Controls::State::assignAnimation(Animation* animation)
     this->animation = animation;
 }
 
-Controls::StateMachine::StateMachine()
+Controls::StateMachine::StateMachine(std::string filename)
 {
     stateGraph = NULL;
     activeState = NULL;
+    this->filename = filename;
 };
 
 void Controls::StateMachine::tick(Controls::PlayerController* playerController, Animator* animator)
@@ -89,6 +90,9 @@ void Controls::StateMachine::setActiveState(std::shared_ptr<State> state)
 
 void Controls::StateMachine::saveContent(fs::path contentFile, std::ostream& os)
 {
+    // we don't save animation and blendspace again because they are is thier own entity. So should be already saved.
+
+    //save the statemachine
     fs::path dir = fs::path(contentFile.string()).parent_path();
     if (dir.empty()) {
         // Set the directory to the current working directory
@@ -115,32 +119,51 @@ void Controls::StateMachine::loadContent(fs::path contentFile, std::istream& is)
         //states in state graph are loaded but the animation will need to repointed correctly.
         auto filesMap = getEngineRegistryFilesMap();
         auto currentTraversedState = activeState;
-        traverseAndLoadstateGraph(currentTraversedState, filesMap);
+        traverseAndLoadStateGraph(currentTraversedState, filesMap);
 }
 
-void Controls::StateMachine::traverseAndLoadstateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap)
+void Controls::StateMachine::traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap)
 {
-    if(!state)
-    return;
+    std::unordered_set<const State*> visited;           // or unordered_set<std::string> if you have state->guid
+    dfsLoad(activeState, filesMap, visited);
+}
 
-    if(!state->animationGuid.empty())
-    {
-        auto animationGuid = state->animationGuid;
-        auto animation_location = fs::path(filesMap[animationGuid]);
-        state->animation = new Animation();
-        state->animation->load(animation_location.parent_path(), animationGuid);
-    }
-    
-    if(!state->blendspaceGuid.empty())    
-    {
-        auto blendspaceGuid = state->blendspaceGuid;
-        auto blendspace_location = fs::path(filesMap[blendspaceGuid]);
-        state->blendspace = new BlendSpace2D();
-        state->blendspace->load(blendspace_location.parent_path(), blendspaceGuid);
+void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
+    std::map<std::string, std::string>& filesMap,
+    std::unordered_set<const State*>& visited)
+{
+    if (!state) return;
+
+    // Stop if we've already seen this node (prevents infinite loops on cycles)
+    auto [_, inserted] = visited.insert(state.get());
+    if (!inserted) return;
+
+    // Load animation once
+    if (!state->animationGuid.empty() && state->animation == nullptr) {
+        if (auto it = filesMap.find(state->animationGuid); it != filesMap.end()) {
+            auto p = fs::path(it->second);
+            state->animation = new Animation();
+            state->animation->load(p.parent_path(), state->animationGuid);
+        } else {
+            std::cerr << "[StateMachine] No file for animationGuid " << state->animationGuid << "\n";
+        }
     }
 
-    for (size_t i = 0; i < state->toStateWhenCondition->size(); i++)
-    {
-        traverseAndLoadstateGraph(state->toStateWhenCondition->at(i).state, filesMap);
+    // Load blendspace once
+    if (!state->blendspaceGuid.empty() && state->blendspace == nullptr) {
+        if (auto it = filesMap.find(state->blendspaceGuid); it != filesMap.end()) {
+            auto p = fs::path(it->second);
+            state->blendspace = new BlendSpace2D();
+            state->blendspace->load(p.parent_path(), state->blendspaceGuid);
+        } else {
+            std::cerr << "[StateMachine] No file for blendspaceGuid " << state->blendspaceGuid << "\n";
+        }
+    }
+
+    // Recurse through outgoing edges
+    if (state->toStateWhenCondition) {
+        for (const auto& edge : *state->toStateWhenCondition) {
+            dfsLoad(edge.state, filesMap, visited);
+        }
     }
 }

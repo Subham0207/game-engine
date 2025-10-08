@@ -48,7 +48,7 @@ public:
 		ReadHierarchyData(m_RootNode, scene->mRootNode);
 		readSkeletalAnimationData(animation);
 
-		animationName = animationPath;
+		animationName = fs::path(animationPath).filename().string();
 		hasMissingBones = true;
 	}
 

@@ -51,17 +51,20 @@ std::string Serializable::getGUID()
 }
 
 void Serializable::load(fs::path& assetRoot, std::string filename) {
+
     // 1) read meta
     const fs::path metaFile = fs::path(State::state->currentActiveProjectDirectory) / assetRoot / (filename + ".meta.json");
     bs::ptree meta;
     read_json(metaFile.string(), meta);
-
+    
     // (Optionally) validate type/version here
     guid_ = meta.get<std::string>("guid");
-
+    
     // 2) load content (child only reads its payload)
     const fs::path contentRel = meta.get<std::string>("content.relative_path");
     const fs::path contentFile = fs::path(State::state->currentActiveProjectDirectory) / assetRoot / contentRel;
+    
+    std::cout << "Loading: " << contentFile.string() << std::endl;
 
     std::ifstream is(contentFile, std::ios::binary);
     if (!is) throw std::runtime_error("Failed to open content file: " + contentFile.string());

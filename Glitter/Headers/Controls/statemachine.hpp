@@ -10,6 +10,7 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <LuaEngine/LuaCondition.hpp>
+#include <unordered_set>
 
 namespace Controls
 {
@@ -61,19 +62,23 @@ namespace Controls
 
     class StateMachine: public Serializable {
         public:
-            StateMachine();
+            StateMachine()=default;
+            StateMachine(std::string filename);
             void tick(Controls::PlayerController* playerController, Animator* animator);
             void setActiveState(std::shared_ptr<State> state);
 
             
         protected:
-            virtual const std::string typeName() const override {return "character"; }
+            virtual const std::string typeName() const override {return "statemachine"; }
             virtual const std::string contentName() override {return filename; }
             
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
         private:
-            void traverseAndLoadstateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap);
+            void traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap);
+            void StateMachine::dfsLoad(const std::shared_ptr<State>& state,
+            std::map<std::string, std::string>& filesMap,
+            std::unordered_set<const State*>& visited);
 
             std::shared_ptr<State> stateGraph;
             std::shared_ptr<State> activeState;

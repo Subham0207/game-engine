@@ -112,4 +112,7 @@ void Skeleton::Skeleton::loadContent(fs::path contentFile, std::istream& is)
         std::ifstream ifs(contentFile.string());    
         boost::archive::text_iarchive ia(ifs);
         ia >> *this;
+
+        this->setup(this->filename);
+        this->BuildBoneHierarchy();
 }
