@@ -35,7 +35,7 @@ namespace Controls
     struct State
     {
         std::string stateName;
-        std::vector<ToStateWhenCondition>* toStateWhenCondition;
+        std::vector<ToStateWhenCondition> toStateWhenCondition;
         
         std::string animationGuid;
         Animation* animation;

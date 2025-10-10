@@ -186,6 +186,7 @@ int openEditor() {
     initAWindow();
     imguiBackend();
     State::state->engineRegistry->init();
+    getPhysicsSystem().Init();
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
@@ -194,17 +195,17 @@ int openEditor() {
     //Loading Level -- making .lvl as the extention of my levelfile
     auto level = new Level();
     State::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
-    level->loadMainLevelOfCurrentProject();
+    auto defaultCamera = new Camera("defaultcamera");
     auto lvl = State::state->activeLevel;
     // State::state->activeLevel = new level(); state already has a new level initialized
-    auto defaultCamera = new Camera();
     lvl->cameras.push_back(defaultCamera);
     
     //Init clienthandler
     clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
-
+    
+    level->loadMainLevelOfCurrentProject();
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -288,7 +289,6 @@ int openEditor() {
     // Shared::readAnimation("./EngineAssets/Animations/Falling Idle.fbx");
     // Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
 
-    getPhysicsSystem().Init();
     // auto floorBox = new Model("./EngineAssets/cube.fbx");
     // getActiveLevel().addRenderable(floorBox);
     // getUIState().renderables = *State::state->activeLevel->renderables;

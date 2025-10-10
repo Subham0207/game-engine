@@ -12,7 +12,7 @@ Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> stat
 Controls::State::State(std::string stateName)
 {
     this->stateName = stateName;
-    toStateWhenCondition = new std::vector<ToStateWhenCondition>();
+    toStateWhenCondition = std::vector<ToStateWhenCondition>();
     animation = NULL;
     blendspace = NULL;
 }
@@ -67,12 +67,12 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
 
     //Order of execution here is very importatant to correctly apply pose transition
     //1. first setPoseTransition bool if present.
-    for (size_t i = 0; i < activeState->toStateWhenCondition->size(); i++)
+    for (size_t i = 0; i < activeState->toStateWhenCondition.size(); i++)
     {
-        auto playeThisState = activeState->toStateWhenCondition->at(i).condition.evaluate(getLuaEngine());
+        auto playeThisState = activeState->toStateWhenCondition[i].condition.evaluate(getLuaEngine());
         if(playeThisState)
         {
-            activeState = activeState->toStateWhenCondition->at(i).state;
+            activeState = activeState->toStateWhenCondition[i].state;
             animator->initNoLoopAnimation();
             break;
         }
@@ -118,8 +118,8 @@ void Controls::StateMachine::loadContent(fs::path contentFile, std::istream& is)
 
         //states in state graph are loaded but the animation will need to repointed correctly.
         auto filesMap = getEngineRegistryFilesMap();
-        auto currentTraversedState = activeState;
-        traverseAndLoadStateGraph(currentTraversedState, filesMap);
+        stateGraph = activeState;
+        traverseAndLoadStateGraph(activeState, filesMap);
 }
 
 void Controls::StateMachine::traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap)
@@ -161,8 +161,8 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     }
 
     // Recurse through outgoing edges
-    if (state->toStateWhenCondition) {
-        for (const auto& edge : *state->toStateWhenCondition) {
+    if (state->toStateWhenCondition.size() > 1) {
+        for (const auto& edge : state->toStateWhenCondition) {
             dfsLoad(edge.state, filesMap, visited);
         }
     }

@@ -33,7 +33,7 @@ Character::Character(std::string filepath){
 
     capsuleColliderPosRelative = glm::vec3(0.0f);
 
-    camera = new Camera();
+    camera = new Camera("charactercamera");
     camera->cameraPos = model->GetPosition();
     float pitchAngle = 0.3f;
     glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
@@ -275,6 +275,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     //load model
     auto model_location = fs::path(filesMap[model_guid]);
     auto model = new Model();
+    model->shader = new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
     model->load(model_location.parent_path(), model_guid);
     this->model = model;
 
@@ -305,7 +306,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), radius, halfHeight, true, true);
 
     //Create new camera
-    camera = new Camera();
+    camera = new Camera("charactercamera");
     camera->cameraPos = model->GetPosition();
     float pitchAngle = 0.3f;
     glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));

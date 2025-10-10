@@ -476,7 +476,11 @@ void Model::saveContent(fs::path contentFile, std::ostream& os)
 void Model::loadContent(fs::path contentFile, std::istream& is)
 {
     Model::loadFromFile(contentFile.string(), *this);
+
+    //For character class shader used is different and is handled in character loadContent.
+    if(!shader)
     shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
+
     if(physicsBodyType != "")
         this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 }

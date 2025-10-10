@@ -12,6 +12,7 @@ class Camera
 friend class InputHandler;
 public:
 	Camera();
+	Camera(std::string name): cameraName(name){}
 	void updateMVP(unsigned int shader);
 	glm::vec3 getPosition();
 	glm::vec3 getFront();
@@ -32,6 +33,7 @@ public:
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	std::string cameraName;
 protected:
 private:
 	void setupView();

@@ -25,7 +25,6 @@ namespace Skeleton {
         unsigned int bonesVBO;
         unsigned int bonesColorVBO;
         Shader* bonesShader;
-        Animator* animator;
         std::string filename;
 
         void static ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)

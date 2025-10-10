@@ -93,7 +93,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
     auto jumpState = std::make_shared<Controls::State>("Jump");
     auto dodgeRollState = std::make_shared<Controls::State>("DodgeRoll");
 
-    locomotionState->toStateWhenCondition->push_back(
+    locomotionState->toStateWhenCondition.push_back(
         Controls::ToStateWhenCondition(
         jumpState,
         R"(
@@ -103,7 +103,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
         )")
     );
     
-    jumpState->toStateWhenCondition->push_back(
+    jumpState->toStateWhenCondition.push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
         R"(
@@ -113,7 +113,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
         )")
     );
 
-    locomotionState->toStateWhenCondition->push_back(
+    locomotionState->toStateWhenCondition.push_back(
         Controls::ToStateWhenCondition(
         dodgeRollState,
         R"(
@@ -123,7 +123,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
         )")
     );
 
-    dodgeRollState->toStateWhenCondition->push_back(
+    dodgeRollState->toStateWhenCondition.push_back(
         Controls::ToStateWhenCondition(
         locomotionState,
         R"(
