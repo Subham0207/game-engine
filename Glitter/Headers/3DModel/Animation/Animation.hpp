@@ -19,7 +19,11 @@ struct AssimpNodeData
 	glm::mat4 transformation;
 	std::string name;
 	int childrenCount;
-	std::vector<AssimpNodeData*> children;
+	std::vector<std::shared_ptr<AssimpNodeData>> children;
+
+	AssimpNodeData()=default;
+	AssimpNodeData(glm::mat4 transform, std::string name, int childrenCount, std::vector<std::shared_ptr<AssimpNodeData>> children):
+	transformation(transform), name(name), childrenCount(childrenCount), children(children){};
 
 	friend class boost::serialization::access;
     template<class Archive>
@@ -112,7 +116,7 @@ private:
 
 		for (int i = 0; i < src->mNumChildren; i++)
 		{
-			auto newData = new AssimpNodeData();
+			auto newData = std::make_shared<AssimpNodeData>();
 			ReadHierarchyData(*newData, src->mChildren[i]);
 			dest.children.push_back(newData);
 		}

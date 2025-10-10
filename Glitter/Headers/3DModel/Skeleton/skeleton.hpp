@@ -38,7 +38,7 @@ namespace Skeleton {
     
             for (int i = 0; i < src->mNumChildren; i++)
             {
-                auto newData = new AssimpNodeData();
+                auto newData = std::make_shared<AssimpNodeData>();
                 ReadHierarchyData(*newData, src->mChildren[i]);
                 dest.children.push_back(newData);
             }
@@ -93,18 +93,18 @@ namespace Skeleton {
 
         void BuildBoneHierarchy()
         {
-            std::map<std::string, AssimpNodeData*> nodeMap;
+            std::map<std::string, std::shared_ptr<AssimpNodeData>> nodeMap;
             std::map<int, std::string> indexToName = CreateBoneIndexMap(m_BoneInfoMap); // 🔥 Get index → name map
         
             // Step 1: Create nodes for all bones
             for (const auto& [boneName, boneInfo] : m_BoneInfoMap)
             {
-                nodeMap[boneName] = new AssimpNodeData{
+                nodeMap[boneName] = std::make_shared<AssimpNodeData>(
                     glm::mat4(1.0f),  // Default transform (will update later)
                     boneName,
                     0,  // Children count (will update later)
-                    {}  // Empty children list
-                };
+                    std::vector<std::shared_ptr<AssimpNodeData>>()
+                );
             }
 
             std::string rootBoneName = "";
@@ -136,12 +136,12 @@ namespace Skeleton {
 
             //After all the bones have been parsed we move on to the rootNode i.e. represent the origin of the model.
             std::string rootNodeName = m_RootNode.name;
-            nodeMap[rootNodeName] = new AssimpNodeData{
+            nodeMap[rootNodeName] = std::make_shared<AssimpNodeData>(
                 m_RootNode.transformation,
                 rootNodeName,
                 0,
-                {}
-            };
+                std::vector<std::shared_ptr<AssimpNodeData>>()
+            );
             nodeMap[rootNodeName]->children.push_back(nodeMap[rootBoneName]);
             nodeMap[rootNodeName]->childrenCount++;
 
@@ -149,7 +149,7 @@ namespace Skeleton {
         }
 
         AssimpNodeData m_RootNode; 
-        AssimpNodeData* skeletaltreeRoot; 
+        std::shared_ptr<AssimpNodeData> skeletaltreeRoot; 
 
         std::vector<Bone> m_Bones;//List Of Bones...
 
@@ -179,6 +179,7 @@ namespace Skeleton {
             ar & bonePositions;
             ar & m_RootNode;
             ar & m_Bones;
+            ar & skeletaltreeRoot;
         }
 
     };

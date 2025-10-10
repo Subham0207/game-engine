@@ -57,7 +57,7 @@ BlendSelection* BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     return result;
 }
 
-void BlendSpace2D::generateTimeWarpCurve(AssimpNodeData* rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap)
+void BlendSpace2D::generateTimeWarpCurve(std::shared_ptr<AssimpNodeData> rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap)
 {
     for (size_t i = 0; i < blendPoints.size(); i++)
     {

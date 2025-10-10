@@ -19,12 +19,12 @@ namespace Animation3D{
         Animation* animation1,
         Animation* animation2,
         float relativeTime, 
-        const AssimpNodeData* rootNode);
+        const std::shared_ptr<AssimpNodeData> rootNode);
 
     void decomposeTransformation(const glm::mat4& mat, glm::vec3& position, glm::quat& rotation);
 
     void calculateTransformationDistance(
-        const AssimpNodeData* node,
+        const std::shared_ptr<AssimpNodeData> node,
         Animation* animation1,
         Animation* animation2,
         float relativeTimeA,
@@ -32,7 +32,7 @@ namespace Animation3D{
         float &totalDistance
         );
 
-    vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* animation2, AssimpNodeData* rootNodeData);
+    vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* animation2, std::shared_ptr<AssimpNodeData> rootNodeData);
 
     // TimeWarpCurve class for smooth animation alignment
     class TimeWarpCurve {
@@ -54,7 +54,7 @@ namespace Animation3D{
     TimeWarpCurve* alignAnimations(
         Animation* sourceAnimation,
         Animation* targetAnimation,
-        AssimpNodeData* rootNodeData
+        std::shared_ptr<AssimpNodeData> rootNodeData
     );
 
 }

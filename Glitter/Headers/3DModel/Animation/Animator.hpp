@@ -41,7 +41,7 @@ public:
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &modelMatrix,
 		std::vector<glm::vec3> &bonePositions,
-		AssimpNodeData *node,
+		std::shared_ptr<AssimpNodeData> node,
 		std::vector<Bone> &bones)
 	{
 		// if((!blendSelection.bottomLeft && !blendSelection.bottomRight && !blendSelection.topLeft && !blendSelection.topRight) || (!blendSelection.bottomLeft->animation && !blendSelection.bottomRight->animation
@@ -145,7 +145,7 @@ public:
 	}
 
 	void onPoseTransitionInProgress(
-		const AssimpNodeData* node,
+		const std::shared_ptr<AssimpNodeData> node,
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &globalInverseTransform
@@ -183,7 +183,7 @@ public:
 
 
 	void CalculateBoneTransform(
-		const AssimpNodeData* node,
+		const std::shared_ptr<AssimpNodeData> node,
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &modelMatrix,
@@ -194,7 +194,7 @@ public:
 		);
 
 	void CalculateBoneTransformDuringTransition(
-		const AssimpNodeData* node,
+		const std::shared_ptr<AssimpNodeData> node,
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &globalInverseTransform,
@@ -202,7 +202,7 @@ public:
 		);
 
 	void CalculateBoneTransformBlended(
-		const AssimpNodeData* node,
+		const std::shared_ptr<AssimpNodeData> node,
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
 		glm::mat4 &modelMatrix,

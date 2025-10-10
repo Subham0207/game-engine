@@ -59,7 +59,7 @@ public:
 
     BlendSelection* GetBlendSelection(glm::vec2 input);
 
-    void generateTimeWarpCurve(AssimpNodeData* rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
+    void generateTimeWarpCurve(std::shared_ptr<AssimpNodeData> rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
     std::vector<BlendPoint> blendPoints;
 
 protected:

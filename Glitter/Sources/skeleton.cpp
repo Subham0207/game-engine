@@ -114,5 +114,5 @@ void Skeleton::Skeleton::loadContent(fs::path contentFile, std::istream& is)
         ia >> *this;
 
         this->setup(this->filename);
-        this->BuildBoneHierarchy();
+        // this->BuildBoneHierarchy();
 }

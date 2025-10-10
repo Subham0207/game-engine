@@ -6,7 +6,7 @@ float frameDistance(
     Animation* animation1,
     Animation* animation2,
     float relativeTime, 
-    const AssimpNodeData* rootNode)
+    const std::shared_ptr<AssimpNodeData> rootNode)
 {    
     float totalDistance = 0.0f;
     calculateTransformationDistance(
@@ -33,7 +33,7 @@ void decomposeTransformation(const glm::mat4& mat, glm::vec3& position, glm::qua
 
 
 void calculateTransformationDistance(
-    const AssimpNodeData* node,
+    const std::shared_ptr<AssimpNodeData> node,
     Animation* animation1,
     Animation* animation2,
     float relativeTimeA,
@@ -78,7 +78,7 @@ void calculateTransformationDistance(
     calculateTransformationDistance(node->children[i], animation1, animation2, relativeTimeA, relativeTimeB, totalDistance);
 }
 
-vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* animation2, AssimpNodeData* rootNodeData) {
+vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* animation2, std::shared_ptr<AssimpNodeData> rootNodeData) {
     int totalSteps = 10;
 
     vector<vector<double>> dtw(totalSteps + 1, vector<double>(totalSteps + 1, numeric_limits<double>::infinity()));
@@ -170,7 +170,7 @@ vector<pair<int, int>> dynamicTimeWarping(Animation* animation1, Animation* anim
 TimeWarpCurve* alignAnimations(
     Animation* sourceAnimation,
     Animation* targetAnimation,
-    AssimpNodeData* rootNodeData
+    std::shared_ptr<AssimpNodeData> rootNodeData
 ) {
     
     // Step 1: Perform DTW to get frame correspondences
