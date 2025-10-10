@@ -11,6 +11,8 @@
 #include "3DModel/Skeleton/AnimData.hpp"
 #include <serializeAClass.hpp>
 #include <Serializable.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/base_object.hpp>
 
 struct AssimpNodeData
 {

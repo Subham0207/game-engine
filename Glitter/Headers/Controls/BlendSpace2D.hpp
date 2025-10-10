@@ -18,7 +18,7 @@ struct BlendPoint {
 
     BlendPoint()=default;
     BlendPoint(glm::vec2 pos, Animation* animation){
-        animationGuid = animation->getGUID();
+        animationGuid = animation ? animation->getGUID(): "";
         position = pos;
         this->animation = animation;
     }
@@ -84,5 +84,6 @@ private:
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version) {
 		ar & blendPoints;
+        ar & blendspaceName;
     }
 };

@@ -87,7 +87,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
         animations->push_back(animation);
     }
 
-    //state machine
+    //state machine 
     auto animStateMachine = new Controls::StateMachine("characterMovements");
     auto locomotionState = std::make_shared<Controls::State>("Locomotion");
     auto jumpState = std::make_shared<Controls::State>("Jump");

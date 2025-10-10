@@ -19,7 +19,7 @@ Controls::State::State(std::string stateName)
 
 void Controls::State::Play(Controls::PlayerController* playerController, Animator* animator)
 {
-    if(animation)
+    if(!animationGuid.empty())
     {
         animator->PlayAnimation(animation);
         // Logic to excecute animation only once -- AnimNotify
@@ -32,7 +32,7 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
         return;
     }
 
-    if(blendspace)
+    if(!blendspaceGuid.empty())
     {
         float xfactor = playerController->movementDirection;
         float yfactor = playerController->movementSpeed;
@@ -132,14 +132,14 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     std::map<std::string, std::string>& filesMap,
     std::unordered_set<const State*>& visited)
 {
-    if (!state) return;
+        if (!state) return;
 
     // Stop if we've already seen this node (prevents infinite loops on cycles)
     auto [_, inserted] = visited.insert(state.get());
     if (!inserted) return;
 
     // Load animation once
-    if (!state->animationGuid.empty() && state->animation == nullptr) {
+    if (!state->animationGuid.empty()) {
         if (auto it = filesMap.find(state->animationGuid); it != filesMap.end()) {
             auto p = fs::path(it->second);
             state->animation = new Animation();
@@ -150,7 +150,7 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     }
 
     // Load blendspace once
-    if (!state->blendspaceGuid.empty() && state->blendspace == nullptr) {
+    if (!state->blendspaceGuid.empty()) {
         if (auto it = filesMap.find(state->blendspaceGuid); it != filesMap.end()) {
             auto p = fs::path(it->second);
             state->blendspace = new BlendSpace2D();
