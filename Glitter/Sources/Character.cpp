@@ -43,6 +43,18 @@ Character::Character(std::string filepath){
     getActiveLevel().cameras.push_back(camera);
 };
 
+Character::~Character()
+{
+    State::state->playerControllers.clear();
+    delete playerController;
+    delete animStateMachine;
+    delete model;
+    delete animator;
+    delete skeleton;
+    delete capsuleCollider;
+    delete camera;
+}
+
 void Character::saveToFile(std::string filename, Character &character)
 {
     fs::path dir = fs::path(filename).parent_path();

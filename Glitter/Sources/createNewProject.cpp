@@ -218,6 +218,8 @@ int create_new_project(const std::string& currentDir, const std::string& project
 
     update_recent_projects_list(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json", root);
 
+    delete lvl;
+    delete character;
 
     std::cout << "Created project '" << projectName << "' at " << root << "\n";
     std::cout << "Project ID: " << projectId << "\n";

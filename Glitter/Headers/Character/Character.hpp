@@ -19,6 +19,7 @@ class Character: public Renderable, public Serializable
 public:
     Character() = default;
     Character(std::string filepath);
+    ~Character();
 
     Model* model;
     std::string model_guid;
