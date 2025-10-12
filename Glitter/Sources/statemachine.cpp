@@ -69,7 +69,7 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
     //1. first setPoseTransition bool if present.
     for (size_t i = 0; i < activeState->toStateWhenCondition.size(); i++)
     {
-        auto playeThisState = activeState->toStateWhenCondition[i].condition.evaluate(getLuaEngine());
+        auto playeThisState = activeState->toStateWhenCondition[i].condition.evaluate(getLuaEngine(), playerController);
         if(playeThisState)
         {
             activeState = activeState->toStateWhenCondition[i].state;
