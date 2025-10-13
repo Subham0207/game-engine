@@ -26,10 +26,10 @@ Physics::Capsule::Capsule
         scale
     )
 {
-        addCustomModel("");
-        set = nullptr;
-        this->radius = radius;
-        this->halfHeight = halfHeight;
+    set = nullptr;
+    this->radius = radius;
+    this->halfHeight = halfHeight;
+    addCustomModel("");
 }
 
 void Physics::Capsule::syncTransformation()
@@ -61,7 +61,7 @@ void Physics::Capsule::syncTransformation()
 }
 void Physics::Capsule::addCustomModel(std::string modelPath)
 {
-    capsule = new CapsuleColliderModel();
+    capsule = new CapsuleColliderModel(radius, halfHeight);
     getActiveLevel().addRenderable(capsule);
     model = capsule->model;
 }

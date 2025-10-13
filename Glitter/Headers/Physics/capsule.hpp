@@ -19,6 +19,9 @@ namespace Physics
             glm::quat rotation = glm::quat(),
             glm::vec3 scale = glm::vec3(1.0f)
         );
+        ~Capsule()
+        {
+        }
         float radius;
         float halfHeight;
         CapsuleColliderModel *capsule;

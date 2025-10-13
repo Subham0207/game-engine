@@ -311,7 +311,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
 
     auto radius = this->capsuleCollider->radius;
-    auto halfHeight = this->capsuleCollider->halfHeight;
+    auto halfHeight = 2.0f;
     delete this->capsuleCollider;
 
     //Create new capsule collider

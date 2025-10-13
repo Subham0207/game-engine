@@ -184,11 +184,13 @@ int create_new_project(const std::string& currentDir, const std::string& project
     auto lvl = new Level();
 
     auto floorBox = new Model("./EngineAssets/cube.fbx");
+    floorBox->setTransform(glm::vec3(0.0f),glm::quat(), glm::vec3(100.0f,1.0f,100.0f));
     floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
     floorBox->save(root/ "Assets");
     lvl->addRenderable(floorBox);
     
     auto character = new Character("./EngineAssets/Aj.fbx");
+    character->model->setTransform(glm::vec3(0.0f,3.0f,0.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
     character->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
 
     character->animStateMachine = setupStateMachine(projectAssetDirectory);
