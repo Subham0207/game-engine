@@ -296,10 +296,7 @@ int openEditor() {
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
-
-        clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
-        InputHandler::currentInputHandler->m_Camera = lvl->cameras[State::state->activeCameraIndex];
-        
+                
         //delta time -- making things time dependent
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -307,7 +304,10 @@ int openEditor() {
 
         clientHandler.inputHandler->handleInput(deltaTime);
         if(State::state->isPlay)
-        {            
+        {
+            clientHandler.camera = lvl->cameras[State::state->activePlayerControllerId + 1];
+            InputHandler::currentInputHandler->m_Camera = lvl->cameras[State::state->activePlayerControllerId + 1];
+
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess
             if(getPhysicsSystem().isFirstPhysicsEnabledFrame == true)
@@ -332,6 +332,9 @@ int openEditor() {
         }
         else
         {
+            clientHandler.camera = lvl->cameras[0];
+            InputHandler::currentInputHandler->m_Camera = lvl->cameras[0];
+            
             getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
         }
 

@@ -69,7 +69,7 @@ void InputHandler::handlePlay()
     auto id = State::state->activePlayerControllerId;
     Controls::PlayerController* playerController = nullptr;
     if(State::state->playerControllers.size() > 0)
-    playerController = State::state->playerControllers.at(0);
+    playerController = State::state->playerControllers.at(getUIState().playerControllerToPossesIndex);
 
     if(!playerController)
     return;

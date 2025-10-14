@@ -25,7 +25,7 @@ Character::Character(std::string filepath){
 
     skeleton->BuildBoneHierarchy();
 
-    playerController = new Controls::PlayerController();
+    playerController = new Controls::PlayerController(filename);
     State::state->playerControllers.push_back(playerController);
     playerController->register_bindings(getLuaEngine());
 
@@ -183,7 +183,7 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
             getUIState().scrubbedPoint.x = xfactor;
             getUIState().scrubbedPoint.y = yfactor;
             
-            if(animStateMachine)
+            if(!animStateMachine_guid.empty())
             animStateMachine->tick(playerController, animator);
             
             //apply force to capsule in direction
@@ -300,7 +300,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->skeleton->load(skeleton_Location.parent_path(), skeleton_guid);
 
     //create new player controller 
-    playerController = new Controls::PlayerController();
+    playerController = new Controls::PlayerController(contentName());
     State::state->playerControllers.push_back(playerController);
     playerController->register_bindings(getLuaEngine());
 

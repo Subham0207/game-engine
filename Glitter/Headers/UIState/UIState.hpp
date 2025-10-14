@@ -59,6 +59,8 @@ namespace ProjectAsset {
         std::vector<Animation*> animations;
         std::vector<std::string> animationNames;
         int selectedAnimationIndex = -1;
+        
+        int playerControllerToPossesIndex = -1;
 
         unsigned int metalicTextureID;
         unsigned int nonMetalicTextureID;

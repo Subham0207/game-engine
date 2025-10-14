@@ -192,6 +192,17 @@ void Outliner::levelControlsComponent(Level &lvl)
         getUIState().fileExtension = ".lvl";
         getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::LoadLvlFile;
     }
+
+    std::vector<const char*> cPlayerControllerNames;
+    for (const auto& pc : State::state->playerControllers) {
+    cPlayerControllerNames.push_back(pc->filename.c_str());
+    }
+
+    if (ImGui::Combo("Select Player controller to posses",
+         &getUIState().playerControllerToPossesIndex,
+          cPlayerControllerNames.data(),
+           cPlayerControllerNames.size())) {
+    }
 }
 void Outliner::modelSelectorComponent()
 {

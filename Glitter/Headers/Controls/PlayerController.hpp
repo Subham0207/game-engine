@@ -13,10 +13,10 @@ namespace Controls
     class PlayerController
     {        
     public:
-        PlayerController()
+        PlayerController(std::string filename)
             : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
               isJumping(false), grounded(false), dodgeStart(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
-              inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f)
+              inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f), filename(filename)
         {}
 
         float movementSpeed = 0.0f;           // Current speed (blended)
@@ -39,6 +39,8 @@ namespace Controls
 
         float inputXWorld;
         float inputZWorld;
+
+        std::string filename;
 
         void setMovement(glm::vec3 dir)
         {
