@@ -56,7 +56,22 @@ struct ClientHandler {
 State* State::state = new State();
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
-    // std::cerr << "GL Callback: " << message << std::endl;
+    // Only keep HIGH severity
+    if (severity != GL_DEBUG_SEVERITY_HIGH) return;
+
+    static std::unordered_set<GLuint> g_seenIds;
+
+    // Optional: ignore known noisy IDs (examples vary by driver)
+    // if (id == 131185 || id == 131204) return;
+
+    auto [_, inserted] = g_seenIds.insert(id);
+    if (!inserted) return; // already logged this ID
+
+    std::cerr << "\n=== OpenGL HIGH severity ===\n"
+              << "ID: " << id << "\n"
+              << "Source: " << source << "  Type: " << type << "\n"
+              << "Msg: " << message << "\n"
+              << "============================\n";
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {

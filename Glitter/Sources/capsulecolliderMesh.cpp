@@ -13,6 +13,7 @@ CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
 
 void CapsuleColliderModel::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
+    model->useAttachedShader();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     model->draw(deltaTime, camera, lights, cubeMap);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

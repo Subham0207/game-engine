@@ -154,8 +154,6 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         //--
         if(this->camera)
         {
-            State::state->activeCameraIndex = getActiveLevel().cameras.size() - 1;
-    
             this->camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
         }
         //--
