@@ -51,8 +51,11 @@ void Physics::Capsule::syncTransformation()
     }
     else
     {
-        delete set;
-        delete character;
+        if (character) {
+            character->SetListener(nullptr);
+            character = nullptr;            
+        }
+        set->Release();
         delete listener;
         CreateCharacterVirtualPhysics(&physics->physicsSystem,
             jphPosition, halfHeight, radius);

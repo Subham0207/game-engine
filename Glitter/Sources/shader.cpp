@@ -83,7 +83,6 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 
 void Shader::use()
 {
-    std::cout << "Shader Program active " << ID << std::endl;
     glUseProgram(ID);
 }
 

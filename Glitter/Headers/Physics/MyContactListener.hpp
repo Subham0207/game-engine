@@ -16,6 +16,8 @@ class MyContactListener : public JPH::CharacterContactListener
             has_landed_this_frame = true;
     }
 
-  public:
-    bool has_landed_this_frame = false;
+    
+    public:
+      bool has_landed_this_frame = false;
+      ~MyContactListener(){};
 };
