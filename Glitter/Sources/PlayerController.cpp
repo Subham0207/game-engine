@@ -7,29 +7,36 @@ glm::quat Controls::PlayerController::faceMouseOnXZ(
     glm::mat4& view,glm::mat4& proj
 )
 {
-    glm::vec3 rayOrigin, rayDir;
-    setRay(mouseX, mouseY, rayOrigin, rayDir, view, proj, glm::vec3(0.0f));
+    glm::vec3 O, D;
+    setRay(mouseX, mouseY, O, D, view, proj, glm::vec3(0.0f));
 
-    // Ground/hover plane: y = playerPosition.y
-    glm::vec3 planeNormal(0.0f, 1.0f, 0.0f);
-    glm::vec3 planePoint (0.0f, playerPosition.y, 0.0f);
+    // Camera forward in world space:
+    glm::mat4 invView = glm::inverse(view);
+    // In GLM (column-major), basis vectors are columns; +Z is column 2.
+    // Cameras look -Z in view space, so world forward is -invView[2].xyz
+    glm::vec3 camForward = -glm::normalize(glm::vec3(invView[2]));
 
+    // Plane through the player, parallel to the camera’s image plane
     float t; glm::vec3 hit;
-    if (!intersectRayPlane(rayOrigin, rayDir, planeNormal, planePoint, t, hit)) {
-        // No intersection in front of camera — keep current orientation
-        return glm::angleAxis(0.0f, glm::vec3(0,1,0)); // or return your last rotation
+    if (!intersectRayPlane_pointNormal(O, D, playerPosition, camForward, t, hit)) {
+        // Super rare (ray parallel to plane). Fall back to camera forward.
+        glm::vec3 fd = glm::normalize(glm::vec3(camForward.x, 0.0f, camForward.z));
+        float yaw = std::atan2(fd.x, fd.z);
+        return glm::angleAxis(yaw, glm::vec3(0,1,0));
     }
 
-    glm::vec3 lookDirection = hit - playerPosition;
-    lookDirection.y = 0.0f;
+    // Build facing on XZ
+    glm::vec3 faceDir = hit - playerPosition;
+    faceDir.y = 0.0f;
 
-    if (glm::length2(lookDirection) < 1e-6f) {
-        return glm::angleAxis(0.0f, glm::vec3(0,1,0));
+    // If the hit is almost directly above/below, blend in camera forward to avoid jitter:
+    if (glm::length2(faceDir) < 1e-8f) {
+        faceDir = glm::vec3(camForward.x, 0.0f, camForward.z);
     }
 
-    lookDirection = glm::normalize(lookDirection);
+    faceDir = glm::normalize(faceDir);
 
     // If your model’s forward is +Z:
-    float yaw = std::atan2(lookDirection.x, lookDirection.z);
+    float yaw = std::atan2(faceDir.x, faceDir.z);
     return glm::angleAxis(yaw, glm::vec3(0,1,0));
 }

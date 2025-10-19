@@ -70,23 +70,16 @@ void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int
 
 }
 
-bool intersectRayPlane(
-    const glm::vec3& rayOrigin,
-    const glm::vec3& rayDir,
-    const glm::vec3& n,          // plane normal (must be normalized)
-    const glm::vec3& p,          // a point on plane
-    float& tOut,
-    glm::vec3& hitOut
-) {
-    float denom = glm::dot(n, rayDir);
-    const float EPS = 1e-6f;
-    if (std::fabs(denom) < EPS) return false; // Ray parallel to plane
-
-    float t = glm::dot(p - rayOrigin, n) / denom;
-    if (t < 0.0f) return false;               // Intersection is behind the origin
-
+bool intersectRayPlane_pointNormal(
+    const glm::vec3& O, const glm::vec3& D,
+    const glm::vec3& P, const glm::vec3& N, // plane point & normal (normalized)
+    float& tOut, glm::vec3& hitOut
+){
+    const float denom = glm::dot(N, D);
+    if (std::abs(denom) < 1e-6f) return false;       // parallel
+    float t = glm::dot(P - O, N) / denom;
     tOut = t;
-    hitOut = rayOrigin + t * rayDir;
+    hitOut = O + t * D;
     return true;
 }
 
