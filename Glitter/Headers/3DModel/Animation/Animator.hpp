@@ -142,6 +142,18 @@ public:
 					m_CurrentTime);
 			}
 		}
+		else
+		{
+			CalculateBoneTransform(
+				node,
+				globalInverseTransform,
+				boneInfoMap,
+				modelMatrix,
+				bonePositions,
+				bones,
+				globalInverseTransform,
+				m_CurrentTime);
+		}
 	}
 
 	void onPoseTransitionInProgress(

@@ -214,6 +214,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
     }
     else
     {
+        animator->blendSelection = nullptr;
+        animator->m_CurrentAnimation = nullptr;
         if(capsuleCollider && capsuleCollider->physics)
         {
             auto characterWorldPos = model->GetPosition();
