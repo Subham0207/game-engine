@@ -10,33 +10,53 @@ glm::quat Controls::PlayerController::faceMouseOnXZ(
     glm::vec3 O, D;
     setRay(mouseX, mouseY, O, D, view, proj, glm::vec3(0.0f));
 
-    // Camera forward in world space:
+    // Camera forward in world space
     glm::mat4 invView = glm::inverse(view);
-    // In GLM (column-major), basis vectors are columns; +Z is column 2.
-    // Cameras look -Z in view space, so world forward is -invView[2].xyz
-    glm::vec3 camForward = -glm::normalize(glm::vec3(invView[2]));
+    glm::vec3 camForward = -glm::normalize(glm::vec3(invView[2])); // -Z of camera basis
 
-    // Plane through the player, parallel to the camera’s image plane
+    // 1) Try ground/hover plane at player Y
     float t; glm::vec3 hit;
-    if (!intersectRayPlane_pointNormal(O, D, playerPosition, camForward, t, hit)) {
-        // Super rare (ray parallel to plane). Fall back to camera forward.
-        glm::vec3 fd = glm::normalize(glm::vec3(camForward.x, 0.0f, camForward.z));
-        float yaw = std::atan2(fd.x, fd.z);
-        return glm::angleAxis(yaw, glm::vec3(0,1,0));
+    bool got = rayPlaneHit(
+        O, D,
+        glm::vec3(0.0f, playerPosition.y, 0.0f),
+        glm::vec3(0,1,0),
+        t, hit
+    );
+
+    // 2) If no good ground hit, use a tilted plane through the player that leans toward camera
+    if (!got) {
+        const float k = 0.6f; // 0..1 (0 = ground, 1 = camera-facing)
+        glm::vec3 Ntilt = glm::normalize((1.0f - k) * glm::vec3(0,1,0) - k * camForward);
+        got = rayPlaneHit(O, D, playerPosition, Ntilt, t, hit);
+
+        // Extreme edge: if still no, nudge k a bit more aggressive
+        if (!got) {
+            glm::vec3 Ntilt2 = glm::normalize(0.3f * glm::vec3(0,1,0) - 0.7f * camForward);
+            got = rayPlaneHit(O, D, playerPosition, Ntilt2, t, hit);
+            if (!got) {
+                // Last resort: look where the ray trends horizontally
+                glm::vec3 dirXZ = glm::normalize(glm::vec3(D.x, 0.0f, D.z));
+                float yawLR = std::atan2(dirXZ.x, dirXZ.z);
+                return glm::angleAxis(yawLR, glm::vec3(0,1,0));
+            }
+        }
     }
 
-    // Build facing on XZ
-    glm::vec3 faceDir = hit - playerPosition;
-    faceDir.y = 0.0f;
+    // 3) Build facing on XZ
+    glm::vec3 dir = hit - playerPosition;
+    dir.y = 0.0f;
 
-    // If the hit is almost directly above/below, blend in camera forward to avoid jitter:
-    if (glm::length2(faceDir) < 1e-8f) {
-        faceDir = glm::vec3(camForward.x, 0.0f, camForward.z);
+    // Deadzone to avoid jitter if cursor is nearly above player
+    if (glm::length2(dir) < 1e-8f) {
+        // Keep current (or face camera forward projected)
+        glm::vec3 f = glm::normalize(glm::vec3(camForward.x, 0.0f, camForward.z));
+        float yawF = std::atan2(f.x, f.z);
+        return glm::angleAxis(yawF, glm::vec3(0,1,0));
     }
 
-    faceDir = glm::normalize(faceDir);
+    dir = glm::normalize(dir);
 
-    // If your model’s forward is +Z:
-    float yaw = std::atan2(faceDir.x, faceDir.z);
+    // If your model's forward is +Z:
+    float yaw = std::atan2(dir.x, dir.z);
     return glm::angleAxis(yaw, glm::vec3(0,1,0));
 }

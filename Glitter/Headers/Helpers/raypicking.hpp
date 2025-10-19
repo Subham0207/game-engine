@@ -17,10 +17,10 @@
 
 void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int shaderId);
 void renderRayWithIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayEnd, unsigned int shaderId);
-bool intersectRayPlane_pointNormal(
+bool rayPlaneHit(
     const glm::vec3& O, const glm::vec3& D,
-    const glm::vec3& P, const glm::vec3& N, // plane point & normal (normalized)
-    float& tOut, glm::vec3& hitOut
+    const glm::vec3& P, const glm::vec3& N,
+    float& tOut, glm::vec3& X
 );
 
 int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<Renderable*>& renderables);
