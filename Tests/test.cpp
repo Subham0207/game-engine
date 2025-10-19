@@ -12,3 +12,11 @@ public:
 TEST(ExampleTest, Test1){
     auto testSerializationMacro =  new TestSerializeMacro();
 }
+
+TEST(Character, OnPlayEndCharacterShouldBeBackToTPose){
+    auto testSerializationMacro =  new TestSerializeMacro();
+}
+
+TEST(Character, CharacterShouldFaceMouseDirection){
+    auto testSerializationMacro =  new TestSerializeMacro();
+}

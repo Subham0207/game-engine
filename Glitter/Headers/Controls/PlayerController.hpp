@@ -7,6 +7,7 @@
 #include <glm/gtc/epsilon.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <LuaEngine/LuaEngine.hpp>
+#include <Helpers/shader.hpp>
 
 namespace Controls
 {
@@ -27,6 +28,7 @@ namespace Controls
         bool grounded;
         bool dodgeStart;
         float interpolationSpeed;      // Controls how fast blending happens (0.1 = smooth, 1.0 = instant)
+        Shader* rayCastshader =  new Shader("./Shaders/rayCast.vert", "./Shaders/rayCast.frag");
 
         glm::vec3 lookDirection;
 

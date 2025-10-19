@@ -70,6 +70,26 @@ void renderRay(const glm::vec3& rayOrigin, const glm::vec3& rayDir, unsigned int
 
 }
 
+bool intersectRayPlane(
+    const glm::vec3& rayOrigin,
+    const glm::vec3& rayDir,
+    const glm::vec3& n,          // plane normal (must be normalized)
+    const glm::vec3& p,          // a point on plane
+    float& tOut,
+    glm::vec3& hitOut
+) {
+    float denom = glm::dot(n, rayDir);
+    const float EPS = 1e-6f;
+    if (std::fabs(denom) < EPS) return false; // Ray parallel to plane
+
+    float t = glm::dot(p - rayOrigin, n) / denom;
+    if (t < 0.0f) return false;               // Intersection is behind the origin
+
+    tOut = t;
+    hitOut = rayOrigin + t * rayDir;
+    return true;
+}
+
 void renderRayWithIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayEnd, unsigned int shaderId){
 
     glBindFragDataLocation(shaderId, 0, "fragColor");
