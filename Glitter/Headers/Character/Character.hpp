@@ -29,6 +29,8 @@ public:
 
     void static saveToFile(std::string filename,  Character &character);
 
+    void loadStateMachine(std::string stateMachine_guid);
+
     void static loadFromFile(const std::string &filename, Character &character);
 
     auto& GetBoneInfoMap() { return skeleton->m_BoneInfoMap; }

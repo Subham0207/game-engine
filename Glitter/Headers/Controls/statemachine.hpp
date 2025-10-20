@@ -66,11 +66,10 @@ namespace Controls
             StateMachine(std::string filename);
             void tick(Controls::PlayerController* playerController, Animator* animator);
             void setActiveState(std::shared_ptr<State> state);
-
+            virtual const std::string contentName() override {return filename; }
             
         protected:
             virtual const std::string typeName() const override {return "statemachine"; }
-            virtual const std::string contentName() override {return filename; }
             
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;

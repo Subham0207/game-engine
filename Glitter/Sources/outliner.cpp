@@ -1,6 +1,7 @@
 #include <UI/outliner.hpp>
 #include <UI/materialManager.hpp>
 #include <UI/ProjectManager.hpp>
+#include <UI/CharacterUI.hpp>
  
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
@@ -54,6 +55,12 @@ void Outliner::Render(Level &lvl) {
     //     }
     //     ImGui::End();
     // }
+
+    if(getUIState().characterUIState->showCharacterUI)
+    {
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+        UI::CharacterUI::draw(character);
+    }
 
     if(getUIState().createANewProject)
     {
@@ -193,6 +200,11 @@ void Outliner::levelControlsComponent(Level &lvl)
         getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::LoadLvlFile;
     }
 
+    if(ImGui::Button("Open character"))
+    {
+        getUIState().characterUIState->showCharacterUI = true;  
+    }   
+
     std::vector<const char*> cPlayerControllerNames;
     for (const auto& pc : State::state->playerControllers) {
     cPlayerControllerNames.push_back(pc->filename.c_str());
@@ -202,7 +214,7 @@ void Outliner::levelControlsComponent(Level &lvl)
          &getUIState().playerControllerToPossesIndex,
           cPlayerControllerNames.data(),
            cPlayerControllerNames.size())) {
-    }
+    }   
 }
 void Outliner::modelSelectorComponent()
 {

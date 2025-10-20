@@ -11,6 +11,10 @@ class Model;
 class Animation;
 class Character;
 class Shader;
+namespace UI
+{
+    class CharacterUI;
+};
 
 namespace ProjectAsset {
 
@@ -75,6 +79,10 @@ namespace ProjectAsset {
 
         //Blendspace
         ImVec2 scrubbedPoint = ImVec2(0,0);
+
+        UI::CharacterUI* characterUIState;
+
+        UIState();
     };
 
 }

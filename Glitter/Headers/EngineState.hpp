@@ -9,6 +9,7 @@
 #include <PhysicsSystem.hpp>
 #include <EngineRegistry.hpp>
 #include <LuaEngine/LuaEngine.hpp>
+#include <Controls/statemachine.hpp>
 namespace fs = std::filesystem;
 
 class State{
@@ -49,8 +50,9 @@ public:
 
     int activePlayerControllerId = 0;
     std::vector<Controls::PlayerController*> playerControllers = std::vector<Controls::PlayerController*>();
+    std::vector<Controls::StateMachine*> statemachines = std::vector<Controls::StateMachine*>();
 
-    ProjectAsset::UIState uiState;
+    ProjectAsset::UIState uiState = ProjectAsset::UIState();
 
     PhysicsSystemWrapper* physics = new PhysicsSystemWrapper();
 

@@ -275,6 +275,14 @@ void Character::saveContent(fs::path contentFile, std::ostream& os)
     Character::saveToFile(contentFile.string(), *this);
 }
 
+void Character::loadStateMachine(std::string stateMachine_guid)
+{
+    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
+    auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);
+    this->animStateMachine = new Controls::StateMachine();
+    this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
+}
+
 void Character::loadContent(fs::path contentFile, std::istream& is)
 {
     Character::loadFromFile(contentFile.string(), *this);
