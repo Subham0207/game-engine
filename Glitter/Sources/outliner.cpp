@@ -56,17 +56,9 @@ void Outliner::Render(Level &lvl) {
     //     ImGui::End();
     // }
 
-    if(getUIState().characterUIState->showCharacterUI)
-    {
-        auto selectedCharacterIndex = getUIState().selectedRenderableIndex;
-        if(selectedCharacterIndex > -1)
-        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedCharacterIndex]))
-        {
-            getUIState().characterUIState->UIOpenedForCharacter = character;
-            UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter);
-        }
-    }
-
+    if(getUIState().characterUIState->UIOpenedForCharacter && getUIState().characterUIState->showCharacterUI)
+    UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter, getUIState().characterUIState->showCharacterUI);
+    
     if(getUIState().createANewProject)
     {
         ProjectAsset::createANewProject(
@@ -208,8 +200,14 @@ void Outliner::levelControlsComponent(Level &lvl)
     if(ImGui::Button("Open character"))
     {
         getUIState().characterUIState->showCharacterUI = true;
-    }   
-
+        auto selectedCharacterIndex = getUIState().selectedRenderableIndex;
+        if(selectedCharacterIndex > -1)
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedCharacterIndex]))
+        {
+            getUIState().characterUIState->UIOpenedForCharacter = character;
+        }
+    }
+    
     std::vector<const char*> cPlayerControllerNames;
     for (const auto& pc : EngineState::state->playerControllers) {
     cPlayerControllerNames.push_back(pc->filename.c_str());
