@@ -30,7 +30,7 @@ std::vector<std::shared_ptr<Modals::Material>> CapsuleColliderModel::getMaterial
 }
 
 bool CapsuleColliderModel::ShouldRender() {
-    return !State::state->isPlay;
+    return !EngineState::state->isPlay;
 }
 
 void CapsuleColliderModel::GenerateCapsuleMesh(std::vector<ProjectModals::Vertex>& vertices, std::vector<unsigned int>& indices, float radius, float halfHeight, int segments, int rings)

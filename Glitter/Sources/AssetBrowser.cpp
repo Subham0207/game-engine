@@ -25,7 +25,7 @@ namespace ProjectAsset
 
                 if(ImGui::Button("Go to Root of project"))
                 {
-                    currentPath = State::state->currentActiveProjectDirectory;
+                    currentPath = EngineState::state->currentActiveProjectDirectory;
                     refreshAssetBrowser = true;
                 }
 

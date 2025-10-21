@@ -3,25 +3,25 @@
 
 ProjectAsset::UIState &getUIState()
 {
-    return State::state->uiState;
+    return EngineState::state->uiState;
 }
 
 Level &getActiveLevel()
 {
-   return *State::state->activeLevel;
+   return *EngineState::state->activeLevel;
 }
 
 PhysicsSystemWrapper &getPhysicsSystem()
 {
-    return *State::state->physics;
+    return *EngineState::state->physics;
 }
 
 LuaEngine& getLuaEngine()
 {
-    return *State::state->luaEngine;
+    return *EngineState::state->luaEngine;
 }
 
 std::map<std::string, std::string> getEngineRegistryFilesMap()
 {
-    return State::state->engineRegistry->renderableSaveFileMap;
+    return EngineState::state->engineRegistry->renderableSaveFileMap;
 }

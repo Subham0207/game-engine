@@ -27,6 +27,24 @@ Lua is a scripting library. Sol2 simplifies the use of Lua.
 3. sol2 is being fetched by project cmakefile using fetch content.
 4. the cmake file automatically copies the lua dll from lua directory into exe's directory. if it fails check directory names.
 
+# Only if using VS-Code
+Add this config to .vscode/settings.json. 
+This is the limit the search so we ignore any dependent library code.
+The last line of configurationprovider is so the intellisense is handled via cmake's state.
+```
+    "files.exclude": {
+        "**/build/": true,
+        "**/bin/": true,
+        "**/Vendor/": true
+    },
+    "search.exclude": {
+        "**/build/": true,
+        "**/bin/": true,
+        "**/Vendor/": true
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+```
+
 ## Documentation
 
 Functionality           | Library

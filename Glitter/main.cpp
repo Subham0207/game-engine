@@ -53,7 +53,7 @@ struct ClientHandler {
 
 } clientHandler;
 
-State* State::state = new State();
+EngineState* EngineState::state = new EngineState();
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
     // Only keep HIGH severity
@@ -98,8 +98,8 @@ void imguiBackend()
 int openEditor();
 int main(int argc, char * argv[])
 {
-    if (fs::exists(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json")) {
-        std::ifstream infile(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json");
+    if (fs::exists(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json")) {
+        std::ifstream infile(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json");
         std::string line;
         while (std::getline(infile, line)) {
             // Check if the line is not empty before adding.
@@ -135,7 +135,7 @@ int main(int argc, char * argv[])
         glfwPollEvents();
 
          // Now it's safe to leave the loop
-        if(State::state->currentActiveProjectDirectory != "")
+        if(EngineState::state->currentActiveProjectDirectory != "")
         break;
 
     }   
@@ -146,7 +146,7 @@ int main(int argc, char * argv[])
     glfwTerminate();
 
 
-    if(State::state->currentActiveProjectDirectory != "")
+    if(EngineState::state->currentActiveProjectDirectory != "")
     {
         deltaTime = 0.0f;
         lastFrame = 0.0f;
@@ -200,7 +200,7 @@ int openEditor() {
     // Load GLFW and Create a Window
     initAWindow();
     imguiBackend();
-    State::state->engineRegistry->init();
+    EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
@@ -209,14 +209,14 @@ int openEditor() {
 
     //Loading Level -- making .lvl as the extention of my levelfile
     auto level = new Level();
-    State::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
+    EngineState::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
     auto defaultCamera = new Camera("defaultcamera");
-    auto lvl = State::state->activeLevel;
+    auto lvl = EngineState::state->activeLevel;
     // State::state->activeLevel = new level(); state already has a new level initialized
     lvl->cameras.push_back(defaultCamera);
     
     //Init clienthandler
-    clientHandler.camera = lvl->cameras[State::state->activeCameraIndex];
+    clientHandler.camera = lvl->cameras[EngineState::state->activeCameraIndex];
     clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
     
@@ -318,10 +318,10 @@ int openEditor() {
         lastFrame = currentFrame;
 
         clientHandler.inputHandler->handleInput(deltaTime);
-        if(State::state->isPlay)
+        if(EngineState::state->isPlay)
         {
-            clientHandler.camera = lvl->cameras[State::state->activePlayerControllerId + 1];
-            InputHandler::currentInputHandler->m_Camera = lvl->cameras[State::state->activePlayerControllerId + 1];
+            clientHandler.camera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
+            InputHandler::currentInputHandler->m_Camera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
 
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess

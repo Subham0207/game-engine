@@ -120,6 +120,9 @@ void Controls::StateMachine::loadContent(fs::path contentFile, std::istream& is)
         auto filesMap = getEngineRegistryFilesMap();
         stateGraph = activeState;
         traverseAndLoadStateGraph(activeState, filesMap);
+
+        //Add to EngineState
+        EngineState::state->statemachines.push_back(this);
 }
 
 void Controls::StateMachine::traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap)

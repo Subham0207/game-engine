@@ -12,10 +12,10 @@
 #include <Controls/statemachine.hpp>
 namespace fs = std::filesystem;
 
-class State{
+class EngineState{
 public:
-    State(){}
-    static State* state;
+    EngineState(){}
+    static EngineState* state;
     glm::vec3 v0;
     glm::vec3 v1;
     glm::vec3 v2;

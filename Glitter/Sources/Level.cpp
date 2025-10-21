@@ -9,8 +9,8 @@ namespace fs = std::filesystem;
 void Level::loadMainLevelOfCurrentProject()
 {
     // read the project.manifest file and find the which level is entry point
-    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
-    auto manifestDir = fs::path(State::state->currentActiveProjectDirectory) / "project.manifest.json";
+    auto filesMap = EngineState::state->engineRegistry->renderableSaveFileMap;
+    auto manifestDir = fs::path(EngineState::state->currentActiveProjectDirectory) / "project.manifest.json";
     bs::ptree manifest;
     bs::read_json(manifestDir.string(), manifest);
     auto defaultLevelFilePath = fs::path(manifest.get<std::string>("defaultLevel"));
@@ -22,7 +22,7 @@ void Level::loadMainLevelOfCurrentProject()
 
 void Level::loadContent(fs::path contentFile, std::istream& is)
 {
-    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
+    auto filesMap = EngineState::state->engineRegistry->renderableSaveFileMap;
     if(filesMap.empty())
     return;
 

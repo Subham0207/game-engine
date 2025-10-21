@@ -58,14 +58,19 @@ void Outliner::Render(Level &lvl) {
 
     if(getUIState().characterUIState->showCharacterUI)
     {
-        if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
-        UI::CharacterUI::draw(character);
+        auto selectedCharacterIndex = getUIState().selectedRenderableIndex;
+        if(selectedCharacterIndex > -1)
+        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedCharacterIndex]))
+        {
+            getUIState().characterUIState->UIOpenedForCharacter = character;
+            UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter);
+        }
     }
 
     if(getUIState().createANewProject)
     {
         ProjectAsset::createANewProject(
-        getUIState().currentPath, State::state->uiState.fileNames, getUIState().createANewProject 
+        getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().createANewProject 
         );
     }
     
@@ -133,7 +138,7 @@ void Outliner::ModelMatrixComponent()
             }
 
             //set radius and half height of capsule collider used on the character
-            if(!State::state->isPlay)
+            if(!EngineState::state->isPlay)
             {
                 if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
                 {
@@ -180,7 +185,7 @@ void Outliner::levelControlsComponent(Level &lvl)
     if(ImGui::Button("Save Level"))
     {
         lvl.save(
-            (fs::path(State::state->currentActiveProjectDirectory) / "Levels"));
+            (fs::path(EngineState::state->currentActiveProjectDirectory) / "Levels"));
     }
     if(ImGui::Button("Save Level as"))
     {
@@ -202,11 +207,11 @@ void Outliner::levelControlsComponent(Level &lvl)
 
     if(ImGui::Button("Open character"))
     {
-        getUIState().characterUIState->showCharacterUI = true;  
+        getUIState().characterUIState->showCharacterUI = true;
     }   
 
     std::vector<const char*> cPlayerControllerNames;
-    for (const auto& pc : State::state->playerControllers) {
+    for (const auto& pc : EngineState::state->playerControllers) {
     cPlayerControllerNames.push_back(pc->filename.c_str());
     }
 
@@ -233,10 +238,10 @@ void Outliner::coordinateSystemSelectorComponent()
 {
     ImGui::Text("Coordinate space");
     if (ImGui::RadioButton("World space",&getUIState().coordinateSpace,0)) {
-        State::state->isWorldSpace = true;
+        EngineState::state->isWorldSpace = true;
     }
     if (ImGui::RadioButton("Local space",&getUIState().coordinateSpace,1)) {
-        State::state->isWorldSpace = true;
+        EngineState::state->isWorldSpace = true;
     }
 }
 void Outliner::manageModels()
@@ -265,11 +270,11 @@ void Outliner::manageAnimationsForSelectedModel()
 {
     if(ImGui::Button("Play"))
     {
-        State::state->isPlay = true;
+        EngineState::state->isPlay = true;
     }
     if(ImGui::Button("End Play"))
     {
-        State::state->isPlay = false;
+        EngineState::state->isPlay = false;
     }
 
     if(ImGui::Button("Load animation for model"))
@@ -287,7 +292,7 @@ void Outliner::manageAnimationsForSelectedModel()
         // Action when the selection changes
         // std::cout << "Selected: " << animationNames[current_item] << std::endl;
     }
-    if(ImGui::Button("Play Animation") && !State::state->isPlay)
+    if(ImGui::Button("Play Animation") && !EngineState::state->isPlay)
     {
         if(getUIState().selectedRenderableIndex > -1)
         {
@@ -311,24 +316,24 @@ void Outliner::manageAnimationsForSelectedModel()
 void Outliner::popupForErrorsAndWarning()
 {
     if (ImGui::BeginPopupModal("Warning", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text(State::state->errorStack.LastElement().c_str());
+        ImGui::Text(EngineState::state->errorStack.LastElement().c_str());
         ImGui::Separator();
 
         if (ImGui::Button("OK")) { 
-            State::state->errorStack.LastElement() = "";
+            EngineState::state->errorStack.LastElement() = "";
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
-    if(State::state->errorStack.size() != 0)
+    if(EngineState::state->errorStack.size() != 0)
     ImGui::OpenPopup("Warning");
 }
 void Outliner::debugOptions()
 {
 
-    if(State::state->playerControllers.size() > 0)
+    if(EngineState::state->playerControllers.size() > 0)
     {
-        auto playerController = State::state->playerControllers[0];
+        auto playerController = EngineState::state->playerControllers[0];
         // if(playerController)
         // {
         //     ImGui::SliderFloat("X blendFactor", &playerController->movementDirection, -2.0f, -4.0f);
@@ -370,10 +375,10 @@ void Outliner::handlerForUIComponentsvisibility()
 {
     if(getUIState().selectAFile)
     {
-        ProjectAsset::selectOrLoadAFileFromFileExplorer(getUIState().currentPath, State::state->uiState.fileNames, getUIState().selectAFile);
+        ProjectAsset::selectOrLoadAFileFromFileExplorer(getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().selectAFile);
     }
     else if(getUIState().saveAFile){
-        ProjectAsset::saveAFile(getUIState().currentPath, State::state->uiState.fileNames, getUIState().saveAFile);
+        ProjectAsset::saveAFile(getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().saveAFile);
     }
 
     if(getUIState().loadModelWindow)

@@ -5,7 +5,7 @@
 void UI::CharacterUI::draw(Character* character)
 {
     std::vector<const char*> statemachineNames;
-    for (const auto& sm : State::state->statemachines) {
+    for (const auto& sm : EngineState::state->statemachines) {
         statemachineNames.push_back(sm->contentName().c_str());
     }
 
@@ -15,7 +15,7 @@ void UI::CharacterUI::draw(Character* character)
         &getUIState().characterUIState->selectedStateMachineIndex,
         statemachineNames.data(),
         statemachineNames.size())) {
-            auto sm = State::state->statemachines[getUIState().characterUIState->selectedStateMachineIndex];
+            auto sm = EngineState::state->statemachines[getUIState().characterUIState->selectedStateMachineIndex];
             character->loadStateMachine(sm->getGUID());
         }
         ImGui::End();

@@ -127,7 +127,7 @@ void Animator::CalculateBoneTransform(
         glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
 
         //This is the perfect place to draw a bone; we have parent and child transform
-        if(!State::state->isPlay && getUIState().showDebugBone)
+        if(!EngineState::state->isPlay && getUIState().showDebugBone)
         calculateBoneVectorFromParentAndChild(
             modelMatrix,
             bonePositions,
@@ -200,7 +200,7 @@ void Animator::CalculateBoneTransformBlended(
         glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
 
         //This is the perfect place to draw a bone; we have parent and child transform
-        if(!State::state->isPlay && getUIState().showDebugBone)
+        if(!EngineState::state->isPlay && getUIState().showDebugBone)
         calculateBoneVectorFromParentAndChild(
             modelMatrix,
             bonePositions,

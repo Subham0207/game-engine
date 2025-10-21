@@ -8,7 +8,7 @@ namespace bs = boost::property_tree;
 void Engine::Registry::init()
 {
     //scan the current active project directory for .meta files, create a fs::path files[] of allowed types.
-    auto currentProjectDirectory = fs::path(State::state->currentActiveProjectDirectory);
+    auto currentProjectDirectory = fs::path(EngineState::state->currentActiveProjectDirectory);
     renderableSaveFileMap = loadMetaFiles(currentProjectDirectory);
 }
 

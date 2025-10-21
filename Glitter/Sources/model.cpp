@@ -95,7 +95,7 @@ std::shared_ptr<ProjectModals::Texture> Model::processEmbeddedTexture(const aiSc
 
 std::shared_ptr<ProjectModals::Texture> Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType)
 {
-    auto currentProjectLocation = fs::path(State::state->currentActiveProjectDirectory);
+    auto currentProjectLocation = fs::path(EngineState::state->currentActiveProjectDirectory);
     auto filename = (currentProjectLocation / "Assets" / fs::path(texture->mFilename.C_Str()).filename().string()).string();
     if(textureIds.size() > 0)
     {
@@ -314,7 +314,7 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
 
     if(physicsObject)
     {
-        if(State::state->isPlay)
+        if(EngineState::state->isPlay)
         {
             this->setTransformFromPhysics(physicsObject->model->GetPosition(), physicsObject->model->GetRot());
         }

@@ -171,9 +171,9 @@ int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& 
 
                                 //the intersection point is in local space convert it into world
                                 rayEnd = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(rayEnd,1.0));                                
-                                State::state->v0 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v0,1.0));
-                                State::state->v1 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v1,1.0));
-                                State::state->v2 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v2,1.0));
+                                EngineState::state->v0 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v0,1.0));
+                                EngineState::state->v1 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v1,1.0));
+                                EngineState::state->v2 = glm::vec3(renderables.at(i)->getModelMatrix() * glm::vec4(v2,1.0));
                             }
                         }
                     }
@@ -209,7 +209,7 @@ int handlePicking(
         setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
         // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
-        selectedModelIndex = selectModel(rayOrigin, rayDir, State::state->rayEnd, renderables);
+        selectedModelIndex = selectModel(rayOrigin, rayDir, EngineState::state->rayEnd, renderables);
         // std::cout << "Intersected ModelType index: " << selectedRenderableIndex << std::endl;
     }
     // renderRay(rayOrigin, rayDir, rayShader); 

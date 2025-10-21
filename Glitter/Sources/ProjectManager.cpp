@@ -21,7 +21,7 @@ void UI::projectManager()
             // Using Selectable to show that the items are interactive
             if (ImGui::Selectable(projectDir.string().c_str())) {
                 // This is where you would handle opening the selected project
-                State::state->currentActiveProjectDirectory = projectDir.string();
+                EngineState::state->currentActiveProjectDirectory = projectDir.string();
                 std::cout << "Selected: " << projectDir << std::endl;
             }
         }
@@ -31,12 +31,12 @@ void UI::projectManager()
 
     if(getUIState().createANewProject)
         ProjectAsset::createANewProject(
-            getUIState().currentPath, State::state->uiState.fileNames, getUIState().createANewProject 
+            getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().createANewProject 
         );
 
     if(getUIState().openAProject)
         ProjectAsset::createANewProject(
-            getUIState().currentPath, State::state->uiState.fileNames, getUIState().createANewProject 
+            getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().createANewProject 
         );
     
 }

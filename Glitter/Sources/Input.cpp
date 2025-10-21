@@ -19,7 +19,7 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
 
 void InputHandler::handleInput(float deltaTime)
 {
-    if(!State::state->isPlay)
+    if(!EngineState::state->isPlay)
     {
         handleEditorInput(deltaTime);
     }
@@ -66,10 +66,10 @@ void InputHandler::handlePlay()
     //A Player controller for now will just pass these button presses as boolean. This is for abstraction purpose
     //That means the state machine would be called on every frame but based on if the player controller has a input for it it would respond
     //We can place the state machine update in character update for now
-    auto id = State::state->activePlayerControllerId;
+    auto id = EngineState::state->activePlayerControllerId;
     Controls::PlayerController* playerController = nullptr;
-    if(State::state->playerControllers.size() > 0)
-    playerController = State::state->playerControllers.at(getUIState().playerControllerToPossesIndex);
+    if(EngineState::state->playerControllers.size() > 0)
+    playerController = EngineState::state->playerControllers.at(getUIState().playerControllerToPossesIndex);
 
     if(!playerController)
     return;

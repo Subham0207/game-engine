@@ -8,5 +8,6 @@ namespace UI
         static void draw(Character* character);
             int selectedStateMachineIndex;
             bool showCharacterUI;
+            Character* UIOpenedForCharacter;
     };
 }

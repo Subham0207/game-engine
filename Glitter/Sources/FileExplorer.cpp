@@ -24,11 +24,11 @@ void ProjectAsset::RenderFileExplorer(
     if(ImGui::Button("Go to Root of project"))
     {
         fileNames.clear();
-        currentPath = State::state->currentActiveProjectDirectory;
+        currentPath = EngineState::state->currentActiveProjectDirectory;
     }
 
-    if(State::state->errorStack.size() != 0)
-    ImGui::TextColored(ImVec4(1,0,0,1), State::state->errorStack.LastElement().c_str());
+    if(EngineState::state->errorStack.size() != 0)
+    ImGui::TextColored(ImVec4(1,0,0,1), EngineState::state->errorStack.LastElement().c_str());
 
     // Up button to go to the parent directory
     if (ImGui::Button("Up"))
@@ -78,7 +78,7 @@ void ProjectAsset::saveAFile(std::string& currentPath,
                     getActiveLevel().levelname = getUIState().saveAsFileName;
                     
                     getActiveLevel().save(
-                        fs::path(State::state->currentActiveProjectDirectory) / "Levels");
+                        fs::path(EngineState::state->currentActiveProjectDirectory) / "Levels");
                     showUI = false;
                 }
             }
@@ -129,7 +129,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             getUIState().modelfileName = getUIState().filePath;
                             getActiveLevel().addRenderable(new Character(getUIState().filePath));
-                            getUIState().renderables = *State::state->activeLevel->renderables;    
+                            getUIState().renderables = *EngineState::state->activeLevel->renderables;    
                             showUI = false;                       
                         }
                         break;
@@ -202,7 +202,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             }
                             else
                             {
-                                State::state->errorStack.LastElement() = "Please first Load a model and have it selected before loading an animation";
+                                EngineState::state->errorStack.LastElement() = "Please first Load a model and have it selected before loading an animation";
                             }
                             showUI = false;                      
                         }

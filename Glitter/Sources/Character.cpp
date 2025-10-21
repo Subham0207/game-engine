@@ -26,7 +26,7 @@ Character::Character(std::string filepath){
     skeleton->BuildBoneHierarchy();
 
     playerController = new Controls::PlayerController(filename);
-    State::state->playerControllers.push_back(playerController);
+    EngineState::state->playerControllers.push_back(playerController);
     playerController->register_bindings(getLuaEngine());
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
@@ -45,7 +45,7 @@ Character::Character(std::string filepath){
 
 Character::~Character()
 {
-    State::state->playerControllers.clear();
+    EngineState::state->playerControllers.clear();
     delete playerController;
     delete animStateMachine;
     delete model;
@@ -149,7 +149,7 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
     if(skeleton)
     skeleton->draw(camera, getModelMatrix());
 
-    if(State::state->isPlay)
+    if(EngineState::state->isPlay)
     {
         //--
         if(this->camera)
@@ -258,7 +258,7 @@ void Character::syncTransformationToPhysicsEntity()
 
 void Character::saveContent(fs::path contentFile, std::ostream& os)
 {
-    auto loc = State::state->currentActiveProjectDirectory;
+    auto loc = EngineState::state->currentActiveProjectDirectory;
 
     //save model
     this->model->save(contentFile.parent_path());
@@ -277,7 +277,7 @@ void Character::saveContent(fs::path contentFile, std::ostream& os)
 
 void Character::loadStateMachine(std::string stateMachine_guid)
 {
-    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
+    auto filesMap = EngineState::state->engineRegistry->renderableSaveFileMap;
     auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);
     this->animStateMachine = new Controls::StateMachine();
     this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
@@ -290,7 +290,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     auto skeleton_guid = this->skeleton_guid;
     auto stateMachine_guid = this->animStateMachine_guid;
 
-    auto filesMap = State::state->engineRegistry->renderableSaveFileMap;
+    auto filesMap = EngineState::state->engineRegistry->renderableSaveFileMap;
 
     //load model
     auto model_location = fs::path(filesMap[model_guid]);
@@ -309,7 +309,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //create new player controller 
     playerController = new Controls::PlayerController(contentName());
-    State::state->playerControllers.push_back(playerController);
+    EngineState::state->playerControllers.push_back(playerController);
     playerController->register_bindings(getLuaEngine());
 
     //load statemachine

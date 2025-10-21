@@ -21,7 +21,7 @@ void write_text(const fs::path& p, const std::string& text)
 
 int openAProject(const std::string& currentDir)
 {
-    State::state->currentActiveProjectDirectory = currentDir;
+    EngineState::state->currentActiveProjectDirectory = currentDir;
     
     // start the editor.
 
@@ -178,7 +178,7 @@ int create_new_project(const std::string& currentDir, const std::string& project
     fs::create_directories(root / "Config");
     fs::create_directories(root / "Library"); // cache/imports (ignore in VCS)
 
-    State::state->currentActiveProjectDirectory = root.string();
+    EngineState::state->currentActiveProjectDirectory = root.string();
 
     // Manifest (keep it tiny; add fields as you grow)
     auto lvl = new Level();
@@ -218,7 +218,7 @@ int create_new_project(const std::string& currentDir, const std::string& project
 
     write_text(root / "Project.manifest.json", manifest);
 
-    update_recent_projects_list(fs::path(State::state->engineInstalledDirctory) / "user_prefs.json", root);
+    update_recent_projects_list(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json", root);
 
     delete lvl;
     delete character;
