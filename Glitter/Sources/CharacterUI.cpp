@@ -4,20 +4,30 @@
 
 void UI::CharacterUI::draw(Character* character, bool &showUI)
 {
-    std::vector<const char*> statemachineNames;
-    for (const auto& sm : EngineState::state->statemachines) {
-        statemachineNames.push_back(sm->contentName().c_str());
+    std::vector<std::string> smNames;
+    smNames.reserve(EngineState::state->statemachines.size());
+    for (auto& sm : EngineState::state->statemachines) {
+    smNames.push_back(sm->contentName());  // strings own their storage
     }
 
-    if(ImGui::Begin("Character", &showUI))
-    {
-        if (ImGui::Combo("Select Statemachine",
-        &getUIState().characterUIState->selectedStateMachineIndex,
-        statemachineNames.data(),
-        statemachineNames.size())) {
-            auto sm = EngineState::state->statemachines[getUIState().characterUIState->selectedStateMachineIndex];
+    // Build the const char* view array (pointers valid as long as smNames lives)
+    std::vector<const char*> smNamePtrs;
+    smNamePtrs.reserve(smNames.size());
+    for (auto& s : smNames) smNamePtrs.push_back(s.c_str());
+
+    // UI
+    if (ImGui::Begin("Character", &showUI)) {
+    auto& ui = *getUIState().characterUIState;
+    if (ImGui::Combo("Select Statemachine",
+                        &ui.selectedStateMachineIndex,
+                        smNamePtrs.data(),
+                        (int)smNamePtrs.size())) {
+        if (ui.selectedStateMachineIndex >= 0 &&
+            ui.selectedStateMachineIndex < (int)EngineState::state->statemachines.size()) {
+            auto sm = EngineState::state->statemachines[ui.selectedStateMachineIndex];
             character->loadStateMachine(sm->getGUID());
         }
-        ImGui::End();
     }
+    }
+    ImGui::End();
 }
