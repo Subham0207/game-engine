@@ -164,16 +164,21 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
 
         if(playerController)
         {
-            auto desiredRot = playerController->faceMouseOnXZ(
+            //Only execute if playerController active otherwise produces nan.
+           
+            glm::quat desiredRot;
+
+            if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController)
+            desiredRot = playerController->faceMouseOnXZ(
                 model->GetPosition(),
                 InputHandler::currentInputHandler->lastX,
                 InputHandler::currentInputHandler->lastY,
                 this->camera->viewMatrix(),
                 this->camera->projectionMatrix()
             );
+            else
+            desiredRot =  glm::identity<glm::quat>();
 
-            
-            
             //--
             
             float xfactor = playerController->movementDirection;

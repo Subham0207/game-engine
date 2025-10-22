@@ -108,7 +108,8 @@ void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm:
 
     // Rotation handoff (GLM wxyz -> Jolt xyzw ctor)
     JPH::Quat joltYaw(glmYaw.x, glmYaw.y, glmYaw.z, glmYaw.w);
-    character->SetRotation(joltYaw);
+    joltYaw = joltYaw.Normalized();
+    character->SetRotation(joltYaw);    
 
     CharacterVirtual::ExtendedUpdateSettings eus;
     character->ExtendedUpdate(deltaTime, kGravity, eus, {}, {}, {}, {}, temp);
