@@ -286,6 +286,7 @@ void Character::loadStateMachine(std::string stateMachine_guid)
     auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);
     this->animStateMachine = new Controls::StateMachine();
     this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
+    this->animStateMachine_guid = stateMachine_guid;
 }
 
 void Character::loadContent(fs::path contentFile, std::istream& is)
