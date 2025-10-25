@@ -11,7 +11,10 @@ namespace fs = std::filesystem;
 namespace ProjectAsset{
     enum AssetType {
         Directory,
+        CharacterType,
         ModelType,
+        BlendSpaceType,
+        StateMachineType,
         AnimationType,
         png,
         jpg,

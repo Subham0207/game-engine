@@ -14,6 +14,7 @@ class Shader;
 namespace UI
 {
     class CharacterUI;
+    class Blendspace2DUI;
 };
 
 namespace ProjectAsset {

@@ -4,6 +4,7 @@
 #include <EngineState.hpp>
 #include "Helpers/Shared.hpp"
 #include <glad/glad.h>
+#include <Modals/FileType.hpp>
 
 namespace ProjectAsset
 {
@@ -107,6 +108,46 @@ namespace ProjectAsset
                         false);
                         break;
                 }
+                case AssetType::CharacterType:
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "./EngineAssets/character.png",
+                        "character.png",
+                        false);
+                        break;
+                }
+                case AssetType::ModelType:
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "./EngineAssets/model.png",
+                        "model.png",
+                        false);
+                        break;
+                }
+                case AssetType::BlendSpaceType:
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "./EngineAssets/blendspace.png",
+                        "blendspace.png",
+                        false);
+                        break;
+                }
+                case AssetType::StateMachineType:
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "./EngineAssets/statemachine.png",
+                        "statemachine.png",
+                        false);
+                        break;
+                }
+                case AssetType::AnimationType:
+                {
+                    asset->textureId = Shared::TextureFromFile(
+                        "./EngineAssets/animation.png",
+                        "animation.png",
+                        false);
+                        break;
+                }
                 default: 
                 {
                     asset->textureId = Shared::TextureFromFile(
@@ -135,12 +176,25 @@ namespace ProjectAsset
         // asset->filename = entry.path().stem().string();
         asset->filepath = entry.path().string();
         asset->filename = entry.path().filename().string();
-        auto extension = entry.path().extension().string();
-        if(extension == "model")
+        std::string extension = entry.path().extension().string();
+        if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);
+        if(extension == toString(FileType::CharacterType))
+        {
+            asset->assetType = AssetType::CharacterType;
+        }
+        if(extension == toString(FileType::ModelType))
         {
             asset->assetType = AssetType::ModelType;
         }
-        if(extension == "anim")
+        if(extension == toString(FileType::BlendSpaceType))
+        {
+            asset->assetType = AssetType::BlendSpaceType;
+        }
+        if(extension == toString(FileType::StateMachineType))
+        {
+            asset->assetType = AssetType::StateMachineType;
+        }
+        if(extension == toString(FileType::AnimationType))
         {
             asset->assetType = AssetType::AnimationType;
         }
