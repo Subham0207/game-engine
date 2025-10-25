@@ -97,3 +97,8 @@ void Shared::readAnimation(std::string filename)
     getUIState().animations.push_back(animation);
     getUIState().animationNames.push_back(animation->animationName);
 }
+
+bool Shared::endsWith(const std::string& value, const std::string& ending) {
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}

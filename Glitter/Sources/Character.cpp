@@ -289,6 +289,12 @@ void Character::loadStateMachine(std::string stateMachine_guid)
     this->animStateMachine_guid = stateMachine_guid;
 }
 
+void Character::deleteStateMachine()
+{
+    this->animStateMachine_guid = "";
+    delete this->animStateMachine;
+}
+
 void Character::loadContent(fs::path contentFile, std::istream& is)
 {
     Character::loadFromFile(contentFile.string(), *this);

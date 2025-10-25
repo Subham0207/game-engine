@@ -30,6 +30,7 @@ public:
     void static saveToFile(std::string filename,  Character &character);
 
     void loadStateMachine(std::string stateMachine_guid);
+    void deleteStateMachine();
 
     void static loadFromFile(const std::string &filename, Character &character);
 

@@ -9,8 +9,11 @@ namespace Engine
     class Registry
     {
         public:
-            // {guid: file_system_path}
+            // main file map {guid: file_system_path}
             std::map<std::string, std::string> renderableSaveFileMap;
+
+            //subsets of file map
+            std::map<std::string, std::string> statemachineFileMap;
 
             void init();
 

@@ -12,4 +12,6 @@ namespace Shared {
     unsigned int generateWhiteAOTexture();
 
     void readAnimation(std::string filename);
+
+    bool endsWith(const std::string& value, const std::string& ending);
 }
