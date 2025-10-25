@@ -214,7 +214,7 @@ void Outliner::levelControlsComponent(Level &lvl)
     }
 
     if (ImGui::Combo("Select Player controller to posses",
-         &getUIState().playerControllerToPossesIndex,
+         &EngineState::state->activePlayerControllerId,
           cPlayerControllerNames.data(),
            cPlayerControllerNames.size())) {
     }   
