@@ -1,6 +1,8 @@
 #include "UI/Blendspace2DUI.hpp"
+#include <Character/Character.hpp>
+#include <EngineState.hpp>
 
-bool ProjectAssets::ImGuiGrid2D(
+bool UI::ImGuiGrid2D(
     const std::vector<BlendPoint>& points,
     ImVec2* scrubbedPoint,
     const ImVec2& gridSize,
@@ -112,4 +114,21 @@ bool ProjectAssets::ImGuiGrid2D(
     }
 
     return isDragging;
+}
+void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selection, bool & showUI)
+{
+    if(ImGui::Begin("Blendspace"))
+    {
+        ImVec2 gridSize = ImVec2(200, 200);
+        if(UI::ImGuiGrid2D(blendspace->blendPoints, &getUIState().blendspace2DUIState->scrubbedPoint, gridSize, selection)){
+            // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
+
+            glm::clamp(getUIState().blendspace2DUIState->scrubbedPoint.x, -2.0f,2.0f);
+            glm::clamp(getUIState().blendspace2DUIState->scrubbedPoint.y, -2.0f,2.0f);
+        }
+        else{
+            // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
+        }
+        ImGui::End();
+    }
 }

@@ -79,6 +79,7 @@ namespace ProjectAsset {
         ImVec2 scrubbedPoint = ImVec2(0,0);
 
         UI::CharacterUI* characterUIState;
+        UI::Blendspace2DUI* blendspace2DUIState;
 
         UIState();
     };

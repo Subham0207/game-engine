@@ -5,6 +5,12 @@
 3. when displaying list of statemachines say in characterUI, we use the filesmap and get the filenames that end with `.statemachine`.
 4. Possessing a character: uses the playerController and camera attached to the possesses character.
 
+# How do you handle blendspace creation via editor UI.
+1. use the `Engineregistry.filesmap` to display the project files in the content browser.
+2. if a blendspace file is clicked. Then open that blendspace in the blendspaceUI.
+3. Add `create a blendspace` button. Which should open the blendspaceUI and let you create a blendspace and save it.
+4. The animation names can be retrived from `Engineregistry.filesmap`. So we can drag and drop blendpoints.
+5. Blendpoints contains info of the animation that was intended for drag and drop.
 
 # Files
 You create statemachine and then each character will a separate instance of the statemachine.

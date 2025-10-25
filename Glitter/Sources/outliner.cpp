@@ -37,25 +37,6 @@ void Outliner::Render(Level &lvl) {
         ImGui::End();
     }
 
-    // if(ImGui::Begin("Blendspace"))
-    // {
-    //     ImVec2 gridSize = ImVec2(200, 200);
-    //     if(getUIState().selectedRenderableIndex > -1)
-    //     if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
-    //     {
-    //         if(ProjectAssets::ImGuiGrid2D(character->blendSpace.blendPoints, &getUIState().scrubbedPoint, gridSize, &character->animator->blendSelection)){
-    //             // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
-
-    //             getUIState().xblendFactor = glm::clamp(getUIState().scrubbedPoint.x, -2.0f,2.0f);
-    //             getUIState().yblendFactor = glm::clamp(getUIState().scrubbedPoint.y, -2.0f,2.0f);
-    //         }
-    //         else{
-    //             // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
-    //         }
-    //     }
-    //     ImGui::End();
-    // }
-
     if(getUIState().characterUIState->UIOpenedForCharacter && getUIState().characterUIState->showCharacterUI)
     UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter, getUIState().characterUIState->showCharacterUI);
     
