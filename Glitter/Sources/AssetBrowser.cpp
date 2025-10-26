@@ -89,8 +89,19 @@ namespace ProjectAsset
         assets.clear();
         for (const auto& entry : fs::directory_iterator(currentPath))
         {
-            auto asset = convertFilenameToAsset(entry);
-            assets.push_back(*asset);
+            std::string extension = entry.path().extension().string();
+            if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);
+            if(
+                !(extension == toString(FileType::CharacterType) ||
+                extension == toString(FileType::ModelType)||
+                extension == toString(FileType::BlendSpaceType)||
+                extension == toString(FileType::StateMachineType)||
+                extension == toString(FileType::AnimationType))
+            )
+            {
+                auto asset = convertFilenameToAsset(entry, extension);
+                assets.push_back(*asset);
+            }
         }
     }
 
@@ -162,7 +173,7 @@ namespace ProjectAsset
         }
     }
 
-    Asset* convertFilenameToAsset(std::filesystem::directory_entry entry)
+    Asset* convertFilenameToAsset(std::filesystem::directory_entry entry, std::string extension)
     {
         auto asset = new Asset();
         if(entry.is_directory())
@@ -176,26 +187,24 @@ namespace ProjectAsset
         // asset->filename = entry.path().stem().string();
         asset->filepath = entry.path().string();
         asset->filename = entry.path().filename().string();
-        std::string extension = entry.path().extension().string();
-        if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);
-        if(extension == toString(FileType::CharacterType))
+
+        if (
+            entry.is_regular_file() && entry.path().extension() == ".json" &&
+            entry.path().filename().string().find(".meta") != std::string::npos
+        )
         {
+            auto justMetaGuid = entry.path().stem().stem().string();
+            auto filepath = fs::path(getEngineRegistryFilesMap()[justMetaGuid]).filename().string();
+            asset->filename = filepath;
+            if(Shared::endsWith(filepath, std::string(toString(FileType::CharacterType))))
             asset->assetType = AssetType::CharacterType;
-        }
-        if(extension == toString(FileType::ModelType))
-        {
+            if(Shared::endsWith(filepath, std::string(toString(FileType::ModelType))))
             asset->assetType = AssetType::ModelType;
-        }
-        if(extension == toString(FileType::BlendSpaceType))
-        {
+            if(Shared::endsWith(filepath, std::string(toString(FileType::BlendSpaceType))))
             asset->assetType = AssetType::BlendSpaceType;
-        }
-        if(extension == toString(FileType::StateMachineType))
-        {
+            if(Shared::endsWith(filepath, std::string(toString(FileType::StateMachineType))))
             asset->assetType = AssetType::StateMachineType;
-        }
-        if(extension == toString(FileType::AnimationType))
-        {
+            if(Shared::endsWith(filepath, std::string(toString(FileType::AnimationType))))
             asset->assetType = AssetType::AnimationType;
         }
 

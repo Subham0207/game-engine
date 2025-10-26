@@ -7,7 +7,7 @@
 
 # Asset Brower:
 1. Do not render project files directly. Use thier meta files to list them. This way we have access to guid of the file.
-   a. So skip file.s with prefixes such as .blendspace, .animation, .character,
+   a. So skip files with suffixes such as .blendspace, .animation, .character, etc.
    b. when a .meta.json file is detected attempt to read it and render the file.
 
 # How do you handle blendspace creation via editor UI.

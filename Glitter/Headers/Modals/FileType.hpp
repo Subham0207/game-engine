@@ -6,6 +6,7 @@ enum class FileType : uint8_t {
     BlendSpaceType,
     StateMachineType,
     AnimationType,
+    MetaJSONType,
     Unknown
 };
 
@@ -16,6 +17,7 @@ inline constexpr std::string_view toString(FileType type) {
         case FileType::BlendSpaceType:   return "blendspace";
         case FileType::StateMachineType: return "statemachine";
         case FileType::AnimationType:    return "animation";
+        case FileType::MetaJSONType:    return "meta.json";
         default:                     return "unknown";
     }
 }
@@ -26,5 +28,6 @@ inline constexpr FileType fromString(std::string_view s) {
     if (s == "blendspace")   return FileType::BlendSpaceType;
     if (s == "statemachine") return FileType::StateMachineType;
     if (s == "animation")    return FileType::AnimationType;
+    if (s == "meta.json")    return FileType::MetaJSONType;
     return FileType::Unknown;
 }

@@ -29,7 +29,7 @@ namespace ProjectAsset{
         unsigned int textureId;
     };
 
-    Asset* convertFilenameToAsset(fs::directory_entry entry);
+    Asset* convertFilenameToAsset(fs::directory_entry entry, std::string extension);
 
 
     //Feature: Drag and drop, Able to go through Assets.
