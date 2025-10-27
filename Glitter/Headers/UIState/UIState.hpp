@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <Renderable/renderable.hpp>
+#include <UI/Blendspace2DUI.hpp>
 #include <Modals/material.hpp>
 namespace fs = std::filesystem;
 
@@ -14,7 +15,6 @@ class Shader;
 namespace UI
 {
     class CharacterUI;
-    class Blendspace2DUI;
 };
 
 namespace ProjectAsset {

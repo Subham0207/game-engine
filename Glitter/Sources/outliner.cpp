@@ -39,6 +39,17 @@ void Outliner::Render(Level &lvl) {
 
     if(getUIState().characterUIState->UIOpenedForCharacter && getUIState().characterUIState->showCharacterUI)
     UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter, getUIState().characterUIState->showCharacterUI);
+
+    if(getUIState().blendspace2DUIState->showBlendspaceUI)
+    {
+        auto blendspace = getUIState().blendspace2DUIState->UIOpenedForBlendspace;
+        auto selection = blendspace->GetBlendSelection
+        (
+            glm::vec2( getUIState().blendspace2DUIState->scrubbedPoint.x,
+            getUIState().blendspace2DUIState->scrubbedPoint.y)
+        );
+        UI::Blendspace2DUI::draw(blendspace, selection, getUIState().blendspace2DUIState->showBlendspaceUI);
+    }
     
     if(getUIState().createANewProject)
     {

@@ -70,7 +70,16 @@ namespace ProjectAsset
 
                                 if(selectedAsset.assetType == AssetType::BlendSpaceType)
                                 {
-                                    std::cout << "Blendspace clicked " << fs::path(selectedAsset.filepath).filename().stem().stem().string() << std::endl;
+                                    auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
+                                    auto filesMap = getEngineRegistryFilesMap();
+                                    std::cout << "Blendspace clicked " << guid << std::endl;
+                                    if (auto it = filesMap.find(guid); it != filesMap.end())
+                                    {
+                                        auto blendspace = new BlendSpace2D();
+                                        blendspace->load(fs::path(selectedAsset.filepath).parent_path(), guid);
+                                        getUIState().blendspace2DUIState->UIOpenedForBlendspace = blendspace;
+                                        getUIState().blendspace2DUIState->showBlendspaceUI = true;
+                                    }
                                 }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
@@ -85,9 +94,9 @@ namespace ProjectAsset
                     ImGui::EndTable();
 
                 }
-                ImGui::EndChild();
-                ImGui::End();
             }
+            ImGui::EndChild();
+            ImGui::End();
     }
     
     void AssetBrowser::LoadAssets(){

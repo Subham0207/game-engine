@@ -129,6 +129,6 @@ void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selectio
         else{
             // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
         }
-        ImGui::End();
     }
+    ImGui::End();
 }

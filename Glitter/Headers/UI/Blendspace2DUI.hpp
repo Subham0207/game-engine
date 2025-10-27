@@ -14,9 +14,11 @@ namespace UI
             {
                 scrubbedPoint = ImVec2(0,0);
                 showBlendspaceUI = false;
+                UIOpenedForBlendspace = nullptr;
             }
-            void draw(BlendSpace2D *blendspace, BlendSelection* selection, bool &showUI);
+            static void draw(BlendSpace2D *blendspace, BlendSelection* selection, bool &showUI);
             ImVec2 scrubbedPoint;
             bool showBlendspaceUI;
+            BlendSpace2D* UIOpenedForBlendspace;
     };
 }
