@@ -60,27 +60,32 @@ namespace ProjectAsset
                                 ImVec4(1, 1, 1, 1)
                             ))
                             {
-                                if(assets[i].assetType == AssetType::Directory)
+                                auto selectedAsset = assets[i];
+                                if(selectedAsset.assetType == AssetType::Directory)
                                 {
                                     std::cout << "Directory clicked" << std::endl;
                                     currentPath = fs::path(assets[i].filepath).string();
                                     refreshAssetBrowser = true;
                                 }
 
+                                if(selectedAsset.assetType == AssetType::BlendSpaceType)
+                                {
+                                    std::cout << "Blendspace clicked " << fs::path(selectedAsset.filepath).filename().stem().stem().string() << std::endl;
+                                }
+
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
-                                    ImGui::SetDragDropPayload("ASSET_PATH", assets[i].filepath.c_str(),  assets[i].filepath.size() + 1);
-                                    ImGui::Text("Dragging %s", assets[i].filepath.c_str());
+                                    ImGui::SetDragDropPayload("ASSET_PATH", selectedAsset.filepath.c_str(),  selectedAsset.filepath.size() + 1);
+                                    ImGui::Text("Dragging %s", selectedAsset.filepath.c_str());
                                     ImGui::EndDragDropSource();
                                 }
                             }
                             ImGui::TextWrapped("%s", assets[i].filename.c_str());
                         }
-                        ImGui::EndTable();
                     }
+                    ImGui::EndTable();
 
-                    ImGui::EndChild();
                 }
-
+                ImGui::EndChild();
                 ImGui::End();
             }
     }
