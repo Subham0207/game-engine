@@ -2,6 +2,7 @@
 #include <EngineRegistry.hpp>
 #include <EngineState.hpp>
 #include <Helpers/Shared.hpp>
+#include <Modals/FileType.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 namespace bs = boost::property_tree;
@@ -19,6 +20,12 @@ void Engine::Registry::init()
         if(Shared::endsWith(value, suffix))
         {
             statemachineFileMap[key] = value;
+        }
+
+        suffix = ".animation";
+        if(Shared::endsWith(value, suffix))
+        {
+            animationsFileMap[key] = value;
         }
     }
     

@@ -14,6 +14,8 @@ namespace Engine
 
             //subsets of file map
             std::map<std::string, std::string> statemachineFileMap;
+            //subsets of file map
+            std::map<std::string, std::string> animationsFileMap;
 
             void init();
 

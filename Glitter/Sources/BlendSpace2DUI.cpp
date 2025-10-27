@@ -1,6 +1,7 @@
 #include "UI/Blendspace2DUI.hpp"
 #include <Character/Character.hpp>
 #include <EngineState.hpp>
+#include <UI/Shared/ComboUI.hpp>
 
 bool UI::ImGuiGrid2D(
     const std::vector<BlendPoint>& points,
@@ -129,6 +130,11 @@ void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selectio
         else{
             // ImGui::Text("Scrubbed Point: (%.2f, %.2f)", getUIState().scrubbedPoint.x, getUIState().scrubbedPoint.y);
         }
+        
+        UI::Shared::comboUI(
+            "Animations",
+            getUIState().blendspace2DUIState->selectedAnimationIndex,
+            EngineState::state->engineRegistry->animationsFileMap);
     }
     ImGui::End();
 }

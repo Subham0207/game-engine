@@ -20,5 +20,6 @@ namespace UI
             ImVec2 scrubbedPoint;
             bool showBlendspaceUI;
             BlendSpace2D* UIOpenedForBlendspace;
+            int selectedAnimationIndex;
     };
 }
