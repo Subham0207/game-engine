@@ -18,8 +18,10 @@ namespace Engine
             std::map<std::string, std::string> animationsFileMap;
 
             void init();
+            void update(std::string guid, std::string filepath);
 
         private:
             std::map<std::string, std::string> loadMetaFiles(const fs::path& rootDir);
+            void updateEachFileTypeMap(std::string guid, std::string filepath);
     };
 }

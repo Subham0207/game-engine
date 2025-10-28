@@ -63,7 +63,6 @@ namespace ProjectAsset
                                 auto selectedAsset = assets[i];
                                 if(selectedAsset.assetType == AssetType::Directory)
                                 {
-                                    std::cout << "Directory clicked" << std::endl;
                                     currentPath = fs::path(assets[i].filepath).string();
                                     refreshAssetBrowser = true;
                                 }
@@ -72,7 +71,6 @@ namespace ProjectAsset
                                 {
                                     auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
                                     auto filesMap = getEngineRegistryFilesMap();
-                                    std::cout << "Blendspace clicked " << guid << std::endl;
                                     if (auto it = filesMap.find(guid); it != filesMap.end())
                                     {
                                         auto blendspace = new BlendSpace2D();
@@ -101,7 +99,8 @@ namespace ProjectAsset
     
     void AssetBrowser::LoadAssets(){
         assets.clear();
-        for (const auto& entry : fs::directory_iterator(currentPath))
+        auto dirIt = fs::directory_iterator(fs::path(currentPath));
+        for (const auto& entry : dirIt)
         {
             std::string extension = entry.path().extension().string();
             if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);

@@ -129,12 +129,12 @@ UI::Grid2DResult UI::ImGuiGrid2D(
 }
 void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selection, bool & showUI)
 {
-    if(ImGui::Begin("Blendspace"))
+    if(ImGui::Begin("Blendspace", &showUI))
     {
         UI::Shared::InputText("##NameBlendspace", blendspace->blendspaceName);
         if(ImGui::Button("Save"))
         {
-            auto loc = fs::path(EngineState::state->currentActiveProjectDirectory);
+            auto loc = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
             blendspace->save(loc);
         }
 

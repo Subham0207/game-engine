@@ -16,19 +16,15 @@ void Engine::Registry::init()
     //load subsets
     for (auto &[key, value] : renderableSaveFileMap)
     {
-        auto suffix = ".statemachine";
-        if(Shared::endsWith(value, suffix))
-        {
-            statemachineFileMap[key] = value;
-        }
-
-        suffix = ".animation";
-        if(Shared::endsWith(value, suffix))
-        {
-            animationsFileMap[key] = value;
-        }
+        updateEachFileTypeMap(key, value);
     }
     
+}
+
+void Engine::Registry::update(std::string guid, std::string filepath)
+{
+    renderableSaveFileMap[guid] = filepath;
+    updateEachFileTypeMap(guid, filepath);
 }
 
 std::map<std::string, std::string> Engine::Registry::loadMetaFiles(const fs::path& rootDir) {
@@ -56,4 +52,19 @@ std::map<std::string, std::string> Engine::Registry::loadMetaFiles(const fs::pat
     }
 
     return guidToFileMap;
+}
+
+void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filepath)
+{
+    auto suffix = ".statemachine";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        statemachineFileMap[guid] = filepath;
+    }
+
+    suffix = ".animation";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        animationsFileMap[guid] = filepath;
+    }
 }

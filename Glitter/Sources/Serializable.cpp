@@ -27,6 +27,8 @@ void Serializable::save(fs::path &assetRoot)
         bs::ptree contentInJson;
         if (!os) throw std::runtime_error("Failed to open content file: " + contentFile.string());
         saveContent(contentFile, os);
+        os.flush();
+        os.close();
     }
 
     // 4) write meta (parent-owned)
@@ -38,6 +40,8 @@ void Serializable::save(fs::path &assetRoot)
 
     const fs::path metaFile = assetRoot / (guid_ +  ".meta.json");
     write_json(metaFile.string(), meta);
+
+    EngineState::state->engineRegistry->update(guid_, contentFile.string());
 }
 
 void Serializable::generate_guid()
