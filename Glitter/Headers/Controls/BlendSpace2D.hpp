@@ -62,6 +62,7 @@ public:
     void generateTimeWarpCurve(std::shared_ptr<AssimpNodeData> rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
     std::vector<BlendPoint> blendPoints;
 
+    std::string blendspaceName;
 protected:
     virtual const std::string typeName() const override {return "blendspace"; }
     virtual const std::string contentName() override {return blendspaceName; }
@@ -70,7 +71,6 @@ protected:
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 
 private:
-    std::string blendspaceName;
     void calculateBlendFactors(
         glm::vec2 input,
         BlendSelection& result,

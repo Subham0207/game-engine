@@ -199,6 +199,14 @@ void Outliner::levelControlsComponent(Level &lvl)
             getUIState().characterUIState->UIOpenedForCharacter = character;
         }
     }
+
+    if(ImGui::Button("Create new blendspace"))
+    {
+        getUIState().blendspace2DUIState->showBlendspaceUI = true;
+        auto blendspace = new BlendSpace2D();
+        getUIState().blendspace2DUIState->UIOpenedForBlendspace = blendspace;
+        getUIState().blendspace2DUIState->showBlendspaceUI = true;
+    }
     
     std::vector<const char*> cPlayerControllerNames;
     for (const auto& pc : EngineState::state->playerControllers) {
