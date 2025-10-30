@@ -2,6 +2,7 @@
 #include <UI/materialManager.hpp>
 #include <UI/ProjectManager.hpp>
 #include <UI/CharacterUI.hpp>
+#include <UI/StatemachineUI.hpp>
  
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
@@ -50,6 +51,9 @@ void Outliner::Render(Level &lvl) {
         );
         UI::Blendspace2DUI::draw(blendspace, selection, getUIState().blendspace2DUIState->showBlendspaceUI);
     }
+
+    if(getUIState().statemachineUIState->showStateMachineUI)
+    UI::StatemachineUI::draw(getUIState().statemachineUIState->showStateMachineUI);
     
     if(getUIState().createANewProject)
     {
@@ -200,12 +204,21 @@ void Outliner::levelControlsComponent(Level &lvl)
         }
     }
 
+    if(ImGui::Button("Create new statemachine"))
+    {
+        getUIState().statemachineUIState->showStateMachineUI = true;
+    }
+
     if(ImGui::Button("Create new blendspace"))
     {
-        getUIState().blendspace2DUIState->showBlendspaceUI = true;
         auto blendspace = new BlendSpace2D();
         getUIState().blendspace2DUIState->UIOpenedForBlendspace = blendspace;
         getUIState().blendspace2DUIState->showBlendspaceUI = true;
+    }
+
+    if(ImGui::Button("Create new statmachine"))
+    {
+        getUIState().statemachineUIState->showStateMachineUI = true;
     }
     
     std::vector<const char*> cPlayerControllerNames;

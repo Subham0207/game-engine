@@ -15,6 +15,7 @@ class Shader;
 namespace UI
 {
     class CharacterUI;
+    class StatemachineUI;
 };
 
 namespace ProjectAsset {
@@ -81,6 +82,7 @@ namespace ProjectAsset {
 
         UI::CharacterUI* characterUIState;
         UI::Blendspace2DUI* blendspace2DUIState;
+        UI::StatemachineUI* statemachineUIState;
 
         UIState();
     };
