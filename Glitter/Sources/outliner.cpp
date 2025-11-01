@@ -53,7 +53,7 @@ void Outliner::Render(Level &lvl) {
     }
 
     if(getUIState().statemachineUIState->showStateMachineUI)
-    UI::StatemachineUI::draw(getUIState().statemachineUIState->showStateMachineUI);
+    UI::StatemachineUI::draw(getUIState().statemachineUIState->UIOpenedForStatemachine, getUIState().statemachineUIState->showStateMachineUI);
     
     if(getUIState().createANewProject)
     {

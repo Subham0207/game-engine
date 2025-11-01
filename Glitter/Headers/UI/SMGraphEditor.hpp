@@ -7,6 +7,13 @@ namespace UI::StateMachineGraph{
 
     struct GraphEditorDelegate : public GraphEditor::Delegate
     {
+        GraphEditorDelegate()
+        {
+            mTemplates = std::vector<GraphEditor::Template>();
+            mNodes = std::vector<Node>();
+            mLinks = std::vector<GraphEditor::Link>();
+        }
+
         bool AllowedLink(GraphEditor::NodeIndex from, GraphEditor::NodeIndex to) override
         {
             return true;
@@ -87,6 +94,13 @@ namespace UI::StateMachineGraph{
             return mLinks[index];
         }
 
+        void clear()
+        {
+            mNodes.clear();
+            mTemplates.clear();
+            mLinks.clear();
+        }
+
         // Graph datas
         /*
             header color,
@@ -101,31 +115,7 @@ namespace UI::StateMachineGraph{
             output names,
             outputcolor 
         */
-        static const inline GraphEditor::Template mTemplates[] = {
-            {
-                IM_COL32(160, 160, 180, 255),
-                IM_COL32(100, 100, 140, 255),
-                IM_COL32(110, 110, 150, 255),
-                1,
-                std::vector<const char*>{"MyInput"}.data(),
-                nullptr,
-                2,
-                std::vector<const char*>{"MyOutput0", "MyOuput1"}.data(),
-                nullptr
-            },
-
-            {
-                IM_COL32(180, 160, 160, 255),
-                IM_COL32(140, 100, 100, 255),
-                IM_COL32(150, 110, 110, 255),
-                3,
-                nullptr,
-                std::vector<ImU32>{ IM_COL32(200,100,100,255), IM_COL32(100,200,100,255), IM_COL32(100,100,200,255) }.data(),
-                1,
-                std::vector<const char*>{"MyOutput0"}.data(),
-                std::vector<ImU32>{ IM_COL32(200,200,200,255)}.data()
-            }
-        };
+        std::vector<GraphEditor::Template> mTemplates;
 
         struct Node
         {
@@ -141,30 +131,13 @@ namespace UI::StateMachineGraph{
             position x, positio y,
             is not selected,
         */
-        std::vector<Node> mNodes = {
-            {
-                "My Node 0",
-                0,
-                0, 0,
-                false
-            },
+        std::vector<Node> mNodes;
 
-            {
-                "My Node 1",
-                0,
-                400, 0,
-                false
-            },
-
-            {
-                "My Node 2",
-                1,
-                400, 400,
-                false
-            }
-        };
-
-        std::vector<GraphEditor::Link> mLinks = { {0, 0, 1, 0} };
+        // Data for each node
+        // left links are inputs and right links are outputs
+        // { inputNodeIndex, inputSlotIndex, outputNodeIndex, outputSlotIndex }
+        // input slot index on output node; output slot index on input node; connection goes from input to ouput node. 
+        std::vector<GraphEditor::Link> mLinks;
     };
 
 }

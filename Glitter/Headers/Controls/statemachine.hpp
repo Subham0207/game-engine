@@ -66,7 +66,9 @@ namespace Controls
             StateMachine(std::string filename);
             void tick(Controls::PlayerController* playerController, Animator* animator);
             void setActiveState(std::shared_ptr<State> state);
+            std::shared_ptr<State> getStateGraph() {return stateGraph;}
             virtual const std::string contentName() override {return filename; }
+            void setFileName(std::string name){ this->filename = name;}
             
         protected:
             virtual const std::string typeName() const override {return "statemachine"; }

@@ -4,18 +4,29 @@
 #include <UI/Types/StateMachineNode.hpp>
 #include <UI/SMGraphEditor.hpp>
 #include <GraphEditor.h>
+#include <Controls/statemachine.hpp>
 
 namespace UI
 {
     class StatemachineUI
     {
         public:
-            StatemachineUI(){}
+            StatemachineUI(){
+                UIOpenedForStatemachine = nullptr;
+                showStateMachineUI = false;
+                delegate = UI::StateMachineGraph::GraphEditorDelegate();
+            }
 
-            static void draw(bool &showUI);
+            static void draw(Controls::StateMachine* statemachine, bool &showUI);
 
             bool showStateMachineUI;
+            Controls::StateMachine* UIOpenedForStatemachine;
         private:
+
+            void populateDelegateNodes(Controls::StateMachine* statemachine, std::shared_ptr<Controls::State> currentState);
+
+            std::string temporaryNameForSave;
+
             GraphEditor::Options options;
             UI::StateMachineGraph::GraphEditorDelegate delegate;
             GraphEditor::ViewState viewState;

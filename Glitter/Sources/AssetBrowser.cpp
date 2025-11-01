@@ -5,6 +5,7 @@
 #include "Helpers/Shared.hpp"
 #include <glad/glad.h>
 #include <Modals/FileType.hpp>
+#include <UI/StatemachineUI.hpp>
 
 namespace ProjectAsset
 {
@@ -77,6 +78,19 @@ namespace ProjectAsset
                                         blendspace->load(fs::path(selectedAsset.filepath).parent_path(), guid);
                                         getUIState().blendspace2DUIState->UIOpenedForBlendspace = blendspace;
                                         getUIState().blendspace2DUIState->showBlendspaceUI = true;
+                                    }
+                                }
+
+                                if(selectedAsset.assetType == AssetType::StateMachineType)
+                                {
+                                    auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
+                                    auto filesMap = getEngineRegistryFilesMap();
+                                    if (auto it = filesMap.find(guid); it != filesMap.end())
+                                    {
+                                        auto statemachine = new Controls::StateMachine();
+                                        statemachine->load(fs::path(selectedAsset.filepath).parent_path(), guid);
+                                        getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
+                                        getUIState().statemachineUIState->showStateMachineUI = true;
                                     }
                                 }
 
