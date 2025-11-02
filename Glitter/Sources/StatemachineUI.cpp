@@ -3,33 +3,61 @@
 #include <EngineState.hpp>
 #include <UI/Shared/InputText.hpp>
 
-void UI::StatemachineUI::populateDelegateNodes(Controls::StateMachine* statemachine, std::shared_ptr<Controls::State> currentState)
+void UI::StatemachineUI::populateDelegateNodes(Controls::StateMachine* statemachine)
 {
-   if(!currentState)
-   return;
-
-   auto inputNamePointers = new std::vector<const char*>();
-   auto outputNamePointers = new std::vector<const char*>();
-
-   for (auto &&s : currentState->toStateWhenCondition)
+   auto states = statemachine->states;
+   for (auto i = 0; i<  states.size(); i++)
    {
-      outputNamePointers->push_back(s.state->stateName.c_str());
-      populateDelegateNodes(statemachine, s.state);
-   }
-   ImU8 outputLinksCount = currentState->toStateWhenCondition.size();
-   delegate.mTemplates.push_back(
+
+      // Go through each of states again and find which of them point to current index in this loop. 
+      // That is how many inputs we have for this node.
+      auto t = new GraphEditor::Template();
+      ImU8 inputCount = 0;
+      ImU8 outputCount = states[i]->toStateWhenCondition.size();
+
+      for(auto j = 0; j<  states.size(); j++)
       {
-         IM_COL32(160, 160, 180, 255),
-         IM_COL32(100, 100, 140, 255),
-         IM_COL32(110, 110, 150, 255),
-         1,
-         inputNamePointers->data(),
-         nullptr,
-         outputLinksCount,
-         outputNamePointers->data(),
-         nullptr
-      }       
-   );
+         for (auto k = 0; k<  states[j]->toStateWhenCondition.size(); k++)
+         {
+            if( i == k)
+            {
+               inputCount++;
+               delegate.mLinks.push_back(
+                  {
+                     (GraphEditor::NodeIndex)k,
+                     0,
+                     (GraphEditor::NodeIndex)i,
+                     0,
+                  }
+               );
+            }
+         }
+         
+      }
+
+      delegate.mTemplates.push_back(
+         {
+            IM_COL32(160, 160, 180, 255),
+            IM_COL32(100, 100, 140, 255),
+            IM_COL32(110, 110, 150, 255),
+            inputCount,
+            nullptr,
+            nullptr,
+            outputCount,
+            nullptr,
+            nullptr
+         }
+      );
+      
+      delegate.mNodes.push_back(
+         {
+            states[i]->stateName.c_str(),
+            (GraphEditor::TemplateIndex)i,
+            i*100.0f, i*100.0f,
+            false
+         }
+      );
+   }
    
 }
 
@@ -41,7 +69,7 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
 
    // Read value from selected statemachine to show in UI.
    auto state = statemachine->getStateGraph();
-   smUI->populateDelegateNodes(statemachine, state); // need to process like an array otherwise will endup in infinite loop.
+   smUI->populateDelegateNodes(statemachine); // need to process like an array otherwise will endup in infinite loop.
 
 
     ImGui::Begin("State Machine", &showUI);

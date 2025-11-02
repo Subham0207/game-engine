@@ -23,7 +23,7 @@ namespace UI
             Controls::StateMachine* UIOpenedForStatemachine;
         private:
 
-            void populateDelegateNodes(Controls::StateMachine* statemachine, std::shared_ptr<Controls::State> currentState);
+            void populateDelegateNodes(Controls::StateMachine* statemachine);
 
             std::string temporaryNameForSave;
 

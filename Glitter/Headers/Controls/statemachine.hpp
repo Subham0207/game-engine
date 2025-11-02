@@ -18,6 +18,7 @@ namespace Controls
     struct ToStateWhenCondition
     {
         std::shared_ptr<State> state = NULL;
+        int index;
         LuaCondition condition;
 
         ToStateWhenCondition()=default;
@@ -69,6 +70,7 @@ namespace Controls
             std::shared_ptr<State> getStateGraph() {return stateGraph;}
             virtual const std::string contentName() override {return filename; }
             void setFileName(std::string name){ this->filename = name;}
+            std::vector<const State*> states;
             
         protected:
             virtual const std::string typeName() const override {return "statemachine"; }
@@ -77,6 +79,7 @@ namespace Controls
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
         private:
             void traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap);
+
             void StateMachine::dfsLoad(const std::shared_ptr<State>& state,
             std::map<std::string, std::string>& filesMap,
             std::unordered_set<const State*>& visited);

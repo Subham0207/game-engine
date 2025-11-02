@@ -129,6 +129,7 @@ void Controls::StateMachine::traverseAndLoadStateGraph(std::shared_ptr<State> st
 {
     std::unordered_set<const State*> visited;           // or unordered_set<std::string> if you have state->guid
     dfsLoad(activeState, filesMap, visited);
+    states = std::vector<const State*>(visited.begin(), visited.end());
 }
 
 void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
