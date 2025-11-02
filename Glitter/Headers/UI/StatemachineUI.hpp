@@ -15,12 +15,17 @@ namespace UI
                 UIOpenedForStatemachine = nullptr;
                 showStateMachineUI = false;
                 delegate = UI::StateMachineGraph::GraphEditorDelegate();
+                firstFrame = true;
+                
+                options.mDisplayLinksAsCurves = false;
             }
 
             static void draw(Controls::StateMachine* statemachine, bool &showUI);
 
             bool showStateMachineUI;
             Controls::StateMachine* UIOpenedForStatemachine;
+
+            bool firstFrame;
         private:
 
             void populateDelegateNodes(Controls::StateMachine* statemachine);

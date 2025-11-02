@@ -127,14 +127,30 @@ void Controls::StateMachine::loadContent(fs::path contentFile, std::istream& is)
 
 void Controls::StateMachine::traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap)
 {
-    std::unordered_set<const State*> visited;           // or unordered_set<std::string> if you have state->guid
+    std::unordered_set<State*> visited;           // or unordered_set<std::string> if you have state->guid
     dfsLoad(activeState, filesMap, visited);
-    states = std::vector<const State*>(visited.begin(), visited.end());
+    states = std::vector<State*>(visited.begin(), visited.end());
+
+    for (auto &&i: states)
+    {
+        for (auto &&j : i->toStateWhenCondition)
+        {
+            auto statename = j.state->stateName;
+            for (size_t k = 0; k < states.size(); k++)
+            {
+                if(states[k]->stateName == statename)
+                j.index = k;
+            }
+            
+        }
+        
+    }
+    
 }
 
 void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     std::map<std::string, std::string>& filesMap,
-    std::unordered_set<const State*>& visited)
+    std::unordered_set<State*>& visited)
 {
         if (!state) return;
 

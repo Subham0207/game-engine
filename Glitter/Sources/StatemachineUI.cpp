@@ -19,15 +19,18 @@ void UI::StatemachineUI::populateDelegateNodes(Controls::StateMachine* statemach
       {
          for (auto k = 0; k<  states[j]->toStateWhenCondition.size(); k++)
          {
-            if( i == k)
+            auto toNodeIndex = states[j]->toStateWhenCondition[k].index;
+            if( i == states[j]->toStateWhenCondition[k].index)
             {
+               std:cout << states[i]->stateName << "-->" << states[j]->stateName << " " << std::endl;
+
                inputCount++;
                delegate.mLinks.push_back(
                   {
-                     (GraphEditor::NodeIndex)k,
-                     0,
                      (GraphEditor::NodeIndex)i,
-                     0,
+                     inputCount,
+                     (GraphEditor::NodeIndex)j,
+                     inputCount,
                   }
                );
             }
@@ -40,10 +43,10 @@ void UI::StatemachineUI::populateDelegateNodes(Controls::StateMachine* statemach
             IM_COL32(160, 160, 180, 255),
             IM_COL32(100, 100, 140, 255),
             IM_COL32(110, 110, 150, 255),
-            inputCount,
+            (ImU8)states.size(),
             nullptr,
             nullptr,
-            outputCount,
+            (ImU8)states.size(),
             nullptr,
             nullptr
          }
@@ -63,13 +66,18 @@ void UI::StatemachineUI::populateDelegateNodes(Controls::StateMachine* statemach
 
 void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI)
 {
+
    auto smUI = getUIState().statemachineUIState;
 
-   smUI->delegate.clear();
-
-   // Read value from selected statemachine to show in UI.
-   auto state = statemachine->getStateGraph();
-   smUI->populateDelegateNodes(statemachine); // need to process like an array otherwise will endup in infinite loop.
+   if(smUI->firstFrame)
+   {
+      smUI->delegate.clear();
+   
+      // Read value from selected statemachine to show in UI.
+      auto state = statemachine->getStateGraph();
+      smUI->populateDelegateNodes(statemachine); // need to process like an array otherwise will endup in infinite loop.
+      smUI->firstFrame = false;
+   }
 
 
     ImGui::Begin("State Machine", &showUI);

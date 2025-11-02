@@ -91,6 +91,7 @@ namespace ProjectAsset
                                         statemachine->load(fs::path(selectedAsset.filepath).parent_path(), guid);
                                         getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
                                         getUIState().statemachineUIState->showStateMachineUI = true;
+                                        getUIState().statemachineUIState->firstFrame = true;
                                     }
                                 }
 

@@ -70,7 +70,7 @@ namespace Controls
             std::shared_ptr<State> getStateGraph() {return stateGraph;}
             virtual const std::string contentName() override {return filename; }
             void setFileName(std::string name){ this->filename = name;}
-            std::vector<const State*> states;
+            std::vector<State*> states;
             
         protected:
             virtual const std::string typeName() const override {return "statemachine"; }
@@ -82,7 +82,7 @@ namespace Controls
 
             void StateMachine::dfsLoad(const std::shared_ptr<State>& state,
             std::map<std::string, std::string>& filesMap,
-            std::unordered_set<const State*>& visited);
+            std::unordered_set<State*>& visited);
 
             std::shared_ptr<State> stateGraph;
             std::shared_ptr<State> activeState;
