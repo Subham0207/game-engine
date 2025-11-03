@@ -28,8 +28,6 @@ namespace UI
             bool firstFrame;
         private:
 
-            void populateDelegateNodes(Controls::StateMachine* statemachine);
-
             std::string temporaryNameForSave;
 
             GraphEditor::Options options;
