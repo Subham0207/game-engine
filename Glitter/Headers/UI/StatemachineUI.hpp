@@ -8,17 +8,22 @@
 
 namespace UI
 {
+    constexpr std::size_t MAX_SOURCE_LENGTH = 256;
+
+    struct ToStateWhenConditionUI{
+        int IndexToState = -1;
+        std::array<char, MAX_SOURCE_LENGTH> WhenCondition{};
+    };
+
+    struct StateUI{
+        std::string statename;
+        std::vector<ToStateWhenConditionUI> toStateWhenCondition;
+    };
+
     class StatemachineUI
     {
         public:
-            StatemachineUI(){
-                UIOpenedForStatemachine = nullptr;
-                showStateMachineUI = false;
-                delegate = UI::StateMachineGraph::GraphEditorDelegate();
-                firstFrame = true;
-                
-                options.mDisplayLinksAsCurves = false;
-            }
+            StatemachineUI();
 
             static void draw(Controls::StateMachine* statemachine, bool &showUI);
 
@@ -35,6 +40,8 @@ namespace UI
             GraphEditor::ViewState viewState;
             GraphEditor::FitOnScreen fit = GraphEditor::Fit_None;
             bool showGraphEditor = true;
+            std::vector<StateUI> values;
+
 
     };
 }
