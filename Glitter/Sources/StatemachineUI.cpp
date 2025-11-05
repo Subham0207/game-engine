@@ -72,6 +72,15 @@ for (auto& s : stateNames) stateNamePtrs.push_back(s.c_str());
 for (auto& i : smUI->values)
 {
    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 8));
+   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
+   ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.45f, 0.45f, 0.50f, 1.0f));
+
+   const float margin = 12.0f; // adjust to taste
+
+   // Top margin
+   ImGui::Dummy(ImVec2(0, margin));
+
    std::string child_id = "Card##" + i.statename;
 
    if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
@@ -148,8 +157,11 @@ for (auto& i : smUI->values)
 
    }
 ImGui::EndChild();
-ImGui::PopStyleVar();
+ImGui::PopStyleVar(2);  
+ImGui::PopStyleColor(2);
 ImGui::Spacing();
+
+ImGui::Dummy(ImVec2(0, margin));
 }
 
 
