@@ -87,11 +87,8 @@ namespace ProjectAsset
                                     auto filesMap = getEngineRegistryFilesMap();
                                     if (auto it = filesMap.find(guid); it != filesMap.end())
                                     {
-                                        auto statemachine = new Controls::StateMachine();
+                                        auto statemachine = UI::StatemachineUI::start();
                                         statemachine->load(fs::path(selectedAsset.filepath).parent_path(), guid);
-                                        getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
-                                        getUIState().statemachineUIState->showStateMachineUI = true;
-                                        getUIState().statemachineUIState->firstFrame = true;
                                     }
                                 }
 

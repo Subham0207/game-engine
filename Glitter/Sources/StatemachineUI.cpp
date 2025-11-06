@@ -69,6 +69,7 @@ stateNamePtrs.reserve(stateNames.size());
 for (auto& s : stateNames) stateNamePtrs.push_back(s.c_str());
 
 // --- UI ---
+if(smUI->values.size() > 0)
 for (auto& i : smUI->values)
 {
    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
@@ -84,10 +85,6 @@ for (auto& i : smUI->values)
    std::string child_id = "Card##" + i.statename;
 
    if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
-   ImGui::TextColored(ImVec4(1,1,1,1), "%s", i.statename.c_str());
-   ImGui::Separator();
-
-    ImGui::PushID(i.statename.c_str());
 
     // A tidy framed card with a header
     if (ImGui::CollapsingHeader(i.statename.c_str(),
@@ -122,7 +119,6 @@ for (auto& i : smUI->values)
                     int currentIndex = std::clamp(cond.IndexToState, 0, (int)stateNamePtrs.size() - 1);
 
                     // Label left, combo right (same row)
-                    ImGui::TextUnformatted("To State");
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(-1.0f); // fill column
                     if (ImGui::Combo("##ToStateCombo",
@@ -137,7 +133,6 @@ for (auto& i : smUI->values)
                 // --- Right column: Condition multiline ---
                 ImGui::TableSetColumnIndex(1);
                 {
-                    ImGui::TextUnformatted("Condition");
                     ImGui::SetNextItemWidth(-1.0f);
                     // Tall enough for a few lines, grows with column width
                     ImGui::InputTextMultiline("##Condition",
@@ -153,12 +148,13 @@ for (auto& i : smUI->values)
         ImGui::Spacing();
     }
 
-    ImGui::PopID();
-
    }
 ImGui::EndChild();
+
+
 ImGui::PopStyleVar(2);  
 ImGui::PopStyleColor(2);
+ImGui::Separator();
 ImGui::Spacing();
 
 ImGui::Dummy(ImVec2(0, margin));
@@ -166,4 +162,14 @@ ImGui::Dummy(ImVec2(0, margin));
 
 
    ImGui::End();
+}
+
+Controls::StateMachine* UI::StatemachineUI::start()
+{
+   auto statemachine = new Controls::StateMachine();
+   getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
+   getUIState().statemachineUIState->showStateMachineUI = true;
+   getUIState().statemachineUIState->firstFrame = true;
+   getUIState().statemachineUIState->values.clear();
+   return statemachine;
 }

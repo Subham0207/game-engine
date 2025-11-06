@@ -26,6 +26,7 @@ namespace UI
             StatemachineUI();
 
             static void draw(Controls::StateMachine* statemachine, bool &showUI);
+            static Controls::StateMachine* start();
 
             bool showStateMachineUI;
             Controls::StateMachine* UIOpenedForStatemachine;

@@ -218,7 +218,7 @@ void Outliner::levelControlsComponent(Level &lvl)
 
     if(ImGui::Button("Create new statmachine"))
     {
-        getUIState().statemachineUIState->showStateMachineUI = true;
+        UI::StatemachineUI::start();
     }
     
     std::vector<const char*> cPlayerControllerNames;
