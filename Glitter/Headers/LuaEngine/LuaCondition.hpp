@@ -29,6 +29,7 @@ public:
     }
 
     const std::string& source() const { return source_; }
+    void setSource(std::string source) { source_ = source;}
 
     // Optional: release ref early (usually not needed; destructor handles it)
     void reset() { fn_.reset(); }

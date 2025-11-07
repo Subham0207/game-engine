@@ -28,6 +28,8 @@ namespace UI
             static void draw(Controls::StateMachine* statemachine, bool &showUI);
             static Controls::StateMachine* start();
 
+            void save(Controls::StateMachine* statemachine);
+
             bool showStateMachineUI;
             Controls::StateMachine* UIOpenedForStatemachine;
 
@@ -35,6 +37,7 @@ namespace UI
         private:
 
             std::string temporaryNameForSave;
+            std::vector<const char*> stateNamePtrs;
 
             GraphEditor::Options options;
             UI::StateMachineGraph::GraphEditorDelegate delegate;

@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <EngineState.hpp>
 #include <UI/Shared/InputText.hpp>
+#include <string>
 
 UI::StatemachineUI::StatemachineUI(){
       UIOpenedForStatemachine = nullptr;
@@ -45,6 +46,10 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
       }
 
       smUI->firstFrame = false;
+
+      smUI->stateNamePtrs.reserve(statemachine->states.size());
+      for (auto* s : statemachine->states) smUI->stateNamePtrs.push_back(s->stateName.c_str());
+
    }
 
 
@@ -57,16 +62,6 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
          statemachine->setFileName(smUI->temporaryNameForSave);
          statemachine->save(loc);
       }
-
-// Build dropdown options once per draw
-std::vector<std::string> stateNames;
-stateNames.reserve(statemachine->states.size());
-for (auto* s : statemachine->states) stateNames.push_back(s->stateName);
-
-// pointers valid as long as stateNames lives
-std::vector<const char*> stateNamePtrs;
-stateNamePtrs.reserve(stateNames.size());
-for (auto& s : stateNames) stateNamePtrs.push_back(s.c_str());
 
 // --- UI ---
 if(smUI->values.size() > 0)
@@ -116,15 +111,15 @@ for (auto& i : smUI->values)
                 ImGui::PushID(static_cast<int>(j));
                 {
                     // Clamp to valid range for safety
-                    int currentIndex = std::clamp(cond.IndexToState, 0, (int)stateNamePtrs.size() - 1);
+                    int currentIndex = std::clamp(cond.IndexToState, 0, (int)smUI->stateNamePtrs.size() - 1);
 
                     // Label left, combo right (same row)
                     ImGui::SameLine();
                     ImGui::SetNextItemWidth(-1.0f); // fill column
                     if (ImGui::Combo("##ToStateCombo",
                                      &currentIndex,
-                                     stateNamePtrs.data(),
-                                     (int)stateNamePtrs.size()))
+                                     smUI->stateNamePtrs.data(),
+                                     (int)smUI->stateNamePtrs.size()))
                     {
                         cond.IndexToState = currentIndex;
                     }
@@ -172,4 +167,25 @@ Controls::StateMachine* UI::StatemachineUI::start()
    getUIState().statemachineUIState->firstFrame = true;
    getUIState().statemachineUIState->values.clear();
    return statemachine;
+}
+
+void UI::StatemachineUI::save(Controls::StateMachine* statemachine)
+{
+   for (size_t i = 0; i < values.size(); i++)
+   {
+      //Set statename
+      statemachine->states[i]->stateName = values[i].statename;
+
+      auto fromlist = &values[i].toStateWhenCondition;
+      auto toList = &statemachine->states[i]->toStateWhenCondition;
+
+      for (size_t j = 0; j < fromlist->size(); j++)
+      {
+         //set index of toState
+         toList->at(j).index = fromlist->at(j).IndexToState;
+         //set condition for toState
+         toList->at(j).condition.setSource(std::string(fromlist->at(j).WhenCondition.data(), MAX_SOURCE_LENGTH));
+      }
+   }
+     
 }
