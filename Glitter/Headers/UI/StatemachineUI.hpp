@@ -51,6 +51,8 @@ namespace UI
         private:
 
             std::string temporaryNameForSave;
+            int newStateCounter = 0;
+
             std::vector<const char*> stateNamePtrs;
             animationsUI animations;
             blendspaceUI blendspaces;

@@ -198,6 +198,22 @@ ImGui::Spacing();
 ImGui::Dummy(ImVec2(0, margin));
 }
 
+   //Track new state changes here in this class members.
+   // On save we can apply original class.
+   if(ImGui::Button("Add State"))
+   {;
+      smUI->newStateCounter +=1;
+      auto statename = "new state" + std::to_string(smUI->newStateCounter);
+      auto stateUI = UI::StateUI
+      {
+         statename,
+         std::vector<ToStateWhenConditionUI>(),
+         0,
+         0
+      };
+      getUIState().statemachineUIState->values.push_back(stateUI);
+      getUIState().statemachineUIState->stateNamePtrs.push_back(statename.c_str());
+   }
 
    ImGui::End();
 }
@@ -208,7 +224,7 @@ Controls::StateMachine* UI::StatemachineUI::start()
    getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
    getUIState().statemachineUIState->showStateMachineUI = true;
    getUIState().statemachineUIState->firstFrame = true;
-
+   
    getUIState().statemachineUIState->values.clear();
    getUIState().statemachineUIState->temporaryNameForSave.clear();
    getUIState().statemachineUIState->stateNamePtrs.clear();
