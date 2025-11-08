@@ -10,6 +10,18 @@ namespace UI
 {
     constexpr std::size_t MAX_SOURCE_LENGTH = 256;
 
+    struct blendspaceUI
+    {
+        std::vector<std::string> blendspaceguids;
+        std::vector<const char*> blendspacenames;
+    };
+
+    struct animationsUI
+    {
+        std::vector<std::string> animationguids;
+        std::vector<const char*> animationnames;
+    };
+
     struct ToStateWhenConditionUI{
         int IndexToState = -1;
         std::array<char, MAX_SOURCE_LENGTH> WhenCondition{};
@@ -18,6 +30,8 @@ namespace UI
     struct StateUI{
         std::string statename;
         std::vector<ToStateWhenConditionUI> toStateWhenCondition;
+        int animationIndex = 0;
+        int blendspaceIndex = 0;
     };
 
     class StatemachineUI
@@ -38,6 +52,8 @@ namespace UI
 
             std::string temporaryNameForSave;
             std::vector<const char*> stateNamePtrs;
+            animationsUI animations;
+            blendspaceUI blendspaces;
 
             GraphEditor::Options options;
             UI::StateMachineGraph::GraphEditorDelegate delegate;

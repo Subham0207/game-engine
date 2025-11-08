@@ -16,6 +16,7 @@ namespace Engine
             std::map<std::string, std::string> statemachineFileMap;
             //subsets of file map
             std::map<std::string, std::string> animationsFileMap;
+            std::map<std::string, std::string> blendpaceFileMap;
 
             void init();
             void update(std::string guid, std::string filepath);

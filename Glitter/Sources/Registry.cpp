@@ -67,4 +67,10 @@ void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filep
     {
         animationsFileMap[guid] = filepath;
     }
+
+    suffix = ".blendspace";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        blendpaceFileMap[guid] = filepath;
+    }
 }

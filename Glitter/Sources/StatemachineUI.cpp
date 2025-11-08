@@ -3,6 +3,10 @@
 #include <EngineState.hpp>
 #include <UI/Shared/InputText.hpp>
 #include <string>
+#include <EngineState.hpp>
+#include <map>
+#include <algorithm>
+#include <iterator>
 
 UI::StatemachineUI::StatemachineUI(){
       UIOpenedForStatemachine = nullptr;
@@ -19,14 +23,31 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
 {
 
    auto smUI = getUIState().statemachineUIState;
-
+   
    if(smUI->firstFrame)
    {
+      auto blendspaces = &EngineState::state->engineRegistry->blendpaceFileMap;
+      auto animations = &EngineState::state->engineRegistry->animationsFileMap;
+
+      for (const auto& kv : *blendspaces) {
+         smUI->blendspaces.blendspaceguids.push_back(kv.first.c_str());
+         smUI->blendspaces.blendspacenames.push_back(kv.second.c_str());
+      }
+
+      for (const auto& kv : *animations) {
+         smUI->animations.animationguids.push_back(kv.first);
+         smUI->animations.animationnames.push_back(kv.second.c_str());
+      }
+      
       for(auto &&i: statemachine->states)
       {
          auto stateUI = StateUI();
          stateUI.statename = i->stateName;
          stateUI.toStateWhenCondition = std::vector<ToStateWhenConditionUI>();
+
+         auto guids = &smUI->animations.animationguids;
+
+         stateUI.animationIndex = i->animationGuid != "" ? std::distance(guids->begin(), std::find(guids->begin(), guids->end(), i->animationGuid)): -1;
 
          for(auto j = 0; j<i->toStateWhenCondition.size(); j++)
          {
@@ -119,6 +140,26 @@ for (auto& i : smUI->values)
                     if (ImGui::Combo("##ToStateCombo",
                                      &currentIndex,
                                      smUI->stateNamePtrs.data(),
+                                     (int)smUI->stateNamePtrs.size()))
+                    {
+                        cond.IndexToState = currentIndex;
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(-1.0f);
+                    if (ImGui::Combo("##Blendspace",
+                                     &currentIndex,
+                                     smUI->blendspaces.blendspacenames.data(),
+                                     (int)smUI->stateNamePtrs.size()))
+                    {
+                        cond.IndexToState = currentIndex;
+                    }
+
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(-1.0f); // fill column
+                    if (ImGui::Combo("##Animation",
+                                     &currentIndex,
+                                     smUI->animations.animationnames.data(),
                                      (int)smUI->stateNamePtrs.size()))
                     {
                         cond.IndexToState = currentIndex;
