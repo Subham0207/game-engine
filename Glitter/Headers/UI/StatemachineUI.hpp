@@ -54,12 +54,12 @@ namespace UI
             std::vector<const char*> stateNamePtrs;
             animationsUI animations;
             blendspaceUI blendspaces;
+            std::vector<StateUI> values;
 
             GraphEditor::Options options;
             UI::StateMachineGraph::GraphEditorDelegate delegate;
             GraphEditor::ViewState viewState;
             GraphEditor::FitOnScreen fit = GraphEditor::Fit_None;
             bool showGraphEditor = true;
-            std::vector<StateUI> values;
     };
 }

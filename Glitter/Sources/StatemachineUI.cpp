@@ -208,7 +208,15 @@ Controls::StateMachine* UI::StatemachineUI::start()
    getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
    getUIState().statemachineUIState->showStateMachineUI = true;
    getUIState().statemachineUIState->firstFrame = true;
+
    getUIState().statemachineUIState->values.clear();
+   getUIState().statemachineUIState->temporaryNameForSave.clear();
+   getUIState().statemachineUIState->stateNamePtrs.clear();
+   getUIState().statemachineUIState->blendspaces.blendspaceguids.clear();
+   getUIState().statemachineUIState->blendspaces.blendspacenames.clear();
+   getUIState().statemachineUIState->animations.animationguids.clear();
+   getUIState().statemachineUIState->animations.animationnames.clear();
+
    return statemachine;
 }
 
