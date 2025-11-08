@@ -28,6 +28,10 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
    {
       auto blendspaces = &EngineState::state->engineRegistry->blendpaceFileMap;
       auto animations = &EngineState::state->engineRegistry->animationsFileMap;
+      smUI->blendspaces.blendspaceguids.push_back("None");
+      smUI->blendspaces.blendspacenames.push_back("None");
+      smUI->animations.animationguids.push_back("None");
+      smUI->animations.animationnames.push_back("None");
 
       for (const auto& kv : *blendspaces) {
          smUI->blendspaces.blendspaceguids.push_back(kv.first.c_str());
@@ -46,8 +50,10 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
          stateUI.toStateWhenCondition = std::vector<ToStateWhenConditionUI>();
 
          auto guids = &smUI->animations.animationguids;
+         auto bguids = &smUI->blendspaces.blendspaceguids;
 
-         stateUI.animationIndex = i->animationGuid != "" ? std::distance(guids->begin(), std::find(guids->begin(), guids->end(), i->animationGuid)): -1;
+         stateUI.animationIndex = i->animationGuid != "" ? std::distance(guids->begin(), std::find(guids->begin(), guids->end(), i->animationGuid)): 0;
+         stateUI.blendspaceIndex = i->blendspaceGuid != "" ? std::distance(bguids->begin(), std::find(bguids->begin(), bguids->end(), i->blendspaceGuid)): 0;
 
          for(auto j = 0; j<i->toStateWhenCondition.size(); j++)
          {
@@ -111,6 +117,22 @@ for (auto& i : smUI->values)
         // Optional subtle spacing
         ImGui::Spacing();
 
+      ImGui::Text("Blendspace: ");
+      ImGui::SameLine();
+      if (ImGui::Combo("##Blendspace",
+                        &i.blendspaceIndex,
+                        smUI->blendspaces.blendspacenames.data(),
+                        (int)smUI->blendspaces.blendspacenames.size()))
+      {}
+
+      ImGui::Text("Animation: ");
+      ImGui::SameLine();
+      if (ImGui::Combo("##Animation",
+                        &i.animationIndex,
+                        smUI->animations.animationnames.data(),
+                        (int)smUI->animations.animationnames.size()))
+      {}
+
         // 2-column layout: To-State (Combo) | Condition (Multiline)
         if (ImGui::BeginTable("TransitionsTable", 2,
                 ImGuiTableFlags_SizingStretchProp |
@@ -140,26 +162,6 @@ for (auto& i : smUI->values)
                     if (ImGui::Combo("##ToStateCombo",
                                      &currentIndex,
                                      smUI->stateNamePtrs.data(),
-                                     (int)smUI->stateNamePtrs.size()))
-                    {
-                        cond.IndexToState = currentIndex;
-                    }
-
-                    ImGui::SameLine();
-                    ImGui::SetNextItemWidth(-1.0f);
-                    if (ImGui::Combo("##Blendspace",
-                                     &currentIndex,
-                                     smUI->blendspaces.blendspacenames.data(),
-                                     (int)smUI->stateNamePtrs.size()))
-                    {
-                        cond.IndexToState = currentIndex;
-                    }
-
-                    ImGui::SameLine();
-                    ImGui::SetNextItemWidth(-1.0f); // fill column
-                    if (ImGui::Combo("##Animation",
-                                     &currentIndex,
-                                     smUI->animations.animationnames.data(),
                                      (int)smUI->stateNamePtrs.size()))
                     {
                         cond.IndexToState = currentIndex;

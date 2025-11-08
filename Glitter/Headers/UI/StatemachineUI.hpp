@@ -61,7 +61,5 @@ namespace UI
             GraphEditor::FitOnScreen fit = GraphEditor::Fit_None;
             bool showGraphEditor = true;
             std::vector<StateUI> values;
-
-
     };
 }
