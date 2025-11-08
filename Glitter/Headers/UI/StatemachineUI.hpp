@@ -5,6 +5,8 @@
 #include <UI/SMGraphEditor.hpp>
 #include <GraphEditor.h>
 #include <Controls/statemachine.hpp>
+#include <UI/Shared/EditableText.hpp>
+
 
 namespace UI
 {
@@ -28,7 +30,8 @@ namespace UI
     };
 
     struct StateUI{
-        std::string statename;
+        std::string id;
+        UI::Shared::EditableText statename;
         std::vector<ToStateWhenConditionUI> toStateWhenCondition;
         int animationIndex = 0;
         int blendspaceIndex = 0;

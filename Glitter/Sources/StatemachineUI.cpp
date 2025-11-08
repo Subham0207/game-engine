@@ -7,6 +7,9 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 UI::StatemachineUI::StatemachineUI(){
       UIOpenedForStatemachine = nullptr;
@@ -46,7 +49,13 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
       for(auto &&i: statemachine->states)
       {
          auto stateUI = StateUI();
-         stateUI.statename = i->stateName;
+         stateUI.id =  boost::uuids::to_string(boost::uuids::random_generator()());
+         stateUI.statename = {
+            i->stateName,
+            i->stateName,
+            false
+         };
+
          stateUI.toStateWhenCondition = std::vector<ToStateWhenConditionUI>();
 
          auto guids = &smUI->animations.animationguids;
@@ -104,12 +113,14 @@ for (auto& i : smUI->values)
    // Top margin
    ImGui::Dummy(ImVec2(0, margin));
 
-   std::string child_id = "Card##" + i.statename;
+   std::string child_id = "Card##" + i.id;
 
    if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
 
+   UI::Shared::EditableTextUI(i.id.c_str(), i.statename);
+
     // A tidy framed card with a header
-    if (ImGui::CollapsingHeader(i.statename.c_str(),
+    if (ImGui::CollapsingHeader(i.statename.value.c_str(),
         ImGuiTreeNodeFlags_DefaultOpen |
         ImGuiTreeNodeFlags_FramePadding |
         ImGuiTreeNodeFlags_SpanAvailWidth))
@@ -204,9 +215,16 @@ ImGui::Dummy(ImVec2(0, margin));
    {;
       smUI->newStateCounter +=1;
       auto statename = "new state" + std::to_string(smUI->newStateCounter);
+      UI::Shared::EditableText text = {
+         statename,
+         statename,
+         false
+      };
+      std::string guid = boost::uuids::to_string(boost::uuids::random_generator()());
       auto stateUI = UI::StateUI
       {
-         statename,
+         guid,
+         text,
          std::vector<ToStateWhenConditionUI>(),
          0,
          0
@@ -218,7 +236,7 @@ ImGui::Dummy(ImVec2(0, margin));
    ImGui::End();
 }
 
-Controls::StateMachine* UI::StatemachineUI::start()
+Controls::StateMachine *UI::StatemachineUI::start()
 {
    auto statemachine = new Controls::StateMachine();
    getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
@@ -241,7 +259,7 @@ void UI::StatemachineUI::save(Controls::StateMachine* statemachine)
    for (size_t i = 0; i < values.size(); i++)
    {
       //Set statename
-      statemachine->states[i]->stateName = values[i].statename;
+      statemachine->states[i]->stateName = values[i].statename.value;
 
       auto fromlist = &values[i].toStateWhenCondition;
       auto toList = &statemachine->states[i]->toStateWhenCondition;
