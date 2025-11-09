@@ -51,6 +51,13 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
 
       handlesave(smUI, statemachine);
 
+      if (ImGui::Combo("##entryStateIndex",
+      &smUI->entryStateIndex,
+      smUI->stateNamePtrs.data(),
+      (int)smUI->stateNamePtrs.size()))
+      {
+      }
+
       // --- UI ---
       if(smUI->values.size() > 0)
       for (auto& i : smUI->values)
@@ -333,7 +340,7 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
       {
          if(i->stateName == statemachine->getActiveState()->stateName)
          {
-            smUI->entryStateIndex = index;
+            smUI->entryStateIndex = index+1; //to account for None as a selection at 0th index.
          }
 
          auto stateUI = StateUI();
