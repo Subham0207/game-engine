@@ -126,11 +126,17 @@ for (auto& i : smUI->values)
 
    if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
 
-   UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename);
+   if(UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename))
+   {
+      smUI->stateNamePtrs.clear();
+      for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
+   }
 
    if(ImGui::Button("Delete"))
    {
       smUI->objToDelete = &i;
+      smUI->stateNamePtrs.clear();
+      for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
    }
 
     // A tidy framed card with a header
@@ -158,6 +164,12 @@ for (auto& i : smUI->values)
                         (int)smUI->animations.animationnames.size()))
       {}
 
+      if(ImGui::Button("Add to State"))
+      {
+         i.toStateWhenCondition.push_back(
+            ToStateWhenConditionUI()
+         );
+      }
         // 2-column layout: To-State (Combo) | Condition (Multiline)
         if (ImGui::BeginTable("TransitionsTable", 2,
                 ImGuiTableFlags_SizingStretchProp |
@@ -226,7 +238,7 @@ ImGui::Dummy(ImVec2(0, margin));
    //Track new state changes here in this class members.
    // On save we can apply original class.
    if(ImGui::Button("Add State"))
-   {;
+   {
       smUI->newStateCounter +=1;
       auto statename = "new state" + std::to_string(smUI->newStateCounter);
       UI::Shared::EditableText text = {
@@ -244,7 +256,9 @@ ImGui::Dummy(ImVec2(0, margin));
          0
       };
       getUIState().statemachineUIState->values.push_back(stateUI);
-      getUIState().statemachineUIState->stateNamePtrs.push_back(statename.c_str());
+      
+      smUI->stateNamePtrs.clear();
+      for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
    }
 
    ImGui::End();

@@ -2,7 +2,7 @@
 #include <imgui.h>
 #include <UI/Shared/InputText.hpp>
 
-void UI::Shared::EditableTextUI(const char* label, EditableText &text)
+bool UI::Shared::EditableTextUI(const char* label, EditableText &text)
 {
     if(text.editing)
     {
@@ -12,6 +12,7 @@ void UI::Shared::EditableTextUI(const char* label, EditableText &text)
         {
             text.editing = false;
             text.value = text.draft;
+            return true;
         }
         ImGui::SameLine();
         if(ImGui::Button("close"))
@@ -28,4 +29,6 @@ void UI::Shared::EditableTextUI(const char* label, EditableText &text)
             text.editing = true;
         }
     }
+
+    return false;
 }

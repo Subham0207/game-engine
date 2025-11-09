@@ -8,5 +8,5 @@ namespace UI::Shared{
         bool editing = false;
     };
     
-    void EditableTextUI(const char* label, EditableText &text);
+    bool EditableTextUI(const char* label, EditableText &text);
 }
