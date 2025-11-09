@@ -20,6 +20,8 @@ UI::StatemachineUI::StatemachineUI(){
       options.mDisplayLinksAsCurves = false;
 
       values = std::vector<StateUI>();
+
+      objToDelete = nullptr;
 }
 
 void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI)
@@ -88,6 +90,13 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
 
    }
 
+   if(smUI->objToDelete)
+   {
+      smUI->values.erase(std::remove_if(smUI->values.begin(), smUI->values.end(),
+         [&](const StateUI &x){return &x == smUI->objToDelete;}), smUI->values.end());
+      smUI->objToDelete = nullptr;
+   }
+
 
    ImGui::Begin("State Machine", &showUI);
 
@@ -118,6 +127,11 @@ for (auto& i : smUI->values)
    if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
 
    UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename);
+
+   if(ImGui::Button("Delete"))
+   {
+      smUI->objToDelete = &i;
+   }
 
     // A tidy framed card with a header
     if (ImGui::CollapsingHeader(i.statename.value.c_str(),

@@ -60,6 +60,7 @@ namespace UI
             animationsUI animations;
             blendspaceUI blendspaces;
             std::vector<StateUI> values;
+            StateUI* objToDelete;
 
             GraphEditor::Options options;
             UI::StateMachineGraph::GraphEditorDelegate delegate;
