@@ -43,101 +43,101 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
 
       handlesave(smUI, statemachine);
 
-   // --- UI ---
-   if(smUI->values.size() > 0)
-   for (auto& i : smUI->values)
-   {
-      ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 8));
-      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.45f, 0.45f, 0.50f, 1.0f));
-
-      const float margin = 12.0f; // adjust to taste
-
-      // Top margin
-      ImGui::Dummy(ImVec2(0, margin));
-
-      std::string child_id = "Card##" + i.id;
-
-      if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) 
+      // --- UI ---
+      if(smUI->values.size() > 0)
+      for (auto& i : smUI->values)
       {
-         if(UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename))
+         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 8));
+         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
+         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.45f, 0.45f, 0.50f, 1.0f));
+
+         const float margin = 12.0f; // adjust to taste
+
+         // Top margin
+         ImGui::Dummy(ImVec2(0, margin));
+
+         std::string child_id = "Card##" + i.id;
+
+         if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) 
          {
-            smUI->stateNamePtrs.clear();
-            for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
-         }
-
-         handleDelete(smUI, i);
-
-         // A tidy framed card with a header
-         if (ImGui::CollapsingHeader(i.statename.value.c_str(),
-            ImGuiTreeNodeFlags_DefaultOpen |
-            ImGuiTreeNodeFlags_FramePadding |
-            ImGuiTreeNodeFlags_SpanAvailWidth))
-         {
-            // Optional subtle spacing
-            ImGui::Spacing();
-
-            drawStateVariables(smUI, i);
-
-            // 2-column layout: To-State (Combo) | Condition (Multiline)
-            if (ImGui::BeginTable("TransitionsTable", 2,
-                     ImGuiTableFlags_SizingStretchProp |
-                     ImGuiTableFlags_Resizable |
-                     ImGuiTableFlags_BordersInnerV |
-                     ImGuiTableFlags_RowBg))
+            if(UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename))
             {
-                  ImGui::TableSetupColumn("To State", ImGuiTableColumnFlags_WidthStretch, 0.35f);
-                  ImGui::TableSetupColumn("Condition", ImGuiTableColumnFlags_WidthStretch, 0.65f);
-                  ImGui::TableHeadersRow();
-
-                  for (size_t j = 0; j < i.toStateWhenCondition.size(); ++j)
-                  {
-                     UI::StatemachineUI::drawToStateAndCondition(smUI, i, j);
-                  }
-                  ImGui::EndTable();
+               smUI->stateNamePtrs.clear();
+               for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
             }
 
-            ImGui::Spacing();
+            handleDelete(smUI, i);
+
+            // A tidy framed card with a header
+            if (ImGui::CollapsingHeader(i.statename.value.c_str(),
+               ImGuiTreeNodeFlags_DefaultOpen |
+               ImGuiTreeNodeFlags_FramePadding |
+               ImGuiTreeNodeFlags_SpanAvailWidth))
+            {
+               // Optional subtle spacing
+               ImGui::Spacing();
+
+               drawStateVariables(smUI, i);
+
+               // 2-column layout: To-State (Combo) | Condition (Multiline)
+               if (ImGui::BeginTable("TransitionsTable", 2,
+                        ImGuiTableFlags_SizingStretchProp |
+                        ImGuiTableFlags_Resizable |
+                        ImGuiTableFlags_BordersInnerV |
+                        ImGuiTableFlags_RowBg))
+               {
+                     ImGui::TableSetupColumn("To State", ImGuiTableColumnFlags_WidthStretch, 0.35f);
+                     ImGui::TableSetupColumn("Condition", ImGuiTableColumnFlags_WidthStretch, 0.65f);
+                     ImGui::TableHeadersRow();
+
+                     for (size_t j = 0; j < i.toStateWhenCondition.size(); ++j)
+                     {
+                        UI::StatemachineUI::drawToStateAndCondition(smUI, i, j);
+                     }
+                     ImGui::EndTable();
+               }
+
+               ImGui::Spacing();
+            }
+
          }
+         ImGui::EndChild();
 
+
+         ImGui::PopStyleVar(2);  
+         ImGui::PopStyleColor(2);
+         ImGui::Separator();
+         ImGui::Spacing();
+
+         ImGui::Dummy(ImVec2(0, margin));
       }
-      ImGui::EndChild();
 
-
-      ImGui::PopStyleVar(2);  
-      ImGui::PopStyleColor(2);
-      ImGui::Separator();
-      ImGui::Spacing();
-
-      ImGui::Dummy(ImVec2(0, margin));
-   }
-
-   //Track new state changes here in this class members.
-   // On save we can apply original class.
-   if(ImGui::Button("Add State"))
-   {
-      smUI->newStateCounter +=1;
-      auto statename = "new state" + std::to_string(smUI->newStateCounter);
-      UI::Shared::EditableText text = {
-         statename,
-         statename,
-         false
-      };
-      std::string guid = boost::uuids::to_string(boost::uuids::random_generator()());
-      auto stateUI = UI::StateUI
+      //Track new state changes here in this class members.
+      // On save we can apply original class.
+      if(ImGui::Button("Add State"))
       {
-         guid,
-         text,
-         std::vector<ToStateWhenConditionUI>(),
-         0,
-         0
-      };
-      getUIState().statemachineUIState->values.push_back(stateUI);
-      
-      smUI->stateNamePtrs.clear();
-      for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
-   }
+         smUI->newStateCounter +=1;
+         auto statename = "new state" + std::to_string(smUI->newStateCounter);
+         UI::Shared::EditableText text = {
+            statename,
+            statename,
+            false
+         };
+         std::string guid = boost::uuids::to_string(boost::uuids::random_generator()());
+         auto stateUI = UI::StateUI
+         {
+            guid,
+            text,
+            std::vector<ToStateWhenConditionUI>(),
+            0,
+            0
+         };
+         getUIState().statemachineUIState->values.push_back(stateUI);
+         
+         smUI->stateNamePtrs.clear();
+         for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
+      }
 
    ImGui::End();
 }
