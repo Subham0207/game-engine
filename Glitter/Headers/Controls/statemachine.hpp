@@ -35,7 +35,7 @@ namespace Controls
 
     struct State
     {
-        std::string stateName;
+        std::string stateName = "";
         std::vector<ToStateWhenCondition> toStateWhenCondition;
         
         std::string animationGuid;
@@ -67,6 +67,7 @@ namespace Controls
             StateMachine(std::string filename);
             void tick(Controls::PlayerController* playerController, Animator* animator);
             void setActiveState(std::shared_ptr<State> state);
+            std::shared_ptr<State> getActiveState() {return activeState;};
             std::shared_ptr<State> getStateGraph() {return stateGraph;}
             virtual const std::string contentName() override {return filename; }
             void setFileName(std::string name){ this->filename = name;}

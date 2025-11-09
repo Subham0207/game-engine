@@ -22,6 +22,14 @@ UI::StatemachineUI::StatemachineUI(){
       values = std::vector<StateUI>();
 
       objToDelete = nullptr;
+
+      entryStateIndex = 0;
+
+      statemachinename = {
+         "statemachine",
+         "statemachine",
+         false
+      };
 }
 
 void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI)
@@ -160,11 +168,61 @@ Controls::StateMachine *UI::StatemachineUI::start()
 
 void UI::StatemachineUI::handlesave(UI::StatemachineUI* smUI, Controls::StateMachine* statemachine)
 {
-   UI::Shared::InputText("##statemachine", smUI->temporaryNameForSave);
+   UI::Shared::EditableTextUI("##savethistatemachine", smUI->statemachinename);
    if(ImGui::Button("Save"))
    {
       auto loc = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
       statemachine->setFileName(smUI->temporaryNameForSave);
+
+      statemachine->getStateGraph();
+      //clear stategraph and activeState refs. -- don't need to clear, we are using smart pointers
+      //reinit stategraph using code similar to createNewProject.
+      statemachine->setFileName(smUI->statemachinename.value);
+      auto statesMap = std::map<std::string, std::shared_ptr<Controls::State>>();
+      for (auto i=0;i<smUI->values.size();i++)
+      {
+         auto state = std::make_shared<Controls::State>(smUI->values[i].statename.value);
+
+         if(i == smUI->entryStateIndex)
+         {
+            statemachine->setActiveState(state);
+         }
+
+         auto animIndex = smUI->values[i].animationIndex;
+
+         if(animIndex != 0)
+         {
+            // we just need to guid to load statemachine; Right now we only need to save it.
+            state->animationGuid = smUI->animations.animationguids[animIndex];
+         }
+         auto blendspaceIndex = smUI->values[i].blendspaceIndex;
+         if(blendspaceIndex != 0)
+         {
+            // we just need to guid to load statemachine; Right now we only need to save it.
+            state->blendspaceGuid = smUI->blendspaces.blendspaceguids[blendspaceIndex];
+         }
+
+         statesMap[smUI->values[i].statename.value] = state;
+      }
+
+      for (auto &&i: smUI->values)
+      {
+         for (auto &&j : i.toStateWhenCondition)
+         {
+            auto toStateName = smUI->values[j.IndexToState].statename;
+            auto toState = statesMap[toStateName.value];
+            
+            statesMap[i.statename.value]->toStateWhenCondition.push_back(
+               Controls::ToStateWhenCondition(
+                  toState,
+                  std::string(j.WhenCondition.data(), MAX_SOURCE_LENGTH)
+               )
+            );
+         }
+         
+      }
+
+      //call statemachine save method.
       statemachine->save(loc);
    }
 }
@@ -244,9 +302,15 @@ void UI::StatemachineUI::drawToStateAndCondition(UI::StatemachineUI* smUI, UI::S
 void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
 {
    auto smUI = getUIState().statemachineUIState;
+
    
    if(smUI->firstFrame)
    {
+      smUI->statemachinename = {
+         statemachine->contentName(),
+         statemachine->contentName(),
+         false
+      };
       auto blendspaces = &EngineState::state->engineRegistry->blendpaceFileMap;
       auto animations = &EngineState::state->engineRegistry->animationsFileMap;
       smUI->blendspaces.blendspaceguids.push_back("None");
@@ -264,8 +328,14 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
          smUI->animations.animationnames.push_back(kv.second.c_str());
       }
       
+      auto index = 0;
       for(auto &&i: statemachine->states)
       {
+         if(i->stateName == statemachine->getActiveState()->stateName)
+         {
+            smUI->entryStateIndex = index;
+         }
+
          auto stateUI = StateUI();
          stateUI.id =  boost::uuids::to_string(boost::uuids::random_generator()());
          stateUI.statename = {
@@ -297,6 +367,8 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
 
          }
          smUI->values.push_back(stateUI);
+
+         index++;
       }
 
       smUI->firstFrame = false;

@@ -64,10 +64,12 @@ namespace UI
             int newStateCounter = 0;
 
             std::vector<const char*> stateNamePtrs;
+            int entryStateIndex;
             animationsUI animations;
             blendspaceUI blendspaces;
             std::vector<StateUI> values;
             StateUI* objToDelete;
+            UI::Shared::EditableText statemachinename;
 
             GraphEditor::Options options;
             UI::StateMachineGraph::GraphEditorDelegate delegate;
