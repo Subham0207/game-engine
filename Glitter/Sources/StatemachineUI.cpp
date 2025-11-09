@@ -117,7 +117,7 @@ for (auto& i : smUI->values)
 
    if (ImGui::BeginChild(child_id.c_str(), ImVec2(0, 0), ImGuiChildFlags_Border | ImGuiChildFlags_AutoResizeY)) {
 
-   UI::Shared::EditableTextUI(i.id.c_str(), i.statename);
+   UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename);
 
     // A tidy framed card with a header
     if (ImGui::CollapsingHeader(i.statename.value.c_str(),
