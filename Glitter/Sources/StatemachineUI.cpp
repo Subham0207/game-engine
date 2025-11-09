@@ -63,8 +63,7 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
          {
             if(UI::Shared::EditableTextUI(("##" + i.id).c_str(), i.statename))
             {
-               smUI->stateNamePtrs.clear();
-               for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
+               smUI->reInitStateNamePtrs();
             }
 
             handleDelete(smUI, i);
@@ -135,8 +134,7 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
          };
          getUIState().statemachineUIState->values.push_back(stateUI);
          
-         smUI->stateNamePtrs.clear();
-         for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
+         smUI->reInitStateNamePtrs();
       }
 
    ImGui::End();
@@ -202,8 +200,7 @@ void UI::StatemachineUI::handleDelete(UI::StatemachineUI* smUI, UI::StateUI &obj
    if(ImGui::Button("Delete"))
    {
       smUI->objToDelete = &obj;
-      smUI->stateNamePtrs.clear();
-      for (auto &&s : smUI->values) smUI->stateNamePtrs.push_back(s.statename.value.c_str());
+      smUI->reInitStateNamePtrs();
    }
 }
 
@@ -305,10 +302,19 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
       smUI->firstFrame = false;
 
       smUI->stateNamePtrs.reserve(statemachine->states.size());
+      smUI->stateNamePtrs.push_back("None");
       for (auto* s : statemachine->states) smUI->stateNamePtrs.push_back(s->stateName.c_str());
 
    }
 }
+
+void UI::StatemachineUI::reInitStateNamePtrs()
+{
+   stateNamePtrs.clear();
+   stateNamePtrs.push_back("None");
+   for (auto &&s : values) stateNamePtrs.push_back(s.statename.value.c_str());
+}
+
 void UI::StatemachineUI::save(Controls::StateMachine *statemachine)
 {
    for (size_t i = 0; i < values.size(); i++)

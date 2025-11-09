@@ -57,6 +57,8 @@ namespace UI
             static void handleDelete(UI::StatemachineUI* smUI, UI::StateUI &obj);
             static void drawStateVariables(UI::StatemachineUI* smUI, UI::StateUI &state);
             static void handlesave(UI::StatemachineUI* smUI, Controls::StateMachine* statemachine);
+            
+            void reInitStateNamePtrs();
 
             std::string temporaryNameForSave;
             int newStateCounter = 0;
