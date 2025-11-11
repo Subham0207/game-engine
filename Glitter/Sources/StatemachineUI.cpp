@@ -381,7 +381,6 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
       smUI->firstFrame = false;
 
       smUI->stateNamePtrs.reserve(statemachine->states.size());
-      smUI->stateNamePtrs.push_back("None");
       for (auto* s : statemachine->states) smUI->stateNamePtrs.push_back(s->stateName.c_str());
 
    }
@@ -390,7 +389,6 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
 void UI::StatemachineUI::reInitStateNamePtrs()
 {
    stateNamePtrs.clear();
-   stateNamePtrs.push_back("None");
    for (auto &&s : values) stateNamePtrs.push_back(s.statename.value.c_str());
 }
 

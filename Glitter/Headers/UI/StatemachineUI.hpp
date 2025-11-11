@@ -25,7 +25,7 @@ namespace UI
     };
 
     struct ToStateWhenConditionUI{
-        int IndexToState = -1;
+        int IndexToState = 0;
         std::array<char, MAX_SOURCE_LENGTH> WhenCondition{};
     };
 
