@@ -163,7 +163,6 @@ Controls::StateMachine *UI::StatemachineUI::start()
    getUIState().statemachineUIState->firstFrame = true;
    
    getUIState().statemachineUIState->values.clear();
-   getUIState().statemachineUIState->temporaryNameForSave.clear();
    getUIState().statemachineUIState->stateNamePtrs.clear();
    getUIState().statemachineUIState->blendspaces.blendspaceguids.clear();
    getUIState().statemachineUIState->blendspaces.blendspacenames.clear();
@@ -179,11 +178,6 @@ void UI::StatemachineUI::handlesave(UI::StatemachineUI* smUI, Controls::StateMac
    if(ImGui::Button("Save"))
    {
       auto loc = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
-      statemachine->setFileName(smUI->temporaryNameForSave);
-
-      statemachine->getStateGraph();
-      //clear stategraph and activeState refs. -- don't need to clear, we are using smart pointers
-      //reinit stategraph using code similar to createNewProject.
       statemachine->setFileName(smUI->statemachinename.value);
       auto statesMap = std::map<std::string, std::shared_ptr<Controls::State>>();
       for (auto i=0;i<smUI->values.size();i++)
@@ -394,21 +388,5 @@ void UI::StatemachineUI::reInitStateNamePtrs()
 
 void UI::StatemachineUI::save(Controls::StateMachine *statemachine)
 {
-   for (size_t i = 0; i < values.size(); i++)
-   {
-      //Set statename
-      statemachine->states[i]->stateName = values[i].statename.value;
-
-      auto fromlist = &values[i].toStateWhenCondition;
-      auto toList = &statemachine->states[i]->toStateWhenCondition;
-
-      for (size_t j = 0; j < fromlist->size(); j++)
-      {
-         //set index of toState
-         toList->at(j).index = fromlist->at(j).IndexToState;
-         //set condition for toState
-         toList->at(j).condition.setSource(std::string(fromlist->at(j).WhenCondition.data(), MAX_SOURCE_LENGTH));
-      }
-   }
      
 }

@@ -45,22 +45,21 @@ namespace UI
             static void draw(Controls::StateMachine* statemachine, bool &showUI);
             static Controls::StateMachine* start();
             
-            void save(Controls::StateMachine* statemachine);
             
             bool showStateMachineUI;
             Controls::StateMachine* UIOpenedForStatemachine;
             
             bool firstFrame;
-        private:
+            private:
             static void  firstFrameHandler(Controls::StateMachine* statemachine);
             static void drawToStateAndCondition(UI::StatemachineUI* smUI, UI::StateUI &stateUI, int id);
             static void handleDelete(UI::StatemachineUI* smUI, UI::StateUI &obj);
             static void drawStateVariables(UI::StatemachineUI* smUI, UI::StateUI &state);
             static void handlesave(UI::StatemachineUI* smUI, Controls::StateMachine* statemachine);
+            void save(Controls::StateMachine* statemachine);
             
             void reInitStateNamePtrs();
 
-            std::string temporaryNameForSave;
             int newStateCounter = 0;
 
             std::vector<const char*> stateNamePtrs;

@@ -85,6 +85,7 @@ void Controls::StateMachine::tick(Controls::PlayerController* playerController, 
 
 void Controls::StateMachine::setActiveState(std::shared_ptr<State> state)
 {
+    this->stateGraph = state;
     this->activeState = state;
 }
 
@@ -181,7 +182,8 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     }
 
     // Recurse through outgoing edges
-    if (state->toStateWhenCondition.size() > 1) {
+    auto size = state->toStateWhenCondition.size();
+    if (size > 0) {
         for (const auto& edge : state->toStateWhenCondition) {
             dfsLoad(edge.state, filesMap, visited);
         }
