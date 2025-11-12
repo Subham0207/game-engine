@@ -8,6 +8,7 @@ class Serializable
     public:
         virtual void save(fs::path &assetRoot);
         virtual void load(fs::path& assetRoot, std::string filename);
+        virtual void deleteFile();
         std::string getGUID();
     protected:
         virtual void saveContent(fs::path contentFileLocation, std::ostream& os) = 0;

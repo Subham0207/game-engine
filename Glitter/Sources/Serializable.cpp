@@ -74,3 +74,24 @@ void Serializable::load(fs::path& assetRoot, std::string filename) {
     if (!is) throw std::runtime_error("Failed to open content file: " + contentFile.string());
     loadContent(contentFile,is);
 }
+
+void Serializable::deleteFile()
+{
+    auto filesMap = getEngineRegistryFilesMap();
+    auto assetRoot = fs::path(filesMap[guid_]).parent_path();
+
+    const fs::path metaFile = fs::path(EngineState::state->currentActiveProjectDirectory) / assetRoot / (guid_ + ".meta.json");
+    bs::ptree meta;
+    read_json(metaFile.string(), meta);
+
+    const fs::path contentRel = meta.get<std::string>("content.relative_path");
+    const fs::path contentFile = fs::path(EngineState::state->currentActiveProjectDirectory) / assetRoot / contentRel;
+    try {
+        std::filesystem::remove(metaFile);
+        std::filesystem::remove(contentFile);
+    }
+    catch(const std::filesystem::filesystem_error& err) {
+        std::cout << "filesystem error: " << err.what() << '\n';
+    }
+
+}

@@ -178,6 +178,15 @@ void UI::StatemachineUI::handlesave(UI::StatemachineUI* smUI, Controls::StateMac
    if(ImGui::Button("Save"))
    {
       auto loc = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
+      if(statemachine->contentName() != "" && smUI->statemachinename.value != statemachine->contentName())
+      {
+         //This is essentially renaming a statemachine; we don't need to new guid since other parts of program might be using it
+         //Delete existing file
+         //And save this;
+         statemachine->deleteFile();
+
+         //we also need to re-initialize filesmap with correct filepath now
+      }
       statemachine->setFileName(smUI->statemachinename.value);
       auto statesMap = std::map<std::string, std::shared_ptr<Controls::State>>();
       for (auto i=0;i<smUI->values.size();i++)
