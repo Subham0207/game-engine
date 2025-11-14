@@ -10,6 +10,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <Helpers/Trim.hpp>
 
 UI::StatemachineUI::StatemachineUI(){
       UIOpenedForStatemachine = nullptr;
@@ -161,13 +162,6 @@ Controls::StateMachine *UI::StatemachineUI::start()
    getUIState().statemachineUIState->UIOpenedForStatemachine = statemachine;
    getUIState().statemachineUIState->showStateMachineUI = true;
    getUIState().statemachineUIState->firstFrame = true;
-   
-   getUIState().statemachineUIState->values.clear();
-   getUIState().statemachineUIState->stateNamePtrs.clear();
-   getUIState().statemachineUIState->blendspaces.blendspaceguids.clear();
-   getUIState().statemachineUIState->blendspaces.blendspacenames.clear();
-   getUIState().statemachineUIState->animations.animationguids.clear();
-   getUIState().statemachineUIState->animations.animationnames.clear();
 
    return statemachine;
 }
@@ -185,7 +179,7 @@ void UI::StatemachineUI::handlesave(UI::StatemachineUI* smUI, Controls::StateMac
          //And save this;
          statemachine->deleteFile();
 
-         //we also need to re-initialize filesmap with correct filepath now
+         //we also need to re-initialize filesmap with correct filepath now + refresh any intances in memory (Life cycle of a serialzable)
       }
       statemachine->setFileName(smUI->statemachinename.value);
       auto statesMap = std::map<std::string, std::shared_ptr<Controls::State>>();
@@ -221,11 +215,13 @@ void UI::StatemachineUI::handlesave(UI::StatemachineUI* smUI, Controls::StateMac
          {
             auto toStateName = smUI->values[j.IndexToState].statename;
             auto toState = statesMap[toStateName.value];
+
+            auto cleanedString = cleanChars(j.WhenCondition);
             
             statesMap[i.statename.value]->toStateWhenCondition.push_back(
                Controls::ToStateWhenCondition(
                   toState,
-                  std::string(j.WhenCondition.data(), MAX_SOURCE_LENGTH)
+                  cleanedString
                )
             );
          }
@@ -234,6 +230,7 @@ void UI::StatemachineUI::handlesave(UI::StatemachineUI* smUI, Controls::StateMac
 
       //call statemachine save method.
       statemachine->save(loc);
+      smUI->firstFrame = true;
    }
 }
 
@@ -316,6 +313,13 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
    
    if(smUI->firstFrame)
    {
+      smUI->values.clear();
+      smUI->stateNamePtrs.clear();
+      smUI->blendspaces.blendspaceguids.clear();
+      smUI->blendspaces.blendspacenames.clear();
+      smUI->animations.animationguids.clear();
+      smUI->animations.animationnames.clear();
+
       smUI->statemachinename = {
          statemachine->contentName(),
          statemachine->contentName(),
