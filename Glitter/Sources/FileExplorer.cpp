@@ -191,20 +191,12 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             showUI = false;                      
                         }
                         break;
-                    case FileTypeOperation::loadAnimation:
+                    case FileTypeOperation::importAnimation:
                         {
-                            if(getUIState().selectedRenderableIndex < 0)
-                            break;
-                            if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
-                            {
-                                std::string& filename = getUIState().filePath;
-                                Shared::readAnimation(filename);
-                            }
-                            else
-                            {
-                                EngineState::state->errorStack.LastElement() = "Please first Load a model and have it selected before loading an animation";
-                            }
-                            showUI = false;                      
+                            auto projectAssetDirectory = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
+                            auto animation = new Animation(getUIState().filePath);
+                            animation->save(projectAssetDirectory);
+                            showUI = false;
                         }
                         break;
                 

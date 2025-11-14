@@ -288,11 +288,11 @@ void Outliner::manageAnimationsForSelectedModel()
         EngineState::state->isPlay = false;
     }
 
-    if(ImGui::Button("Load animation for model"))
+    if(ImGui::Button("import an animation"))
     {
         getUIState().selectAFile = true;
         getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::loadAnimation;
+        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importAnimation;
     }
     std::vector<const char*> cStringAnimationNames;
     for (const auto& name : getUIState().animationNames) {

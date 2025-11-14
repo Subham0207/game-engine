@@ -22,7 +22,7 @@ namespace ProjectAsset {
 
     enum FileTypeOperation {
         LoadLvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs,
-        loadAnimation
+        importAnimation
     };
 
     struct UIState{
