@@ -15,6 +15,7 @@ UI::Grid2DResult UI::ImGuiGrid2D(
     Grid2DResult out;
 
     auto draggingPointIndex = &getUIState().blendspace2DUIState->draggingPointIndex;
+    auto selectedPointIndex = &getUIState().blendspace2DUIState->selectedPointIndex;
     auto scrubberActive = getUIState().blendspace2DUIState->scrubberActive;
 
     ImGuiIO& io = ImGui::GetIO();
@@ -67,6 +68,11 @@ UI::Grid2DResult UI::ImGuiGrid2D(
         // Check if mouse is near the point (Hit Test)
         bool isMouseOverPoint = distSq < (hitRadius * hitRadius);
 
+        if(isMouseOverPoint && ImGui::IsMouseClicked(ImGuiMouseButton_Left) & !scrubberActive)
+        {
+            *selectedPointIndex = index;
+        }
+
         if(isMouseOverPoint && !scrubberActive)
         {
             char label[32];
@@ -96,7 +102,14 @@ UI::Grid2DResult UI::ImGuiGrid2D(
         if (screenPoint.x >= canvasPos.x && screenPoint.x <= canvasMax.x &&
             screenPoint.y >= canvasPos.y && screenPoint.y <= canvasMax.y) {
 
-            drawList->AddCircleFilled(screenPoint, pointRadius, IM_COL32(255,255,255,255));
+            if(*selectedPointIndex == index)
+            {
+                drawList->AddCircleFilled(screenPoint, pointRadius, IM_COL32(0, 0, 255, 255));
+            }
+            else
+            {
+                drawList->AddCircleFilled(screenPoint, pointRadius, IM_COL32(255,255,255,255));
+            }
             
             //Blendselection: points taken for blending in resultant animation.
             if (selection) {
@@ -190,6 +203,16 @@ void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selectio
         }
 
         ImGui::Checkbox("Scrubber active", &getUIState().blendspace2DUIState->scrubberActive);
+        if(ImGui::Button("Delete Point"))
+        {
+            if(getUIState().blendspace2DUIState->selectedPointIndex > -1)
+            {
+                auto toDelete = &blendspace->blendPoints[getUIState().blendspace2DUIState->selectedPointIndex];
+                blendspace->blendPoints.erase(std::remove_if(blendspace->blendPoints.begin(), blendspace->blendPoints.end(),
+                [&](const BlendPoint &x){return &x == toDelete;}), blendspace->blendPoints.end());
+                getUIState().blendspace2DUIState->selectedPointIndex = -1;
+            }
+        }
 
         // Left: grid, Right: animations
         ImGui::Columns(2, nullptr, true);

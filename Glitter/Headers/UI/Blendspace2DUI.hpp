@@ -32,6 +32,7 @@ namespace UI
 
 
             int draggingPointIndex = -1;
+            int selectedPointIndex = -1;
         private:
             static int AnimationsListDragSource(
                 const char* label,
