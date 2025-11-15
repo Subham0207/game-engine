@@ -5,7 +5,7 @@
 #include <UI/Shared/InputText.hpp>
 
 UI::Grid2DResult UI::ImGuiGrid2D(
-    const std::vector<BlendPoint>& points,
+    std::vector<BlendPoint>& points,
     ImVec2* scrubbedPoint,
     const ImVec2& gridSize,
     const BlendSelection* selection,
@@ -14,6 +14,9 @@ UI::Grid2DResult UI::ImGuiGrid2D(
 ) {
     Grid2DResult out;
 
+    auto draggingPointIndex = &getUIState().blendspace2DUIState->draggingPointIndex;
+    auto scrubberActive = getUIState().blendspace2DUIState->scrubberActive;
+
     ImGuiIO& io = ImGui::GetIO();
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     ImVec2 canvasPos = ImGui::GetCursorScreenPos();
@@ -21,6 +24,7 @@ UI::Grid2DResult UI::ImGuiGrid2D(
 
     // The interactive area
     ImGui::InvisibleButton("gridCanvas", gridSize, ImGuiButtonFlags_MouseButtonLeft);
+    bool isMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
     bool isDragging = ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left);
     out.isScrubbing = isDragging;
 
@@ -41,16 +45,51 @@ UI::Grid2DResult UI::ImGuiGrid2D(
         drawList->AddLine(ImVec2(canvasPos.x, canvasCenter.y + y), ImVec2(canvasMax.x, canvasCenter.y + y), IM_COL32(100,100,100,255));
     }
 
+    ImVec2 mouseScreen = io.MousePos;
+    float hitRadius = pointRadius;
+    int index = 0;
+
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+        *draggingPointIndex = -1;
+    }
+
     // Points
-    for (const auto& point : points) {
+    for (auto& point : points) {
         ImVec2 screenPoint(
             canvasCenter.x + point.position.x * scale,
             canvasCenter.y - point.position.y * scale
         );
+
+        float dx = mouseScreen.x - screenPoint.x;
+        float dy = mouseScreen.y - screenPoint.y;
+        float distSq = dx * dx + dy * dy;
+
+        // Check if mouse is near the point (Hit Test)
+        bool isMouseOverPoint = distSq < (hitRadius * hitRadius);
+
+        if(isMouseOverPoint && isMouseDown && !scrubberActive)
+        {
+            *draggingPointIndex = index;
+        }
+        
+        if (*draggingPointIndex == index) {
+            
+            // Update the *point's world position* with the *world position of the mouse*
+
+            point.position.x = (mouseScreen.x - canvasCenter.x) / scale;
+            point.position.y = (canvasCenter.y - mouseScreen.y) / scale; // note the flipped Y
+
+            screenPoint.x = canvasCenter.x + point.position.x * scale;
+            screenPoint.y = canvasCenter.y - point.position.y * scale;
+
+        }
+
         if (screenPoint.x >= canvasPos.x && screenPoint.x <= canvasMax.x &&
             screenPoint.y >= canvasPos.y && screenPoint.y <= canvasMax.y) {
-            drawList->AddCircleFilled(screenPoint, pointRadius, IM_COL32(255,255,255,255));
 
+            drawList->AddCircleFilled(screenPoint, pointRadius, IM_COL32(255,255,255,255));
+            
+            //Blendselection: points taken for blending in resultant animation.
             if (selection) {
                 char label[32];
                 float blendValue = -1.0f;
@@ -67,6 +106,8 @@ UI::Grid2DResult UI::ImGuiGrid2D(
                 }
             }
         }
+
+        index++;
     }
 
     // Initialize scrubbed point if needed
@@ -76,7 +117,7 @@ UI::Grid2DResult UI::ImGuiGrid2D(
     }
 
     // Scrub (drag the red dot)
-    if (isDragging) {
+    if (isDragging && scrubberActive) {
         ImVec2 localMouse = io.MousePos;
         localMouse.x = (localMouse.x - canvasCenter.x) / scale;
         localMouse.y = (canvasCenter.y - localMouse.y) / scale; // flip y
@@ -137,6 +178,8 @@ void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selectio
             auto loc = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
             blendspace->save(loc);
         }
+
+        ImGui::Checkbox("Scrubber active", &getUIState().blendspace2DUIState->scrubberActive);
 
         // Left: grid, Right: animations
         ImGui::Columns(2, nullptr, true);

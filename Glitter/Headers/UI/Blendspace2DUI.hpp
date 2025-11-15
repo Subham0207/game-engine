@@ -12,7 +12,7 @@ namespace UI
         std::string droppedAnimGuid;   // new: payload (animation GUID)
     };
 
-    Grid2DResult ImGuiGrid2D(const std::vector<BlendPoint>& points, ImVec2* scrubbedPoint, const ImVec2& gridSize,const BlendSelection* selection, float pointRadius = 3.0f, float scrubRadius = 6.0f);
+    Grid2DResult ImGuiGrid2D(std::vector<BlendPoint>& points, ImVec2* scrubbedPoint, const ImVec2& gridSize,const BlendSelection* selection, float pointRadius = 3.0f, float scrubRadius = 6.0f);
 
     class Blendspace2DUI
     {
@@ -25,9 +25,13 @@ namespace UI
             }
             static void draw(BlendSpace2D *blendspace, BlendSelection* selection, bool &showUI);
             ImVec2 scrubbedPoint;
+            bool scrubberActive;
             bool showBlendspaceUI;
             BlendSpace2D* UIOpenedForBlendspace;
             int selectedAnimationIndex;
+
+
+            int draggingPointIndex = -1;
         private:
             static int AnimationsListDragSource(
                 const char* label,
