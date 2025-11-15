@@ -203,16 +203,6 @@ void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selectio
         }
 
         ImGui::Checkbox("Scrubber active", &getUIState().blendspace2DUIState->scrubberActive);
-        if(ImGui::Button("Delete Point"))
-        {
-            if(getUIState().blendspace2DUIState->selectedPointIndex > -1)
-            {
-                auto toDelete = &blendspace->blendPoints[getUIState().blendspace2DUIState->selectedPointIndex];
-                blendspace->blendPoints.erase(std::remove_if(blendspace->blendPoints.begin(), blendspace->blendPoints.end(),
-                [&](const BlendPoint &x){return &x == toDelete;}), blendspace->blendPoints.end());
-                getUIState().blendspace2DUIState->selectedPointIndex = -1;
-            }
-        }
 
         // Left: grid, Right: animations
         ImGui::Columns(2, nullptr, true);
@@ -261,6 +251,20 @@ void UI::Blendspace2DUI::draw(BlendSpace2D* blendspace, BlendSelection* selectio
                 EngineState::state->engineRegistry->animationsFileMap,
                 &animLinear
             );
+        
+        if(getUIState().blendspace2DUIState->selectedPointIndex > -1)
+        {
+            auto ref = &blendspace->blendPoints[getUIState().blendspace2DUIState->selectedPointIndex];
+            if(ImGui::Button("Delete Point"))
+            {
+                blendspace->blendPoints.erase(std::remove_if(blendspace->blendPoints.begin(), blendspace->blendPoints.end(),
+                [&](const BlendPoint &x){return &x == ref;}), blendspace->blendPoints.end());
+                getUIState().blendspace2DUIState->selectedPointIndex = -1;
+            }
+
+            ImGui::DragFloat("X Coordinate", &ref->position.x, 0.5f, -100.0f, 100.0f, "X: %.2f");
+            ImGui::DragFloat("Y Coordinate", &ref->position.y, 0.5f, -100.0f, 100.0f, "Y: %.2f");
+        }
 
 
         ImGui::Columns(1);
