@@ -125,7 +125,7 @@ public:
     }
 
     void setFileName(std::string filename) override{
-        directory = filename;
+        this->filename = filename;
     }
     
     void static saveSerializedModel(std::string filename, Model &model);

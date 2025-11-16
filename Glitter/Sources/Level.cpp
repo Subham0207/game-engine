@@ -43,6 +43,8 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             {
                 auto model = new Model();
                 model->load(contentFilePath.parent_path(), id);
+                auto filename = contentFilePath.stem().filename().string();
+                model->setFileName(filename);
                 this->renderables->push_back(model);
             }
             if(extension ==  ".character")
