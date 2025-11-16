@@ -21,7 +21,7 @@ namespace UI
 namespace ProjectAsset {
 
     enum FileTypeOperation {
-        LoadLvlFile, importModelFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs,
+        LoadLvlFile, importModelFile, importCharacterFile, saveModel, loadModel,albedoTexture, normalTexture, metalnessTexture, roughnessTexture, aoTexture, saveLevel, saveLevelAs,
         importAnimation
     };
 

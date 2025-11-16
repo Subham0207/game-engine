@@ -81,7 +81,7 @@ namespace ProjectAsset{
 void ProjectAsset::selectModelFile()
 {
     EngineState::state->uiState.showOpenButton = true;
-    EngineState::state->uiState.fileTypeOperation = FileTypeOperation::importModelFile;
+    EngineState::state->uiState.fileTypeOperation = FileTypeOperation::importCharacterFile;
 }
 
 void ProjectAsset::selectAlbedoTexture()

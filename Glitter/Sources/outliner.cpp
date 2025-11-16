@@ -409,11 +409,18 @@ void Outliner::ModelAndTextureSelectionWindow()
         ImGui::SameLine();
         ImGui::Text("%s", getUIState().modelfileName.c_str());
         ImGui::SameLine();
-        if(ImGui::Button("Browse##1"))
+        if(ImGui::Button("Browse Model##1"))
         {
             getUIState().selectAFile = true;
             getUIState().showOpenButton = true;
             getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importModelFile;
+        }
+
+        if(ImGui::Button("Browse Character##1"))
+        {
+            getUIState().selectAFile = true;
+            getUIState().showOpenButton = true;
+            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importCharacterFile;
         }
 
         UI::renderMaterialManagerComponent();

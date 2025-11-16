@@ -128,6 +128,16 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                     case FileTypeOperation::importModelFile:
                         {
                             getUIState().modelfileName = getUIState().filePath;
+                            auto model = new Model(getUIState().filePath);
+                            model->save(fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets");
+                            getActiveLevel().addRenderable(model);
+                            getUIState().renderables = *EngineState::state->activeLevel->renderables;  
+                            showUI = false;
+                        }
+                        break;
+                    case FileTypeOperation::importCharacterFile:
+                        {
+                            getUIState().modelfileName = getUIState().filePath;
                             getActiveLevel().addRenderable(new Character(getUIState().filePath));
                             getUIState().renderables = *EngineState::state->activeLevel->renderables;    
                             showUI = false;                       
