@@ -91,6 +91,21 @@ namespace ProjectAsset
                                         statemachine->load(fs::path(selectedAsset.filepath).parent_path(), guid);
                                     }
                                 }
+                                
+                                if(selectedAsset.assetType == AssetType::ModelType)
+                                {
+                                    auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
+                                    auto filesMap = getEngineRegistryFilesMap();
+                                    if (auto it = filesMap.find(guid); it != filesMap.end())
+                                    {
+                                        auto model = new Model();
+                                        model->load(fs::path(selectedAsset.filepath).parent_path(), guid);
+                                        auto filename = fs::path(filesMap[guid]).filename().stem().string();
+                                        model->setFileName(filename);
+                                        getActiveLevel().addRenderable(model);
+                                    }
+                                    
+                                }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
                                     ImGui::SetDragDropPayload("ASSET_PATH", selectedAsset.filepath.c_str(),  selectedAsset.filepath.size() + 1);
