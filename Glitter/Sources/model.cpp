@@ -384,7 +384,8 @@ void Model::calculateBoundingBox(const aiScene* scene) {
 std::shared_ptr<ProjectModals::Texture> Model::LoadTexture(std::string texturePath, aiTextureType typeName)
 {
     fs::path fsPath(texturePath);
-    std::string filename = "Assets/"+fsPath.filename().string();
+    auto currentProjectLocation = fs::path(EngineState::state->currentActiveProjectDirectory);
+    auto filename = (currentProjectLocation / "Assets" / fsPath.filename().string()).string();
     unsigned int id = Shared::TextureFromFile(texturePath.c_str(), filename);
     auto filepath = fs::current_path().append(filename).string();
     auto texture = std::make_shared<ProjectModals::Texture>(id, typeName, filepath);
