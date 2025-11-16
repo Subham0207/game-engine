@@ -75,10 +75,11 @@ UI::Grid2DResult UI::ImGuiGrid2D(
 
         if(isMouseOverPoint && !scrubberActive)
         {
+            auto filename = fs::path(EngineState::state->engineRegistry->animationsFileMap[point.animationGuid]).filename().stem().string();
             char label[32];
-            snprintf(label, sizeof(label), "%s", point.animation->animationName.c_str());
+            snprintf(label, sizeof(label), "%s", filename.c_str());
             ImVec2 textSize = ImGui::CalcTextSize(label);
-            ImVec2 textPos(screenPoint.x - textSize.x * 0.5f, screenPoint.y + pointRadius + 2.0f);
+            ImVec2 textPos(screenPoint.x - textSize.x * 0.5f, screenPoint.y + pointRadius + 10.0f);
             drawList->AddText(textPos, IM_COL32(255,255,0,255), label);
         }
 
