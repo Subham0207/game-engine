@@ -100,6 +100,7 @@ namespace ProjectAsset
                                     {
                                         auto model = new Model();
                                         model->load(fs::path(selectedAsset.filepath).parent_path(), guid);
+                                        model->setModelMatrix(glm::identity<glm::mat4>());
                                         auto filename = fs::path(filesMap[guid]).filename().stem().string();
                                         model->setFileName(filename);
                                         getActiveLevel().addRenderable(model);

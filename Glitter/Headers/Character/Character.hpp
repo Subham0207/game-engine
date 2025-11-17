@@ -55,6 +55,10 @@ public:
         return model->getModelMatrix();
     };
 
+    void setModelMatrix(glm::mat4 matrix) override{
+       model->setModelMatrix(matrix);
+    };
+
     std::string getName() override{
         return model->getName();
     }

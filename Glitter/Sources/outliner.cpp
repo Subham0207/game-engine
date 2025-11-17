@@ -434,12 +434,12 @@ void Outliner::ModelAndTextureSelectionWindow()
         if(ImGui::Button("Save"))
         {
             auto dir = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
-            if(auto character = dynamic_cast<Character* >(getUIState().renderables[getUIState().selectedRenderableIndex]))
+            if(auto character = dynamic_cast<Character* >(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
             {
                 character->save(dir);
             }
 
-            if(auto model = dynamic_cast<Model* >(getUIState().renderables[getUIState().selectedRenderableIndex]))
+            if(auto model = dynamic_cast<Model* >(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
             {
                 model->save(dir);
             }

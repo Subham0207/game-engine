@@ -129,6 +129,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             getUIState().modelfileName = getUIState().filePath;
                             auto model = new Model(getUIState().filePath);
+                            model->setModelMatrix(glm::identity<glm::mat4>());
                             model->save(fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets");
                             getActiveLevel().addRenderable(model);
                             getUIState().renderables = *EngineState::state->activeLevel->renderables;  
@@ -138,7 +139,10 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                     case FileTypeOperation::importCharacterFile:
                         {
                             getUIState().modelfileName = getUIState().filePath;
-                            getActiveLevel().addRenderable(new Character(getUIState().filePath));
+                            auto character = new Character(getUIState().filePath);
+                            character->setModelMatrix(glm::identity<glm::mat4>());
+                            character->save(fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets");
+                            getActiveLevel().addRenderable(character);
                             getUIState().renderables = *EngineState::state->activeLevel->renderables;    
                             showUI = false;                       
                         }

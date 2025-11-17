@@ -70,6 +70,15 @@ class Level: public Serializable{
 
     private:
 
+    static glm::vec3 readVec3(const bs::ptree& parent, const std::string& key) {
+        glm::vec3 v;
+        int i = 0;
+        for (const auto& item : parent.get_child(key)) {
+            v[i++] = std::stof(item.second.data());
+        }
+        return v;
+    }
+
         friend class boost::serialization::access;
 
         template<class Archive>

@@ -36,6 +36,24 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
             // Read the id
             std::string id = renderable.get<std::string>("id");
+
+            const bs::ptree& tr = renderable.get_child("transform");
+
+            glm::vec3 t = readVec3(tr, "t");
+            glm::vec3 r = readVec3(tr, "r");
+            glm::vec3 s = readVec3(tr, "s");
+
+            // Convert degrees→radians if needed
+            glm::vec3 rad = glm::radians(r);
+
+            // Build rotation quaternion (XYZ order)
+            glm::quat q = glm::quat(rad);
+
+            // Build matrix: T * R * S
+            glm::mat4 M = glm::translate(glm::mat4(1.0f), t)
+                        * glm::toMat4(q)
+                        * glm::scale(glm::mat4(1.0f), s);
+
             auto contentFilePath = fs::path(filesMap[id]);
             std::string extension = contentFilePath.extension().string();
 
@@ -43,6 +61,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             {
                 auto model = new Model();
                 model->load(contentFilePath.parent_path(), id);
+                model->setModelMatrix(M);
                 auto filename = contentFilePath.stem().filename().string();
                 model->setFileName(filename);
                 this->renderables->push_back(model);
@@ -51,32 +70,11 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             {
                 auto character = new Character();
                 character->load(contentFilePath.parent_path(), id);
+                character->setModelMatrix(M);
                 this->renderables->push_back(character);
             }
 
-            // Read transform.t
-            auto transform = renderable.get_child("transform");
-            auto t = transform.get_child("t");
-            auto r = transform.get_child("r");
-            auto s = transform.get_child("s");
 
-            std::cout << "Transform t: ";
-            for (const auto &value : t) {
-                std::cout << value.second.get_value<std::string>() << " ";
-            }
-            std::cout << "\n";
-
-            std::cout << "Transform r: ";
-            for (const auto &value : r) {
-                std::cout << value.second.get_value<std::string>() << " ";
-            }
-            std::cout << "\n";
-
-            std::cout << "Transform s: ";
-            for (const auto &value : s) {
-                std::cout << value.second.get_value<std::string>() << " ";
-            }
-            std::cout << "\n\n";
         }
 
     } catch (const bs::ptree_error &e) {
