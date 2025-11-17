@@ -110,6 +110,16 @@ std::shared_ptr<ProjectModals::Texture> Model::loadEmbeddedTexture(const aiTextu
 
     int mWidth, mheight, nrComponents;
     unsigned char* data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData), texture->mWidth, &mWidth, &mheight, &nrComponents, 0);
+
+    if (!data) {
+        // stbi_failure_reason() gives the reason why it failed.
+        std::string error_msg = "Failed to load embedded texture: ";
+        error_msg += stbi_failure_reason();
+        
+        // Throw a standard exception that your try-catch block is expecting
+        throw std::runtime_error(error_msg); 
+    }
+    
     //TODO: Saving logic should be removed from here and should be saved when material it is attached to is saved ??
     stbi_write_png(filename.c_str(), mWidth, mheight, nrComponents, data, 0);
     unsigned int textureID = Shared::sendTextureToGPU(data, mWidth, mheight, nrComponents);
@@ -245,37 +255,44 @@ Mesh Model::processMesh(
     // if (justMesh.material) {
     //     justMesh.material.reset();
     // }
-    justMesh.material = std::make_shared<Modals::Material>();
-    for (aiTextureType type : textureTypes) {
-        if (!justMesh.material) { 
-            break; 
-        } 
-        switch (type)
-        {
-            case aiTextureType_DIFFUSE:
-                justMesh.material->albedo = processEmbeddedTexture(scene, material, type);
-                break;
-            case aiTextureType_SPECULAR:
-                justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
-                break;
-            case aiTextureType_NORMALS:
-                justMesh.material->normal = processEmbeddedTexture(scene, material, type);
-                break;
-            case aiTextureType_DIFFUSE_ROUGHNESS:
-                justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
-                break;
-            case aiTextureType_AMBIENT_OCCLUSION:
-                justMesh.material->ao = processEmbeddedTexture(scene, material, type);
-                break;
-            case aiTextureType_METALNESS:
-                justMesh.material->metalness = processEmbeddedTexture(scene, material, type);
-                break;
-            default:
-                break;
+    try
+    {
+        justMesh.material = std::make_shared<Modals::Material>();
+        for (aiTextureType type : textureTypes) {
+            if (!justMesh.material) { 
+                break; 
+            } 
+            switch (type)
+            {
+                case aiTextureType_DIFFUSE:
+                    justMesh.material->albedo = processEmbeddedTexture(scene, material, type);
+                    break;
+                case aiTextureType_SPECULAR:
+                    justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
+                    break;
+                case aiTextureType_NORMALS:
+                    justMesh.material->normal = processEmbeddedTexture(scene, material, type);
+                    break;
+                case aiTextureType_DIFFUSE_ROUGHNESS:
+                    justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
+                    break;
+                case aiTextureType_AMBIENT_OCCLUSION:
+                    justMesh.material->ao = processEmbeddedTexture(scene, material, type);
+                    break;
+                case aiTextureType_METALNESS:
+                    justMesh.material->metalness = processEmbeddedTexture(scene, material, type);
+                    break;
+                default:
+                    break;
+            }
         }
-    }
+    
+        materials.push_back(justMesh.material);
 
-    materials.push_back(justMesh.material);
+    }catch(std::exception &e)
+    {
+        std::cout << "Error: " << e.what() << std::endl;
+    }
 
     return justMesh;
 }
