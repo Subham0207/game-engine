@@ -317,6 +317,8 @@ int openEditor() {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        auto lvlrenderables = getActiveLevel().renderables;
+
         clientHandler.inputHandler->handleInput(deltaTime);
         if(EngineState::state->isPlay)
         {
@@ -330,18 +332,18 @@ int openEditor() {
                 //make the physics objects transformations ( including scale ) same as thier model
                 getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
                 
-                for(int i=0;i<renderables->size();i++)
+                for(int i=0;i<lvlrenderables->size();i++)
                 {
-                    renderables->at(i)->syncTransformationToPhysicsEntity();
+                    lvlrenderables->at(i)->syncTransformationToPhysicsEntity();
                 }
             }
             else
             {
                 getPhysicsSystem().Update(deltaTime);
 
-                for(int i=0;i<renderables->size();i++)
+                for(int i=0;i<lvlrenderables->size();i++)
                 {
-                    renderables->at(i)->physicsUpdate();
+                    lvlrenderables->at(i)->physicsUpdate();
                 }
             }
         }
@@ -360,12 +362,12 @@ int openEditor() {
         cubeMap->Draw(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix(), *backgroundShader);
 
         // render the model
-        for(int i=0;i<renderables->size();i++)
+        for(int i=0;i<lvlrenderables->size();i++)
         {
-            if(renderables->at(i)->ShouldRender())
+            if(lvlrenderables->at(i)->ShouldRender())
             {
-                renderables->at(i)->useAttachedShader();
-                (*renderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
+                lvlrenderables->at(i)->useAttachedShader();
+                (*lvlrenderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
             }
         }
 
@@ -392,7 +394,7 @@ int openEditor() {
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             InputHandler::currentInputHandler->lastX,
             InputHandler::currentInputHandler->lastY,
-            *renderables,
+            *lvlrenderables,
             InputHandler::currentInputHandler->m_Camera->viewMatrix(),
             InputHandler::currentInputHandler->m_Camera->projectionMatrix(),
             rayCastshader->ID,
@@ -405,7 +407,7 @@ int openEditor() {
 
 
         if(getSelectedIndex > -1)
-        (*renderables)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
+        (*lvlrenderables)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
 
         //Render the outliner
         outliner->Render(*lvl);

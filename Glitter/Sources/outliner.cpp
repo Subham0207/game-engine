@@ -75,7 +75,7 @@ void Outliner::ModelMatrixComponent()
             if(getUIState().selectedRenderableIndex > -1)
         {
             auto index = getUIState().selectedRenderableIndex;
-            glm::mat4& modelMatrix = (getUIState().renderables)[getUIState().selectedRenderableIndex]->getModelMatrix();
+            glm::mat4& modelMatrix = getActiveLevel().renderables->at(index)->getModelMatrix();
             glm::vec3 scale, rotation, translation, skew;
             glm::vec4 perspective;
             glm::quat orientation;
@@ -128,7 +128,7 @@ void Outliner::ModelMatrixComponent()
             //set radius and half height of capsule collider used on the character
             if(!EngineState::state->isPlay)
             {
-                if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+                if(auto character = dynamic_cast<Character *>(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
                 {
                         auto capsule = character->capsuleCollider;
 
@@ -158,7 +158,7 @@ void Outliner::ModelMatrixComponent()
             }
             else
             {
-                if(auto character = dynamic_cast<Character *>(getUIState().renderables[getUIState().selectedRenderableIndex]))
+                if(auto character = dynamic_cast<Character *>(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
                 {
                     ImGui::DragFloat("camera height", &character->cameraHeight, 0.005f);
                     ImGui::SameLine();
@@ -234,11 +234,11 @@ void Outliner::levelControlsComponent(Level &lvl)
 }
 void Outliner::modelSelectorComponent()
 {
-    for (int i = 0; i < getUIState().renderables.size(); ++i) {
+    for (int i = 0; i < getActiveLevel().renderables->size(); ++i) {
         // Optionally, push style changes here if you want to customize appearance
         // Render the radio button
         // The label for each button could be customized further if needed
-        std::string name = (getUIState().renderables)[i]->getName();
+        std::string name = getActiveLevel().renderables->at(i)->getName();
         name+=std::to_string(i);
         if (ImGui::RadioButton(name.c_str(), &getUIState().selectedRenderableIndex, i)) {
         }
