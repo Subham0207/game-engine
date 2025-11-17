@@ -40,14 +40,8 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             const bs::ptree& tr = renderable.get_child("transform");
 
             glm::vec3 t = readVec3(tr, "t");
-            glm::vec3 r = readVec3(tr, "r");
+            glm::quat q = readQuat(tr, "r");
             glm::vec3 s = readVec3(tr, "s");
-
-            // Convert degrees→radians if needed
-            glm::vec3 rad = glm::radians(r);
-
-            // Build rotation quaternion (XYZ order)
-            glm::quat q = glm::quat(rad);
 
             // Build matrix: T * R * S
             glm::mat4 M = glm::translate(glm::mat4(1.0f), t)
@@ -129,6 +123,7 @@ void Level::saveContent(fs::path contentFile, std::ostream& os)
         rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.x))));
         rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.y))));
         rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.z))));
+        rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.w))));
         transformNode.add_child("r", rNode);
 
         // Scale

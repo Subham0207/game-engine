@@ -79,6 +79,15 @@ class Level: public Serializable{
         return v;
     }
 
+    static glm::quat readQuat(const bs::ptree& parent, const std::string& key) {
+        glm::quat v;
+        int i = 0;
+        for (const auto& item : parent.get_child(key)) {
+            v[i++] = std::stof(item.second.data());
+        }
+        return v;
+    }
+
         friend class boost::serialization::access;
 
         template<class Archive>
