@@ -141,31 +141,10 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
         currentInputHandler->firstMouse = false;
     }
 
-    float xoffset = xpos - currentInputHandler->lastX;
-    float yoffset = currentInputHandler->lastY - ypos; // reversed since y-coordinates range from bottom to top
+    currentInputHandler->xOffset = xpos - currentInputHandler->lastX;
+    currentInputHandler->yOffset = currentInputHandler->lastY - ypos; // reversed since y-coordinates range from bottom to top
     currentInputHandler->lastX = xpos;
     currentInputHandler->lastY = ypos;
-
-    if(currentInputHandler->mouseState == GLFW_CURSOR_NORMAL)
-        return;
-
-    const float sensitivity = 0.05f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    currentInputHandler->yaw += xoffset;
-    currentInputHandler->pitch += yoffset;
-
-    if (currentInputHandler->pitch > 89.0f)
-        currentInputHandler->pitch = 89.0f;
-    if (currentInputHandler->pitch < -89.0f)
-        currentInputHandler->pitch = -89.0f;
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(currentInputHandler->yaw)) * cos(glm::radians(currentInputHandler->pitch));
-    direction.y = sin(glm::radians(currentInputHandler->pitch));
-    direction.z = sin(glm::radians(currentInputHandler->yaw)) * cos(glm::radians(currentInputHandler->pitch));
-    currentInputHandler->m_Camera->cameraFront = glm::normalize(direction);
 }
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

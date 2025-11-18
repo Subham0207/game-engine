@@ -1,5 +1,6 @@
 #include "Camera/Camera.hpp"
 #include <glad/glad.h>
+#include <Controls/Input.hpp>
 
 Camera::Camera()
 {
@@ -62,4 +63,66 @@ void Camera::lookAt(glm::vec3 whereToLook)
         glm::vec3 Right = glm::normalize(glm::cross(cameraUp, whereToLook));
         cameraUp = glm::normalize(glm::cross(direction, Right));
         cameraFront = -direction;
+}
+
+void Camera::render()
+{
+    auto currentInputHandler = InputHandler::currentInputHandler;
+
+    // if(currentInputHandler->mouseState == GLFW_CURSOR_NORMAL)
+    // return;
+
+    const float sensitivity = 0.05f;
+
+    yaw += (currentInputHandler->getXOffset() * sensitivity);
+    pitch += (currentInputHandler->getYOffset() * sensitivity);
+
+    if (pitch > 89.0f)
+    pitch = 89.0f;
+    if (pitch < -89.0f)
+    pitch = -89.0f;
+
+    if(currentInputHandler->m_Camera->cameraType == CameraType::TOP_DOWN)
+    {
+        glm::vec3 direction;
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(direction);
+    }
+    else if (currentInputHandler->m_Camera->cameraType == CameraType::THIRD_PERSON)
+    {
+        currentInputHandler->m_Camera->calculateAngleAroundPlayer();
+        cameraDistance = calculateHorizontalDistance();
+        cameraHeight = calculateVerticalDistance();
+        cameraPos = calculateCameraPosition();
+        yaw = 180 - (currentInputHandler->m_Camera->playerRot.y  + currentInputHandler->m_Camera->angleAroundPlayer);
+    }
+}
+
+void Camera::calculateAngleAroundPlayer()
+{
+    angleAroundPlayer -= yaw;
+}
+
+float Camera::calculateHorizontalDistance()
+{
+    return cameraDistance * cos(glm::radians(pitch));
+}
+
+float Camera::calculateVerticalDistance()
+{
+    return cameraDistance * sin(glm::radians(pitch));
+}
+
+glm::vec3 Camera::calculateCameraPosition()
+{
+    glm::vec3 position;
+    float theta = playerRot.y + angleAroundPlayer;
+    float offsetX = cameraDistance * sin(glm::radians(theta));
+    float offsetZ = cameraDistance * cos(glm::radians(theta));
+    position.x = playerPos.x - offsetX;
+    position.z = playerPos.z - offsetZ;
+    position.y = playerPos.y + cameraHeight;
+    return position;
 }

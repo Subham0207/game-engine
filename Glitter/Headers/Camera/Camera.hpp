@@ -6,6 +6,7 @@
 #include "assimp/scene.h"
 
 #include <serializeAClass.hpp>
+#include <Modals/CameraType.hpp>
 
 class Camera
 {
@@ -30,10 +31,29 @@ public:
 		return cameraFront;
 	}
 
+	void render();
+
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	std::string cameraName;
+
+	//First Person camera
+	float yaw = -90.0f;
+	float pitch = 0.0f;
+
+	//Third person camera parameters
+	float cameraDistance = 16.0f;
+	float cameraHeight = 7.0f;
+	float angleAroundPlayer;
+	CameraType cameraType = CameraType::TOP_DOWN;
+	glm::vec3 playerRot;
+	glm::vec3 playerPos;
+	void calculateAngleAroundPlayer();
+	float calculateHorizontalDistance();
+    float calculateVerticalDistance();
+    glm::vec3 calculateCameraPosition();
+
 protected:
 private:
 	void setupView();

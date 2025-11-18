@@ -12,6 +12,8 @@ public:
 	float lastX,lastY;
 	Camera* m_Camera;
 	bool leftClickPressed = false;
+	float getXOffset(){return xOffset;}
+	float getYOffset(){return yOffset;}
 private:
 	void handleBasicMovement(float deltaTime);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -22,10 +24,12 @@ private:
 
 	void handleEditorInput(float deltaTime);
 	void handlePlay();
-
 	bool firstMouse = true;
 	float yaw = -90.0f;
 	float pitch = 0.0f;
+
+	float xOffset = 0.0f;
+	float yOffset = 0.0f;
 
 	bool controlKeyPressed = false;
 

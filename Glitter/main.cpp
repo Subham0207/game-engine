@@ -320,6 +320,7 @@ int openEditor() {
         auto lvlrenderables = getActiveLevel().renderables;
 
         clientHandler.inputHandler->handleInput(deltaTime);
+        clientHandler.inputHandler->m_Camera->render();
         if(EngineState::state->isPlay)
         {
             clientHandler.camera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
