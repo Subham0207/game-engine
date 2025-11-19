@@ -32,6 +32,8 @@ public:
 	}
 
 	void render();
+	void processDefaultCamera(InputHandler *currentInputHandler);
+	void processThirdPersonCamera(InputHandler *currentInputHandler);
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -43,13 +45,14 @@ public:
 	float pitch = 0.0f;
 
 	//Third person camera parameters
+	float maxDistance = 20.0f;
 	float cameraDistance = 16.0f;
 	float cameraHeight = 7.0f;
 	float angleAroundPlayer;
 	CameraType cameraType = CameraType::TOP_DOWN;
 	glm::vec3 playerRot;
 	glm::vec3 playerPos;
-	void calculateAngleAroundPlayer();
+	void calculateAngleAroundPlayer(float offset);
 	float calculateHorizontalDistance();
     float calculateVerticalDistance();
     glm::vec3 calculateCameraPosition();

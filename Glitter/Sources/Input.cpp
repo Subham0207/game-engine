@@ -19,19 +19,6 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
 
 void InputHandler::handleInput(float deltaTime)
 {
-    if(!EngineState::state->isPlay)
-    {
-        handleEditorInput(deltaTime);
-    }
-    else
-    {
-        handlePlay();
-    }
-}
-
-void InputHandler::handleEditorInput(float deltaTime)
-{
-    handleBasicMovement(deltaTime);
     if (glfwGetKey(m_Window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
         if (!controlKeyPressed)
@@ -51,9 +38,22 @@ void InputHandler::handleEditorInput(float deltaTime)
     }
     else
     {
-        controlKeyPressed = false;  // Reset the flag when the key is released
+        controlKeyPressed = false;
     }
 
+    if(!EngineState::state->isPlay)
+    {
+        handleEditorInput(deltaTime);
+    }
+    else
+    {
+        handlePlay();
+    }
+}
+
+void InputHandler::handleEditorInput(float deltaTime)
+{
+    handleBasicMovement(deltaTime);
     glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
@@ -145,6 +145,8 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     currentInputHandler->yOffset = currentInputHandler->lastY - ypos; // reversed since y-coordinates range from bottom to top
     currentInputHandler->lastX = xpos;
     currentInputHandler->lastY = ypos;
+
+    currentInputHandler->m_Camera->render();
 }
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

@@ -59,19 +59,41 @@ void Camera::FrameModel(const aiAABB& boundingBox) {
 
 void Camera::lookAt(glm::vec3 whereToLook)
 {
-        glm::vec3 direction = glm::normalize(cameraPos - whereToLook);
-        glm::vec3 Right = glm::normalize(glm::cross(cameraUp, whereToLook));
-        cameraUp = glm::normalize(glm::cross(direction, Right));
-        cameraFront = -direction;
+    const glm::vec3 WORLD_UP(0.0f, 1.0f, 0.0f);
+
+    // Direction FROM camera TO target
+    glm::vec3 front = glm::normalize(whereToLook - cameraPos);
+
+    // Build an orthonormal basis
+    glm::vec3 right = glm::normalize(glm::cross(front, WORLD_UP));
+    glm::vec3 up    = glm::normalize(glm::cross(right, front));
+
+    cameraFront = front;
+    cameraUp    = up;
 }
 
 void Camera::render()
 {
     auto currentInputHandler = InputHandler::currentInputHandler;
 
-    // if(currentInputHandler->mouseState == GLFW_CURSOR_NORMAL)
-    // return;
+    if(currentInputHandler->mouseState == GLFW_CURSOR_NORMAL)
+    return;  
 
+    switch (cameraType)
+    {
+        case CameraType::TOP_DOWN:
+            processDefaultCamera(currentInputHandler);
+            break;
+        case CameraType::THIRD_PERSON:
+            processThirdPersonCamera(currentInputHandler);
+            break;
+        default:
+            break;
+    }
+}
+
+void Camera::processDefaultCamera(InputHandler *currentInputHandler)
+{
     const float sensitivity = 0.05f;
 
     yaw += (currentInputHandler->getXOffset() * sensitivity);
@@ -82,37 +104,48 @@ void Camera::render()
     if (pitch < -89.0f)
     pitch = -89.0f;
 
-    if(currentInputHandler->m_Camera->cameraType == CameraType::TOP_DOWN)
-    {
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        cameraFront = glm::normalize(direction);
-    }
-    else if (currentInputHandler->m_Camera->cameraType == CameraType::THIRD_PERSON)
-    {
-        currentInputHandler->m_Camera->calculateAngleAroundPlayer();
-        cameraDistance = calculateHorizontalDistance();
-        cameraHeight = calculateVerticalDistance();
-        cameraPos = calculateCameraPosition();
-        yaw = 180 - (currentInputHandler->m_Camera->playerRot.y  + currentInputHandler->m_Camera->angleAroundPlayer);
-    }
+
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    direction.y = sin(glm::radians(pitch));
+    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(direction);
+}
+void Camera::processThirdPersonCamera(InputHandler *currentInputHandler)
+{
+    calculateAngleAroundPlayer(currentInputHandler->getXOffset());
+    pitch += (currentInputHandler->getYOffset() * 0.05);
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+    cameraDistance = calculateHorizontalDistance();
+    cameraHeight = calculateVerticalDistance();
+    cameraPos = calculateCameraPosition();
+    yaw = 180 - (playerRot.y  + angleAroundPlayer);
+
+    // glm::vec3 direction;
+    // direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    // direction.y = sin(glm::radians(pitch));
+    // direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    // cameraFront = glm::normalize(direction);
+
+    lookAt(playerPos);
 }
 
-void Camera::calculateAngleAroundPlayer()
+void Camera::calculateAngleAroundPlayer(float offset)
 {
-    angleAroundPlayer -= yaw;
+    angleAroundPlayer -= offset * 0.05;
 }
 
 float Camera::calculateHorizontalDistance()
 {
-    return cameraDistance * cos(glm::radians(pitch));
+    return maxDistance * cos(glm::radians(pitch));
 }
 
 float Camera::calculateVerticalDistance()
 {
-    return cameraDistance * sin(glm::radians(pitch));
+    return maxDistance * sin(glm::radians(pitch));
 }
 
 glm::vec3 Camera::calculateCameraPosition()

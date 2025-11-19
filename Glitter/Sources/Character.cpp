@@ -157,6 +157,11 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         {
             this->camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
         }
+        else 
+        {
+            this->camera->playerRot = glm::degrees(glm::eulerAngles(model->GetRot()));
+            this->camera->playerPos = model->GetPosition();
+        }
         //--
         
         //-- Turn to Mouse position on XZ plane
@@ -169,7 +174,8 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
            
             glm::quat desiredRot;
 
-            if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController)
+            if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController &&
+            this->camera && this->camera->cameraType == CameraType::TOP_DOWN)
             desiredRot = playerController->faceMouseOnXZ(
                 model->GetPosition(),
                 InputHandler::currentInputHandler->lastX,
