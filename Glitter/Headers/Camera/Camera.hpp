@@ -48,7 +48,7 @@ public:
 	float maxDistance = 20.0f;
 	float cameraDistance = 16.0f;
 	float cameraHeight = 7.0f;
-	float angleAroundPlayer;
+	float angleAroundPlayer = 0.0f;
 	CameraType cameraType = CameraType::TOP_DOWN;
 	glm::vec3 playerRot;
 	glm::vec3 playerPos;

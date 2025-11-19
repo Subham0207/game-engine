@@ -122,14 +122,7 @@ void Camera::processThirdPersonCamera(InputHandler *currentInputHandler)
     cameraDistance = calculateHorizontalDistance();
     cameraHeight = calculateVerticalDistance();
     cameraPos = calculateCameraPosition();
-    yaw = 180 - (playerRot.y  + angleAroundPlayer);
-
-    // glm::vec3 direction;
-    // direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    // direction.y = sin(glm::radians(pitch));
-    // direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    // cameraFront = glm::normalize(direction);
-
+    
     lookAt(playerPos);
 }
 
@@ -151,11 +144,16 @@ float Camera::calculateVerticalDistance()
 glm::vec3 Camera::calculateCameraPosition()
 {
     glm::vec3 position;
-    float theta = playerRot.y + angleAroundPlayer;
-    float offsetX = cameraDistance * sin(glm::radians(theta));
-    float offsetZ = cameraDistance * cos(glm::radians(theta));
+
+    // Only use angleAroundPlayer to orbit
+    float theta = glm::radians(angleAroundPlayer);
+
+    float offsetX = cameraDistance * sin(theta);
+    float offsetZ = cameraDistance * cos(theta);
+
     position.x = playerPos.x - offsetX;
     position.z = playerPos.z - offsetZ;
     position.y = playerPos.y + cameraHeight;
+
     return position;
 }
