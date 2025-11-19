@@ -117,18 +117,18 @@ void Camera::processThirdPersonCamera(InputHandler *currentInputHandler)
     pitch += (currentInputHandler->getYOffset() * 0.05);
     if (pitch > 89.0f)
         pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+    if (pitch < 0.0f)
+        pitch = 0.0f;
     cameraDistance = calculateHorizontalDistance();
     cameraHeight = calculateVerticalDistance();
     cameraPos = calculateCameraPosition();
-    
+
     lookAt(playerPos);
 }
 
 void Camera::calculateAngleAroundPlayer(float offset)
 {
-    angleAroundPlayer -= offset * 0.05;
+    angleAroundPlayer -= offset * 0.005;
 }
 
 float Camera::calculateHorizontalDistance()
@@ -146,7 +146,7 @@ glm::vec3 Camera::calculateCameraPosition()
     glm::vec3 position;
 
     // Only use angleAroundPlayer to orbit
-    float theta = glm::radians(angleAroundPlayer);
+    float theta =  playerRot.y + angleAroundPlayer;
 
     float offsetX = cameraDistance * sin(theta);
     float offsetZ = cameraDistance * cos(theta);
