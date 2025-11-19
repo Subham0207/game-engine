@@ -146,7 +146,7 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     currentInputHandler->lastX = xpos;
     currentInputHandler->lastY = ypos;
 
-    currentInputHandler->m_Camera->render();
+    currentInputHandler->m_Camera->onMouseMove();
 }
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

@@ -18,6 +18,7 @@ public:
 	glm::vec3 getPosition();
 	glm::vec3 getFront();
 	void Camera::FrameModel(const aiAABB& boundingBox);
+	void setFOV(float fov){this->fov = fov;}
 
 	glm::mat4 viewMatrix(){
 		return view;
@@ -31,7 +32,8 @@ public:
 		return cameraFront;
 	}
 
-	void render();
+	void onMouseMove();
+	void tick(glm::vec3 playerPos, glm::vec3 playerRot);
 	void processDefaultCamera(InputHandler *currentInputHandler);
 	void processThirdPersonCamera(InputHandler *currentInputHandler);
 
@@ -45,17 +47,15 @@ public:
 	float pitch = 0.0f;
 
 	//Third person camera parameters
-	float maxDistance = 20.0f;
+	float maxDistance = 10.0f;
 	float cameraDistance = 16.0f;
 	float cameraHeight = 7.0f;
 	float angleAroundPlayer = 0.0f;
 	CameraType cameraType = CameraType::TOP_DOWN;
-	glm::vec3 playerRot;
-	glm::vec3 playerPos;
 	void calculateAngleAroundPlayer(float offset);
 	float calculateHorizontalDistance();
     float calculateVerticalDistance();
-    glm::vec3 calculateCameraPosition();
+    glm::vec3 calculateCameraPosition(glm::vec3 playerPos, glm::vec3 playerRot);
 
 protected:
 private:

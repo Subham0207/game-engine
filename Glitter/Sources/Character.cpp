@@ -159,8 +159,9 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
         }
         else 
         {
-            this->camera->playerRot = glm::degrees(glm::eulerAngles(model->GetRot()));
-            this->camera->playerPos = model->GetPosition();
+            glm::vec3 position = model->GetPosition();
+            position.y+=5.0f;
+            this->camera->tick(position, glm::degrees(glm::eulerAngles(model->GetRot())));
         }
         //--
         
@@ -346,6 +347,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //Create new camera
     camera = new Camera("charactercamera");
+    camera->setFOV(70.0f);
     camera->cameraType = CameraType::THIRD_PERSON;
     camera->cameraPos = model->GetPosition();
     float pitchAngle = 0.3f;

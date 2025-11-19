@@ -72,7 +72,7 @@ void Camera::lookAt(glm::vec3 whereToLook)
     cameraUp    = up;
 }
 
-void Camera::render()
+void Camera::onMouseMove()
 {
     auto currentInputHandler = InputHandler::currentInputHandler;
 
@@ -90,6 +90,12 @@ void Camera::render()
         default:
             break;
     }
+}
+
+void Camera::tick(glm::vec3 playerPos, glm::vec3 playerRot)
+{
+    cameraPos = calculateCameraPosition(playerPos, playerRot);
+    lookAt(playerPos);
 }
 
 void Camera::processDefaultCamera(InputHandler *currentInputHandler)
@@ -117,18 +123,15 @@ void Camera::processThirdPersonCamera(InputHandler *currentInputHandler)
     pitch += (currentInputHandler->getYOffset() * 0.05);
     if (pitch > 89.0f)
         pitch = 89.0f;
-    if (pitch < 0.0f)
-        pitch = 0.0f;
+    if (pitch < -30.0f)
+        pitch = -30.0f;
     cameraDistance = calculateHorizontalDistance();
     cameraHeight = calculateVerticalDistance();
-    cameraPos = calculateCameraPosition();
-
-    lookAt(playerPos);
 }
 
 void Camera::calculateAngleAroundPlayer(float offset)
 {
-    angleAroundPlayer -= offset * 0.005;
+    angleAroundPlayer -= offset * 0.0005;
 }
 
 float Camera::calculateHorizontalDistance()
@@ -141,7 +144,7 @@ float Camera::calculateVerticalDistance()
     return maxDistance * sin(glm::radians(pitch));
 }
 
-glm::vec3 Camera::calculateCameraPosition()
+glm::vec3 Camera::calculateCameraPosition(glm::vec3 playerPos, glm::vec3 playerRot)
 {
     glm::vec3 position;
 
