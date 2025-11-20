@@ -120,7 +120,7 @@ void Camera::processDefaultCamera(InputHandler *currentInputHandler)
 void Camera::processThirdPersonCamera(InputHandler *currentInputHandler)
 {
     calculateAngleAroundPlayer(currentInputHandler->getXOffset());
-    pitch += (currentInputHandler->getYOffset() * 0.05);
+    pitch -= (currentInputHandler->getYOffset() * 0.05); // make it += for inverted vertical input
     if (pitch > 89.0f)
         pitch = 89.0f;
     if (pitch < -30.0f)

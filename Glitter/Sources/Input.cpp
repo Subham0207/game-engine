@@ -192,6 +192,6 @@ void InputHandler::scroll_callback(GLFWwindow *window, double xoffset, double yo
     currentInputHandler->m_Camera->fov -= (float)yoffset;
     if (currentInputHandler->m_Camera->fov < 1.0f)
         currentInputHandler->m_Camera->fov = 1.0f;
-    if (currentInputHandler->m_Camera->fov > 45.0f)
-        currentInputHandler->m_Camera->fov = 45.0f;
+    if (currentInputHandler->m_Camera->fov > 90.0f)
+        currentInputHandler->m_Camera->fov = 90.0f;
 }

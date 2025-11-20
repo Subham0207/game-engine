@@ -174,16 +174,33 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
             //Only execute if playerController active otherwise produces nan.
            
             glm::quat desiredRot;
-
-            if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController &&
-            this->camera && this->camera->cameraType == CameraType::TOP_DOWN)
-            desiredRot = playerController->faceMouseOnXZ(
-                model->GetPosition(),
-                InputHandler::currentInputHandler->lastX,
-                InputHandler::currentInputHandler->lastY,
-                this->camera->viewMatrix(),
-                this->camera->projectionMatrix()
-            );
+            if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController && this->camera)
+            {
+                switch (this->camera->cameraType)
+                {
+                    case CameraType::TOP_DOWN:
+                    {
+                        desiredRot = playerController->faceMouseOnXZ(
+                            model->GetPosition(),
+                            InputHandler::currentInputHandler->lastX,
+                            InputHandler::currentInputHandler->lastY,
+                            this->camera->viewMatrix(),
+                            this->camera->projectionMatrix()
+                        );
+                        break;
+                    }
+                    case CameraType::THIRD_PERSON:
+                    {
+                        // when third person camera
+                        //cameraFront.Y rotation is used when W key is hit to face forward.
+                        //LEFT, RIGHT AND Backward will be adjusted accordingly using cameraFront.
+                        desiredRot =  glm::identity<glm::quat>();
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
             else
             desiredRot =  glm::identity<glm::quat>();
 
