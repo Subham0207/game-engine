@@ -25,6 +25,7 @@ namespace Controls
         float movementDirection = 0.0f;   // Current direction (blended)
         float targetDirection= 0.0f;     // Target direction (where we want to go)
         bool isJumping;
+        bool isForwardPressed = false;
         bool grounded;
         bool dodgeStart;
         float interpolationSpeed;      // Controls how fast blending happens (0.1 = smooth, 1.0 = instant)

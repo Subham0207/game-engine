@@ -149,7 +149,7 @@ glm::vec3 Camera::calculateCameraPosition(glm::vec3 playerPos, glm::vec3 playerR
     glm::vec3 position;
 
     // Only use angleAroundPlayer to orbit
-    float theta =  playerRot.y + angleAroundPlayer;
+    theta =  angleAroundPlayer;
 
     float offsetX = cameraDistance * sin(theta);
     float offsetZ = cameraDistance * cos(theta);

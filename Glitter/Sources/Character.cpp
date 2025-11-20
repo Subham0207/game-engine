@@ -194,7 +194,15 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
                         // when third person camera
                         //cameraFront.Y rotation is used when W key is hit to face forward.
                         //LEFT, RIGHT AND Backward will be adjusted accordingly using cameraFront.
-                        desiredRot =  glm::identity<glm::quat>();
+                        if(playerController->isForwardPressed == true) // Essentially means W_PRESSED then face camera direction
+                        {
+                            desiredRot =  glm::angleAxis(this->camera->theta, glm::vec3(0,1,0));
+                            this->camera->lastPlayerYaw = this->camera->theta;
+                        }
+                        else
+                        {
+                            desiredRot =  glm::angleAxis(this->camera->lastPlayerYaw, glm::vec3(0,1,0));
+                        }
                         break;
                     }
                     default:

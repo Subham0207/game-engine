@@ -76,8 +76,12 @@ void InputHandler::handlePlay()
 
     glm::vec3 directionVector(0.0f);
     //W to move
+    playerController->isForwardPressed = false;
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
+    {
         directionVector += glm::vec3(0,0,1);
+        playerController->isForwardPressed = true;
+    }
     if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
         directionVector += glm::vec3(1,0,0);
     if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)

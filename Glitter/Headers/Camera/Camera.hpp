@@ -51,6 +51,8 @@ public:
 	float cameraDistance = 16.0f;
 	float cameraHeight = 7.0f;
 	float angleAroundPlayer = 0.0f;
+	float theta = 0.0f;
+	float lastPlayerYaw = 0.0f;
 	CameraType cameraType = CameraType::TOP_DOWN;
 	void calculateAngleAroundPlayer(float offset);
 	float calculateHorizontalDistance();
