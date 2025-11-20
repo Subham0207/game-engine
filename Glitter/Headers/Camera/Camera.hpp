@@ -6,14 +6,14 @@
 #include "assimp/scene.h"
 
 #include <serializeAClass.hpp>
-#include <Modals/CameraType.hpp>
+enum CameraType;
 
 class Camera
 {
 friend class InputHandler;
 public:
 	Camera();
-	Camera(std::string name): cameraName(name){}
+	Camera(std::string name);
 	void updateMVP(unsigned int shader);
 	glm::vec3 getPosition();
 	glm::vec3 getFront();
@@ -55,7 +55,7 @@ public:
 	float angleAroundPlayer = 0.0f;
 	float theta = 0.0f;
 	float lastPlayerYaw = 0.0f;
-	CameraType cameraType = CameraType::TOP_DOWN;
+	CameraType cameraType;
 	void calculateAngleAroundPlayer(float offset);
 	float calculateHorizontalDistance();
     float calculateVerticalDistance();

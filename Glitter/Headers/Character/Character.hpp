@@ -9,10 +9,14 @@
 #include <Helpers/shader.hpp>
 #include <3DModel/Skeleton/skeleton.hpp>
 #include <Helpers/vertexBoneDataHelper.hpp>
-#include <Controls/PlayerController.hpp>
 #include <Controls/statemachine.hpp>
 #include <Physics/capsule.hpp>
 #include <Serializable.hpp>
+
+namespace Controls
+{
+    class PlayerController;
+}
 
 class Character: public Renderable, public Serializable
 {

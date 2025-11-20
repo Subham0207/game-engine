@@ -1,9 +1,15 @@
 #include "Camera/Camera.hpp"
 #include <glad/glad.h>
 #include <Controls/Input.hpp>
+#include <Modals/CameraType.hpp>
 
 Camera::Camera()
 {
+    cameraType = CameraType::TOP_DOWN;
+}
+
+Camera::Camera(std::string name): cameraName(name){
+cameraType = CameraType::TOP_DOWN;
 }
 
 void Camera::updateMVP(unsigned int shader)

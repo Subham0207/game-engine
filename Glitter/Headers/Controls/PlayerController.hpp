@@ -8,17 +8,14 @@
 #include <glm/gtc/quaternion.hpp>
 #include <LuaEngine/LuaEngine.hpp>
 #include <Helpers/shader.hpp>
+enum CameraType;
 
 namespace Controls
 {
     class PlayerController
     {        
     public:
-        PlayerController(std::string filename)
-            : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
-              isJumping(false), grounded(false), dodgeStart(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
-              inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f), filename(filename)
-        {}
+        PlayerController(std::string filename);
 
         float movementSpeed = 0.0f;           // Current speed (blended)
         float targetSpeed = 0.0f;             // Target speed (where we want to go)
@@ -45,30 +42,9 @@ namespace Controls
 
         std::string filename;
 
-        void setMovement(glm::vec3 dir)
-        {
-            // The input here is actually normalized vector in world space from character position.
-            // so input alone should not decide which animation to play
-            // compare  input to forward vector to decide that
-            // so example: forward vector (0.5,0,-1), input (0.5,0,-1), same direction so moveforward
+        CameraType cameraType;
 
-            auto modelRotation = glm::mat3(modelTransform);
-            auto modelInverseRotation = glm::transpose(modelRotation);
-            glm::vec3 characterInputDirection = modelInverseRotation * dir;
-
-            auto normCharacterInputDirection = glm::normalize(characterInputDirection);
-            if (glm::length(normCharacterInputDirection) > 0.00001f) {
-                targetSpeed = normCharacterInputDirection.z;
-                targetDirection = -normCharacterInputDirection.x;
-            }
-            else{
-                targetSpeed = 0.0f;
-                targetDirection = 0.0f;
-            }
-
-            inputXWorld = dir.x;
-            inputZWorld = dir.z;
-        }
+        void setMovement(glm::vec3 dir);
 
         void setJumping()
         {

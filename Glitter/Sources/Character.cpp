@@ -2,6 +2,8 @@
 #include <filesystem>
 #include <Controls/Input.hpp>
 #include <EngineState.hpp>
+#include <Controls/PlayerController.hpp>
+#include <Modals/CameraType.hpp>
 namespace fs = std::filesystem;
 
 Character::Character(std::string filepath){
@@ -180,6 +182,7 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
                 {
                     case CameraType::TOP_DOWN:
                     {
+                        playerController->cameraType = CameraType::TOP_DOWN;
                         desiredRot = playerController->faceMouseOnXZ(
                             model->GetPosition(),
                             InputHandler::currentInputHandler->lastX,
@@ -191,10 +194,12 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
                     }
                     case CameraType::THIRD_PERSON:
                     {
+                        playerController->cameraType = CameraType::THIRD_PERSON;
                         // when third person camera
                         //cameraFront.Y rotation is used when W key is hit to face forward.
                         //LEFT, RIGHT AND Backward will be adjusted accordingly using cameraFront.
-                        if(playerController->isForwardPressed == true) // Essentially means W_PRESSED then face camera direction
+                        auto dir = glm::vec3(playerController->inputXWorld, 0.0f, playerController->inputZWorld);
+                        if(glm::length(dir) > 0.00001f) // Essentially means W_PRESSED then face camera direction
                         {
                             desiredRot =  glm::angleAxis(this->camera->theta, glm::vec3(0,1,0));
                             this->camera->lastPlayerYaw = this->camera->theta;
