@@ -17,6 +17,7 @@ public:
 	void updateMVP(unsigned int shader);
 	glm::vec3 getPosition();
 	glm::vec3 getFront();
+	glm::vec3 getRight();
 	void Camera::FrameModel(const aiAABB& boundingBox);
 	void setFOV(float fov){this->fov = fov;}
 
@@ -40,6 +41,7 @@ public:
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
 	std::string cameraName;
 
 	//First Person camera

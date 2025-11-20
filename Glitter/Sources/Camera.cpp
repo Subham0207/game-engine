@@ -24,6 +24,11 @@ glm::vec3 Camera::getFront()
     return cameraFront;
 }
 
+glm::vec3 Camera::getRight()
+{
+    return cameraRight;
+}
+
 void Camera::setupView()
 {
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -65,8 +70,8 @@ void Camera::lookAt(glm::vec3 whereToLook)
     glm::vec3 front = glm::normalize(whereToLook - cameraPos);
 
     // Build an orthonormal basis
-    glm::vec3 right = glm::normalize(glm::cross(front, WORLD_UP));
-    glm::vec3 up    = glm::normalize(glm::cross(right, front));
+    cameraRight = glm::normalize(glm::cross(front, WORLD_UP));
+    glm::vec3 up = glm::normalize(glm::cross(cameraRight, front));
 
     cameraFront = front;
     cameraUp    = up;

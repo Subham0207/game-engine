@@ -225,10 +225,36 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
             //apply force to capsule in direction
             if(capsuleCollider && capsuleCollider->physics)
             {
+                float x = 0.0f,z = 0.0f;
+                switch (this->camera->cameraType)
+                {
+                    case CameraType::TOP_DOWN:
+                    {
+                        x = playerController->dodgeStart ? playerController->lookDirection.x :playerController->inputXWorld;
+                        z = playerController->dodgeStart ? playerController->lookDirection.z :playerController->inputZWorld;
+                        break;
+                    }
+                    case CameraType::THIRD_PERSON:
+                    {
+                        auto cameraFront = this->camera->getFront();
+                        auto cameraRight = this->camera->getRight();
+                        glm::vec3 forwardXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
+                        glm::vec3 rightXZ = glm::normalize(glm::vec3(cameraRight.x, 0.0f, cameraRight.z));
+
+                        glm::vec3 moveDir = forwardXZ * playerController->inputZWorld 
+                  - rightXZ   * playerController->inputXWorld;
+                        x = moveDir.x;
+                        z = moveDir.z;
+                        break;
+                    }                
+                    default:
+                        break;
+                }
+
                 capsuleCollider->movebody(
-                    playerController->dodgeStart ? playerController->lookDirection.x :playerController->inputXWorld,
+                    x,
                     0.0f,
-                    playerController->dodgeStart ? playerController->lookDirection.z :playerController->inputZWorld,
+                    z,
                     deltaTime,
                     model->GetPosition(),
                     desiredRot,
