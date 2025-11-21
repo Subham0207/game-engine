@@ -96,6 +96,8 @@ void InputHandler::handlePlay()
         directionVector = glm::vec3(0.0f);
     }
 
+    playerController->isAiming = rightClickPressed;
+
     if (glm::length(directionVector) > 0.00001f) {
         playerController->setMovement(glm::normalize(directionVector));
     }
@@ -169,6 +171,11 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
     InputHandler::currentInputHandler->leftClickPressed = true;
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     InputHandler::currentInputHandler->leftClickPressed = false;
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    InputHandler::currentInputHandler->rightClickPressed = true;
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+    InputHandler::currentInputHandler->rightClickPressed = false;
 }
 
 void InputHandler::handleTransformGizmo(GLFWwindow *window)

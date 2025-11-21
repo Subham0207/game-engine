@@ -12,6 +12,7 @@ public:
 	float lastX,lastY;
 	Camera* m_Camera;
 	bool leftClickPressed = false;
+	bool rightClickPressed = false;
 	float getXOffset(){return xOffset;}
 	float getYOffset(){return yOffset;}
 private:

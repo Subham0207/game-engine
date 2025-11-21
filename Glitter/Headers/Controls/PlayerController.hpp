@@ -22,6 +22,7 @@ namespace Controls
         float movementDirection = 0.0f;   // Current direction (blended)
         float targetDirection= 0.0f;     // Target direction (where we want to go)
         bool isJumping;
+        bool isAiming;
         bool isForwardPressed = false;
         bool grounded;
         bool dodgeStart;

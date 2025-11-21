@@ -201,8 +201,23 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
                         auto dir = glm::vec3(playerController->inputXWorld, 0.0f, playerController->inputZWorld);
                         if(glm::length(dir) > 0.00001f) // Essentially means W_PRESSED then face camera direction
                         {
-                            desiredRot =  glm::angleAxis(this->camera->theta, glm::vec3(0,1,0));
-                            this->camera->lastPlayerYaw = this->camera->theta;
+                            if(playerController->isAiming)
+                            {
+                                desiredRot =  glm::angleAxis(this->camera->theta, glm::vec3(0,1,0));
+                                this->camera->lastPlayerYaw = this->camera->theta;
+                            }
+                            else
+                            {
+                                // calculate desired rotation based on camera view
+                                auto cameraFront = this->camera->getFront();
+                                auto cameraRight = this->camera->getRight();
+                                glm::vec3 forwardXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
+                                glm::vec3 rightXZ = glm::normalize(glm::vec3(cameraRight.x, 0.0f, cameraRight.z));
+                                glm::vec3 moveDir = forwardXZ * playerController->inputZWorld 
+                                - rightXZ   * playerController->inputXWorld;
+                                float yaw = std::atan2(moveDir.x, moveDir.z);
+                                desiredRot = glm::angleAxis(yaw, glm::vec3(0, 1, 0));
+                            }
                         }
                         else
                         {
