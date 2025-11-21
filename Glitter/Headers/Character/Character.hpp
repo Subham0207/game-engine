@@ -127,6 +127,7 @@ private:
     glm::vec3 rightVector;
 
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
+    float smoothAngle(float current, float target, float t);
 
 
     friend class boost::serialization::access;

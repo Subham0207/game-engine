@@ -215,7 +215,9 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
                                 glm::vec3 rightXZ = glm::normalize(glm::vec3(cameraRight.x, 0.0f, cameraRight.z));
                                 glm::vec3 moveDir = forwardXZ * playerController->inputZWorld 
                                 - rightXZ   * playerController->inputXWorld;
-                                float yaw = std::atan2(moveDir.x, moveDir.z);
+                                float targetYaw = std::atan2(moveDir.x, moveDir.z);
+                                float yaw = smoothAngle(this->camera->lastPlayerYaw, targetYaw, playerController->interpolationSpeed);
+                                this->camera->lastPlayerYaw = yaw;
                                 desiredRot = glm::angleAxis(yaw, glm::vec3(0, 1, 0));
                             }
                         }
@@ -427,4 +429,18 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
     this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
     getActiveLevel().cameras.push_back(camera);
+}
+
+float Character::smoothAngle(float current, float target, float t)
+{
+    using glm::pi;
+    using glm::two_pi;
+
+    float diff = target - current;
+
+    // Wrap diff into [-pi, pi] to get the shortest path
+    while (diff >  glm::pi<float>())  diff -= glm::two_pi<float>();
+    while (diff < -glm::pi<float>())  diff += glm::two_pi<float>();
+
+    return current + diff * t;
 }
