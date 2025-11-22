@@ -74,7 +74,7 @@ void main()
     float roughness = texture(roughnessMap, TexCoords).r;
     float ao        = texture(aoMap, TexCoords).r;
 
-    vec3 N = getNormalFromMap();
+    vec3 N = normalize(Normal);
     vec3 V = normalize(viewPos - FragPos);
     vec3 R = reflect(-V, N); 
 
@@ -110,7 +110,7 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL; 
     }
 
-    for(int i = 0; i < 4; ++i) 
+    for(int i = 0; i < 1; ++i)
     {
         vec3 L = normalize(-dirLights[i].direction);
 
