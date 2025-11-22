@@ -269,7 +269,7 @@ int openEditor() {
     };
     for (unsigned int i = 0; i < 4; i++)
     {
-        lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(1.0f,0.7f,0.7f)));
+        lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
     }
 
     //Something wrong with spotlights only then; 
@@ -360,6 +360,11 @@ int openEditor() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         cubeMap->Draw(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix(), *backgroundShader);
+
+        for(auto &i: lights->pointLights)
+        {
+            i.position = i.lightModel->GetPosition();
+        }
 
         // render the model
         for(int i=0;i<lvlrenderables->size();i++)

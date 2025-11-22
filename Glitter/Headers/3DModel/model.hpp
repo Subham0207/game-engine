@@ -53,6 +53,11 @@ public:
     std::string getName() override{
         return directory;
     }
+    //TODO: Remove this later. As we alrady hav anothr var filename;
+    void setDirName(std::string name)
+    {
+        directory = name;
+    }
     std::vector<Mesh>* getMeshes() override{
         return &meshes;
     }

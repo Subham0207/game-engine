@@ -323,6 +323,7 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
     camera->updateMVP(shader->ID);
     updateModelAndViewPosMatrix(camera);
 
+    if(directory != "light")
     lights->Render(shader->ID);
 
 	for (unsigned int i = 0; i < meshes.size(); i++)

@@ -4,8 +4,17 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <Modals/LightType.hpp>
+class Model;
 
-class DirectionalLight {
+class BaseLight
+{
+public:
+	BaseLight(LightType lightType, glm::vec3 pos);
+	Model* lightModel;
+};
+
+class DirectionalLight: public BaseLight {
 public:
 	glm::vec3 direction;
 
@@ -14,11 +23,12 @@ public:
 	glm::vec3 specularColor;
 
 	DirectionalLight(
+		glm::vec3 position, // Note we take position to update the light 3d model but for directional light position does not matter.
 		glm::vec3 direction,
 		glm::vec3 lightColor,
 		glm::vec3 diffuseColor  = glm::vec3(0.5f),
 		glm::vec3 ambientColor  = glm::vec3(0.2f),
-		glm::vec3 specularColor = glm::vec3(1.0f))
+		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Directional, position)
 	{
 		this->direction = direction;
 		this->diffuseColor = lightColor * diffuseColor;
@@ -40,7 +50,7 @@ public:
 	}
 };
 
-class SpotLight {
+class SpotLight: public BaseLight {
 public:
 	glm::vec3 direction;
 	glm::vec3 position;
@@ -60,7 +70,7 @@ public:
 		float outerCutOffRadius = glm::cos(glm::radians(17.5f)),
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
-		glm::vec3 specularColor = glm::vec3(1.0f))
+		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Spot, position)
 	{
 		this->position = position;
 		this->direction = direction;
@@ -101,7 +111,7 @@ public:
 	}
 };
 
-class PointLight {
+class PointLight: public BaseLight {
 public:
 	glm::vec3 position;
 
@@ -118,7 +128,7 @@ public:
 		glm::vec3 lightColor,
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
-		glm::vec3 specularColor = glm::vec3(1.0f))
+		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Point, position)
 	{
 		this->position = position;
 		this->diffuseColor = lightColor * diffuseColor;
