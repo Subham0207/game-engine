@@ -23,6 +23,23 @@ struct PointLight {
     float intensity;
 };
 
+struct DirectionalLight {
+    vec3 direction;  // direction *from* light *towards* the scene
+    vec3 color;
+    float intensity;
+};
+
+struct SpotLight {
+    vec3 position;
+    vec3 direction;   // direction the spotlight is pointing
+    vec3 color;
+    float intensity;
+    float innerCutoff; // cos(innerAngle in radians)
+    float outerCutoff; // cos(outerAngle in radians)
+};
+
+uniform DirectionalLight dirLights[1];
+
 // Only handling Point lights for now
 uniform PointLight pointLights[4];
 
@@ -36,6 +53,16 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 vec3 getNormalFromMap();
+vec3 EvaluatePBRLight(
+    vec3 N,
+    vec3 V,
+    vec3 L,
+    vec3 albedo,
+    float metallic,
+    float roughness,
+    vec3 F0,
+    vec3 radiance
+);
 
 void main()
 {
@@ -81,7 +108,16 @@ void main()
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);                
         Lo += (kD * albedo / PI + specular) * radiance * NdotL; 
-    }   
+    }
+
+    for(int i = 0; i < 4; ++i) 
+    {
+        vec3 L = normalize(-dirLights[i].direction);
+
+        vec3 radiance = dirLights[i].color * dirLights[i].intensity;
+
+        Lo += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);   
+    }
   
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     vec3 kS = F;
@@ -161,4 +197,35 @@ vec3 getNormalFromMap()
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
+}
+
+vec3 EvaluatePBRLight(
+    vec3 N,
+    vec3 V,
+    vec3 L,
+    vec3 albedo,
+    float metallic,
+    float roughness,
+    vec3 F0,
+    vec3 radiance
+) {
+    vec3 H = normalize(V + L);
+
+    float NDF = DistributionGGX(N, H, roughness);        
+    float G   = GeometrySmith(N, V, L, roughness);      
+    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;  // no diffuse for metals
+
+    vec3 numerator    = NDF * G * F;
+    float denom       = 4.0 * max(dot(N, V), 0.0)
+                          * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular     = numerator / denom;
+
+    float NdotL = max(dot(N, L), 0.0);
+    vec3 diffuse = kD * albedo / PI;
+
+    return (diffuse + specular) * radiance * NdotL;
 }

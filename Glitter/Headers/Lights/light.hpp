@@ -21,6 +21,7 @@ public:
 	glm::vec3 diffuseColor;
 	glm::vec3 ambientColor;
 	glm::vec3 specularColor;
+	float intensity;
 
 	DirectionalLight(
 		glm::vec3 position, // Note we take position to update the light 3d model but for directional light position does not matter.
@@ -34,19 +35,18 @@ public:
 		this->diffuseColor = lightColor * diffuseColor;
 		this->ambientColor = lightColor * diffuseColor * ambientColor;
 		this->specularColor = specularColor;
+		this->intensity = 100.0f;
 	}
 
 	void attachShaderUniforms(
 		GLuint shaderId,
 		std::string directionUniform,
-		std::string ambientUniform,
-		std::string diffuseUniform,
-		std::string specularUniform)
+		std::string colorUniform,
+		std::string intensityUniform)
 	{
 		glUniform3f(glGetUniformLocation(shaderId, directionUniform.c_str()), direction.x, direction.y, direction.z);
-		glUniform3f(glGetUniformLocation(shaderId, ambientUniform.c_str()), ambientColor.x, ambientColor.y, ambientColor.z);
-		glUniform3f(glGetUniformLocation(shaderId, diffuseUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform3f(glGetUniformLocation(shaderId, specularUniform.c_str()), specularColor.x, specularColor.y, specularColor.z);
+		glUniform3f(glGetUniformLocation(shaderId, colorUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
+		glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), intensity);
 	}
 };
 
@@ -65,7 +65,7 @@ public:
 	SpotLight(
 		glm::vec3 position,
 		glm::vec3 lightColor,
-		glm::vec3 direction = glm::vec3(0.0f, 0.0f, -1.0f),
+		glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f),
 		float innerCutOffRadius = glm::cos(glm::radians(10.5f)),
 		float outerCutOffRadius = glm::cos(glm::radians(17.5f)),
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
@@ -169,15 +169,11 @@ private:
 			std::stringstream directionalLightDirection_ss;
 			directionalLightDirection_ss << "dirLights[" << i << "].direction";
 
-			std::stringstream directionalLightAmbient_ss;
-			directionalLightAmbient_ss << "dirLights[" << i << "].ambient";
+			std::stringstream color_ss;
+			color_ss << "dirLights[" << i << "].color";
 
-			std::stringstream directionalLightDiffuse_ss;
-			directionalLightDiffuse_ss << "dirLights[" << i << "].diffuse";
-
-
-			std::stringstream directionalLightSpecular_ss;
-			directionalLightSpecular_ss << "dirLights[" << i << "].specular";
+			std::stringstream intensity_ss;
+			intensity_ss << "dirLights[" << i << "].intensity";
 
 			glUniform1i(glGetUniformLocation(ShaderId, "numberOfDirectionalLights"), directionalLights.size());
 
@@ -185,9 +181,8 @@ private:
 			directionalLights[i].attachShaderUniforms(
 				ShaderId,
 				directionalLightDirection_ss.str(),
-				directionalLightAmbient_ss.str(),
-				directionalLightDiffuse_ss.str(),
-				directionalLightSpecular_ss.str());
+				color_ss.str(),
+				intensity_ss.str());
 		}
 	}
 

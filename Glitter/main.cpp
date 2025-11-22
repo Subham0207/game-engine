@@ -262,14 +262,23 @@ int openEditor() {
     // lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f)));
 
     glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.7f,  0.2f,  2.0f),
-        glm::vec3(2.3f, -3.3f, -4.0f),
+        glm::vec3(0.7f,  2.0f,  2.0f),
+        glm::vec3(2.3f, 2.0f, -4.0f),
         glm::vec3(-4.0f,  2.0f, -12.0f),
-        glm::vec3(0.0f,  0.0f, -3.0f)
+        glm::vec3(0.0f,  2.0f, -3.0f)
+    };
+
+    glm::vec3 directionLightPositions[] = {
+        glm::vec3(0.7f,  2.0f,  3.0f),
     };
     for (unsigned int i = 0; i < 4; i++)
     {
         lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
+    }
+
+    for (unsigned int i = 0; i < 1; i++)
+    {
+        lights->directionalLights.push_back(DirectionalLight(directionLightPositions[i], glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(0.0f,0.0f,1.0f)));
     }
 
     //Something wrong with spotlights only then; 
