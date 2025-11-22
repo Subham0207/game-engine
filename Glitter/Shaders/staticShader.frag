@@ -19,7 +19,8 @@ layout(binding = 8) uniform sampler2D brdfLUT;
 struct PointLight {
     vec3 position;
     //change name from diffuse to color
-    vec3 diffuse; 
+    vec3 diffuse;
+    float intensity;
 };
 
 // Only handling Point lights for now
@@ -62,7 +63,7 @@ void main()
         vec3 H = normalize(V + L);
         float distance    = length(pointLights[i].position - FragPos);
         float attenuation = 1.0 / (distance * distance);
-        vec3 radiance     = pointLights[i].diffuse * attenuation;        
+        vec3 radiance     = pointLights[i].diffuse *  pointLights[i].intensity * attenuation;
         
         // cook-torrance brdf
         float NDF = DistributionGGX(N, H, roughness);        

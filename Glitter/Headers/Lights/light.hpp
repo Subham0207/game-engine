@@ -122,6 +122,7 @@ public:
 	float constantTerm = 1.0f;
 	float linearTerm = 0.09f;
 	float quadraticTerm = 0.032f;
+	float intensity = 100.0f;
 
 	PointLight(
 		glm::vec3 position,
@@ -139,10 +140,12 @@ public:
 	void attachShaderUniforms(
 		GLuint shaderId,
 		std::string positionUniform,
-		std::string diffuseUniform)
+		std::string diffuseUniform,
+		std::string intensityUniform)
 	{
 		glUniform3f(glGetUniformLocation(shaderId, positionUniform.c_str()), position.x, position.y, position.z);
 		glUniform3f(glGetUniformLocation(shaderId, diffuseUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
+		glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), this->intensity);
 	}
 };
 
@@ -198,11 +201,15 @@ private:
 			std::stringstream pointLightDiffuse_ss;
 			pointLightDiffuse_ss << "pointLights[" << i << "].diffuse";
 
+			std::stringstream intensity_ss;
+			intensity_ss << "pointLights[" << i << "].intensity";
+
 			//For each light call attachShaderUniforms
 			pointLights[i].attachShaderUniforms(
 				ShaderId,
 				pointLightPosition_ss.str(),
-				pointLightDiffuse_ss.str());
+				pointLightDiffuse_ss.str(),
+				intensity_ss.str());
 		}
 	}
 
