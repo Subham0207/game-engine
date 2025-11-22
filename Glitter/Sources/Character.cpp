@@ -273,6 +273,9 @@ void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* c
                         break;
                 }
 
+                //Right now dodging is thought from top-down camera.
+                //Even when idle x,z will have a value based on mouse pos on screen and dodge animation will play moving the character to x,z. Unless mouse is directly on top of the player ( which we have not handled yet)
+                //In third person camera when idle x,z won't have value. Lets still move the player by some x,z based on if dodging in player facing direction if idle. In other cases we still dodge to moving direction already.
                 capsuleCollider->movebody(
                     x,
                     0.0f,
