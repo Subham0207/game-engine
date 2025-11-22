@@ -13,6 +13,7 @@
 #include <EngineState.hpp>
 #include "ImGuizmo.h"
 #include <Physics/box.hpp>
+#include <Modals/3DModelType.hpp>
 
 // using namespace std;
 namespace fs = std::filesystem;
@@ -323,7 +324,7 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
     camera->updateMVP(shader->ID);
     updateModelAndViewPosMatrix(camera);
 
-    if(directory != "light")
+    if(directory != "light" && modeltype == ModelType::ACTUAL_MODEL)
     lights->Render(shader->ID);
 
 	for (unsigned int i = 0; i < meshes.size(); i++)
@@ -470,6 +471,7 @@ std::map<std::string, BoneInfo>* m_BoneInfoMap,
 int* m_BoneCounter,
 std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 {
+    modeltype = ModelType::ACTUAL_MODEL; 
     if(m_BoneInfoMap && m_BoneCounter)
     {
         shader =  new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
@@ -494,6 +496,7 @@ void Model::saveContent(fs::path contentFile, std::ostream& os)
 
 void Model::loadContent(fs::path contentFile, std::istream& is)
 {
+    modeltype = ModelType::ACTUAL_MODEL;
     Model::loadFromFile(contentFile.string(), *this);
 
     //For character class shader used is different and is handled in character loadContent.
@@ -559,4 +562,8 @@ void Model::initOnGPU(Model* model)
         }
     }
     
+}
+
+bool Model::ShouldRender() {
+    return modeltype == ModelType::ACTUAL_MODEL;
 }

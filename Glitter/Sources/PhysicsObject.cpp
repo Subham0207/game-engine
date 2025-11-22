@@ -1,5 +1,6 @@
 #include <Physics/PhysicsObject.hpp>
 #include <EngineState.hpp>
+#include <Modals/3DModelType.hpp>
 
 
 // These are physics object whose model should not be rendered on play. The model attached to the physics body is for visualization.
@@ -67,6 +68,7 @@ void Physics::PhysicsObject::syncTransformation()
 void Physics::PhysicsObject::addCustomModel(std::string modelPath)
 {
     model = new Model(modelPath);
+    model->modeltype = ModelType::COLLIDER;
 }
 
 void Physics::PhysicsObject::AddToLevel()

@@ -24,6 +24,8 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/base_object.hpp>
 
+enum ModelType;
+
 namespace Physics {
     class PhysicsObject;
 }
@@ -44,6 +46,8 @@ public:
     void updateModelAndViewPosMatrix(Camera* camera);
 
     void useAttachedShader() override;
+
+    bool ShouldRender() override;
 
     aiAABB* GetBoundingBox();
     std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string texturePath, aiTextureType typeName) override;
@@ -148,6 +152,8 @@ public:
 
     void saveContent(fs::path contentFile, std::ostream& os) override;
     void loadContent(fs::path contentFile, std::istream& is) override;
+
+    ModelType modeltype;
 
     Shader* shader;
     std::vector<Mesh> meshes;
