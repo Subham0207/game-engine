@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <Controls/Input.hpp>
 #include <Modals/CameraType.hpp>
+#include <Helpers/glitter.hpp>
 
 Camera::Camera()
 {
@@ -43,7 +44,8 @@ void Camera::setupView()
 
 void Camera::setupProjection()
 {
-    projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+    float aspect = (float)mWidth / (float)mHeight;
+    projection = glm::perspective(glm::radians(fov),  aspect, 0.001f, 1000.0f);
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 

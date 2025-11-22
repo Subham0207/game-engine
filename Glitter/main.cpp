@@ -49,8 +49,6 @@ GLFWwindow *mWindow;
 //This is default stuff
 struct ClientHandler {
     InputHandler* inputHandler;
-    Camera* camera;
-
 } clientHandler;
 
 EngineState* EngineState::state = new EngineState();
@@ -216,8 +214,8 @@ int openEditor() {
     lvl->cameras.push_back(defaultCamera);
     
     //Init clienthandler
-    clientHandler.camera = lvl->cameras[EngineState::state->activeCameraIndex];
-    clientHandler.inputHandler = new InputHandler(clientHandler.camera, mWindow, 800, 600);
+    auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
+    clientHandler.inputHandler = new InputHandler(camera, mWindow, 800, 600);
     InputHandler::currentInputHandler = clientHandler.inputHandler;
     
     level->loadMainLevelOfCurrentProject();
@@ -322,6 +320,7 @@ int openEditor() {
     while (glfwWindowShouldClose(mWindow) == false) {
                 
         //delta time -- making things time dependent
+        auto activeCamera = &InputHandler::currentInputHandler->m_Camera;
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -331,8 +330,7 @@ int openEditor() {
         clientHandler.inputHandler->handleInput(deltaTime);
         if(EngineState::state->isPlay)
         {
-            clientHandler.camera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
-            InputHandler::currentInputHandler->m_Camera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
+            *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
 
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess
@@ -358,7 +356,6 @@ int openEditor() {
         }
         else
         {
-            clientHandler.camera = lvl->cameras[0];
             InputHandler::currentInputHandler->m_Camera = lvl->cameras[0];
             
             getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
@@ -368,7 +365,7 @@ int openEditor() {
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        cubeMap->Draw(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix(), *backgroundShader);
+        cubeMap->Draw((*activeCamera)->viewMatrix(), (*activeCamera)->projectionMatrix(), *backgroundShader);
 
         for(auto &i: lights->pointLights)
         {
@@ -381,13 +378,13 @@ int openEditor() {
             if(lvlrenderables->at(i)->ShouldRender())
             {
                 lvlrenderables->at(i)->useAttachedShader();
-                (*lvlrenderables)[i]->draw(deltaTime, clientHandler.camera, lights, cubeMap);
+                (*lvlrenderables)[i]->draw(deltaTime, *activeCamera, lights, cubeMap);
             }
         }
 
         for(int i=0;i<getActiveLevel().textSprites.size();i++)
         {
-            getActiveLevel().textSprites.at(i)->RenderText3D(clientHandler.camera->viewMatrix(), clientHandler.camera->projectionMatrix());
+            getActiveLevel().textSprites.at(i)->RenderText3D((*activeCamera)->viewMatrix(), (*activeCamera)->projectionMatrix());
         }
         
 
@@ -404,7 +401,7 @@ int openEditor() {
         
         auto getSelectedIndex = outliner->GetSelectedIndex();
         rayCastshader->use();
-        clientHandler.camera->updateMVP(rayCastshader->ID);
+        (*activeCamera)->updateMVP(rayCastshader->ID);
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             InputHandler::currentInputHandler->lastX,
             InputHandler::currentInputHandler->lastY,
@@ -421,7 +418,7 @@ int openEditor() {
 
 
         if(getSelectedIndex > -1)
-        (*lvlrenderables)[getSelectedIndex]->imguizmoManipulate(clientHandler.camera->viewMatrix(), (clientHandler.camera->projectionMatrix()));
+        (*lvlrenderables)[getSelectedIndex]->imguizmoManipulate((*activeCamera)->viewMatrix(), ((*activeCamera)->projectionMatrix()));
 
         //Render the outliner
         outliner->Render(*lvl);
