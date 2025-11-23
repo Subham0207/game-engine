@@ -14,6 +14,12 @@ namespace UI
             SpotLight *spotlight;
             PointLight *pointLight;
             DirectionalLight *directionalLight;
+
+            void PropertiesPanel::setPointLight(PointLight* pointLight);
+            void PropertiesPanel::setDirectionalLight(DirectionalLight* dl);
+            void PropertiesPanel::setSpotLight(SpotLight* sl);
+
         private:
+            void resetAll();
     };
 }
