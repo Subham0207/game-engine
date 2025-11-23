@@ -66,8 +66,8 @@ public:
 		glm::vec3 position,
 		glm::vec3 lightColor,
 		glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f),
-		float innerCutOffRadius = glm::cos(glm::radians(10.5f)),
-		float outerCutOffRadius = glm::cos(glm::radians(17.5f)),
+		float innerCutOffRadius = 10.5f,
+		float outerCutOffRadius = 17.5f,
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
 		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Spot, position)
@@ -100,8 +100,8 @@ public:
 		glUniform3f(glGetUniformLocation(shaderId, positionUniform.c_str()), position.x, position.y, position.z);
 		glUniform3f(glGetUniformLocation(shaderId, directionUniform.c_str()), direction.x, direction.y, direction.z);
 		glUniform3f(glGetUniformLocation(shaderId, colorUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform1f(glGetUniformLocation(shaderId, innercCutOffUniform.c_str()), innerCutOffRadius);
-		glUniform1f(glGetUniformLocation(shaderId, outerCutOffUniform.c_str()), outerCutOffRadius);
+		glUniform1f(glGetUniformLocation(shaderId, innercCutOffUniform.c_str()), glm::cos(glm::radians(innerCutOffRadius)));
+		glUniform1f(glGetUniformLocation(shaderId, outerCutOffUniform.c_str()), glm::cos(glm::radians(outerCutOffRadius)));
 		glUniform1f(glGetUniformLocation(shaderId, intensityUninform.c_str()), intensity);
 	}
 };
