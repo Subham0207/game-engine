@@ -270,6 +270,10 @@ int openEditor() {
     glm::vec3 directionLightPositions[] = {
         glm::vec3(0.7f,  2.0f,  3.0f),
     };
+
+    glm::vec3 spotLightPositions[] = {
+        glm::vec3(1.0f,  2.0f,  2.0f),
+    };
     for (unsigned int i = 0; i < 4; i++)
     {
         lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
@@ -278,6 +282,16 @@ int openEditor() {
     for (unsigned int i = 0; i < 1; i++)
     {
         lights->directionalLights.push_back(DirectionalLight(directionLightPositions[i], glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(0.0f,0.0f,1.0f)));
+    }
+
+    for (unsigned int i = 0; i < 1; i++)
+    {
+        lights->spotLights.push_back(
+            SpotLight(
+                spotLightPositions[i],
+                glm::vec3(1.0f,0.0f,0.0f)
+            )
+        );
     }
 
     //Something wrong with spotlights only then; 
@@ -372,6 +386,17 @@ int openEditor() {
         {
             i.position = i.lightModel->GetPosition();
         }
+
+        for(auto &i: lights->directionalLights)
+        {
+            // GET direction vector from light model rotation.
+        }
+
+        for(auto &i: lights->spotLights)
+        {
+            i.position = i.lightModel->GetPosition();
+        }
+
 
         // render the model
         for(int i=0;i<lvlrenderables->size();i++)

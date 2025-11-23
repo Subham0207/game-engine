@@ -85,29 +85,24 @@ public:
 	float linearTerm = 0.09f;
 	float quadraticTerm = 0.032f;
 
+	float intensity = 100.0f;
+
 	void attachShaderUniforms(
 		GLuint shaderId,
 		std::string positionUniform,
 		std::string directionUniform,
+		std::string colorUniform,
+		std::string intensityUninform,
 		std::string innercCutOffUniform,
-		std::string outerCutOffUniform,
-		std::string ambientUniform,
-		std::string diffuseUniform,
-		std::string specularUniform,
-		std::string constantTermUniform,
-		std::string linearTermUniform,
-		std::string quadraticUniform)
+		std::string outerCutOffUniform
+	)
 	{
 		glUniform3f(glGetUniformLocation(shaderId, positionUniform.c_str()), position.x, position.y, position.z);
 		glUniform3f(glGetUniformLocation(shaderId, directionUniform.c_str()), direction.x, direction.y, direction.z);
+		glUniform3f(glGetUniformLocation(shaderId, colorUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
 		glUniform1f(glGetUniformLocation(shaderId, innercCutOffUniform.c_str()), innerCutOffRadius);
 		glUniform1f(glGetUniformLocation(shaderId, outerCutOffUniform.c_str()), outerCutOffRadius);
-		glUniform3f(glGetUniformLocation(shaderId, ambientUniform.c_str()), ambientColor.x, ambientColor.y, ambientColor.z);
-		glUniform3f(glGetUniformLocation(shaderId, diffuseUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform3f(glGetUniformLocation(shaderId, specularUniform.c_str()), specularColor.x, specularColor.y, specularColor.z);
-		glUniform1f(glGetUniformLocation(shaderId, constantTermUniform.c_str()), constantTerm);
-		glUniform1f(glGetUniformLocation(shaderId, linearTermUniform.c_str()), linearTerm);
-		glUniform1f(glGetUniformLocation(shaderId, quadraticUniform.c_str()), quadraticTerm);
+		glUniform1f(glGetUniformLocation(shaderId, intensityUninform.c_str()), intensity);
 	}
 };
 
@@ -217,47 +212,31 @@ private:
 
 			std::stringstream spotLightDirection_ss;
 			spotLightDirection_ss << "spotLights[" << i << "].direction";
+			
+			std::stringstream spotLightColor_ss;
+			spotLightColor_ss << "spotLights[" << i << "].color";
+
+			std::stringstream intensity_ss;
+			intensity_ss << "spotLights[" << i << "].intensity";
 
 			std::stringstream spotLightInnerCutOff_ss;
-			spotLightInnerCutOff_ss << "spotLights[" << i << "].cutoff";
+			spotLightInnerCutOff_ss << "spotLights[" << i << "].innerCutoff";
 
 			std::stringstream spotLightOuterCutOff_ss;
-			spotLightOuterCutOff_ss << "spotLights[" << i << "].outerCutOff";
+			spotLightOuterCutOff_ss << "spotLights[" << i << "].outerCutoff";
 
-			std::stringstream spotLightAmbient_ss;
-			spotLightAmbient_ss << "spotLights[" << i << "].ambient";
-
-			std::stringstream spotLightDiffuse_ss;
-			spotLightDiffuse_ss << "spotLights[" << i << "].diffuse";
-
-
-			std::stringstream spotLightSpecular_ss;
-			spotLightSpecular_ss << "spotLights[" << i << "].specular";
-
-			std::stringstream spotLightConstantTerm_ss;
-			spotLightConstantTerm_ss << "spotLights[" << i << "].constantTerm";
-
-			std::stringstream spotLightLinearTerm_ss;
-			spotLightLinearTerm_ss << "spotLights[" << i << "].linearTerm";
-
-			std::stringstream spotLightQuadraticTerm_ss;
-			spotLightLinearTerm_ss << "spotLights[" << i << "].quadraticTerm";
-
-			glUniform1i(glGetUniformLocation(ShaderId, "numberOfPointLights"), pointLights.size());
+			glUniform1i(glGetUniformLocation(ShaderId, "numSpotLights"), spotLights.size());
 
 			//For each light call attachShaderUniforms
 			spotLights[i].attachShaderUniforms(
 				ShaderId,
 				spotLightPosition_ss.str(),
 				spotLightDirection_ss.str(),
+				spotLightColor_ss.str(),
+				intensity_ss.str(),
 				spotLightInnerCutOff_ss.str(),
-				spotLightOuterCutOff_ss.str(),
-				spotLightAmbient_ss.str(),
-				spotLightDiffuse_ss.str(),
-				spotLightSpecular_ss.str(),
-				spotLightConstantTerm_ss.str(),
-				spotLightLinearTerm_ss.str(),
-				spotLightQuadraticTerm_ss.str());
+				spotLightOuterCutOff_ss.str()
+			);
 		}
 	}
 };

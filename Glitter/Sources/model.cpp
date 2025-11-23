@@ -324,7 +324,7 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
     camera->updateMVP(shader->ID);
     updateModelAndViewPosMatrix(camera);
 
-    if(directory != "light" && modeltype == ModelType::ACTUAL_MODEL)
+    if(modeltype == ModelType::ACTUAL_MODEL)
     lights->Render(shader->ID);
 
 	for (unsigned int i = 0; i < meshes.size(); i++)
@@ -565,5 +565,14 @@ void Model::initOnGPU(Model* model)
 }
 
 bool Model::ShouldRender() {
-    return modeltype == ModelType::ACTUAL_MODEL;
+    if(modeltype == ModelType::ACTUAL_MODEL)
+    {
+        return true;
+    }
+
+    if(!EngineState::state->isPlay && modeltype != ModelType::ACTUAL_MODEL)
+    {
+        return true;
+    }
+    return false;
 }

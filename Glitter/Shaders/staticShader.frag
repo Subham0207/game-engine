@@ -40,6 +40,9 @@ struct SpotLight {
     float outerCutoff; // cos(outerAngle in radians)
 };
 
+// uniform int numSpotLights;
+uniform SpotLight spotLights[1];
+
 uniform DirectionalLight dirLights[1];
 
 // Only handling Point lights for now
@@ -119,6 +122,33 @@ void main()
         vec3 radiance = dirLights[i].color * dirLights[i].intensity;
 
         Lo += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);   
+    }
+
+    for (int i = 0; i < 1; ++i)
+    {
+        // Direction from fragment TO light
+        vec3 L = normalize(spotLights[i].position - FragPos);
+
+        float distance    = length(spotLights[i].position - FragPos);
+        float attenuation = 1.0 / (distance * distance + 0.01);
+
+        // Cone angle factor
+        // L is from fragment -> light, so -L is from light -> fragment
+        float cosTheta = dot(normalize(-L), normalize(spotLights[i].direction));
+
+        // Smooth step between inner and outer cutoff
+        float epsilon    = spotLights[i].innerCutoff - spotLights[i].outerCutoff;
+        float spotFactor = clamp((cosTheta - spotLights[i].outerCutoff) / epsilon, 0.0, 1.0);
+
+        if (spotFactor > 0.0)
+        {
+            vec3 radiance = spotLights[i].color
+                            * spotLights[i].intensity
+                            * attenuation
+                            * spotFactor;
+
+            Lo += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);
+        }
     }
   
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
