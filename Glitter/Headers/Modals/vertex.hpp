@@ -20,15 +20,15 @@ namespace ProjectModals{
         glm::vec2 TexCoords;
         // vertex color
         glm::vec4 Color;
-        //bone indexes which will influence this vertex
-        int m_BoneIDs[MAX_BONE_INFLUENCE];
-        //weights from each bone
-        float m_Weights[MAX_BONE_INFLUENCE];
         // tangent
         glm::vec3 Tangent;
         // bitangent
         glm::vec3 Bitangent;
-
+        //bone indexes which will influence this vertex
+        int m_BoneIDs[MAX_BONE_INFLUENCE];
+        //weights from each bone
+        float m_Weights[MAX_BONE_INFLUENCE];
+        
         //animated vertex pos
         glm::vec3 animatedPos;
 

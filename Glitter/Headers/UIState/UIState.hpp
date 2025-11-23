@@ -69,6 +69,7 @@ namespace ProjectAsset {
         unsigned int metalicTextureID;
         unsigned int nonMetalicTextureID;
         unsigned int whiteAOTextureID;
+        unsigned int flatNormalTextureID;
 
         bool showDebugBone = false;
 

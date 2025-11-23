@@ -10,6 +10,7 @@ namespace Shared {
     unsigned int generateMetallicTexture();
     unsigned int generateNonMetallicTexture();
     unsigned int generateWhiteAOTexture();
+    unsigned int generateFlatNormalTexture();
 
     void readAnimation(std::string filename);
 

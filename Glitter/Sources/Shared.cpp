@@ -67,6 +67,11 @@ unsigned int Shared::generateWhiteAOTexture()
     unsigned char pixel[4] = {255, 255, 255, 255};
     return Shared::generateTexture(pixel);
 }
+unsigned int Shared::generateFlatNormalTexture()
+{
+    unsigned char pixel[4] = {128, 128, 255, 255};
+    return Shared::generateTexture(pixel);
+}
 
 unsigned int Shared::generateTexture(unsigned char* pixel)
 {

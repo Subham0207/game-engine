@@ -50,7 +50,7 @@ void Mesh::Draw(Shader* shader)
                     glBindTexture(GL_TEXTURE_2D, material->normal->id);
                 }
                 else{
-                    glBindTexture(GL_TEXTURE_2D, getUIState().whiteAOTextureID);                    
+                    glBindTexture(GL_TEXTURE_2D, getUIState().flatNormalTextureID); 
                 }
                 break;
             }
@@ -134,13 +134,21 @@ void Mesh::setupMesh()
 
     //TODO: maybe we are missing tangents and bitangents binding here...
 
-    // ids
+    // Tangent
     glEnableVertexAttribArray(4);
-    glVertexAttribIPointer(4, 4, GL_INT, sizeof(ProjectModals::Vertex), (void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_BoneIDs));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex), (void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::Tangent));
+
+    // BiTangent
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex),(void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::Bitangent));
+
+    // ids
+    glEnableVertexAttribArray(6);
+    glVertexAttribIPointer(6, 4, GL_INT, sizeof(ProjectModals::Vertex), (void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_BoneIDs));
 
     // weights
-    glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex),(void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_Weights));   
+    glEnableVertexAttribArray(7);
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex),(void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_Weights));   
 
     glBindVertexArray(0);
 }

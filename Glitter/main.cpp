@@ -247,6 +247,7 @@ int openEditor() {
     getUIState().metalicTextureID = Shared::generateMetallicTexture();
     getUIState().nonMetalicTextureID = Shared::generateMetallicTexture();
     getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
+    getUIState().flatNormalTextureID= Shared::generateFlatNormalTexture();
 
 
     //Create different shaders for the each model

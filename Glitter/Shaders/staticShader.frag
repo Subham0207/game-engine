@@ -4,6 +4,8 @@ out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
+in vec3 Tangent;
+in vec3 Bitangent;
 
 layout(binding = 1) uniform sampler2D albedoMap;
 layout(binding = 2) uniform sampler2D normalMap;
@@ -74,7 +76,7 @@ void main()
     float roughness = texture(roughnessMap, TexCoords).r;
     float ao        = texture(aoMap, TexCoords).r;
 
-    vec3 N = normalize(Normal);
+    vec3 N = getNormalFromMap();
     vec3 V = normalize(viewPos - FragPos);
     vec3 R = reflect(-V, N); 
 
@@ -186,16 +188,15 @@ vec3 getNormalFromMap()
 {
     vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
 
-    vec3 Q1  = dFdx(FragPos);
-    vec3 Q2  = dFdy(FragPos);
-    vec2 st1 = dFdx(TexCoords);
-    vec2 st2 = dFdy(TexCoords);
+    vec3 N = normalize(Normal);
+    vec3 T = normalize(Tangent);
+    vec3 B = normalize(Bitangent);
 
-    vec3 N   = normalize(Normal);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
+    // Orthonormalize to be safe
+    T = normalize(T - dot(T, N) * N);
+    B = normalize(cross(N, T));
+
     mat3 TBN = mat3(T, B, N);
-
     return normalize(TBN * tangentNormal);
 }
 
