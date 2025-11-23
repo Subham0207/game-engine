@@ -3,6 +3,7 @@
 #include <UI/ProjectManager.hpp>
 #include <UI/CharacterUI.hpp>
 #include <UI/StatemachineUI.hpp>
+#include <UI/PropertiesPanel.hpp>
  
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
@@ -34,6 +35,8 @@ void Outliner::Render(Level &lvl) {
         debugOptions();
 
         popupForErrorsAndWarning();
+
+        propertiesPanel();
     
         ImGui::End();
     }
@@ -241,6 +244,15 @@ void Outliner::modelSelectorComponent()
         std::string name = getActiveLevel().renderables->at(i)->getName();
         name+=std::to_string(i);
         if (ImGui::RadioButton(name.c_str(), &getUIState().selectedRenderableIndex, i)) {
+            if(getUIState().selectedRenderableIndex == i)
+            {
+                getActiveLevel().renderables->at(i)->setIsSelected(true);
+            }
+            else
+            {
+                getActiveLevel().renderables->at(i)->setIsSelected(false);
+                
+            }
         }
         // Optionally, pop style changes here if you made any
     }
@@ -477,4 +489,9 @@ void Outliner::applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, 
         modelMatrix = rotationMatrix * modelMatrix;
         modelMatrix[3] = glm::vec4(translation, 1.0f);
     }
+}
+
+void Outliner::propertiesPanel()
+{
+    getUIState().propretiesPanel->draw();
 }

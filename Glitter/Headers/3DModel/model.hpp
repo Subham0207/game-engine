@@ -152,8 +152,17 @@ public:
 
     void saveContent(fs::path contentFile, std::ostream& os) override;
     void loadContent(fs::path contentFile, std::istream& is) override;
+    virtual void setIsSelected(bool isSelected) override
+    {
+        this->isSelected = isSelected;
+    };
+    virtual bool getIsSelected() override
+    {
+        return isSelected;
+    };
 
     ModelType modeltype;
+    bool isSelected = false;
 
     Shader* shader;
     std::vector<Mesh> meshes;

@@ -55,6 +55,17 @@ class CapsuleColliderModel: public Renderable{
 
         bool ShouldRender() override;
 
+        virtual void setIsSelected(bool isSelected) override
+        {
+            this->isSelected = isSelected;
+        };
+        virtual bool getIsSelected() override
+        {
+            return isSelected;
+        };
+
+        bool isSelected = false;
+
         Model* model;
 
         void GenerateCapsuleMesh(std::vector<ProjectModals::Vertex>& vertices, std::vector<unsigned int>& indices, float radius, float halfHeight, int segments, int rings);

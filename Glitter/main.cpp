@@ -41,6 +41,7 @@
 #include <Physics/Box.hpp>
 #include <Physics/capsule.hpp>
 #include <UI/ProjectManager.hpp>
+#include <UI/PropertiesPanel.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -385,16 +386,31 @@ int openEditor() {
         for(auto &i: lights->pointLights)
         {
             i.position = i.lightModel->GetPosition();
+            if(i.lightModel->getIsSelected())
+            {
+                //pass properties to properties pannel.
+                getUIState().propretiesPanel->pointLight = &i;
+            }
         }
 
         for(auto &i: lights->directionalLights)
         {
             // GET direction vector from light model rotation.
+            if(i.lightModel->getIsSelected())
+            {
+                //pass properties to properties pannel.
+                getUIState().propretiesPanel->directionalLight = &i;
+            }
         }
 
         for(auto &i: lights->spotLights)
         {
             i.position = i.lightModel->GetPosition();
+            if(i.lightModel->getIsSelected())
+            {
+                //pass properties to properties pannel.
+                getUIState().propretiesPanel->spotlight = &i;
+            }
         }
 
 

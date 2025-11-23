@@ -16,6 +16,7 @@ namespace UI
 {
     class CharacterUI;
     class StatemachineUI;
+    class PropertiesPanel;
 };
 
 namespace ProjectAsset {
@@ -84,6 +85,8 @@ namespace ProjectAsset {
         UI::CharacterUI* characterUIState;
         UI::Blendspace2DUI* blendspace2DUIState;
         UI::StatemachineUI* statemachineUIState;
+
+        UI::PropertiesPanel* propretiesPanel;
 
         UIState();
     };

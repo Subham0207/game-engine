@@ -22,6 +22,8 @@ public:
     virtual void useAttachedShader() {};
     virtual ~Renderable() = default;
     virtual bool ShouldRender() {return true;}; // implment this method and return false for debug meshes.
+    virtual void setIsSelected(bool isSelected) = 0;
+    virtual bool getIsSelected() = 0;
 
     virtual void physicsUpdate(){};
     virtual void syncTransformationToPhysicsEntity(){};

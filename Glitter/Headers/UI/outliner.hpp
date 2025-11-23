@@ -52,6 +52,7 @@ private:
     void popupForErrorsAndWarning();
     void debugOptions();
     void handlerForUIComponentsvisibility();
+    void propertiesPanel();
 
     void applyRotation(glm::mat4& modelMatrix, glm::vec3 rotationDegrees, bool isLocal);
 };

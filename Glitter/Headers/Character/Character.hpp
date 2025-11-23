@@ -111,6 +111,16 @@ public:
         return getGUID();
     }
 
+    virtual void setIsSelected(bool isSelected) override
+    {
+        this->isSelected = isSelected;
+    };
+    virtual bool getIsSelected() override
+    {
+        return isSelected;
+    };
+    bool isSelected = false;
+
 protected:
     virtual const std::string typeName() const override {return "character"; }
     virtual const std::string contentName() override {return filename; }
