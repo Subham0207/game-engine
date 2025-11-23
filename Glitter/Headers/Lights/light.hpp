@@ -29,25 +29,13 @@ public:
 		glm::vec3 lightColor,
 		glm::vec3 diffuseColor  = glm::vec3(0.5f),
 		glm::vec3 ambientColor  = glm::vec3(0.2f),
-		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Directional, position)
-	{
-		this->direction = direction;
-		this->diffuseColor = lightColor * diffuseColor;
-		this->ambientColor = lightColor * diffuseColor * ambientColor;
-		this->specularColor = specularColor;
-		this->intensity = 100.0f;
-	}
+		glm::vec3 specularColor = glm::vec3(1.0f));
 
 	void attachShaderUniforms(
 		GLuint shaderId,
 		std::string directionUniform,
 		std::string colorUniform,
-		std::string intensityUniform)
-	{
-		glUniform3f(glGetUniformLocation(shaderId, directionUniform.c_str()), direction.x, direction.y, direction.z);
-		glUniform3f(glGetUniformLocation(shaderId, colorUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), intensity);
-	}
+		std::string intensityUniform);
 };
 
 class SpotLight: public BaseLight {
@@ -70,16 +58,7 @@ public:
 		float outerCutOffRadius = 17.5f,
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
-		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Spot, position)
-	{
-		this->position = position;
-		this->direction = direction;
-		this->innerCutOffRadius = innerCutOffRadius;
-		this->outerCutOffRadius = outerCutOffRadius;
-		this->diffuseColor = lightColor * diffuseColor;
-		this->ambientColor = lightColor * diffuseColor * ambientColor;
-		this->specularColor = specularColor;
-	}
+		glm::vec3 specularColor = glm::vec3(1.0f));
 
 	float constantTerm = 1.0f;
 	float linearTerm = 0.09f;
@@ -95,15 +74,7 @@ public:
 		std::string intensityUninform,
 		std::string innercCutOffUniform,
 		std::string outerCutOffUniform
-	)
-	{
-		glUniform3f(glGetUniformLocation(shaderId, positionUniform.c_str()), position.x, position.y, position.z);
-		glUniform3f(glGetUniformLocation(shaderId, directionUniform.c_str()), direction.x, direction.y, direction.z);
-		glUniform3f(glGetUniformLocation(shaderId, colorUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform1f(glGetUniformLocation(shaderId, innercCutOffUniform.c_str()), glm::cos(glm::radians(innerCutOffRadius)));
-		glUniform1f(glGetUniformLocation(shaderId, outerCutOffUniform.c_str()), glm::cos(glm::radians(outerCutOffRadius)));
-		glUniform1f(glGetUniformLocation(shaderId, intensityUninform.c_str()), intensity);
-	}
+	);
 };
 
 class PointLight: public BaseLight {
@@ -124,24 +95,13 @@ public:
 		glm::vec3 lightColor,
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
 		glm::vec3 ambientColor = glm::vec3(0.2f),
-		glm::vec3 specularColor = glm::vec3(1.0f)): BaseLight(LightType::Point, position)
-	{
-		this->position = position;
-		this->diffuseColor = lightColor * diffuseColor;
-		this->ambientColor = lightColor * diffuseColor * ambientColor;
-		this->specularColor = specularColor;
-	}
+		glm::vec3 specularColor = glm::vec3(1.0f));
 
 	void attachShaderUniforms(
 		GLuint shaderId,
 		std::string positionUniform,
 		std::string diffuseUniform,
-		std::string intensityUniform)
-	{
-		glUniform3f(glGetUniformLocation(shaderId, positionUniform.c_str()), position.x, position.y, position.z);
-		glUniform3f(glGetUniformLocation(shaderId, diffuseUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
-		glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), this->intensity);
-	}
+		std::string intensityUniform);
 };
 
 class Lights {
@@ -149,94 +109,12 @@ public:
 	std::vector<DirectionalLight> directionalLights;
 	std::vector<SpotLight> spotLights;
 	std::vector<PointLight> pointLights;
-	void Render(GLuint shaderID)
-	{
-		sendDirectionalLightsDataToShader(shaderID);
-		sendSpotLightsDataToShader(shaderID);
-		sendPointLightsDataToShader(shaderID);
-	}
+	void Render(GLuint shaderID);
 
 private:
-	void sendDirectionalLightsDataToShader(GLuint ShaderId)
-	{
-		for (int i = 0; i < directionalLights.size(); i++)
-		{
-			std::stringstream directionalLightDirection_ss;
-			directionalLightDirection_ss << "dirLights[" << i << "].direction";
+	void sendDirectionalLightsDataToShader(GLuint ShaderId);
 
-			std::stringstream color_ss;
-			color_ss << "dirLights[" << i << "].color";
+	void sendPointLightsDataToShader(GLuint ShaderId);
 
-			std::stringstream intensity_ss;
-			intensity_ss << "dirLights[" << i << "].intensity";
-
-			glUniform1i(glGetUniformLocation(ShaderId, "numberOfDirectionalLights"), directionalLights.size());
-
-			//For each light call attachShaderUniforms
-			directionalLights[i].attachShaderUniforms(
-				ShaderId,
-				directionalLightDirection_ss.str(),
-				color_ss.str(),
-				intensity_ss.str());
-		}
-	}
-
-	void sendPointLightsDataToShader(GLuint ShaderId)
-	{
-		for (int i = 0; i < pointLights.size(); i++)
-		{
-			std::stringstream pointLightPosition_ss;
-			pointLightPosition_ss << "pointLights[" << i << "].position";
-
-			std::stringstream pointLightDiffuse_ss;
-			pointLightDiffuse_ss << "pointLights[" << i << "].diffuse";
-
-			std::stringstream intensity_ss;
-			intensity_ss << "pointLights[" << i << "].intensity";
-
-			//For each light call attachShaderUniforms
-			pointLights[i].attachShaderUniforms(
-				ShaderId,
-				pointLightPosition_ss.str(),
-				pointLightDiffuse_ss.str(),
-				intensity_ss.str());
-		}
-	}
-
-	void sendSpotLightsDataToShader(GLuint ShaderId)
-	{
-		for (int i = 0; i < spotLights.size(); i++)
-		{
-			std::stringstream spotLightPosition_ss;
-			spotLightPosition_ss << "spotLights[" << i << "].position";
-
-			std::stringstream spotLightDirection_ss;
-			spotLightDirection_ss << "spotLights[" << i << "].direction";
-			
-			std::stringstream spotLightColor_ss;
-			spotLightColor_ss << "spotLights[" << i << "].color";
-
-			std::stringstream intensity_ss;
-			intensity_ss << "spotLights[" << i << "].intensity";
-
-			std::stringstream spotLightInnerCutOff_ss;
-			spotLightInnerCutOff_ss << "spotLights[" << i << "].innerCutoff";
-
-			std::stringstream spotLightOuterCutOff_ss;
-			spotLightOuterCutOff_ss << "spotLights[" << i << "].outerCutoff";
-
-			glUniform1i(glGetUniformLocation(ShaderId, "numSpotLights"), spotLights.size());
-
-			//For each light call attachShaderUniforms
-			spotLights[i].attachShaderUniforms(
-				ShaderId,
-				spotLightPosition_ss.str(),
-				spotLightDirection_ss.str(),
-				spotLightColor_ss.str(),
-				intensity_ss.str(),
-				spotLightInnerCutOff_ss.str(),
-				spotLightOuterCutOff_ss.str()
-			);
-		}
-	}
+	void sendSpotLightsDataToShader(GLuint ShaderId);
 };
