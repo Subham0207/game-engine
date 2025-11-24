@@ -3,6 +3,9 @@
 #include <EngineState.hpp>
 #include <filesystem>
 #include <Modals/3DModelType.hpp>
+#include <Helpers/shader.hpp>
+#include <EngineState.hpp>
+#include <Lights/cubemap.hpp>
 
 BaseLight::BaseLight(LightType lightType, glm::vec3 pos)
 {
@@ -53,6 +56,8 @@ DirectionalLight::DirectionalLight(
     this->ambientColor = lightColor * diffuseColor * ambientColor;
     this->specularColor = specularColor;
     this->intensity = 100.0f;
+
+    setupShadowObjects();
 }
 
 void DirectionalLight::attachShaderUniforms(
@@ -64,6 +69,70 @@ void DirectionalLight::attachShaderUniforms(
     glUniform3f(glGetUniformLocation(shaderId, directionUniform.c_str()), direction.x, direction.y, direction.z);
     glUniform3f(glGetUniformLocation(shaderId, colorUniform.c_str()), diffuseColor.x, diffuseColor.y, diffuseColor.z);
     glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), intensity);
+}
+
+void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Camera* activeCamera, Lights *lights, CubeMap *cubeMap)
+{
+    auto lvlrenderables = getActiveLevel().renderables;
+    glEnable(GL_DEPTH_TEST);
+
+    // Preparations for the Shadow Map
+    glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    // Draw scene for shadow map
+    shadowMapShader->use();
+    for(int i=0;i<lvlrenderables->size();i++)
+    {
+        if(lvlrenderables->at(i)->ShouldRender())
+        {
+            lvlrenderables->at(i)->useAttachedShader();
+            (*lvlrenderables)[i]->draw(deltaTime, activeCamera, lights, cubeMap);
+        }
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    int scrWidth, scrHeight;
+    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+    glViewport(0, 0, scrWidth, scrHeight);
+}
+
+void DirectionalLight::setupShadowObjects()
+{
+    shadowMapShader = new Shader("./Shaders/shadowMap.vert", "./Shaders/shadowMap.frag");
+
+	glGenFramebuffers(1, &shadowMapFBO);
+
+	// Texture for Shadow Map FBO
+	shadowMapWidth = 2048, shadowMapHeight = 2048;
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	// Prevents darkness outside the frustrum
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	// Needed since we don't touch the color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// Matrices needed for the light's perspective
+	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
+	glm::mat4 lightView = glm::lookAt(20.0f * lightModel->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 lightProjection = orthgonalProjection * lightView;
+
+    shadowMapShader->use();
+	glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+
 }
 
 SpotLight::SpotLight(

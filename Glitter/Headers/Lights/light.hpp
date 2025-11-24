@@ -5,7 +5,12 @@
 #include <string>
 #include <vector>
 #include <Modals/LightType.hpp>
+#include <GLFW/glfw3.h>
 class Model;
+class Shader;
+class Camera;
+class CubeMap;
+class Lights;
 
 class BaseLight
 {
@@ -23,6 +28,12 @@ public:
 	glm::vec3 specularColor;
 	float intensity;
 
+	unsigned int shadowMapFBO;
+	unsigned int shadowMap;
+
+	Shader* shadowMapShader;
+	unsigned int shadowMapWidth,shadowMapHeight;
+
 	DirectionalLight(
 		glm::vec3 position, // Note we take position to update the light 3d model but for directional light position does not matter.
 		glm::vec3 direction,
@@ -36,6 +47,10 @@ public:
 		std::string directionUniform,
 		std::string colorUniform,
 		std::string intensityUniform);
+
+	void evaluateShadowMap(GLFWwindow* window, float deltaTime, Camera* activeCamera, Lights *lights, CubeMap *cubeMap);
+private:
+	void setupShadowObjects();
 };
 
 class SpotLight: public BaseLight {
