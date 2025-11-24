@@ -8,6 +8,7 @@
 class Renderable {
 public:
     virtual void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) = 0;
+    virtual void drawGeometryOnly() = 0;
     virtual void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) = 0;
     virtual std::vector<Mesh>* getMeshes() = 0;
     virtual glm::mat4& getModelMatrix() = 0;

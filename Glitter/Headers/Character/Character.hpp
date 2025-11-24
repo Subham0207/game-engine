@@ -44,6 +44,7 @@ public:
     void updateFinalBoneMatrix(float deltatime);
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
+    void drawGeometryOnly() override;
 
     void useAttachedShader() override;
 

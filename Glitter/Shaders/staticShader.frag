@@ -18,6 +18,10 @@ layout(binding = 6) uniform samplerCube irradianceMap;
 layout(binding = 7) uniform samplerCube prefilterMap;
 layout(binding = 8) uniform sampler2D brdfLUT;
 
+//Shadow
+layout(binding = 9) uniform sampler2D shadowMap;
+in vec4 FragPosLightSpace;
+
 struct PointLight {
     vec3 position;
     //change name from diffuse to color
@@ -68,6 +72,7 @@ vec3 EvaluatePBRLight(
     vec3 F0,
     vec3 radiance
 );
+float ShadowCalculation();
 
 void main()
 {
@@ -165,7 +170,9 @@ void main()
 
     vec3 ambient = (kD * diffuse + specular) * ao;
 
-    vec3 color = ambient + Lo;
+    float shadow = ShadowCalculation();
+
+    vec3 color = ambient + (1.0 - shadow) * Lo;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
@@ -259,4 +266,21 @@ vec3 EvaluatePBRLight(
     vec3 diffuse = kD * albedo / PI;
 
     return (diffuse + specular) * radiance * NdotL;
+}
+
+float ShadowCalculation()
+{
+    // Perspective divide: convert to NDC
+    vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+
+    // Transform range from [-1..1] to [0..1]
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
 }

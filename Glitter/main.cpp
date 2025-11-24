@@ -422,6 +422,8 @@ int openEditor() {
             if(lvlrenderables->at(i)->ShouldRender())
             {
                 lvlrenderables->at(i)->useAttachedShader();
+                glActiveTexture(GL_TEXTURE0 + 9);
+                glBindTexture(GL_TEXTURE_2D, lights->directionalLights[0].shadowMap);
                 (*lvlrenderables)[i]->draw(deltaTime, *activeCamera, lights, cubeMap);
             }
         }

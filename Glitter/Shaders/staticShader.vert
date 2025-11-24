@@ -10,6 +10,7 @@ layout (location = 5) in vec3 aBitangent;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 lightProjection;
 
 out vec3 Normal;
 out vec3 FragPos;
@@ -17,6 +18,7 @@ out vec2 TexCoords;
 out vec4 Color;
 out vec3 Tangent;
 out vec3 Bitangent;
+out vec4 FragPosLightSpace;
 
 void main()
 {
@@ -31,6 +33,7 @@ void main()
     Normal = normalize(normalMatrix * totalNormal);
     Tangent   = normalize(normalMatrix * aTangent);
     Bitangent = normalize(normalMatrix * aBitangent);
+    FragPosLightSpace = lightProjection * model * totalPosition;
 
 
     TexCoords = aTexCoords;

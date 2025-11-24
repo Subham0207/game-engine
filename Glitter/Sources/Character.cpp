@@ -141,6 +141,12 @@ void Character::updateFinalBoneMatrix(float deltatime)
     }
 }
 
+void Character::drawGeometryOnly()
+{
+    if(model)
+    model->drawGeometryOnly();
+}
+
 void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
     if(animator)

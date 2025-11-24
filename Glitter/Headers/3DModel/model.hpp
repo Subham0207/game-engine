@@ -40,6 +40,7 @@ public:
     std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
+    void drawGeometryOnly() override;
 
     void bindCubeMapTextures(CubeMap *cubeMap);
 

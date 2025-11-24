@@ -74,6 +74,13 @@ void DirectionalLight::attachShaderUniforms(
 void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Camera* activeCamera, Lights *lights, CubeMap *cubeMap)
 {
     auto lvlrenderables = getActiveLevel().renderables;
+
+    glm::mat4 orthgonalProjection = glm::ortho(-100.0f, 100.0f,
+                                           -100.0f, 100.0f,
+                                           0.1f, 200.0f);
+    glm::mat4 lightView = glm::lookAt(20.0f * lightModel->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    lightProjection = orthgonalProjection * lightView;
+
     glEnable(GL_DEPTH_TEST);
 
     // Preparations for the Shadow Map
@@ -83,15 +90,21 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
 
     // Draw scene for shadow map
     shadowMapShader->use();
+    glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+
     for(int i=0;i<lvlrenderables->size();i++)
     {
         if(lvlrenderables->at(i)->ShouldRender())
         {
-            lvlrenderables->at(i)->useAttachedShader();
-            (*lvlrenderables)[i]->draw(deltaTime, activeCamera, lights, cubeMap);
+            glm::mat4 model = (*lvlrenderables)[i]->getModelMatrix();
+            glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            (*lvlrenderables)[i]->drawGeometryOnly();
         }
     }
 
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Shadow FBO incomplete!" << std::endl;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -128,7 +141,7 @@ void DirectionalLight::setupShadowObjects()
 	// Matrices needed for the light's perspective
 	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
 	glm::mat4 lightView = glm::lookAt(20.0f * lightModel->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 lightProjection = orthgonalProjection * lightView;
+	lightProjection = orthgonalProjection * lightView;
 
     shadowMapShader->use();
 	glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
