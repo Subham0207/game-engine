@@ -73,12 +73,13 @@ void DirectionalLight::attachShaderUniforms(
 
 void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Camera* activeCamera, Lights *lights, CubeMap *cubeMap)
 {
+    glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
 
-    glm::mat4 orthgonalProjection = glm::ortho(-100.0f, 100.0f,
-                                           -100.0f, 100.0f,
-                                           0.1f, 200.0f);
-    glm::mat4 lightView = glm::lookAt(20.0f * lightModel->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 orthgonalProjection = glm::ortho(-extent, extent, -extent, extent, nearPlane, farPlane);
+    auto lightPos = 20.0f * lightModel->GetPosition();
+    direction = lightPos - glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     lightProjection = orthgonalProjection * lightView;
 
     glEnable(GL_DEPTH_TEST);
@@ -109,6 +110,7 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
+    glCullFace(GL_BACK);
 }
 
 void DirectionalLight::setupShadowObjects()
@@ -139,8 +141,13 @@ void DirectionalLight::setupShadowObjects()
 
 
 	// Matrices needed for the light's perspective
-	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
-	glm::mat4 lightView = glm::lookAt(20.0f * lightModel->GetPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    nearPlane = 0.1;
+	farPlane = 300.0f;
+    extent = 200.0f;
+	glm::mat4 orthgonalProjection = glm::ortho(-extent, extent, -extent, extent, nearPlane, farPlane);
+    auto lightPos = 20.0f * lightModel->GetPosition();
+    direction = lightPos - glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	lightProjection = orthgonalProjection * lightView;
 
     shadowMapShader->use();

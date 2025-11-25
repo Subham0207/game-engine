@@ -75,19 +75,24 @@ namespace UI
             ImGui::SameLine();
             ImGui::DragFloat("##directionallight-intensity", &directionalLight->intensity, 0.005f);
 
+            ImGui::Text("Near plane");
+            ImGui::SameLine();
+            ImGui::DragFloat("##directionallight-nearplane", &directionalLight->nearPlane, 0.005f);
+
+            ImGui::Text("Far plane");
+            ImGui::SameLine();
+            ImGui::DragFloat("##directionallight-farplane", &directionalLight->farPlane, 0.005f);
+
+            ImGui::Text("Extent");
+            ImGui::SameLine();
+            ImGui::DragFloat("##directionallight-extent", &directionalLight->extent, 0.005f);
+
             ImGui::Text("Color");
             ImGui::DragFloat("R##directionallight-color", &directionalLight->diffuseColor.r, 0.005f);
             ImGui::SameLine();
             ImGui::DragFloat("G##directionallight-color", &directionalLight->diffuseColor.g, 0.005f);
             ImGui::SameLine();
             ImGui::DragFloat("B##directionallight-color", &directionalLight->diffuseColor.b, 0.005f);
-            
-            ImGui::Text("Direction");
-            ImGui::DragFloat("X##directionallight-direction", &directionalLight->direction.x, 0.005f);
-            ImGui::SameLine();
-            ImGui::DragFloat("Y##directionallight-direction", &directionalLight->direction.y, 0.005f);
-            ImGui::SameLine();
-            ImGui::DragFloat("Z##directionallight-direction", &directionalLight->direction.z, 0.005f);
         }
         if(pointLight)
         {

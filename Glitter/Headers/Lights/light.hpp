@@ -30,6 +30,9 @@ public:
 
 	unsigned int shadowMapFBO;
 	unsigned int shadowMap;
+	float nearPlane;
+	float farPlane;
+	float extent;
 
 	Shader* shadowMapShader;
 	unsigned int shadowMapWidth,shadowMapHeight;
