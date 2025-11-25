@@ -416,6 +416,8 @@ int openEditor() {
 
         lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
 
+        lights->pointLights[0].evaluateShadowMap(mWindow);
+
         // render the model
         for(int i=0;i<lvlrenderables->size();i++)
         {

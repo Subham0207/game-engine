@@ -203,6 +203,8 @@ PointLight::PointLight(
     this->diffuseColor = lightColor * diffuseColor;
     this->ambientColor = lightColor * diffuseColor * ambientColor;
     this->specularColor = specularColor;
+
+    setupShadowObjects();
 }
 
 void PointLight::attachShaderUniforms(
@@ -216,11 +218,123 @@ void PointLight::attachShaderUniforms(
     glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), this->intensity);
 }
 
+void PointLight::evaluateShadowMap(GLFWwindow* window)
+{
+    auto lvlrenderables = getActiveLevel().renderables;
+
+    glEnable(GL_DEPTH_TEST);
+
+    // 1) Bind shadow FBO and set viewport
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    // 2) Use shadow shader
+    shadowMapShader->use();
+
+    // 3) Recompute shadow matrices based on current light position
+    float aspect = (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT;
+    glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
+    glm::vec3 position = lightModel->GetPosition();
+
+    glm::mat4 shadowMatrices[6];
+    shadowMatrices[0] = shadowProj * glm::lookAt(position, position + glm::vec3( 1.0,  0.0,  0.0), glm::vec3(0.0, -1.0,  0.0));
+    shadowMatrices[1] = shadowProj * glm::lookAt(position, position + glm::vec3(-1.0,  0.0,  0.0), glm::vec3(0.0, -1.0,  0.0));
+    shadowMatrices[2] = shadowProj * glm::lookAt(position, position + glm::vec3( 0.0,  1.0,  0.0), glm::vec3(0.0,  0.0,  1.0));
+    shadowMatrices[3] = shadowProj * glm::lookAt(position, position + glm::vec3( 0.0, -1.0,  0.0), glm::vec3(0.0,  0.0, -1.0));
+    shadowMatrices[4] = shadowProj * glm::lookAt(position, position + glm::vec3( 0.0,  0.0,  1.0), glm::vec3(0.0, -1.0,  0.0));
+    shadowMatrices[5] = shadowProj * glm::lookAt(position, position + glm::vec3( 0.0,  0.0, -1.0), glm::vec3(0.0, -1.0,  0.0));
+
+    // 4) Upload shadowMatrices[6]
+    for (int i = 0; i < 6; ++i)
+    {
+        std::string name = "shadowMatrices[" + std::to_string(i) + "]";
+        glUniformMatrix4fv(
+            glGetUniformLocation(shadowMapShader->ID, name.c_str()),
+            1, GL_FALSE, glm::value_ptr(shadowMatrices[i])
+        );
+    }
+
+    // 5) Upload lightPos and far_plane (names must match GLSL!)
+    glUniform3fv(glGetUniformLocation(shadowMapShader->ID, "lightPos"), 1, glm::value_ptr(position));
+    glUniform1f(glGetUniformLocation(shadowMapShader->ID, "far_plane"), farPlane);
+
+    // 6) Draw scene with model matrices
+    for (int i = 0; i < lvlrenderables->size(); ++i)
+    {
+        if (lvlrenderables->at(i)->ShouldRender())
+        {
+            glm::mat4 model = (*lvlrenderables)[i]->getModelMatrix();
+            glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            (*lvlrenderables)[i]->drawGeometryOnly();
+        }
+    }
+
+    // 7) Restore default FBO and viewport
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    int scrWidth, scrHeight;
+    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+    glViewport(0, 0, scrWidth, scrHeight);
+}
+void PointLight::setupShadowObjects()
+{
+    shadowMapShader = new Shader(
+        "./Shaders/pointlight/depthshader.vert",
+        "./Shaders/pointlight/depthshader.frag",
+        "./Shaders/pointlight/depthshader.geo"
+        );
+
+    glGenFramebuffers(1, &depthMapFBO);
+    glGenTextures(1, &depthCubemap);
+
+    SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 
+                        SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        
+    }
+                    
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); 
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Point light shadow framebuffer not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    float aspect = (float)SHADOW_WIDTH/(float)SHADOW_HEIGHT;
+    nearPlane = 1.0f;
+    farPlane = 25.0f;
+    glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
+    auto position = lightModel->GetPosition();
+
+    shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0,-1.0, 0.0)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0,-1.0, 0.0)));
+    shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0)));
+
+}
 void Lights::Render(GLuint shaderID)
 {
     sendDirectionalLightsDataToShader(shaderID);
     sendSpotLightsDataToShader(shaderID);
+
     sendPointLightsDataToShader(shaderID);
+    glActiveTexture(GL_TEXTURE0 + 10);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, pointLights[0].depthCubemap);
+    glUniform1f(glGetUniformLocation(shaderID, "farPlane"), pointLights[0].farPlane);
 }
 
 void Lights::sendDirectionalLightsDataToShader(GLuint ShaderId)

@@ -22,6 +22,9 @@ layout(binding = 8) uniform sampler2D brdfLUT;
 layout(binding = 9) uniform sampler2D shadowMap;
 in vec4 FragPosLightSpace;
 
+layout(binding = 10) uniform samplerCube depthMap;
+uniform float farPlane;      
+
 struct PointLight {
     vec3 position;
     //change name from diffuse to color
@@ -73,6 +76,7 @@ vec3 EvaluatePBRLight(
     vec3 radiance
 );
 float ShadowCalculation();
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos);
 
 void main()
 {
@@ -117,7 +121,12 @@ void main()
             
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);                
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL; 
+        float pointShadow = PointShadowCalculation(FragPos, pointLights[i].position);
+
+        vec3 contribution = (kD * albedo / PI + specular) * radiance * NdotL;
+
+        // Apply shadow only to this point light
+        Lo += (1.0 - pointShadow) * contribution;
     }
 
     for(int i = 0; i < 1; ++i)
@@ -294,5 +303,48 @@ float ShadowCalculation()
     }
     shadow /= 9.0;
     
+    return shadow;
+}
+
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos)
+{
+    const int NUM_SAMPLES = 20;
+    const vec3 sampleOffsetDirections[NUM_SAMPLES] = vec3[](
+    vec3( 1,  1,  1), vec3(-1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1),
+    vec3( 1,  1, -1), vec3(-1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1),
+    vec3( 1,  0,  0), vec3(-1,  0,  0), vec3( 0,  1,  0), vec3( 0, -1,  0),
+    vec3( 0,  0,  1), vec3( 0,  0, -1),
+    vec3( 1,  1,  0), vec3(-1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0),
+    vec3( 1,  0,  1), vec3(-1,  0,  1)
+    );
+
+    // Vector from light to fragment
+    vec3 lightToFrag = fragPos - lightPos;
+    float currentDepth = length(lightToFrag);
+
+    // If your depth pass stored depth as distance / farPlane in the cubemap:
+    // sampledDepth * farPlane gives you the world-space distance
+
+    // Simple normal-based bias
+    vec3 L = normalize(-lightToFrag); // direction from fragment TO light
+    float bias = max(0.05 * (1.0 - dot(normalize(Normal), L)), 0.005);
+
+    float shadow = 0.0;
+
+    // Radius of PCF kernel grows with distance (helps soften far shadows)
+    float diskRadius = (1.0 + (currentDepth / farPlane)) / 40.0;
+
+    for (int i = 0; i < NUM_SAMPLES; ++i)
+    {
+        vec3 sampleDir = lightToFrag + sampleOffsetDirections[i] * diskRadius;
+
+        float closestDepth = texture(depthMap, sampleDir).r;
+        closestDepth *= farPlane; // convert back to world units
+
+        if (currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
+
+    shadow /= float(NUM_SAMPLES);
     return shadow;
 }

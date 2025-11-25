@@ -109,6 +109,13 @@ public:
 	float quadraticTerm = 0.032f;
 	float intensity = 100.0f;
 
+	unsigned int depthMapFBO;
+	unsigned int depthCubemap;
+	unsigned int SHADOW_WIDTH, SHADOW_HEIGHT;
+	float nearPlane, farPlane;
+	std::vector<glm::mat4> shadowTransforms;
+	Shader* shadowMapShader;
+
 	PointLight(
 		glm::vec3 position,
 		glm::vec3 lightColor,
@@ -121,6 +128,10 @@ public:
 		std::string positionUniform,
 		std::string diffuseUniform,
 		std::string intensityUniform);
+	
+	void evaluateShadowMap(GLFWwindow* window);
+private:
+	void setupShadowObjects();
 };
 
 class Lights {
