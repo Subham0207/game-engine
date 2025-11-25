@@ -120,7 +120,7 @@ void DirectionalLight::setupShadowObjects()
 	glGenFramebuffers(1, &shadowMapFBO);
 
 	// Texture for Shadow Map FBO
-	shadowMapWidth = 2048, shadowMapHeight = 2048;
+	shadowMapWidth = 4096, shadowMapHeight = 4096;
 	glGenTextures(1, &shadowMap);
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
