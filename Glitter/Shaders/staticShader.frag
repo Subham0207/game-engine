@@ -22,14 +22,13 @@ layout(binding = 8) uniform sampler2D brdfLUT;
 layout(binding = 9) uniform sampler2D shadowMap;
 in vec4 FragPosLightSpace;
 
-layout(binding = 10) uniform samplerCube depthMap;
-uniform float farPlane;      
-
 struct PointLight {
     vec3 position;
     //change name from diffuse to color
     vec3 diffuse;
     float intensity;
+    samplerCube depthMap;
+    float farPlane; 
 };
 
 struct DirectionalLight {
@@ -76,7 +75,7 @@ vec3 EvaluatePBRLight(
     vec3 radiance
 );
 float ShadowCalculation();
-float PointShadowCalculation(vec3 fragPos, vec3 lightPos);
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane);
 
 void main()
 {
@@ -96,7 +95,9 @@ void main()
     F0 = mix(F0, albedo, metallic);
 	           
     // reflectance equation
-    vec3 Lo = vec3(0.0);
+    vec3 LoDir = vec3(0.0);
+    vec3 LoPoint = vec3(0.0);
+    vec3 LoSpot = vec3(0.0);
     for(int i = 0; i < 4; ++i) 
     {
         // calculate per-light radiance
@@ -121,12 +122,16 @@ void main()
             
         // add to outgoing radiance Lo
         float NdotL = max(dot(N, L), 0.0);                
-        float pointShadow = PointShadowCalculation(FragPos, pointLights[i].position);
+        float pointShadow = PointShadowCalculation(
+                                FragPos, pointLights[i].position, 
+                                pointLights[i].depthMap, 
+                                pointLights[i].farPlane
+                            );
 
         vec3 contribution = (kD * albedo / PI + specular) * radiance * NdotL;
 
         // Apply shadow only to this point light
-        Lo += (1.0 - pointShadow) * contribution;
+        LoPoint += (1.0 - pointShadow) * contribution;
     }
 
     for(int i = 0; i < 1; ++i)
@@ -135,7 +140,7 @@ void main()
 
         vec3 radiance = dirLights[i].color * dirLights[i].intensity;
 
-        Lo += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);   
+        LoDir += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);   
     }
 
     for (int i = 0; i < 1; ++i)
@@ -161,7 +166,7 @@ void main()
                             * attenuation
                             * spotFactor;
 
-            Lo += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);
+            LoSpot += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);
         }
     }
   
@@ -179,9 +184,13 @@ void main()
 
     vec3 ambient = (kD * diffuse + specular) * ao;
 
-    float shadow = ShadowCalculation();
+    float dirShadow = ShadowCalculation();
 
-    vec3 color = ambient + (1.0 - shadow) * Lo;
+    // vec3 color = ambient + (1.0 - shadow) * Lo;
+    vec3 Lo = (1.0 - dirShadow) * LoDir   // sun/moon/etc, affected by dir shadow map
+            + LoPoint                     // point lights already have shadow applied
+            + LoSpot;                     // spot lights (no shadows yet)
+    vec3 color = ambient + Lo;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
@@ -306,7 +315,7 @@ float ShadowCalculation()
     return shadow;
 }
 
-float PointShadowCalculation(vec3 fragPos, vec3 lightPos)
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane)
 {
     const int NUM_SAMPLES = 20;
     const vec3 sampleOffsetDirections[NUM_SAMPLES] = vec3[](
@@ -338,7 +347,7 @@ float PointShadowCalculation(vec3 fragPos, vec3 lightPos)
     {
         vec3 sampleDir = lightToFrag + sampleOffsetDirections[i] * diskRadius;
 
-        float closestDepth = texture(depthMap, sampleDir).r;
+        float closestDepth = texture(shadowCube, sampleDir).r;
         closestDepth *= farPlane; // convert back to world units
 
         if (currentDepth - bias > closestDepth)

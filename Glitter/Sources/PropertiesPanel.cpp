@@ -104,6 +104,14 @@ namespace UI
             ImGui::SameLine();
             ImGui::DragFloat("##pointlight-intensity", &pointLight->intensity, 0.005f);
 
+            ImGui::Text("nearplane");
+            ImGui::SameLine();
+            ImGui::DragFloat("##pointlight-nearplane", &pointLight->nearPlane, 0.005f);
+
+            ImGui::Text("farplane");
+            ImGui::SameLine();
+            ImGui::DragFloat("##pointlight-farplane", &pointLight->farPlane, 0.005f);
+
             ImGui::Text("Color");
             ImGui::DragFloat("R##pointlight-color", &pointLight->diffuseColor.r, 0.005f);
             ImGui::SameLine();

@@ -330,11 +330,7 @@ void Lights::Render(GLuint shaderID)
 {
     sendDirectionalLightsDataToShader(shaderID);
     sendSpotLightsDataToShader(shaderID);
-
     sendPointLightsDataToShader(shaderID);
-    glActiveTexture(GL_TEXTURE0 + 10);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, pointLights[0].depthCubemap);
-    glUniform1f(glGetUniformLocation(shaderID, "farPlane"), pointLights[0].farPlane);
 }
 
 void Lights::sendDirectionalLightsDataToShader(GLuint ShaderId)
@@ -374,12 +370,22 @@ void Lights::sendPointLightsDataToShader(GLuint ShaderId)
         std::stringstream intensity_ss;
         intensity_ss << "pointLights[" << i << "].intensity";
 
+        std::string cubeName = "pointLights[" + std::to_string(i) + "].depthMap";
+        std::string farName  = "pointLights[" + std::to_string(i) + "].farPlane";
+
         //For each light call attachShaderUniforms
         pointLights[i].attachShaderUniforms(
             ShaderId,
             pointLightPosition_ss.str(),
             pointLightDiffuse_ss.str(),
             intensity_ss.str());
+        
+        glActiveTexture(GL_TEXTURE0 + 10 + i);             // 10,11,12,13...
+        glBindTexture(GL_TEXTURE_CUBE_MAP, pointLights[i].depthCubemap);
+        glUniform1i(glGetUniformLocation(ShaderId, cubeName.c_str()), 10 + i);
+
+        glUniform1f(glGetUniformLocation(ShaderId, farName.c_str()),
+        pointLights[i].farPlane);
     }
 }
 
