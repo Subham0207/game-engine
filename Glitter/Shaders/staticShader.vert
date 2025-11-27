@@ -11,6 +11,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightProjection;
+uniform mat4 spotLightSpaceMatrix;
 
 out vec3 Normal;
 out vec3 FragPos;
@@ -19,6 +20,7 @@ out vec4 Color;
 out vec3 Tangent;
 out vec3 Bitangent;
 out vec4 FragPosLightSpace;
+out vec4 SpotFragPosLightSpace; 
 
 void main()
 {
@@ -34,7 +36,7 @@ void main()
     Tangent   = normalize(normalMatrix * aTangent);
     Bitangent = normalize(normalMatrix * aBitangent);
     FragPosLightSpace = lightProjection * model * totalPosition;
-
+    SpotFragPosLightSpace = spotLightSpaceMatrix * model * totalPosition;
 
     TexCoords = aTexCoords;
     Color = aColor;

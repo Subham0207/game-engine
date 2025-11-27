@@ -22,6 +22,9 @@ layout(binding = 8) uniform sampler2D brdfLUT;
 layout(binding = 9) uniform sampler2D shadowMap;
 in vec4 FragPosLightSpace;
 
+layout(binding = 10) uniform sampler2D spotShadowMap;
+in vec4 SpotFragPosLightSpace;
+
 struct PointLight {
     vec3 position;
     //change name from diffuse to color
@@ -76,6 +79,7 @@ vec3 EvaluatePBRLight(
 );
 float ShadowCalculation();
 float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane);
+float SpotShadowCalculation(vec3 N, vec3 L);
 
 void main()
 {
@@ -166,7 +170,11 @@ void main()
                             * attenuation
                             * spotFactor;
 
-            LoSpot += EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);
+            vec3 contrib = EvaluatePBRLight(N, V, L, albedo, metallic, roughness, F0, radiance);
+
+            float spotShadow = SpotShadowCalculation(N, L);
+
+            LoSpot += (1.0 - spotShadow) * contrib;
         }
     }
   
@@ -355,5 +363,36 @@ float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube
     }
 
     shadow /= float(NUM_SAMPLES);
+    return shadow;
+}
+
+float SpotShadowCalculation(vec3 N, vec3 L)
+{
+    // Convert to NDC
+    vec3 projCoords = SpotFragPosLightSpace.xyz / SpotFragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5; // [-1,1] -> [0,1]
+
+    // Outside the shadow map or beyond far plane: no shadow
+    if (projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0)
+        return 0.0;
+
+    float currentDepth = projCoords.z;
+
+    // Normal-based bias to reduce acne
+    float bias = max(0.005 * (1.0 - dot(N, L)), 0.0005);
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(spotShadowMap, 0);
+
+    // simple 3x3 PCF
+    for (int x = -1; x <= 1; ++x)
+    for (int y = -1; y <= 1; ++y)
+    {
+        float pcfDepth = texture(spotShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+        shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    }
+
+    shadow /= 9.0;
     return shadow;
 }

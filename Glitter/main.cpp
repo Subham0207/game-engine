@@ -415,6 +415,7 @@ int openEditor() {
 
 
         lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
+        lights->spotLights[0].evaluateShadowMap(mWindow);
 
         for(auto& light : lights->pointLights)
             light.evaluateShadowMap(mWindow);

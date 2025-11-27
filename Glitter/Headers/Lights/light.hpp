@@ -69,6 +69,16 @@ public:
 	glm::vec3 ambientColor;
 	glm::vec3 specularColor;
 
+	GLuint spotDepthFBO = 0;
+	GLuint spotDepthMap = 0;
+	int spotShadowWidth = 1024;
+	int spotShadowHeight = 1024;
+
+	float spotNearPlane = 0.1f;
+	float spotFarPlane  = 50.0f;  // adjust to your scene
+	glm::mat4 spotLightSpaceMatrix;
+	Shader* spotShadowShader;
+
 	SpotLight(
 		glm::vec3 position,
 		glm::vec3 lightColor,
@@ -94,6 +104,9 @@ public:
 		std::string innercCutOffUniform,
 		std::string outerCutOffUniform
 	);
+
+	void setupShadowObjects();
+	void evaluateShadowMap(GLFWwindow* window);
 };
 
 class PointLight: public BaseLight {

@@ -172,6 +172,8 @@ SpotLight::SpotLight(
     this->diffuseColor = lightColor * diffuseColor;
     this->ambientColor = lightColor * diffuseColor * ambientColor;
     this->specularColor = specularColor;
+
+    SpotLight::setupShadowObjects();
 }
 
 void SpotLight::attachShaderUniforms(
@@ -190,6 +192,95 @@ void SpotLight::attachShaderUniforms(
     glUniform1f(glGetUniformLocation(shaderId, innercCutOffUniform.c_str()), glm::cos(glm::radians(innerCutOffRadius)));
     glUniform1f(glGetUniformLocation(shaderId, outerCutOffUniform.c_str()), glm::cos(glm::radians(outerCutOffRadius)));
     glUniform1f(glGetUniformLocation(shaderId, intensityUninform.c_str()), intensity);
+
+    glActiveTexture(GL_TEXTURE0 + 10);
+    glBindTexture(GL_TEXTURE_2D, spotDepthMap);
+    glUniform1i(glGetUniformLocation(shaderId, "spotShadowMap"), 10);
+
+    // Spot light light-space matrix
+    glUniformMatrix4fv(glGetUniformLocation(shaderId, "spotLightSpaceMatrix"),
+    1, GL_FALSE, glm::value_ptr(spotLightSpaceMatrix));
+}
+
+void SpotLight::setupShadowObjects()
+{
+    spotShadowShader = new Shader(
+        "./Shaders/spotlight/depth.vert",
+        "./Shaders/spotlight/depth.frag"
+    );
+
+    glGenFramebuffers(1, &spotDepthFBO);
+    glGenTextures(1, &spotDepthMap);
+
+    glBindTexture(GL_TEXTURE_2D, spotDepthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 spotShadowWidth, spotShadowHeight, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, spotDepthFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                           GL_TEXTURE_2D, spotDepthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Spotlight shadow framebuffer not complete!\n";
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SpotLight::evaluateShadowMap(GLFWwindow *window)
+{
+    auto lvlrenderables = getActiveLevel().renderables;
+
+    // 1. Build light-space matrix (perspective)
+    float fov = glm::radians(outerCutOffRadius * 2.0f); // or just some cone angle
+    float aspect = 1.0f;
+
+    glm::mat4 lightProj = glm::perspective(fov, aspect, spotNearPlane, spotFarPlane);
+
+    glm::vec3 lightPos = position;         // make sure this matches your spotLights[0].position
+    glm::vec3 lightDir = glm::normalize(direction);
+
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    // if spotlight is nearly parallel to up, you may want a different up, but this is fine for now
+
+    glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, up);
+    spotLightSpaceMatrix = lightProj * lightView;
+
+    // 2. Render depth
+    glViewport(0, 0, spotShadowWidth, spotShadowHeight);
+    glBindFramebuffer(GL_FRAMEBUFFER, spotDepthFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    spotShadowShader->use();
+    glUniformMatrix4fv(glGetUniformLocation(spotShadowShader->ID, "lightSpaceMatrix"),
+                       1, GL_FALSE, glm::value_ptr(spotLightSpaceMatrix));
+
+    for (int i = 0; i < lvlrenderables->size(); ++i)
+    {
+        if (lvlrenderables->at(i)->ShouldRender())
+        {
+            glm::mat4 model = (*lvlrenderables)[i]->getModelMatrix();
+            glUniformMatrix4fv(glGetUniformLocation(spotShadowShader->ID, "model"),
+                               1, GL_FALSE, glm::value_ptr(model));
+            (*lvlrenderables)[i]->drawGeometryOnly();
+        }
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    int scrWidth, scrHeight;
+    glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
+    glViewport(0, 0, scrWidth, scrHeight);
 }
 
 PointLight::PointLight(
@@ -197,7 +288,7 @@ PointLight::PointLight(
     glm::vec3 lightColor,
     glm::vec3 diffuseColor,
     glm::vec3 ambientColor,
-    glm::vec3 specularColor): BaseLight(LightType::Point, position)
+    glm::vec3 specularColor) : BaseLight(LightType::Point, position)
 {
     this->position = position;
     this->diffuseColor = lightColor * diffuseColor;
@@ -380,7 +471,7 @@ void Lights::sendPointLightsDataToShader(GLuint ShaderId)
             pointLightDiffuse_ss.str(),
             intensity_ss.str());
         
-        glActiveTexture(GL_TEXTURE0 + 10 + i);             // 10,11,12,13...
+        glActiveTexture(GL_TEXTURE0 + 11 + i);             // 11,12,13...
         glBindTexture(GL_TEXTURE_CUBE_MAP, pointLights[i].depthCubemap);
         glUniform1i(glGetUniformLocation(ShaderId, cubeName.c_str()), 10 + i);
 
