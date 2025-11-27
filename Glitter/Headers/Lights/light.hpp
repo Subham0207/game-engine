@@ -93,7 +93,7 @@ public:
 	float linearTerm = 0.09f;
 	float quadraticTerm = 0.032f;
 
-	float intensity = 100.0f;
+	float intensity = 5000.0f;
 
 	void attachShaderUniforms(
 		GLuint shaderId,

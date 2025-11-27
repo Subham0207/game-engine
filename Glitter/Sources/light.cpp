@@ -239,6 +239,7 @@ void SpotLight::setupShadowObjects()
 
 void SpotLight::evaluateShadowMap(GLFWwindow *window)
 {
+    glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
 
     // 1. Build light-space matrix (perspective)
@@ -252,10 +253,15 @@ void SpotLight::evaluateShadowMap(GLFWwindow *window)
 
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     // if spotlight is nearly parallel to up, you may want a different up, but this is fine for now
+    if(lightDir.y == -up.y)
+    {
+        lightDir.x += 0.0001;
+    }
 
     glm::mat4 lightView = glm::lookAt(lightPos, lightPos + lightDir, up);
     spotLightSpaceMatrix = lightProj * lightView;
 
+    glEnable(GL_DEPTH_TEST);
     // 2. Render depth
     glViewport(0, 0, spotShadowWidth, spotShadowHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, spotDepthFBO);
@@ -281,6 +287,7 @@ void SpotLight::evaluateShadowMap(GLFWwindow *window)
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
+    glCullFace(GL_BACK);
 }
 
 PointLight::PointLight(
@@ -311,6 +318,7 @@ void PointLight::attachShaderUniforms(
 
 void PointLight::evaluateShadowMap(GLFWwindow* window)
 {
+    glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
 
     glEnable(GL_DEPTH_TEST);
@@ -366,6 +374,7 @@ void PointLight::evaluateShadowMap(GLFWwindow* window)
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
+    glCullFace(GL_BACK);
 }
 void PointLight::setupShadowObjects()
 {
@@ -473,7 +482,7 @@ void Lights::sendPointLightsDataToShader(GLuint ShaderId)
         
         glActiveTexture(GL_TEXTURE0 + 11 + i);             // 11,12,13...
         glBindTexture(GL_TEXTURE_CUBE_MAP, pointLights[i].depthCubemap);
-        glUniform1i(glGetUniformLocation(ShaderId, cubeName.c_str()), 10 + i);
+        glUniform1i(glGetUniformLocation(ShaderId, cubeName.c_str()), 11 + i);
 
         glUniform1f(glGetUniformLocation(ShaderId, farName.c_str()),
         pointLights[i].farPlane);

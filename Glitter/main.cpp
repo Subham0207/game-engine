@@ -273,7 +273,7 @@ int openEditor() {
     };
 
     glm::vec3 spotLightPositions[] = {
-        glm::vec3(1.0f,  2.0f,  2.0f),
+        glm::vec3(5.0f,  6.0f,  -1.0f),
     };
     for (unsigned int i = 0; i < 4; i++)
     {
@@ -290,7 +290,10 @@ int openEditor() {
         lights->spotLights.push_back(
             SpotLight(
                 spotLightPositions[i],
-                glm::vec3(1.0f,0.0f,0.0f)
+                glm::vec3(1.0f,0.0f,0.0f),
+                glm::vec3(0.0f, -1.0f, 0.0f),
+                40.0f,
+                70.0f
             )
         );
     }
