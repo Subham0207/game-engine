@@ -401,6 +401,19 @@ int openEditor() {
             }
         }
 
+        if(!getActiveLevel().navMesh)
+        {
+            getActiveLevel().BuildLevelNavMesh();
+            auto startingPosition = aiCharacter->GetPosition();
+            std::vector<float> outPath;
+
+            float start[3] = {0.0f, 0.0f, 0.0f};
+            getActiveLevel().SampleRandomPoint(start);
+
+
+            // getActiveLevel().FindPath(start, end, outPath);
+        }
+
         ai->Tick(deltaTime);
 
         lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);

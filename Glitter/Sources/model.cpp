@@ -345,16 +345,20 @@ std::vector<unsigned int> Model::GetIndices()
 
 std::vector<ProjectModals::Vertex> Model::GetWorldVertices()
 {
-    std::vector<ProjectModals::Vertex> vertices;
-    for (unsigned int i = 0; i < meshes.size(); i++)
+   std::vector<ProjectModals::Vertex> result;
+    for (const auto& mesh : meshes)
     {
-        auto meshVertices = meshes[i].GetWorldVertices();
-        for (unsigned int j = 0; j < meshVertices.size(); j++)
+        const auto& localVerts = mesh.vertices; // your original local array
+        for (const auto& v : localVerts)
         {
-            vertices.push_back(meshVertices[j]);
+            ProjectModals::Vertex wv = v;
+            glm::vec4 p = modelMatrix * glm::vec4(v.Position, 1.0f);
+            wv.Position = glm::vec3(p);
+            result.push_back(wv);
         }
     }
-    return vertices;
+
+    return result;
 }
 void Model::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {

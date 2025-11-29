@@ -65,17 +65,25 @@ class Level: public Serializable{
         std::string GetGuid() {
             return getGUID();
         }
+        void BuildLevelNavMesh();
+        bool FindPath(
+                  const float* startPos,
+                  const float* endPos,
+                  std::vector<float>& outPath);
+        dtNavMesh* navMesh = nullptr;
+        dtNavMeshQuery* navQuery = nullptr;
+
+        bool SampleRandomPoint(float* outPt);
     protected:
         
         void saveContent(fs::path contentFile, std::ostream& os) override;
         void loadContent(fs::path contentFile, std::istream& is) override;
 
     private:
-
-    dtNavMesh* navMesh;
-    dtNavMeshQuery* navQuery;
-
-    void BuildLevelNavMesh();
+        static float frand()
+        {
+            return (float)std::rand() / (float)RAND_MAX;
+        }
 
     static glm::vec3 readVec3(const bs::ptree& parent, const std::string& key) {
         glm::vec3 v;

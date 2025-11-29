@@ -123,6 +123,75 @@ void Level::BuildLevelNavMesh()
     }
 }
 
+bool Level::FindPath(
+              const float* startPos,
+              const float* endPos,
+              std::vector<float>& outPath)
+{
+    if (!navQuery) return false;
+
+    dtQueryFilter filter;
+    filter.setIncludeFlags(0x01); // our walkable flag
+    filter.setExcludeFlags(0);
+
+    float polyPickExt[3] = { 2.0f, 4.0f, 2.0f }; // search box around point
+
+    dtPolyRef startRef, endRef;
+    float nearestStart[3], nearestEnd[3];
+
+    navQuery->findNearestPoly(startPos, polyPickExt, &filter, &startRef, nearestStart);
+    navQuery->findNearestPoly(endPos, polyPickExt, &filter, &endRef, nearestEnd);
+
+    if (!startRef || !endRef) return false;
+
+    dtPolyRef polys[256];
+    int polyCount = 0;
+
+    navQuery->findPath(startRef, endRef, nearestStart, nearestEnd,
+                    &filter, polys, &polyCount, 256);
+
+    if (polyCount <= 0) return false;
+
+    // Straight path
+    float straightPath[256 * 3];
+    unsigned char straightPathFlags[256];
+    dtPolyRef straightPathPolys[256];
+    int straightPathCount = 0;
+
+    navQuery->findStraightPath(nearestStart, nearestEnd,
+                            polys, polyCount,
+                            straightPath,
+                            straightPathFlags,
+                            straightPathPolys,
+                            &straightPathCount,
+                            256);
+
+    outPath.clear();
+    for (int i = 0; i < straightPathCount; ++i)
+    {
+        outPath.push_back(straightPath[3*i + 0]);
+        outPath.push_back(straightPath[3*i + 1]);
+        outPath.push_back(straightPath[3*i + 2]);
+    }
+
+    return !outPath.empty();
+}
+
+bool Level::SampleRandomPoint(float* outPt)
+{
+    dtQueryFilter filter;
+    filter.setIncludeFlags(0x01);
+    filter.setExcludeFlags(0);
+    if (!navQuery) return false;
+
+    dtPolyRef ref = 0;
+    dtStatus status = navQuery->findRandomPoint(&filter, frand, &ref, outPt);
+    if (dtStatusFailed(status) || !ref)
+        return false;
+
+    return true;
+}
+
 void Level::saveContent(fs::path contentFile, std::ostream &os)
 {
     // This is an example lvl.json file
