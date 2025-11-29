@@ -147,6 +147,23 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(recast)
 
+FetchContent_GetProperties(recast)
+if (NOT recast_POPULATED)
+    FetchContent_Populate(recast)
+endif()
+
+set(RECASTNAVIGATION_INCLUDE_DIRS
+    ${recast_SOURCE_DIR}/Recast/Include
+    ${recast_SOURCE_DIR}/Detour/Include
+    ${recast_SOURCE_DIR}/DetourCrowd/Include
+    ${recast_SOURCE_DIR}/DetourTileCache/Include
+)
+
+  target_include_directories(${PROJECT_NAME}
+      PRIVATE
+      ${RECASTNAVIGATION_INCLUDE_DIRS}
+  )
+
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath
@@ -171,6 +188,11 @@ target_include_directories(GlitterLib
     PUBLIC 
     ${Boost_INCLUDE_DIRS}
     ${LUA_INCLUDE_DIR}      
+)
+
+target_include_directories(GlitterLib
+    PRIVATE
+    ${RECASTNAVIGATION_INCLUDE_DIRS}
 )
 
 target_link_libraries(GlitterLib assimp glfw

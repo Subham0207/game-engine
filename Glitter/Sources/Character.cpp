@@ -147,7 +147,15 @@ void Character::drawGeometryOnly()
     model->drawGeometryOnly();
 }
 
-void Character::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
+std::vector<ProjectModals::Vertex> Character::GetWorldVertices()
+{
+    return model->GetWorldVertices();
+}
+std::vector<unsigned int> Character::GetIndices()
+{
+    return model->GetIndices();
+}
+void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     if(animator)
     updateFinalBoneMatrix(deltaTime);

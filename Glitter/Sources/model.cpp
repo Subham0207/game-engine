@@ -324,7 +324,39 @@ void Model::drawGeometryOnly()
         meshes[i].Draw(shader);
 }
 
-void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
+std::vector<unsigned int> Model::GetIndices()
+{
+    int baseVert = 0;
+    std::vector<unsigned int>   tris;
+    for (unsigned int i = 0; i < meshes.size(); i++)
+    {
+        auto meshIndices = meshes[i].GetIndices();
+        auto meshVerts = meshes[i].GetWorldVertices();
+        for (size_t j = 0; j < meshIndices.size(); ++j)
+        {
+            tris.push_back(baseVert + (int)meshIndices[j]);
+        }
+
+        baseVert += (int)meshVerts.size();
+    }
+
+    return tris;
+}
+
+std::vector<ProjectModals::Vertex> Model::GetWorldVertices()
+{
+    std::vector<ProjectModals::Vertex> vertices;
+    for (unsigned int i = 0; i < meshes.size(); i++)
+    {
+        auto meshVertices = meshes[i].GetWorldVertices();
+        for (unsigned int j = 0; j < meshVertices.size(); j++)
+        {
+            vertices.push_back(meshVertices[j]);
+        }
+    }
+    return vertices;
+}
+void Model::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     bindCubeMapTextures(cubeMap);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lights->directionalLights[0].lightProjection));

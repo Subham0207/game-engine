@@ -46,6 +46,9 @@ public:
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
     void drawGeometryOnly() override;
 
+    virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
+    virtual std::vector<unsigned int> GetIndices() override;
+
     void useAttachedShader() override;
 
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override

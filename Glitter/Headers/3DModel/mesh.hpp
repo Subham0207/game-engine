@@ -34,6 +34,9 @@
         Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices);
         void Draw(Shader* shader);
         void setupMesh();
+
+        std::vector<ProjectModals::Vertex> GetWorldVertices();
+        std::vector<unsigned int> GetIndices();
     private:
         //  render data
         unsigned int VAO, VBO, EBO;

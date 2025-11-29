@@ -16,9 +16,11 @@
 #include <Renderable/renderable.hpp>
 #include <Sprites/text.hpp>
 #include <Serializable.hpp>
-
 namespace fs = std::filesystem;
 namespace bs = boost::property_tree;
+
+class dtNavMesh;
+class dtNavMeshQuery;
 
 struct LevelDetails
 {
@@ -69,6 +71,11 @@ class Level: public Serializable{
         void loadContent(fs::path contentFile, std::istream& is) override;
 
     private:
+
+    dtNavMesh* navMesh;
+    dtNavMeshQuery* navQuery;
+
+    void BuildLevelNavMesh();
 
     static glm::vec3 readVec3(const bs::ptree& parent, const std::string& key) {
         glm::vec3 v;

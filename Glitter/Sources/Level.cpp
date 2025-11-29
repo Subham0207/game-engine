@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <AI/NavMeshBuilder.hpp>
 namespace bs = boost::property_tree;
 namespace fs = std::filesystem;
 
@@ -76,7 +77,53 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
     }
 }
 
-void Level::saveContent(fs::path contentFile, std::ostream& os)
+void Level::BuildLevelNavMesh()
+{
+    std::vector<float> verts;
+    std::vector<int>   tris;
+    int baseVert = 0;
+
+    for(int i=0;i<renderables->size();i++)
+    {
+        auto r = renderables->at(i);
+
+        if (!r->ShouldRender()) continue;
+
+        // Get world-space vertices/indices from your mesh
+        const auto& meshVerts = r->GetWorldVertices(); // std::vector<glm::vec3>
+        const auto& meshIndices = r->GetIndices();     // std::vector<uint32_t>
+
+        // Append verts
+        for (const auto& v : meshVerts)
+        {
+            verts.push_back(v.Position.x);
+            verts.push_back(v.Position.y);
+            verts.push_back(v.Position.z);
+        }
+
+        // Append tris (offset by baseVert)
+        for (size_t j = 0; j < meshIndices.size(); ++j)
+        {
+            tris.push_back(baseVert + (int)meshIndices[i]);
+        }
+
+        baseVert += (int)meshVerts.size();
+    }
+
+    NavMeshConfig cfg;
+    NavMeshBuilder builder;
+    bool ok = builder.build(verts.data(), (int)verts.size()/3,
+                            tris.data(), (int)tris.size()/3,
+                            cfg);
+
+    if (ok)
+    {
+        navMesh = builder.getNavMesh();
+        navQuery = builder.getNavMeshQuery();
+    }
+}
+
+void Level::saveContent(fs::path contentFile, std::ostream &os)
 {
     // This is an example lvl.json file
     //{

@@ -42,6 +42,8 @@ public:
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
     void drawGeometryOnly() override;
 
+    virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
+    virtual std::vector<unsigned int> GetIndices() override;
     void bindCubeMapTextures(CubeMap *cubeMap);
 
     void updateModelAndViewPosMatrix(Camera* camera);

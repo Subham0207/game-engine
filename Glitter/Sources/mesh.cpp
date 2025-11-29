@@ -152,3 +152,13 @@ void Mesh::setupMesh()
 
     glBindVertexArray(0);
 }
+
+std::vector<ProjectModals::Vertex> Mesh::GetWorldVertices()
+{
+    return vertices;
+}
+
+std::vector<unsigned int> Mesh::GetIndices()
+{
+    return indices;
+}
