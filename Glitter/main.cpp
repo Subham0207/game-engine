@@ -42,6 +42,7 @@
 #include <Physics/capsule.hpp>
 #include <UI/ProjectManager.hpp>
 #include <UI/PropertiesPanel.hpp>
+#include <AI/AI.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -298,14 +299,7 @@ int openEditor() {
         );
     }
 
-    //Something wrong with spotlights only then; 
-    // So right now I don't know how to pass dynamic array sizes to the shader. This caused an issue where if I statically
-    // allocated memory for 4 spotlights and passed less  than 4 spotlights. The ones which is not passed makes the result 0
-    // lights->spotLights = {
-    //     SpotLight(glm::vec3(0.0f,0.0f,3.0f), glm::vec3(0.0f,0.4f,0.8f))
-    // };
 
-    //Start loading a 3D model here ?
     auto renderables = lvl->renderables;
     
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -313,27 +307,18 @@ int openEditor() {
     auto outliner = new Outliner(*renderables);
     auto assetBrowser = new ProjectAsset::AssetBrowser();
 
+    auto aiCharacter = new Character("./EngineAssets/Aj.fbx");
+    aiCharacter->model->setTransform(glm::vec3(0.0f,3.0f,1.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
+    aiCharacter->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
+    auto playerController = aiCharacter->playerController;
+    getActiveLevel().addRenderable(aiCharacter);
+    auto ai = new AI::AI(playerController);
+
     glm::vec3 rayOrigin, rayDir;
 
     //GPULogger
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(glDebugOutput, nullptr);
-
-    //Init
-    // Shared::readAnimation("./EngineAssets/Animations/Idle.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Standard Walk.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Running.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Jumping.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Left.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Jog Strafe Right.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Walking Backwards.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Falling Idle.fbx");
-    // Shared::readAnimation("./EngineAssets/Animations/Sprinting Forward Roll.fbx");
-
-    // auto floorBox = new Model("./EngineAssets/cube.fbx");
-    // getActiveLevel().addRenderable(floorBox);
-    // getUIState().renderables = *State::state->activeLevel->renderables;
-    // floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
@@ -416,6 +401,7 @@ int openEditor() {
             }
         }
 
+        ai->Tick(deltaTime);
 
         lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
         lights->spotLights[0].evaluateShadowMap(mWindow);
