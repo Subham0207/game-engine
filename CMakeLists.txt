@@ -134,6 +134,19 @@ target_include_directories(${PROJECT_NAME}
     ${LUA_INCLUDE_DIR}
 )
 
+set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_DEBUGUTILS OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    recast
+    GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation.git
+    GIT_TAG v1.6.0
+)
+
+FetchContent_MakeAvailable(recast)
+
 target_link_libraries(${PROJECT_NAME} assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath
@@ -141,6 +154,11 @@ target_link_libraries(${PROJECT_NAME} assimp glfw
                       Boost::serialization
                       Lua::Lua
                       sol2::sol2
+
+                        Recast
+                        Detour
+                        DetourCrowd
+                        DetourTileCache
                       )
 
 list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/main.cpp)
