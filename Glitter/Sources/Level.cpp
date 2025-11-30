@@ -105,6 +105,17 @@ void Level::renderLevelvertices(Camera *camera)
     lvlVerticesMesh->Draw(lvlVerticesShader);
 }
 
+void Level::renderDebugNavMesh(Camera *camera)
+{
+    debugNavMeshShader->use();
+    auto view = camera->viewMatrix();
+    auto projection = camera->projectionMatrix();
+    glm::mat4 mvp = projection * view * glm::mat4(1.0f);  
+    debugNavMeshShader->setMat4("uMVP", mvp);
+    debugNavMeshShader->setVec3("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    debugNavMesh->Draw(debugNavMeshShader);
+}
+
 void Level::BuildLevelNavMesh()
 {
     int baseVert = 0;
@@ -140,7 +151,7 @@ void Level::BuildLevelNavMesh()
     NavMeshConfig cfg;
     NavMeshBuilder builder;
 
-    setupLevelVertices(verts, tris);
+    setupLevelVertices(verts, tris); // Here we get vertices from all models in the level and convert into 1 mesh. And that mesh is used to build th nav mesh.
     std::vector<int> i_vec(tris.begin(), tris.end());
     bool ok = builder.build(verts.data(), (int)verts.size()/3,
                             i_vec.data(), (int)tris.size()/3,
@@ -150,6 +161,25 @@ void Level::BuildLevelNavMesh()
     {
         navMesh = builder.getNavMesh();
         navQuery = builder.getNavMeshQuery();
+
+        debugNavMeshShader = new Shader("./Shaders/debug/debug.vert","./Shaders/debug/debug.frag");
+        debugNavMeshShader->use();
+        std::vector<float> outVerts;
+        std::vector<unsigned> outTris;
+        builder.getDebugNavmesh(
+            outVerts,
+            outTris
+        );
+        debugNavMesh = new Mesh();
+        for (size_t i = 0; i < outVerts.size(); i += 3) {
+            ProjectModals::Vertex vertex;
+            vertex.Position.x = outVerts[i];
+            vertex.Position.y = outVerts[i+1];
+            vertex.Position.z = outVerts[i+2];
+            debugNavMesh->vertices.push_back(vertex);
+        }
+        debugNavMesh->indices = outTris;
+        debugNavMesh->setupMesh();
     }
 }
 

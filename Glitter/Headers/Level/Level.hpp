@@ -75,8 +75,15 @@ class Level: public Serializable{
         bool isNavMeshSetup = false;
 
         bool SampleRandomPoint(float* outPt);
+
+        // render merged mesh
         void setupLevelVertices(std::vector<float> navVerts, std::vector<unsigned int> navTris);
-        void Level::renderLevelvertices(Camera *camera);
+        void renderLevelvertices(Camera *camera);
+        //-------------
+
+        //------Navigation-Mesh---------
+        void renderDebugNavMesh(Camera *camera);
+        //--------
     protected:
         
         void saveContent(fs::path contentFile, std::ostream& os) override;
@@ -84,10 +91,17 @@ class Level: public Serializable{
 
     private:
    
+        // Details for 1 mesh for by mergeing all models in the level
         std::vector<float> verts;
         std::vector<unsigned int>   tris;
         Mesh* lvlVerticesMesh = nullptr;
         Shader* lvlVerticesShader = nullptr;
+        //-------------------------------
+
+        //------Navigation-Mesh---------
+        Mesh* debugNavMesh = nullptr;
+        Shader* debugNavMeshShader = nullptr;
+        //-------------
         
         static float frand()
         {

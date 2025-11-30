@@ -4,6 +4,7 @@
 #include <DetourNavMesh.h>
 #include <DetourNavMeshBuilder.h>
 #include <DetourNavMeshQuery.h>
+#include <vector>
 
 struct NavMeshConfig {
     float cellSize      = 0.3f;   // XZ resolution
@@ -32,11 +33,14 @@ public:
         const int* tris, int triCount,
         const NavMeshConfig& cfg
     );
-
+    void getDebugNavmesh(std::vector<float>& outVerts,
+                                     std::vector<unsigned>& outTris) const;
     dtNavMesh*       getNavMesh()       { return m_navMesh; }
     dtNavMeshQuery*  getNavMeshQuery()  { return m_navQuery; }
 
 private:
+    rcPolyMesh* m_pmesh = nullptr;
+    rcConfig    m_cfg{};
     rcContext*       m_ctx = nullptr;
     dtNavMesh*       m_navMesh = nullptr;
     dtNavMeshQuery*  m_navQuery = nullptr;

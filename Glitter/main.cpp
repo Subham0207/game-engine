@@ -415,6 +415,10 @@ int openEditor() {
 
             getActiveLevel().isNavMeshSetup = true;
         }
+        else
+        {
+            getActiveLevel().renderDebugNavMesh(*activeCamera);
+        }
 
         // getActiveLevel().renderLevelvertices(*activeCamera);
 
