@@ -4,6 +4,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <AI/NavMeshBuilder.hpp>
+#include <Modals/3DModelType.hpp>
 namespace bs = boost::property_tree;
 namespace fs = std::filesystem;
 
@@ -101,7 +102,7 @@ void Level::renderLevelvertices(Camera *camera)
     auto projection = camera->projectionMatrix();
     glm::mat4 mvp = projection * view * glm::mat4(1.0f);  
     lvlVerticesShader->setMat4("uMVP", mvp);
-    lvlVerticesShader->setVec3("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    lvlVerticesShader->setVec3("uColor", glm::vec3(0.0f, 0.3f, 0.0f));
     lvlVerticesMesh->Draw(lvlVerticesShader);
 }
 
@@ -112,7 +113,7 @@ void Level::renderDebugNavMesh(Camera *camera)
     auto projection = camera->projectionMatrix();
     glm::mat4 mvp = projection * view * glm::mat4(1.0f);  
     debugNavMeshShader->setMat4("uMVP", mvp);
-    debugNavMeshShader->setVec3("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    debugNavMeshShader->setVec3("uColor", glm::vec3(0.0f, 0.3f, 0.0f));
     debugNavMesh->Draw(debugNavMeshShader);
 }
 
@@ -125,6 +126,7 @@ void Level::BuildLevelNavMesh()
         auto r = renderables->at(i);
 
         if (!r->ShouldRender()) continue;
+        if(r->getModelType() == ModelType::LIGHT) continue;
 
         // Get world-space vertices/indices from your mesh
         std::vector<ProjectModals::Vertex> meshVerts;

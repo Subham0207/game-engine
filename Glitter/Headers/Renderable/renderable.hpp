@@ -5,6 +5,7 @@
 #include<3DModel/mesh.hpp>
 #include<Camera/Camera.hpp>
 #include <Modals/vertex.hpp>
+enum ModelType;
 
 class Renderable {
 public:
@@ -28,6 +29,7 @@ public:
     virtual void useAttachedShader() {};
     virtual ~Renderable() = default;
     virtual bool ShouldRender() {return true;}; // implment this method and return false for debug meshes.
+    virtual ModelType getModelType() = 0;
     virtual void setIsSelected(bool isSelected) = 0;
     virtual bool getIsSelected() = 0;
 

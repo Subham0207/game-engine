@@ -46,6 +46,7 @@ public:
     virtual std::vector<unsigned int> GetIndices() override;
     void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
                                    std::vector<unsigned int>& outIndices);
+    virtual ModelType getModelType() override {return modeltype;}
 
     void bindCubeMapTextures(CubeMap *cubeMap);
 

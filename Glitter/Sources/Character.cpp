@@ -155,10 +155,6 @@ std::vector<unsigned int> Character::GetIndices()
 {
     return model->GetIndices();
 }
-void Character::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex> &outVerts, std::vector<unsigned int> &outIndices)
-{
-    model->BuildFlattenedGeometry(outVerts, outIndices);
-}
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     if(animator)

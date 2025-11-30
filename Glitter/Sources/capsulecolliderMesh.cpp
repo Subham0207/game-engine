@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <cmath>
 #include <EngineState.hpp>
+#include <Modals/3DModelType.hpp>
 
 CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
     // getActiveLevel().addRenderable(this);
@@ -143,3 +144,5 @@ Model* CapsuleColliderModel::createCapsuleModel(float radius, float halfHeight, 
     model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices));
     return model;
 }
+
+ModelType CapsuleColliderModel::getModelType() {return ModelType::COLLIDER;}

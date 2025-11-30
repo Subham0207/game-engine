@@ -49,8 +49,7 @@ public:
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
     virtual std::vector<unsigned int> GetIndices() override;
 
-    virtual void BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
-                                std::vector<unsigned int>& outIndices) override;
+    virtual ModelType getModelType() override {return model->modeltype;}
 
     void useAttachedShader() override;
 

@@ -54,6 +54,8 @@ class CapsuleColliderModel: public Renderable{
             return "random_guid";
         }
 
+        virtual ModelType getModelType() override;
+
         bool ShouldRender() override;
 
         virtual void setIsSelected(bool isSelected) override
