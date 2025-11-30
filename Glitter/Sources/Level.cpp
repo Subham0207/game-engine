@@ -83,11 +83,11 @@ void Level::setupLevelVertices(std::vector<float> navVerts, std::vector<unsigned
     lvlVerticesShader->use();
     lvlVerticesMesh = new Mesh();
     for (size_t i = 0; i < navVerts.size(); i += 3) {
-        ProjectModals::Vertex vert;
-        vert.Position.x = navVerts[i];
-        vert.Position.y = navVerts[i+1];
-        vert.Position.z = navVerts[i+2];
-        lvlVerticesMesh->vertices.push_back(vert);
+        ProjectModals::Vertex vertex;
+        vertex.Position.x = navVerts[i];
+        vertex.Position.y = navVerts[i+1];
+        vertex.Position.z = navVerts[i+2];
+        lvlVerticesMesh->vertices.push_back(vertex);
     }
     lvlVerticesMesh->indices = navTris;
     lvlVerticesMesh->setupMesh();
@@ -116,8 +116,9 @@ void Level::BuildLevelNavMesh()
         if (!r->ShouldRender()) continue;
 
         // Get world-space vertices/indices from your mesh
-        const auto& meshVerts = r->GetWorldVertices(); // std::vector<glm::vec3>
-        const auto& meshIndices = r->GetIndices();     // std::vector<uint32_t>
+        std::vector<ProjectModals::Vertex> meshVerts;
+        std::vector<unsigned int> meshIndices;
+        r->BuildFlattenedGeometry(meshVerts, meshIndices);
 
         // Append verts
         for (const auto& v : meshVerts)
@@ -130,7 +131,7 @@ void Level::BuildLevelNavMesh()
         // Append tris (offset by baseVert)
         for (size_t j = 0; j < meshIndices.size(); ++j)
         {
-            tris.push_back(baseVert + (int)meshIndices[i]);
+            tris.push_back(baseVert + (int)meshIndices[j]);
         }
 
         baseVert += (int)meshVerts.size();

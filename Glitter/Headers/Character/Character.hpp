@@ -49,6 +49,9 @@ public:
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
     virtual std::vector<unsigned int> GetIndices() override;
 
+    virtual void BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
+                                std::vector<unsigned int>& outIndices) override;
+
     void useAttachedShader() override;
 
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override

@@ -407,8 +407,8 @@ int openEditor() {
             auto startingPosition = aiCharacter->GetPosition();
             std::vector<float> outPath;
 
-            float start[3] = {0.0f, 0.0f, 0.0f};
-            getActiveLevel().SampleRandomPoint(start);
+            // float start[3] = {0.0f, 0.0f, 0.0f};
+            // getActiveLevel().SampleRandomPoint(start);
 
 
             // getActiveLevel().FindPath(start, end, outPath);
@@ -416,7 +416,7 @@ int openEditor() {
             getActiveLevel().isNavMeshSetup = true;
         }
 
-        getActiveLevel().renderLevelvertices(*activeCamera);
+        // getActiveLevel().renderLevelvertices(*activeCamera);
 
         ai->Tick(deltaTime);
 

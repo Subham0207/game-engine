@@ -12,6 +12,8 @@ public:
     virtual void drawGeometryOnly() = 0;
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() { return std::vector<ProjectModals::Vertex>();};
     virtual std::vector<unsigned int> GetIndices() {return std::vector<unsigned int>();};
+    virtual void BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
+                                   std::vector<unsigned int>& outIndices) {};
     virtual void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) = 0;
     virtual std::vector<Mesh>* getMeshes() = 0;
     virtual glm::mat4& getModelMatrix() = 0;

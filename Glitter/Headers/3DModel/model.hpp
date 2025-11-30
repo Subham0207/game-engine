@@ -44,6 +44,9 @@ public:
 
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
     virtual std::vector<unsigned int> GetIndices() override;
+    void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
+                                   std::vector<unsigned int>& outIndices);
+
     void bindCubeMapTextures(CubeMap *cubeMap);
 
     void updateModelAndViewPosMatrix(Camera* camera);

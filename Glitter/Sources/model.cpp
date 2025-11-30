@@ -360,6 +360,39 @@ std::vector<ProjectModals::Vertex> Model::GetWorldVertices()
 
     return result;
 }
+
+void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
+                                std::vector<unsigned int>& outIndices)
+{
+    outVerts.clear();
+    outIndices.clear();
+
+    unsigned int baseVert = 0;
+
+    for (const auto& mesh : meshes)
+    {
+        const auto& localVerts   = mesh.vertices;     // single source of truth
+        const auto& meshIndices  = mesh.indices; // local indices
+
+        // Push world-space verts for this mesh
+        for (const auto& v : localVerts)
+        {
+            ProjectModals::Vertex wv = v;
+            glm::vec4 p = modelMatrix * glm::vec4(v.Position, 1.0f);
+            wv.Position = glm::vec3(p);
+            outVerts.push_back(wv);
+        }
+
+        // Push indices with correct offset
+        for (size_t j = 0; j < meshIndices.size(); ++j)
+        {
+            outIndices.push_back(baseVert + meshIndices[j]);
+        }
+
+        baseVert += static_cast<unsigned int>(localVerts.size());
+    }
+}
+
 void Model::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     bindCubeMapTextures(cubeMap);
