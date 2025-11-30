@@ -77,10 +77,36 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
     }
 }
 
+void Level::setupLevelVertices(std::vector<float> navVerts, std::vector<unsigned int> navTris)
+{
+    lvlVerticesShader = new Shader("./Shaders/debug/debug.vert","./Shaders/debug/debug.frag");
+    lvlVerticesShader->use();
+    lvlVerticesMesh = new Mesh();
+    for (size_t i = 0; i < navVerts.size(); i += 3) {
+        ProjectModals::Vertex vert;
+        vert.Position.x = navVerts[i];
+        vert.Position.y = navVerts[i+1];
+        vert.Position.z = navVerts[i+2];
+        lvlVerticesMesh->vertices.push_back(vert);
+    }
+    lvlVerticesMesh->indices = navTris;
+    lvlVerticesMesh->setupMesh();
+}
+
+void Level::renderLevelvertices(Camera *camera)
+{
+    if(verts.size() == 0) return;
+    lvlVerticesShader->use();
+    auto view = camera->viewMatrix();
+    auto projection = camera->projectionMatrix();
+    glm::mat4 mvp = projection * view * glm::mat4(1.0f);  
+    lvlVerticesShader->setMat4("uMVP", mvp);
+    lvlVerticesShader->setVec3("uColor", glm::vec3(0.0f, 1.0f, 0.0f));
+    lvlVerticesMesh->Draw(lvlVerticesShader);
+}
+
 void Level::BuildLevelNavMesh()
 {
-    std::vector<float> verts;
-    std::vector<int>   tris;
     int baseVert = 0;
 
     for(int i=0;i<renderables->size();i++)
@@ -112,8 +138,11 @@ void Level::BuildLevelNavMesh()
 
     NavMeshConfig cfg;
     NavMeshBuilder builder;
+
+    setupLevelVertices(verts, tris);
+    std::vector<int> i_vec(tris.begin(), tris.end());
     bool ok = builder.build(verts.data(), (int)verts.size()/3,
-                            tris.data(), (int)tris.size()/3,
+                            i_vec.data(), (int)tris.size()/3,
                             cfg);
 
     if (ok)

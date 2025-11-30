@@ -401,7 +401,7 @@ int openEditor() {
             }
         }
 
-        if(!getActiveLevel().navMesh)
+        if(!getActiveLevel().isNavMeshSetup)
         {
             getActiveLevel().BuildLevelNavMesh();
             auto startingPosition = aiCharacter->GetPosition();
@@ -412,7 +412,11 @@ int openEditor() {
 
 
             // getActiveLevel().FindPath(start, end, outPath);
+
+            getActiveLevel().isNavMeshSetup = true;
         }
+
+        getActiveLevel().renderLevelvertices(*activeCamera);
 
         ai->Tick(deltaTime);
 

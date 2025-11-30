@@ -72,14 +72,23 @@ class Level: public Serializable{
                   std::vector<float>& outPath);
         dtNavMesh* navMesh = nullptr;
         dtNavMeshQuery* navQuery = nullptr;
+        bool isNavMeshSetup = false;
 
         bool SampleRandomPoint(float* outPt);
+        void setupLevelVertices(std::vector<float> navVerts, std::vector<unsigned int> navTris);
+        void Level::renderLevelvertices(Camera *camera);
     protected:
         
         void saveContent(fs::path contentFile, std::ostream& os) override;
         void loadContent(fs::path contentFile, std::istream& is) override;
 
     private:
+   
+        std::vector<float> verts;
+        std::vector<unsigned int>   tris;
+        Mesh* lvlVerticesMesh = nullptr;
+        Shader* lvlVerticesShader = nullptr;
+        
         static float frand()
         {
             return (float)std::rand() / (float)RAND_MAX;
