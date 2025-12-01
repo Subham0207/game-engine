@@ -88,6 +88,10 @@ namespace ProjectAsset {
 
         UI::PropertiesPanel* propretiesPanel;
 
+        //Debug UI tools for navmesh lvl
+        glm::vec3 startingLoc = glm::vec3(0.0f,0.0f,0.0f);
+        glm::vec3 targetLoc = glm::vec3(0.0f,0.0f,0.0f);
+
         UIState();
     };
 

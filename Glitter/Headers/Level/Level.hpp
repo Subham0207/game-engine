@@ -21,6 +21,7 @@ namespace bs = boost::property_tree;
 
 class dtNavMesh;
 class dtNavMeshQuery;
+class NavMeshBuilder;
 
 struct LevelDetails
 {
@@ -101,6 +102,7 @@ class Level: public Serializable{
         //------Navigation-Mesh---------
         Mesh* debugNavMesh = nullptr;
         Shader* debugNavMeshShader = nullptr;
+        NavMeshBuilder* builder = nullptr;
         //-------------
         
         static float frand()

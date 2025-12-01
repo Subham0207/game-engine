@@ -151,24 +151,24 @@ void Level::BuildLevelNavMesh()
     }
 
     NavMeshConfig cfg;
-    NavMeshBuilder builder;
+    builder = new NavMeshBuilder();
 
     setupLevelVertices(verts, tris); // Here we get vertices from all models in the level and convert into 1 mesh. And that mesh is used to build th nav mesh.
     std::vector<int> i_vec(tris.begin(), tris.end());
-    bool ok = builder.build(verts.data(), (int)verts.size()/3,
+    bool ok = builder->build(verts.data(), (int)verts.size()/3,
                             i_vec.data(), (int)tris.size()/3,
                             cfg);
 
     if (ok)
     {
-        navMesh = builder.getNavMesh();
-        navQuery = builder.getNavMeshQuery();
+        navMesh = builder->getNavMesh();
+        navQuery = builder->getNavMeshQuery();
 
         debugNavMeshShader = new Shader("./Shaders/debug/debug.vert","./Shaders/debug/debug.frag");
         debugNavMeshShader->use();
         std::vector<float> outVerts;
         std::vector<unsigned> outTris;
-        builder.getDebugNavmesh(
+        builder->getDebugNavmesh(
             outVerts,
             outTris
         );

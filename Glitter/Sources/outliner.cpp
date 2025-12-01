@@ -234,6 +234,34 @@ void Outliner::levelControlsComponent(Level &lvl)
           cPlayerControllerNames.data(),
            cPlayerControllerNames.size())) {
     }   
+
+
+    ImGui::Text("Navmesh debug");
+    ImGui::Text("Starting Location");
+    ImGui::DragFloat("x##startingLocation", &getUIState().startingLoc.x, 0.005f);
+    ImGui::DragFloat("y##startingLocation", &getUIState().startingLoc.y, 0.005f);
+    ImGui::DragFloat("z##startingLocation", &getUIState().startingLoc.z, 0.005f);
+
+    ImGui::Text("Target location");
+    ImGui::DragFloat("x##targetLocation", &getUIState().targetLoc.x, 0.005f);
+    ImGui::DragFloat("y##targetLocation", &getUIState().targetLoc.y, 0.005f);
+    ImGui::DragFloat("z##targetLocation", &getUIState().targetLoc.z, 0.005f);
+
+    if(ImGui::Button("FindPath"))
+    {
+        std::vector<float> startingLocFloat;
+        startingLocFloat.push_back(getUIState().startingLoc.x);
+        startingLocFloat.push_back(getUIState().startingLoc.y);
+        startingLocFloat.push_back(getUIState().startingLoc.z)
+        ;
+        std::vector<float> targetLocFloat;
+        targetLocFloat.push_back(getUIState().targetLoc.x);
+        targetLocFloat.push_back(getUIState().targetLoc.y);
+        targetLocFloat.push_back(getUIState().targetLoc.z);
+        std::vector<float> outPath;
+        getActiveLevel().FindPath(startingLocFloat.data(), targetLocFloat.data(),outPath);
+        std::cout << "Path found on Nav mesh: " << outPath[0] << " " << outPath[1] << " " << outPath[2] << std::endl;
+    }
 }
 void Outliner::modelSelectorComponent()
 {

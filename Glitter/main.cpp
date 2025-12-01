@@ -408,7 +408,9 @@ int openEditor() {
             std::vector<float> outPath;
 
             // float start[3] = {0.0f, 0.0f, 0.0f};
+            // float end[3] = {0.0f, 0.0f, 0.0f};
             // getActiveLevel().SampleRandomPoint(start);
+            // getActiveLevel().SampleRandomPoint(end);
 
 
             // getActiveLevel().FindPath(start, end, outPath);
