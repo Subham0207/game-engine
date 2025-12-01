@@ -85,9 +85,9 @@ void AI::AI::calculatePath(glm::vec3 startingPos, glm::vec3 targetPos)
     for (size_t i = 0; i < outPath.size(); i+=3)
     {
         auto node = glm::vec3(
-            outPath[0],
-            outPath[1],
-            outPath[2]
+            outPath[i + 0],
+            outPath[i + 1],
+            outPath[i + 2]
         );
         path.push_back(node);
     }
