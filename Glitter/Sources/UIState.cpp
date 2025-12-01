@@ -9,4 +9,5 @@ ProjectAsset::UIState::UIState()
     blendspace2DUIState = new UI::Blendspace2DUI();
     statemachineUIState = new UI::StatemachineUI();
     propretiesPanel = new UI::PropertiesPanel();
+    ai = nullptr;
 }

@@ -313,6 +313,7 @@ int openEditor() {
     auto playerController = aiCharacter->playerController;
     getActiveLevel().addRenderable(aiCharacter);
     auto ai = new AI::AI(playerController);
+    getUIState().ai = ai;
 
     glm::vec3 rayOrigin, rayDir;
 
@@ -424,7 +425,7 @@ int openEditor() {
 
         // getActiveLevel().renderLevelvertices(*activeCamera);
 
-        ai->Tick(deltaTime);
+        ai->Tick(deltaTime, aiCharacter->GetPosition());
 
         lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
         lights->spotLights[0].evaluateShadowMap(mWindow);

@@ -12,6 +12,10 @@ class Model;
 class Animation;
 class Character;
 class Shader;
+namespace AI
+{
+    class AI;
+}
 namespace UI
 {
     class CharacterUI;
@@ -91,6 +95,7 @@ namespace ProjectAsset {
         //Debug UI tools for navmesh lvl
         glm::vec3 startingLoc = glm::vec3(0.0f,0.0f,0.0f);
         glm::vec3 targetLoc = glm::vec3(0.0f,0.0f,0.0f);
+        AI::AI* ai;
 
         UIState();
     };

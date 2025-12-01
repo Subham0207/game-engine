@@ -4,6 +4,7 @@
 #include <UI/CharacterUI.hpp>
 #include <UI/StatemachineUI.hpp>
 #include <UI/PropertiesPanel.hpp>
+#include <AI/AI.hpp>
  
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
@@ -249,18 +250,7 @@ void Outliner::levelControlsComponent(Level &lvl)
 
     if(ImGui::Button("FindPath"))
     {
-        std::vector<float> startingLocFloat;
-        startingLocFloat.push_back(getUIState().startingLoc.x);
-        startingLocFloat.push_back(getUIState().startingLoc.y);
-        startingLocFloat.push_back(getUIState().startingLoc.z)
-        ;
-        std::vector<float> targetLocFloat;
-        targetLocFloat.push_back(getUIState().targetLoc.x);
-        targetLocFloat.push_back(getUIState().targetLoc.y);
-        targetLocFloat.push_back(getUIState().targetLoc.z);
-        std::vector<float> outPath;
-        getActiveLevel().FindPath(startingLocFloat.data(), targetLocFloat.data(),outPath);
-        std::cout << "Path found on Nav mesh: " << outPath[0] << " " << outPath[1] << " " << outPath[2] << std::endl;
+        getUIState().ai->calculatePath(getUIState().startingLoc, getUIState().targetLoc);
     }
 }
 void Outliner::modelSelectorComponent()
