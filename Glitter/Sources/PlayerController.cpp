@@ -19,6 +19,7 @@ void Controls::PlayerController::setMovement(glm::vec3 dir)
     inputVectorLength =  glm::length(dir);
     if(cameraType == CameraType::TOP_DOWN)
     {
+        // this logic is also by default useful in applying the statemachine to AI
         auto modelRotation = glm::mat3(modelTransform);
         auto modelInverseRotation = glm::transpose(modelRotation);// character space
         glm::vec3 characterInputDirection = modelInverseRotation * dir;

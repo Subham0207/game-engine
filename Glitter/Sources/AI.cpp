@@ -9,7 +9,7 @@ AI::AI::AI(Controls::PlayerController* playerController)
     targetDirection = glm::vec3(0.0f,0.0f,0.0f);
     targetDirChoosen = false;
     elapsedTime = 0.0f;
-    arrivalRadius = 0.01f;
+    arrivalRadius = 0.1f; // keep it bigger than or equal to max_step = speed * dt;
     currentPathIndex = 0;
 }
 void AI::AI::onStart()
@@ -28,26 +28,29 @@ void AI::AI::Tick(float deltaTime, glm::vec3 pos)
         playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
         return;
     }
+    const float MAX_DT = 0.1f; // 100ms, ~10 FPS worst case
+    if (deltaTime > MAX_DT) deltaTime = MAX_DT;
 
     elapsedTime += deltaTime;
 
     glm::vec3 target = path[currentPathIndex];
     glm::vec3 posXZ    = glm::vec3(pos.x,    0.0f, pos.z);
     glm::vec3 targetXZ = glm::vec3(target.x, 0.0f, target.z);
+    auto speed = 20.0f;
 
     targetDirection = targetXZ - posXZ;
     float targetDistance = glm::length(targetDirection);
 
-    auto speed = 10.0f;
-    auto dir = glm::normalize(targetDirection) * deltaTime * speed;
-
-    playerController->setMovement(dir);
-
-    if(targetDistance < arrivalRadius)
+    if (targetDistance < arrivalRadius)
     {
         currentPathIndex++;
+        playerController->setMovement(glm::vec3(0.0f));
+        return;
     }
-    
+
+    glm::vec3 dir = targetDirection / targetDistance; // normalized safely
+    glm::vec3 movement = dir * speed * deltaTime;
+    playerController->setMovement(movement);
 
     //randomly going around
     // if(targetDirChoosen)
@@ -77,6 +80,9 @@ void AI::AI::setPath(std::vector<glm::vec3> path)
 
 void AI::AI::calculatePath(glm::vec3 startingPos, glm::vec3 targetPos)
 {
+    currentPathIndex = 0.0f;
+    path.clear();
+
     std::vector<float> startingLocFloat;
     startingLocFloat.push_back(startingPos[0]);
     startingLocFloat.push_back(startingPos[1]);
