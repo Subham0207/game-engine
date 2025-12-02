@@ -40,6 +40,7 @@ namespace Controls
 
         float inputXWorld;
         float inputZWorld;
+        float inputVectorLength;
 
         std::string filename;
 

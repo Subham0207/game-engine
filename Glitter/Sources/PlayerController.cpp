@@ -5,7 +5,7 @@
 Controls::PlayerController::PlayerController(std::string filename)
     : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
         isJumping(false), grounded(false), dodgeStart(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
-        inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f), filename(filename), isAiming(false)
+        inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f), filename(filename), isAiming(false), inputVectorLength(0.0f)
 {
     cameraType = CameraType::TOP_DOWN;
 }
@@ -16,7 +16,7 @@ void Controls::PlayerController::setMovement(glm::vec3 dir)
     // so input alone should not decide which animation to play
     // compare  input to forward vector to decide that
     // so example: forward vector (0.5,0,-1), input (0.5,0,-1), same direction so moveforward
-
+    inputVectorLength =  glm::length(dir);
     if(cameraType == CameraType::TOP_DOWN)
     {
         auto modelRotation = glm::mat3(modelTransform);

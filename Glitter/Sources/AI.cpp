@@ -23,7 +23,11 @@ void AI::AI::Tick(float deltaTime, glm::vec3 pos)
  //--- If no, then choose a direction.
     if(!EngineState::state->isPlay) return;
     if(path.size() == 0) return;
-    if(currentPathIndex == path.size())return;
+    if(currentPathIndex == path.size())
+    {
+        playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
+        return;
+    }
 
     elapsedTime += deltaTime;
 
@@ -34,7 +38,10 @@ void AI::AI::Tick(float deltaTime, glm::vec3 pos)
     targetDirection = targetXZ - posXZ;
     float targetDistance = glm::length(targetDirection);
 
-    playerController->setMovement(targetDirection);
+    auto speed = 10.0f;
+    auto dir = glm::normalize(targetDirection) * deltaTime * speed;
+
+    playerController->setMovement(dir);
 
     if(targetDistance < arrivalRadius)
     {

@@ -311,6 +311,7 @@ int openEditor() {
     aiCharacter->model->setTransform(glm::vec3(0.0f,3.0f,1.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
     aiCharacter->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
     auto playerController = aiCharacter->playerController;
+    aiCharacter->capsuleCollider->halfHeight = 2.0f;
     getActiveLevel().addRenderable(aiCharacter);
     auto ai = new AI::AI(playerController);
     getUIState().ai = ai;

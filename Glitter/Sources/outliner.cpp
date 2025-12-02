@@ -202,7 +202,7 @@ void Outliner::levelControlsComponent(Level &lvl)
         getUIState().characterUIState->showCharacterUI = true;
         auto selectedCharacterIndex = getUIState().selectedRenderableIndex;
         if(selectedCharacterIndex > -1)
-        if(auto character = dynamic_cast<Character *>(getUIState().renderables[selectedCharacterIndex]))
+        if(auto character = dynamic_cast<Character *>(getActiveLevel().renderables->at(selectedCharacterIndex)))
         {
             getUIState().characterUIState->UIOpenedForCharacter = character;
         }

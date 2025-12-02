@@ -190,6 +190,8 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
             //Only execute if playerController active otherwise produces nan.
            
             glm::quat desiredRot;
+            //This condition already tells us that this character is not playerControlled. 
+            //So check if there is input from PlayerController, if yes it is AI controlled.
             if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController && this->camera)
             {
                 switch (this->camera->cameraType)
@@ -244,6 +246,15 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
                     default:
                         break;
                 }
+            }
+            else if(playerController->inputVectorLength > 0.00001f)
+            {
+                //AI movement 
+                float desiredYaw = std::atan2(playerController->inputXWorld, playerController->inputZWorld);
+                desiredRot =  glm::angleAxis(desiredYaw, glm::vec3(0, 1, 0));
+
+                //GET character forward vector 
+                // GET input direction vector turn the player by that much.
             }
             else
             desiredRot =  glm::identity<glm::quat>();
