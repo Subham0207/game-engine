@@ -421,6 +421,7 @@ int openEditor() {
         }
         else
         {
+            if(getUIState().renderNavMesh)
             getActiveLevel().renderDebugNavMesh(*activeCamera);
         }
 

@@ -10,4 +10,5 @@ ProjectAsset::UIState::UIState()
     statemachineUIState = new UI::StatemachineUI();
     propretiesPanel = new UI::PropertiesPanel();
     ai = nullptr;
+    renderNavMesh = false;
 }

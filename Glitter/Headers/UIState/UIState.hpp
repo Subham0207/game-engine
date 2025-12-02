@@ -96,6 +96,7 @@ namespace ProjectAsset {
         glm::vec3 startingLoc = glm::vec3(0.0f,0.0f,0.0f);
         glm::vec3 targetLoc = glm::vec3(0.0f,0.0f,0.0f);
         AI::AI* ai;
+        bool renderNavMesh;
 
         UIState();
     };
