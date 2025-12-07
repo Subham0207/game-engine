@@ -546,6 +546,7 @@ Model::Model(std::string path,
 std::map<std::string, BoneInfo>* m_BoneInfoMap,
 int* m_BoneCounter,
 std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
+: Serializable()
 {
     modeltype = ModelType::ACTUAL_MODEL; 
     if(m_BoneInfoMap && m_BoneCounter)

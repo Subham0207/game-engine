@@ -13,7 +13,7 @@ namespace Skeleton {
     class Skeleton: public Serializable {
     
     public:
-        Skeleton()
+        Skeleton(): Serializable()
         {
         }
 

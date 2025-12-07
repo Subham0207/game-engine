@@ -47,7 +47,7 @@ struct BlendSelection {
 class BlendSpace2D: public Serializable {
 public:
     BlendSpace2D()=default;
-    BlendSpace2D(std::string blendspaceName){
+    BlendSpace2D(std::string blendspaceName): Serializable(){
         blendPoints = std::vector<BlendPoint>();
         this->blendspaceName = blendspaceName;
         generate_asset_guid();

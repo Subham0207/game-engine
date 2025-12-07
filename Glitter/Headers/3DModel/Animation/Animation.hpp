@@ -40,7 +40,7 @@ class Animation: public Serializable
 public:
 	Animation() = default;
 
-	Animation(std::string& animationPath)
+	Animation(std::string& animationPath): Serializable()
 	{
 		generate_asset_guid();
 		Assimp::Importer importer;

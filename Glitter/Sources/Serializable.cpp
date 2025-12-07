@@ -10,6 +10,11 @@
 namespace fs = std::filesystem;
 namespace bs = boost::property_tree;
 
+Serializable::Serializable()
+{
+    generate_instance_guid();
+}
+
 void Serializable::save(fs::path &assetRoot)
 {
     if(asset_guid_.empty())

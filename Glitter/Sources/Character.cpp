@@ -6,7 +6,7 @@
 #include <Modals/CameraType.hpp>
 namespace fs = std::filesystem;
 
-Character::Character(std::string filepath){
+Character::Character(std::string filepath): Serializable(){
     filename = fs::path(filepath).filename().string();
 
     animator = new Animator();

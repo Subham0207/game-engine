@@ -3,13 +3,13 @@
 #include <EngineState.hpp>
 #include <random>
 #include <Character/Character.hpp>
+#include <Modals/CameraType.hpp>
 
-AI::AI::AI(Character* character, std::string filename)
+AI::AI::AI(Character* character, std::string filename): Serializable()
 {
     this->playerController = character->playerController;
     this->controlledCharacterInstanceId = character->getInstanceId();
     this->filename = filename;
-    this->controlledCharacterInstanceId = "";
     targetDirection = glm::vec3(0.0f,0.0f,0.0f);
     targetDirChoosen = false;
     elapsedTime = 0.0f;
@@ -132,7 +132,7 @@ void AI::AI::saveContent(fs::path contentFileLocation, std::ostream &os)
 
 void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
 {
-    std::ifstream ifs(filename);
+    std::ifstream ifs(contentFileLocation.string());
     boost::archive::text_iarchive ia(ifs);
     ia >> *this;
     //use controlledCharacterInstanceId re-assign playerController.
@@ -140,5 +140,9 @@ void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
     if (auto* character = dynamic_cast<Character*>(getActiveLevel().instanceIdToSerializableMap[controlledCharacterInstanceId]))
     {
         playerController = character->playerController;
+        character->setCameraType(CameraType::TOP_DOWN);
     }
+
+    //attach temp ui
+    getUIState().ai = this;
 }

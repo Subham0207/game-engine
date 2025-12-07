@@ -51,6 +51,7 @@ namespace AI
         void serialize(Archive &ar, const unsigned int version) {
             ar & filename;
             ar & controlledCharacterInstanceId;
+            ar & arrivalRadius;
         }
     };
 }

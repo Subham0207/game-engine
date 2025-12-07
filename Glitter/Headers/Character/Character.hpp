@@ -132,6 +132,11 @@ public:
         generate_instance_guid();
     }
 
+    void setCameraType(CameraType cameratype)
+    {
+        camera->cameraType = cameratype;
+    }
+
 protected:
     virtual const std::string typeName() const override {return "character"; }
     virtual const std::string contentName() override {return filename; }

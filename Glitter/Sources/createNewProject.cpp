@@ -191,9 +191,12 @@ int create_new_project(const std::string& currentDir, const std::string& project
     lvl->addRenderable(floorBox);
     
     auto character = addPlayableCharacter(root, projectAssetDirectory);
-    character->generateInstanceGuid(); // essentially means a new instance of character.
-    auto ai = addAICharacter(root, character);
     lvl->addRenderable(character);
+    
+    character->generateInstanceGuid(); // essentially means a new instance of character.
+    lvl->addRenderable(character);
+
+    auto ai = addAICharacter(root, character);
     lvl->addAI(ai);
     lvl->save(root / "Levels");
 

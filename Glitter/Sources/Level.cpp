@@ -9,7 +9,7 @@
 namespace bs = boost::property_tree;
 namespace fs = std::filesystem;
 
-Level::Level()
+Level::Level(): Serializable()
 {
     AIs = std::vector<AI::AI*>();
 }
@@ -71,6 +71,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 auto filename = contentFilePath.stem().filename().string();
                 model->setFileName(filename);
                 this->renderables->push_back(model);
+                instanceIdToSerializableMap[instanceId] = model;
             }
             if(extension ==  ".character")
             {
@@ -79,6 +80,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 character->setModelMatrix(M);
                 character->setInstanceId(instanceId);
                 this->renderables->push_back(character);
+                instanceIdToSerializableMap[instanceId] = character;
             }
 
 
