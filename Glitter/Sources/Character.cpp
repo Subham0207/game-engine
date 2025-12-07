@@ -29,7 +29,6 @@ Character::Character(std::string filepath): Serializable(){
 
     playerController = new Controls::PlayerController(filename);
     EngineState::state->playerControllers.push_back(playerController);
-    playerController->register_bindings(getLuaEngine());
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
 
@@ -431,7 +430,6 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     //create new player controller 
     playerController = new Controls::PlayerController(contentName());
     EngineState::state->playerControllers.push_back(playerController);
-    playerController->register_bindings(getLuaEngine());
 
     //load statemachine
     auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);

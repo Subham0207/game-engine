@@ -119,7 +119,7 @@ namespace Controls
 
 
     
-    inline void register_bindings(LuaEngine& eng) {
+    inline static void register_bindings(LuaEngine& eng) {
         auto& L = eng.state();
         L.new_usertype<PlayerController>("PlayerController",
             "grounded", &PlayerController::grounded,

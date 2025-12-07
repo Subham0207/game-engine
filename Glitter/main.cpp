@@ -43,6 +43,7 @@
 #include <UI/ProjectManager.hpp>
 #include <UI/PropertiesPanel.hpp>
 #include <AI/AI.hpp>
+#include <Controls/PlayerController.hpp>
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -308,6 +309,8 @@ int openEditor() {
     auto assetBrowser = new ProjectAsset::AssetBrowser();
 
     glm::vec3 rayOrigin, rayDir;
+
+    Controls::PlayerController::register_bindings(getLuaEngine());
 
     //GPULogger
     glEnable(GL_DEBUG_OUTPUT);
