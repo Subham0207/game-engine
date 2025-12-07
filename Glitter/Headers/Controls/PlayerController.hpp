@@ -33,10 +33,8 @@ namespace Controls
 
         glm::vec3 directionVector;
 
-        glm::vec3 forwardVector;
-        glm::vec3 rightVector;
-        glm::quat characterRotation;
-        glm::mat4 modelTransform;
+        glm::mat3 characterRotation;
+        glm::vec3 characterPosition;
 
         float inputXWorld;
         float inputZWorld;
@@ -64,12 +62,11 @@ namespace Controls
             directionVector = glm::vec3(0,0,0);
         }
 
-        void update(glm::vec3 forward, glm::vec3 right, glm::quat characterRotation, glm::mat4 modelTransform)
+        void update(glm::mat3 characterRotation, glm::vec3 characterPosition)
         {
-            this->forwardVector = forward;
-            this->rightVector = right;
+
+            this->characterPosition = characterPosition;
             this->characterRotation = characterRotation;
-            this->modelTransform = modelTransform;
 
             movementSpeed = glm::mix(movementSpeed, targetSpeed, interpolationSpeed); // Smooth transition
             movementDirection = glm::mix(movementDirection, targetDirection, interpolationSpeed);

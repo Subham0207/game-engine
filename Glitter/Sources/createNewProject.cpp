@@ -11,6 +11,7 @@
 #include <Physics/box.hpp>
 #include <EngineState.hpp>
 #include <Helpers/Shared.hpp>
+#include <AI/AI.hpp>
 
 void write_text(const fs::path& p, const std::string& text)
 {
@@ -189,16 +190,11 @@ int create_new_project(const std::string& currentDir, const std::string& project
     floorBox->save(root/ "Assets");
     lvl->addRenderable(floorBox);
     
-    auto character = new Character("./EngineAssets/Aj.fbx");
-    character->model->setTransform(glm::vec3(0.0f,3.0f,0.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
-    character->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
-
-    character->animStateMachine = setupStateMachine(projectAssetDirectory);
-
-    character->save(root/ "Assets");
+    auto character = addPlayableCharacter(root, projectAssetDirectory);
+    character->generateInstanceGuid(); // essentially means a new instance of character.
+    auto ai = addAICharacter(root, character);
     lvl->addRenderable(character);
-
-
+    lvl->addAI(ai);
     lvl->save(root / "Levels");
 
     std::string manifest = std::string(R"({
@@ -226,4 +222,30 @@ int create_new_project(const std::string& currentDir, const std::string& project
     std::cout << "Created project '" << projectName << "' at " << root << "\n";
     std::cout << "Project ID: " << projectId << "\n";
     return 0;
+}
+
+Character *addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory)
+{
+    auto character = new Character("./EngineAssets/Aj.fbx");
+    character->model->setTransform(glm::vec3(0.0f,3.0f,0.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
+    character->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
+
+    character->animStateMachine = setupStateMachine(projectAssetDirectory);
+
+    character->save(root/ "Assets");   
+    return character;
+}
+
+AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter)
+{
+    //NOTE: We are using the same character only to save so there are no two instances of samething on disk. And we get 1 guid or character.
+    //While loading the AI -- be sure to load another instance of the character using its guid.
+    aiCharacter->model->setTransform(glm::vec3(0.0f,3.0f,1.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
+    auto playerController = aiCharacter->playerController;
+    // aiCharacter->capsuleCollider->halfHeight = 2.0f;
+    // getActiveLevel().addRenderable(aiCharacter);
+    auto ai = new AI::AI(aiCharacter, "defaultAI");
+    ai->save(root / "Assets");
+    // getUIState().ai = ai;
+    return ai;
 }

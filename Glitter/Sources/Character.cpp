@@ -313,7 +313,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
                 );
                 
                 playerController->grounded = capsuleCollider ? capsuleCollider->grounded: false;
-                playerController->update(forwardVector, rightVector, model->GetRot(), model->getModelMatrix());
+                playerController->update(glm::mat3(getModelMatrix()), GetPosition());
                 
                 auto capsuleWorldPos = capsuleCollider->model->GetPosition();
                 auto relativePosition =  glm::vec3(
@@ -380,11 +380,11 @@ void Character::saveContent(fs::path contentFile, std::ostream& os)
 
     //save skeleton
     this->skeleton->save(contentFile.parent_path());
-    this->skeleton_guid = skeleton->getGUID();
+    this->skeleton_guid = skeleton->getAssetId();
 
     //save statemachine
     this->animStateMachine->save(contentFile.parent_path());
-    this->animStateMachine_guid = animStateMachine->getGUID();
+    this->animStateMachine_guid = animStateMachine->getAssetId();
 
     Character::saveToFile(contentFile.string(), *this);
 }

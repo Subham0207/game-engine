@@ -44,12 +44,12 @@ void Controls::State::Play(Controls::PlayerController* playerController, Animato
 
 void Controls::State::assignBlendspace(BlendSpace2D* blendspace)
 {
-    this->blendspaceGuid =  blendspace->getGUID();
+    this->blendspaceGuid =  blendspace->getAssetId();
     this->blendspace = blendspace;
 }
 void Controls::State::assignAnimation(Animation* animation)
 {
-    this->animationGuid = animation->getGUID();
+    this->animationGuid = animation->getAssetId();
     this->animation = animation;
 }
 

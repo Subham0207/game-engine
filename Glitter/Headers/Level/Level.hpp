@@ -22,6 +22,9 @@ namespace bs = boost::property_tree;
 class dtNavMesh;
 class dtNavMeshQuery;
 class NavMeshBuilder;
+namespace AI{
+    class AI;
+}
 
 struct LevelDetails
 {
@@ -34,7 +37,7 @@ struct LevelDetails
 
 class Level: public Serializable{
     public:
-        Level()=default;
+        Level();
 
         bool static checkIfLevelFileExists(std::string  filename)
         {
@@ -52,19 +55,26 @@ class Level: public Serializable{
             renderables->push_back(renderable);
         }
 
+        void addAI(AI::AI* ai);
+
         std::vector<std::string> modelFilePaths;
         std::vector<glm::mat4*> modelTransformations;
         std::vector<Sprites::Text*> textSprites;
         std::vector<Renderable *> *renderables = new std::vector<Renderable *>();
+        std::vector<AI::AI*> AIs;
         std::string levelname = "level1";
 
         std::vector<Camera*> cameras;
+
+        std::map<std::string, Serializable* > instanceIdToSerializableMap;
+
+        void tickAIs(float deltaTime);
 
         const std::string contentName() override { return levelname;}
         const std::string typeName() const override {return "lvl";}
 
         std::string GetGuid() {
-            return getGUID();
+            return getAssetId();
         }
         void BuildLevelNavMesh();
         bool FindPath(

@@ -5,8 +5,14 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <AI/NavMeshBuilder.hpp>
 #include <Modals/3DModelType.hpp>
+#include <AI/AI.hpp>
 namespace bs = boost::property_tree;
 namespace fs = std::filesystem;
+
+Level::Level()
+{
+    AIs = std::vector<AI::AI*>();
+}
 
 void Level::loadMainLevelOfCurrentProject()
 {
@@ -33,11 +39,14 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
         bs::read_json(contentFile.string(), levelContent);
 
         // Iterate over "renderables" array
-        for (const auto &renderableNode : levelContent.get_child("renderables")) {
-            const bs::ptree &renderable = renderableNode.second;
+        const bs::ptree& renderablesNode = levelContent.get_child("renderables");
+        for (const auto& kv : renderablesNode) {
+
+            const std::string instanceId = kv.first;
+            const bs::ptree &renderable = kv.second;
 
             // Read the id
-            std::string id = renderable.get<std::string>("id");
+            std::string id = renderable.get<std::string>("assetId");
 
             const bs::ptree& tr = renderable.get_child("transform");
 
@@ -58,6 +67,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 auto model = new Model();
                 model->load(contentFilePath.parent_path(), id);
                 model->setModelMatrix(M);
+                model->setInstanceId(instanceId);
                 auto filename = contentFilePath.stem().filename().string();
                 model->setFileName(filename);
                 this->renderables->push_back(model);
@@ -67,10 +77,26 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 auto character = new Character();
                 character->load(contentFilePath.parent_path(), id);
                 character->setModelMatrix(M);
+                character->setInstanceId(instanceId);
                 this->renderables->push_back(character);
             }
 
 
+        }
+
+        const bs::ptree& aisNode = levelContent.get_child("ais");
+        for (const auto& kv : aisNode) {
+            const std::string aiEntityId = kv.first;   // "ai-001"
+            const bs::ptree& aiNode = kv.second;
+
+            std::string id = aiNode.get<std::string>("assetId");
+
+            auto aiContentFilePath = fs::path(filesMap[id]);
+            auto ai = new AI::AI();
+            ai->load(aiContentFilePath.parent_path(), id);
+            ai->setInstanceId(aiEntityId);
+
+            this->AIs.push_back(ai);
         }
 
     } catch (const bs::ptree_error &e) {
@@ -115,6 +141,19 @@ void Level::renderDebugNavMesh(Camera *camera)
     debugNavMeshShader->setMat4("uMVP", mvp);
     debugNavMeshShader->setVec3("uColor", glm::vec3(0.0f, 0.3f, 0.0f));
     debugNavMesh->Draw(debugNavMeshShader);
+}
+
+void Level::tickAIs(float deltaTime)
+{
+    for(auto ai: AIs)
+    {
+        ai->Tick(deltaTime);
+    }
+}
+
+void Level::addAI(AI::AI* ai)
+{
+    AIs.push_back(ai);
 }
 
 void Level::BuildLevelNavMesh()
@@ -257,69 +296,90 @@ bool Level::SampleRandomPoint(float* outPt)
 void Level::saveContent(fs::path contentFile, std::ostream &os)
 {
     // This is an example lvl.json file
-    //{
-    //     "renderables":
-    //     [
-    //         {
-    //             "id": "guid of the renderable",
-    //             "transform": {
-    //                 "t": [0, 0, 0],
-    //                 "r": [0, 0, 0],
-    //                 "s": [0, 0, 0]
+    // {
+    //     renderables: {
+    //         instanceId: {
+    //             assetId: 'guid of renderable file that is saved to disk',
+    //             transform: {
+    //                 t: [], r: [], s:[]
     //             }
     //         }
-    //     ]
+    //     },
+    //     ais: {
+    //         instanceId: {
+    //             assetId: "guid of the ai file that is saved to disk",
+    //         }
+    //     }
     // }
 
     bs::ptree contentJSON;
 
-    bs::ptree renderablesArray; // array node for all renderables
+    bs::ptree renderablesNode; // array node for all renderables
+    bs::ptree aisNode; // array node for all renderables
 
     for (size_t i = 0; i < renderables->size(); i++)
     {
-        auto& r = renderables->at(i);
+        auto r = renderables->at(i);
+        if (auto* serializable = dynamic_cast<Serializable*>(r))
+        {
+            bs::ptree renderableNode;
 
-        bs::ptree renderableNode;
+            // ID
+            renderableNode.put("assetId", r->GetGuid());
 
-        // ID
-        renderableNode.put("id", r->GetGuid());
+            // Transform object
+            bs::ptree transformNode;
 
-        // Transform object
-        bs::ptree transformNode;
+            // Translation
+            bs::ptree tNode;
+            auto t = r->GetPosition();
+            tNode.push_back(std::make_pair("", bs::ptree(std::to_string(t.x))));
+            tNode.push_back(std::make_pair("", bs::ptree(std::to_string(t.y))));
+            tNode.push_back(std::make_pair("", bs::ptree(std::to_string(t.z))));
+            transformNode.add_child("t", tNode);
 
-        // Translation
-        bs::ptree tNode;
-        auto t = r->GetPosition();
-        tNode.push_back(std::make_pair("", bs::ptree(std::to_string(t.x))));
-        tNode.push_back(std::make_pair("", bs::ptree(std::to_string(t.y))));
-        tNode.push_back(std::make_pair("", bs::ptree(std::to_string(t.z))));
-        transformNode.add_child("t", tNode);
+            // Rotation
+            bs::ptree rNode;
+            auto rot = r->GetRot();
+            rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.x))));
+            rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.y))));
+            rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.z))));
+            rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.w))));
+            transformNode.add_child("r", rNode);
 
-        // Rotation
-        bs::ptree rNode;
-        auto rot = r->GetRot();
-        rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.x))));
-        rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.y))));
-        rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.z))));
-        rNode.push_back(std::make_pair("", bs::ptree(std::to_string(rot.w))));
-        transformNode.add_child("r", rNode);
+            // Scale
+            bs::ptree sNode;
+            auto s = r->GetScale();
+            sNode.push_back(std::make_pair("", bs::ptree(std::to_string(s.x))));
+            sNode.push_back(std::make_pair("", bs::ptree(std::to_string(s.y))));
+            sNode.push_back(std::make_pair("", bs::ptree(std::to_string(s.z))));
+            transformNode.add_child("s", sNode);
 
-        // Scale
-        bs::ptree sNode;
-        auto s = r->GetScale();
-        sNode.push_back(std::make_pair("", bs::ptree(std::to_string(s.x))));
-        sNode.push_back(std::make_pair("", bs::ptree(std::to_string(s.y))));
-        sNode.push_back(std::make_pair("", bs::ptree(std::to_string(s.z))));
-        transformNode.add_child("s", sNode);
+            renderableNode.add_child("transform", transformNode);
 
-        renderableNode.add_child("transform", transformNode);
+            // Append to array
+            renderablesNode.add_child(serializable->getInstanceId(), renderableNode);
 
-        // Append to array
-        renderablesArray.push_back(std::make_pair("", renderableNode));
+        }
+    }
+
+    for (size_t i = 0; i < AIs.size(); i++)
+    {
+        auto ai = AIs[i];
+        if (auto* serializable = dynamic_cast<Serializable*>(ai))
+        {
+            bs::ptree aiNode;
+
+            // ID
+            aiNode.put("assetId", serializable->getAssetId());
+            // aiNode.put("renderableInstanceId", ai->GetCharacterGuid()); Lets serialize this in the AI file.
+            aisNode.add_child(serializable->getInstanceId(), aiNode);
+        }
     }
 
     // Add to root object
-    contentJSON.add_child("renderables", renderablesArray);
+    contentJSON.add_child("renderables", renderablesNode);
+    contentJSON.add_child("ais", aisNode);
 
     bs::write_json(contentFile.string(), contentJSON);
 }

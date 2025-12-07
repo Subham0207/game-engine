@@ -5,7 +5,8 @@
 Controls::PlayerController::PlayerController(std::string filename)
     : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
         isJumping(false), grounded(false), dodgeStart(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
-        inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f), filename(filename), isAiming(false), inputVectorLength(0.0f)
+        inputZWorld(0.0f), lookDirection(0.0f,0.0f,0.0f), filename(filename), isAiming(false), inputVectorLength(0.0f),
+        characterRotation(0.0f), characterPosition(0.0f,0.0f,0.0f)
 {
     cameraType = CameraType::TOP_DOWN;
 }
@@ -20,8 +21,7 @@ void Controls::PlayerController::setMovement(glm::vec3 dir)
     if(cameraType == CameraType::TOP_DOWN)
     {
         // this logic is also by default useful in applying the statemachine to AI
-        auto modelRotation = glm::mat3(modelTransform);
-        auto modelInverseRotation = glm::transpose(modelRotation);// character space
+        auto modelInverseRotation = glm::transpose(characterRotation);// character space
         glm::vec3 characterInputDirection = modelInverseRotation * dir;
 
         auto normCharacterInputDirection = glm::normalize(characterInputDirection);

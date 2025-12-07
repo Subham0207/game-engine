@@ -307,15 +307,6 @@ int openEditor() {
     auto outliner = new Outliner(*renderables);
     auto assetBrowser = new ProjectAsset::AssetBrowser();
 
-    auto aiCharacter = new Character("./EngineAssets/Aj.fbx");
-    aiCharacter->model->setTransform(glm::vec3(0.0f,3.0f,1.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
-    aiCharacter->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
-    auto playerController = aiCharacter->playerController;
-    aiCharacter->capsuleCollider->halfHeight = 2.0f;
-    getActiveLevel().addRenderable(aiCharacter);
-    auto ai = new AI::AI(playerController);
-    getUIState().ai = ai;
-
     glm::vec3 rayOrigin, rayDir;
 
     //GPULogger
@@ -406,7 +397,6 @@ int openEditor() {
         if(!getActiveLevel().isNavMeshSetup)
         {
             getActiveLevel().BuildLevelNavMesh();
-            auto startingPosition = aiCharacter->GetPosition();
             std::vector<float> outPath;
 
             // float start[3] = {0.0f, 0.0f, 0.0f};
@@ -427,7 +417,7 @@ int openEditor() {
 
         // getActiveLevel().renderLevelvertices(*activeCamera);
 
-        ai->Tick(deltaTime, aiCharacter->GetPosition());
+        getActiveLevel().tickAIs(deltaTime);
 
         lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
         lights->spotLights[0].evaluateShadowMap(mWindow);

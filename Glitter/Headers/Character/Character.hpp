@@ -114,7 +114,7 @@ public:
     }
 
     virtual std::string GetGuid() override {
-        return getGUID();
+        return getAssetId();
     }
 
     virtual void setIsSelected(bool isSelected) override
@@ -126,6 +126,11 @@ public:
         return isSelected;
     };
     bool isSelected = false;
+
+    void generateInstanceGuid()
+    {
+        generate_instance_guid();
+    }
 
 protected:
     virtual const std::string typeName() const override {return "character"; }

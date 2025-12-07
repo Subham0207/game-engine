@@ -2,10 +2,14 @@
 #include <Controls/PlayerController.hpp>
 #include <EngineState.hpp>
 #include <random>
+#include <Character/Character.hpp>
 
-AI::AI::AI(Controls::PlayerController* playerController)
+AI::AI::AI(Character* character, std::string filename)
 {
-    this->playerController = playerController;
+    this->playerController = character->playerController;
+    this->controlledCharacterInstanceId = character->getInstanceId();
+    this->filename = filename;
+    this->controlledCharacterInstanceId = "";
     targetDirection = glm::vec3(0.0f,0.0f,0.0f);
     targetDirChoosen = false;
     elapsedTime = 0.0f;
@@ -15,7 +19,7 @@ AI::AI::AI(Controls::PlayerController* playerController)
 void AI::AI::onStart()
 {
 }
-void AI::AI::Tick(float deltaTime, glm::vec3 pos)
+void AI::AI::Tick(float deltaTime)
 {
  //check if a target direction is choosen.
  //--- If yes, then pass that to playercontroller.
@@ -28,6 +32,7 @@ void AI::AI::Tick(float deltaTime, glm::vec3 pos)
         playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
         return;
     }
+    glm::vec3 pos = playerController->characterPosition;
     const float MAX_DT = 0.1f; // 100ms, ~10 FPS worst case
     if (deltaTime > MAX_DT) deltaTime = MAX_DT;
 
@@ -103,5 +108,37 @@ void AI::AI::calculatePath(glm::vec3 startingPos, glm::vec3 targetPos)
             outPath[i + 2]
         );
         path.push_back(node);
+    }
+}
+
+void AI::AI::saveContent(fs::path contentFileLocation, std::ostream &os)
+{
+    fs::path dir = contentFileLocation.parent_path();
+    if (dir.empty()) {
+        // Set the directory to the current working directory
+        dir = fs::current_path();
+    }
+    if (!fs::exists(dir)) {
+        if (!fs::create_directories(dir)) {
+            std::cerr << "Failed to create directories: " << dir << std::endl;
+            return;
+        }
+    }
+    std::ofstream ofs(contentFileLocation.string());
+    boost::archive::text_oarchive oa(ofs);
+    oa << *this;
+    ofs.close();
+}
+
+void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
+{
+    std::ifstream ifs(filename);
+    boost::archive::text_iarchive ia(ifs);
+    ia >> *this;
+    //use controlledCharacterInstanceId re-assign playerController.
+    // hook to character if present
+    if (auto* character = dynamic_cast<Character*>(getActiveLevel().instanceIdToSerializableMap[controlledCharacterInstanceId]))
+    {
+        playerController = character->playerController;
     }
 }

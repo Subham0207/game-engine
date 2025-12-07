@@ -12,8 +12,8 @@ namespace bs = boost::property_tree;
 
 void Serializable::save(fs::path &assetRoot)
 {
-    if(guid_.empty())
-        generate_guid();
+    if(asset_guid_.empty())
+        generate_asset_guid();
     // 1) ensure folder exists
     fs::create_directories(assetRoot);
 
@@ -33,26 +33,38 @@ void Serializable::save(fs::path &assetRoot)
 
     // 4) write meta (parent-owned)
     bs::ptree meta;
-    meta.put("guid", guid_);
+    meta.put("guid", asset_guid_);
     meta.put("type", typeName());
     meta.put("version", version_);
     meta.put("content.relative_path", contentFile.filename().string());
 
-    const fs::path metaFile = assetRoot / (guid_ +  ".meta.json");
+    const fs::path metaFile = assetRoot / (asset_guid_ +  ".meta.json");
     write_json(metaFile.string(), meta);
 
-    EngineState::state->engineRegistry->update(guid_, contentFile.string());
+    EngineState::state->engineRegistry->update(asset_guid_, contentFile.string());
 }
 
-void Serializable::generate_guid()
+void Serializable::generate_asset_guid()
 {
-    guid_ = boost::uuids::to_string(boost::uuids::random_generator()());
+    asset_guid_ = boost::uuids::to_string(boost::uuids::random_generator()());
 }
 
-std::string Serializable::getGUID()
+void Serializable::generate_instance_guid()
 {
-    return guid_;
+    instance_guid_ = boost::uuids::to_string(boost::uuids::random_generator()());
 }
+
+std::string Serializable::getAssetId()
+{
+    return asset_guid_;
+}
+
+std::string Serializable::getInstanceId()
+{
+    return instance_guid_;
+}
+
+void Serializable::setInstanceId(std::string id){instance_guid_ = id;}
 
 void Serializable::load(fs::path& assetRoot, std::string filename) {
 
@@ -62,7 +74,7 @@ void Serializable::load(fs::path& assetRoot, std::string filename) {
     read_json(metaFile.string(), meta);
     
     // (Optionally) validate type/version here
-    guid_ = meta.get<std::string>("guid");
+    asset_guid_ = meta.get<std::string>("guid");
     
     // 2) load content (child only reads its payload)
     const fs::path contentRel = meta.get<std::string>("content.relative_path");
@@ -78,9 +90,9 @@ void Serializable::load(fs::path& assetRoot, std::string filename) {
 void Serializable::deleteFile()
 {
     auto filesMap = getEngineRegistryFilesMap();
-    auto assetRoot = fs::path(filesMap[guid_]).parent_path();
+    auto assetRoot = fs::path(filesMap[asset_guid_]).parent_path();
 
-    const fs::path metaFile = fs::path(EngineState::state->currentActiveProjectDirectory) / assetRoot / (guid_ + ".meta.json");
+    const fs::path metaFile = fs::path(EngineState::state->currentActiveProjectDirectory) / assetRoot / (asset_guid_ + ".meta.json");
     bs::ptree meta;
     read_json(metaFile.string(), meta);
 

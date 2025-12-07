@@ -2,6 +2,11 @@
 #include <filesystem>
 #include <Controls/statemachine.hpp>
 namespace fs = std::filesystem;
+class Character;
+namespace AI
+{
+    class AI;
+}
 
 const int MAX_PROJECTS = 5;
 
@@ -14,3 +19,7 @@ void update_recent_projects_list(const fs::path& projects_file_path, const fs::p
 Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory);
 
 int create_new_project(const std::string& currentDir, const std::string& projectName);
+
+Character* addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory);
+
+AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter);

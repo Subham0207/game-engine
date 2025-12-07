@@ -113,7 +113,7 @@ public:
     }
 
     virtual std::string GetGuid() override {
-        return getGUID();
+        return getAssetId();
     }
 
     void setTransform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)

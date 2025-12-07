@@ -18,7 +18,7 @@ struct BlendPoint {
 
     BlendPoint()=default;
     BlendPoint(glm::vec2 pos, Animation* animation){
-        animationGuid = animation ? animation->getGUID(): "";
+        animationGuid = animation ? animation->getAssetId(): "";
         position = pos;
         this->animation = animation;
     }
@@ -50,7 +50,7 @@ public:
     BlendSpace2D(std::string blendspaceName){
         blendPoints = std::vector<BlendPoint>();
         this->blendspaceName = blendspaceName;
-        generate_guid();
+        generate_asset_guid();
     };
     
     void AddBlendPoint(glm::vec2 pos, Animation* anim) {
