@@ -2,6 +2,7 @@
 #include <UI/CharacterUI.hpp>
 #include <UI/StatemachineUI.hpp>
 #include <UI/PropertiesPanel.hpp>
+#include <UI/AI_UI.hpp>
 
 ProjectAsset::UIState::UIState()
 {
@@ -11,4 +12,5 @@ ProjectAsset::UIState::UIState()
     propretiesPanel = new UI::PropertiesPanel();
     ai = nullptr;
     renderNavMesh = false;
+    ai_ui_state = new UI::AI_UI();
 }

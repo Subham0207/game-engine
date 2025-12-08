@@ -20,6 +20,7 @@ namespace UI
 {
     class CharacterUI;
     class StatemachineUI;
+    class AI_UI;
     class PropertiesPanel;
 };
 
@@ -89,6 +90,7 @@ namespace ProjectAsset {
         UI::CharacterUI* characterUIState;
         UI::Blendspace2DUI* blendspace2DUIState;
         UI::StatemachineUI* statemachineUIState;
+        UI::AI_UI* ai_ui_state;
 
         UI::PropertiesPanel* propretiesPanel;
 
