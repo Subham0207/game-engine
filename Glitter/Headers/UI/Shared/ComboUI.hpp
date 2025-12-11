@@ -3,5 +3,5 @@
 #include <map>
 
 namespace UI::Shared{
-    bool comboUI(std::string label, int &selectedIndex, std::map<std::string, std::string> filesMap);
+    bool comboUI(const char* label, int &selectedIndex, std::vector<std::string> &options);
 }

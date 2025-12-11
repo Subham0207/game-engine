@@ -12,9 +12,14 @@
 #include <Controls/statemachine.hpp>
 namespace fs = std::filesystem;
 
+namespace AI
+{
+    class AI;
+}
+
 class EngineState{
 public:
-    EngineState(){}
+    EngineState();
     static EngineState* state;
     glm::vec3 v0;
     glm::vec3 v1;
@@ -50,6 +55,7 @@ public:
 
     int activePlayerControllerId = 0;
     std::vector<Controls::PlayerController*> playerControllers = std::vector<Controls::PlayerController*>();
+    std::vector<AI::AI*> ais;
     std::vector<Controls::StateMachine*> statemachines = std::vector<Controls::StateMachine*>();
 
     ProjectAsset::UIState uiState = ProjectAsset::UIState();

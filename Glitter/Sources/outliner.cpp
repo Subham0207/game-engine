@@ -238,7 +238,13 @@ void Outliner::levelControlsComponent(Level &lvl)
          &EngineState::state->activePlayerControllerId,
           cPlayerControllerNames.data(),
            cPlayerControllerNames.size())) {
-    }   
+    }
+    
+    ImGui::Text("--------AIs-------------");
+        for (auto ai : EngineState::state->ais) {
+            ImGui::Text(ai->contentName().c_str());
+        }
+    ImGui::Text("------------------------");
 
 
     ImGui::Text("Navmesh debug");

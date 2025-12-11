@@ -15,6 +15,8 @@ AI::AI::AI(Character* character, std::string filename): Serializable()
     elapsedTime = 0.0f;
     arrivalRadius = 0.1f; // keep it bigger than or equal to max_step = speed * dt;
     currentPathIndex = 0;
+
+    EngineState::state->ais.push_back(this);
 }
 void AI::AI::onStart()
 {
@@ -142,6 +144,8 @@ void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
         playerController = character->playerController;
         character->setCameraType(CameraType::TOP_DOWN);
     }
+
+    EngineState::state->ais.push_back(this);
 
     //attach temp ui
     getUIState().ai = this;

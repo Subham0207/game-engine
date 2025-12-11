@@ -24,10 +24,10 @@ namespace AI
 
         std::string getCharacterInstanceId(){return controlledCharacterInstanceId;}
         void setCharacterInstanceId(std::string controlledCharacterInstanceId){this->controlledCharacterInstanceId=controlledCharacterInstanceId;}
+        virtual const std::string contentName() override {return filename; }
 
     protected:
         virtual const std::string typeName() const override {return "AI"; }
-        virtual const std::string contentName() override {return filename; }
 
         virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
         virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;

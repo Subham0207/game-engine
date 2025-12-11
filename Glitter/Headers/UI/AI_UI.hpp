@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 namespace UI
 {
@@ -11,5 +12,7 @@ namespace UI
             bool showUI;
         private:
             std::string filename;
+            std::vector<std::string> charactersList;
+            int selectedCharacterFromList;
     };
 }
