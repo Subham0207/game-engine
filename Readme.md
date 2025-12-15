@@ -58,3 +58,9 @@ OpenGL Function Loader  | [glad](https://github.com/Dav1dde/glad)
 Windowing and Input     | [glfw](https://github.com/glfw/glfw)
 OpenGL Mathematics      | [glm](https://github.com/g-truc/glm)
 Texture Loading         | [stb](https://github.com/nothings/stb)
+
+
+
+## Running on Clion
+Use these flags in cmake settings. i.e. set generator to vs 2022 and google test option to run MDD and MTD runtimes.
+`-G "Visual Studio 17 2022" -Dgtest_force_shared_crt=ON`

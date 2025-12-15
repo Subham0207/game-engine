@@ -460,12 +460,14 @@ int openEditor() {
         auto getSelectedIndex = outliner->GetSelectedIndex();
         rayCastshader->use();
         (*activeCamera)->updateMVP(rayCastshader->ID);
+        auto view = InputHandler::currentInputHandler->m_Camera->viewMatrix();
+        auto proj = InputHandler::currentInputHandler->m_Camera->projectionMatrix();
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             InputHandler::currentInputHandler->lastX,
             InputHandler::currentInputHandler->lastY,
             *lvlrenderables,
-            InputHandler::currentInputHandler->m_Camera->viewMatrix(),
-            InputHandler::currentInputHandler->m_Camera->projectionMatrix(),
+            view,
+            proj,
             rayCastshader->ID,
             rayOrigin,
             rayDir,
