@@ -1,5 +1,10 @@
+#pragma once
 #include <string>
 #include <vector>
+
+#include "Shared/EditableText.hpp"
+
+class Character;
 
 namespace UI
 {
@@ -11,8 +16,11 @@ namespace UI
             void draw();
             bool showUI;
         private:
-            std::string filename;
+            void save() const;
+
+            Shared::EditableText filename;
             std::vector<std::string> charactersList;
+            std::vector<Character*> characters;
             int selectedCharacterFromList;
     };
 }
