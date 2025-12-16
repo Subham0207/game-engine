@@ -130,6 +130,8 @@ void AI::AI::saveContent(fs::path contentFileLocation, std::ostream &os)
     boost::archive::text_oarchive oa(ofs);
     oa << *this;
     ofs.close();
+
+    getActiveLevel().AIs.push_back(this);
 }
 
 void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)

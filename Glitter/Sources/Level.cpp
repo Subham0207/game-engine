@@ -40,8 +40,8 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
         // Iterate over "renderables" array
         const bs::ptree& renderablesNode = levelContent.get_child("renderables");
-        for (const auto& kv : renderablesNode) {
-
+        for (const auto& kv : renderablesNode)
+        {
             const std::string instanceId = kv.first;
             const bs::ptree &renderable = kv.second;
 
@@ -61,11 +61,12 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
             auto contentFilePath = fs::path(filesMap[id]);
             std::string extension = contentFilePath.extension().string();
+            auto path =contentFilePath.parent_path();
 
             if(extension ==  ".model")
             {
                 auto model = new Model();
-                model->load(contentFilePath.parent_path(), id);
+                model->load(path, id);
                 model->setModelMatrix(M);
                 model->setInstanceId(instanceId);
                 auto filename = contentFilePath.stem().filename().string();
@@ -76,14 +77,12 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             if(extension ==  ".character")
             {
                 auto character = new Character();
-                character->load(contentFilePath.parent_path(), id);
+                character->load(path, id);
                 character->setModelMatrix(M);
                 character->setInstanceId(instanceId);
                 this->renderables->push_back(character);
                 instanceIdToSerializableMap[instanceId] = character;
             }
-
-
         }
 
         const bs::ptree& aisNode = levelContent.get_child("ais");
@@ -95,7 +94,8 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
             auto aiContentFilePath = fs::path(filesMap[id]);
             auto ai = new AI::AI();
-            ai->load(aiContentFilePath.parent_path(), id);
+            auto path = aiContentFilePath.parent_path();
+            ai->load(path, id);
             ai->setInstanceId(aiEntityId);
 
             this->AIs.push_back(ai);

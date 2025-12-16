@@ -241,7 +241,7 @@ void Outliner::levelControlsComponent(Level &lvl)
     }
     
     ImGui::Text("--------AIs-------------");
-        for (auto ai : EngineState::state->ais) {
+        for (const auto ai : getActiveLevel().AIs) {
             ImGui::Text(ai->contentName().c_str());
         }
     ImGui::Text("------------------------");
