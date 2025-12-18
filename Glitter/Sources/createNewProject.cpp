@@ -217,6 +217,8 @@ int create_new_project(const std::string& currentDir, const std::string& project
 
     write_text(root / "Project.manifest.json", manifest);
 
+    GenerateLuaLSConfig(root);
+
     update_recent_projects_list(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json", root);
 
     delete lvl;
@@ -251,4 +253,43 @@ AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter)
     ai->save(root / "Assets");
     // getUIState().ai = ai;
     return ai;
+}
+
+void GenerateLuaLSConfig(const fs::path& projectRoot)
+{
+    const fs::path luarcPath = projectRoot / ".luarc.json";
+
+    // Use relative paths so the folder works when moved/zipped.
+    const std::string luarc = R"JSON(
+{
+  "runtime": {
+    "version": "Lua 5.4",
+    "path": [
+      "?.lua",
+      "?/init.lua",
+      "Assets/Scripts/?.lua",
+      "Assets/Scripts/?/init.lua"
+    ]
+  },
+  "workspace": {
+    "library": [
+      "Assets/Scripts",
+      "EngineAPI"
+    ],
+    "checkThirdParty": false
+  },
+  "diagnostics": {
+    "globals": ["Engine", "Scene", "Input", "Time", "Log"]
+  },
+  "hint": {
+    "enable": true
+  }
+}
+)JSON";
+
+    Shared::WriteTextFile(luarcPath, luarc);
+
+    // Optional: also ensure stub folder exists
+    fs::create_directories(projectRoot / "EngineAPI");
+    fs::create_directories(projectRoot / "Assets/Scripts");
 }

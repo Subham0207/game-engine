@@ -23,3 +23,5 @@ int create_new_project(const std::string& currentDir, const std::string& project
 Character* addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory);
 
 AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter);
+
+void GenerateLuaLSConfig(const fs::path& projectRoot);

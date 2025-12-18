@@ -1,5 +1,7 @@
-#include <string.h>
-#include <iostream>
+#pragma once
+#include <string>
+#include <filesystem>
+namespace fs = std::filesystem;
 namespace Shared {
     unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
 
@@ -15,4 +17,6 @@ namespace Shared {
     void readAnimation(std::string filename);
 
     bool endsWith(const std::string& value, const std::string& ending);
+
+    void WriteTextFile(const fs::path& p, const std::string& s);
 }

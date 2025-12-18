@@ -73,6 +73,13 @@ unsigned int Shared::generateFlatNormalTexture()
     return Shared::generateTexture(pixel);
 }
 
+void Shared::WriteTextFile(const fs::path& p, const std::string& s)
+{
+    fs::create_directories(p.parent_path());
+    std::ofstream out(p, std::ios::binary);
+    out.write(s.data(), static_cast<std::streamsize>(s.size()));
+}
+
 unsigned int Shared::generateTexture(unsigned char* pixel)
 {
 unsigned int emptyTexture;
