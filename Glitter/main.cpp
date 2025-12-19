@@ -198,6 +198,8 @@ int openEditor() {
         std::cerr << "Failed to get current working directory." << std::endl;
     }
 
+    LuaRegistry::SetupLua(EngineState::state->luaEngine->state(), EngineState::state->currentActiveProjectDirectory);
+
     // Load GLFW and Create a Window
     initAWindow();
     imguiBackend();

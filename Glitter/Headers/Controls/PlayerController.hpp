@@ -8,11 +8,15 @@
 #include <glm/gtc/quaternion.hpp>
 #include <LuaEngine/LuaEngine.hpp>
 #include <Helpers/shader.hpp>
+
+#include "LuaEngine/LuaRegistry.hpp"
+#include "LuaEngine/LuaClassBuilder.hpp"
+#include "LuaEngine/RegisterBinding.hpp"
 enum CameraType;
 
 namespace Controls
 {
-    class PlayerController
+    class PlayerController: public RegisterBinding
     {        
     public:
         PlayerController(std::string filename);
@@ -125,6 +129,21 @@ namespace Controls
             "grounded", &PlayerController::grounded,
             "dodgeStart", &PlayerController::dodgeStart
         );
+    }
+
+    static void RegisterEngineAPI(LuaRegistry& reg)
+    {
+        // PlayerController
+        reg.beginClass<PlayerController>("PlayerController")
+            .field("movementSpeed", &PlayerController::movementSpeed, "number")
+            .method("setMovement", &PlayerController::setMovement,
+                    "fun(self: PlayerController, dir: Vec3)", "Sets desired movement direction")
+            .property_readonly("aiming", &PlayerController::isAiming,
+                    "boolean", "True if aiming");
+
+        // Globals (stub-side)
+        reg.addGlobal("Engine", "Engine");
+        reg.addGlobal("Scene", "Scene");
     }
 
     };

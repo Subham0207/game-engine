@@ -8,8 +8,11 @@
 #include <typeindex>
 
 #include "ILuaClassDef.hpp"
+#include "LuaClassBuilder.hpp"
 #include "luaStubs.hpp"
+#include "RegisterBinding.hpp"
 #include "sol/sol.hpp"
+namespace fs = std::filesystem;
 
 class LuaRegistry {
 public:
@@ -23,7 +26,10 @@ public:
     LuaRegistry& operator=(LuaRegistry&&) noexcept = default;
 
     template <class T>
-    LuaClassStub& beginClass(const std::string& luaName);
+    LuaClassBuilder<T> beginClass(const std::string& luaName);
+
+    template <typename T, typename... Ctors>
+    LuaClassBuilder<T> beginClass(const std::string& luaName, sol::constructors<Ctors...>);
 
     LuaRegistry& addGlobal(const std::string& name, const std::string& type, const std::string& doc = {});
 
@@ -32,6 +38,10 @@ public:
 
     // binding application
     void apply(sol::state& lua) const;
+
+    static void writeLuaRC(const fs::path& projectRoot) ;
+
+    static void SetupLua(sol::state& lua, const std::filesystem::path& projectRoot);
 private:
     std::unordered_map<std::type_index, std::unique_ptr<ILuaClassDef>> m_classes;
     std::vector<std::type_index> m_classOrder;

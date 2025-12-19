@@ -5,23 +5,41 @@
 
 #include "EngineState.hpp"
 #include "Helpers/Shared.hpp"
-#include "LuaEngine/LuaClassBuilder.hpp"
 #include "LuaEngine/LuaClassDef .hpp"
 
-template <class T>
-LuaClassStub& LuaRegistry::beginClass(const std::string& luaName)
+// ---- no-ctor class
+template <typename T>
+LuaClassBuilder<T> LuaRegistry::beginClass(const std::string& luaName)
 {
     auto key = std::type_index(typeid(T));
     if (m_classes.find(key) != m_classes.end())
         throw std::runtime_error("Class already registered: " + luaName);
 
-    // Factory: no constructor
-    auto factory = +[](sol::state& lua, const std::string& name) -> sol::usertype<T> {
+    auto factory = [](sol::state& lua, const std::string& name) -> sol::usertype<T> {
         return lua.new_usertype<T>(name, sol::no_constructor);
     };
 
     auto def = std::make_unique<LuaClassDef<T>>(luaName, factory);
-    LuaClassDef<T>* raw = def.get();
+    auto* raw = def.get();
+    m_classOrder.push_back(key);
+    m_classes.emplace(key, std::move(def));
+    return LuaClassBuilder<T>(raw);
+}
+
+// ---- ctor class
+template <typename T, typename... Ctors>
+LuaClassBuilder<T> LuaRegistry::beginClass(const std::string& luaName, sol::constructors<Ctors...>)
+{
+    auto key = std::type_index(typeid(T));
+    if (m_classes.find(key) != m_classes.end())
+        throw std::runtime_error("Class already registered: " + luaName);
+
+    auto factory = [](sol::state& lua, const std::string& name) -> sol::usertype<T> {
+        return lua.new_usertype<T>(name, sol::constructors<Ctors...>{});
+    };
+
+    auto def = std::make_unique<LuaClassDef<T>>(luaName, factory);
+    auto* raw = def.get();
     m_classOrder.push_back(key);
     m_classes.emplace(key, std::move(def));
     return LuaClassBuilder<T>(raw);
@@ -89,4 +107,52 @@ void LuaRegistry::apply(sol::state& lua) const
         const auto& it = m_classes.find(key);
         it->second->apply(lua);
     }
+}
+
+void LuaRegistry::writeLuaRC(const fs::path& projectRoot)
+{
+    const fs::path luarc = projectRoot / ".luarc.json";
+
+    // Adjust these paths to your project layout
+    const std::string json = R"JSON(
+{
+  "runtime": {
+    "version": "Lua 5.4",
+    "path": [
+      "?.lua",
+      "?/init.lua",
+      "Assets/Scripts/?.lua",
+      "Assets/Scripts/?/init.lua"
+    ]
+  },
+  "workspace": {
+    "library": [
+      "Assets/Scripts",
+      "EngineAPI"
+    ],
+    "checkThirdParty": false
+  },
+  "diagnostics": {
+    "globals": ["Engine", "Scene", "Input", "Time", "Log"]
+  },
+  "hint": {
+    "enable": true
+  }
+}
+)JSON";
+
+    Shared::WriteTextFile(luarc, json);
+}
+
+void LuaRegistry::SetupLua(sol::state& lua, const std::filesystem::path& projectRoot)
+{
+    LuaRegistry reg;
+
+    Controls::PlayerController::RegisterEngineAPI(reg);
+
+    // Bind into Lua runtime
+    reg.apply(lua);
+
+    reg.writeLuaRC(projectRoot);
+    reg.writeStubs(projectRoot);
 }
