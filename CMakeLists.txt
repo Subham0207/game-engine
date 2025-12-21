@@ -207,3 +207,12 @@ add_custom_command(TARGET ProjectManager POST_BUILD
           "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll"
           "$<TARGET_FILE_DIR:ProjectManager>/"
 )
+
+if(MSVC)
+    foreach(tgt GlitterLib Editor ProjectManager)
+        set_target_properties(${tgt} PROPERTIES
+                PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>"
+                COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>"
+        )
+    endforeach()
+endif()
