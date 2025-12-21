@@ -5,6 +5,10 @@
 #include <glad/glad.h>
 #include <3DModel/Animation/Animation.hpp>
 #include <EngineState.hpp>
+#include "Helpers/glitter.hpp"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 namespace Shared{
         unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents){
@@ -113,4 +117,79 @@ void Shared::readAnimation(std::string filename)
 bool Shared::endsWith(const std::string& value, const std::string& ending) {
     if (ending.size() > value.size()) return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+int Shared::initAWindow(GLFWwindow* window)
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+    mWidth = mode->width;
+    mHeight = mode->height;
+    window = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
+
+    // Check for Valid Context
+    if (window == nullptr) {
+        fprintf(stderr, "Failed to Create OpenGL Context");
+        return EXIT_FAILURE;
+    }
+
+    // Create Context and Load OpenGL Functions
+    glfwMakeContextCurrent(window);
+    gladLoadGL();
+    fprintf(stderr, "OpenGL %s\n", glGetString(GL_VERSION));
+
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    return EXIT_SUCCESS;
+}
+
+void Shared::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    // Adjust viewport when the window is resized
+    mWidth = width;
+    mHeight = height;
+    glViewport(0, 0, width, height);
+}
+
+void Shared::initImguiBackend(GLFWwindow* window)
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your GLSL version
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+}
+
+void APIENTRY Shared::glDebugOutput(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
+{
+    // Only keep HIGH severity
+    if (severity != GL_DEBUG_SEVERITY_HIGH) return;
+
+    static std::unordered_set<GLuint> g_seenIds;
+
+    // Optional: ignore known noisy IDs (examples vary by driver)
+    // if (id == 131185 || id == 131204) return;
+
+    auto [_, inserted] = g_seenIds.insert(id);
+    if (!inserted) return; // already logged this ID
+
+    std::cerr << "\n=== OpenGL HIGH severity ===\n"
+              << "ID: " << id << "\n"
+              << "Source: " << source << "  Type: " << type << "\n"
+              << "Msg: " << message << "\n"
+              << "============================\n";
 }

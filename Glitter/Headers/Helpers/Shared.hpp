@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 #include <filesystem>
+
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 namespace fs = std::filesystem;
 namespace Shared {
     unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents);
@@ -19,4 +22,12 @@ namespace Shared {
     bool endsWith(const std::string& value, const std::string& ending);
 
     void WriteTextFile(const fs::path& p, const std::string& s);
+
+    void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
+    int initAWindow(GLFWwindow* window);
+
+    void initImguiBackend(GLFWwindow* window);
+
+    void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);
 }

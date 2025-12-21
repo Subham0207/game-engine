@@ -20,12 +20,17 @@ namespace AI
 class EngineState{
 public:
     EngineState();
-    static EngineState* state;
-    glm::vec3 v0;
-    glm::vec3 v1;
-    glm::vec3 v2;
 
-    glm::vec3 rayEnd;
+    float deltaTime = 0.0f;	// Time between current frame and last frame
+    float lastFrame = 0.0f; // Time of last frame
+    GLFWwindow *mWindow;
+
+    static EngineState* state;
+    glm::vec3 v0{};
+    glm::vec3 v1{};
+    glm::vec3 v2{};
+
+    glm::vec3 rayEnd{};
 
     bool isWorldSpace = true;
 

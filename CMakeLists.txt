@@ -50,7 +50,7 @@ include_directories(Glitter/Headers/
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB_RECURSE PROJECT_HEADERS Glitter/Headers/*.hpp)
-file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp Glitter/main.cpp)
+file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
                           Glitter/Shaders/*.geom
@@ -97,42 +97,34 @@ find_package(Boost 1.89.0 REQUIRED COMPONENTS serialization)
 
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                               ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES} ${IMGUI_IMPL_HEADERS} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_HEADERS} ${IMGUIZMO_IMPL_SOURCES})
 
-set(LUA_INCLUDE_DIR 
-    "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/include/" 
-    CACHE PATH "The path to the Lua headers" FORCE)
-set(LUA_LIBRARY 
-    "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.lib" 
-    CACHE FILEPATH "The full path to the Lua library file" FORCE)
-set(LUA_DLL 
-    "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll" 
-    CACHE FILEPATH "The full path to the Lua library file" FORCE)
+
+set(LUA_INCLUDE_DIR
+        "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/include/"
+        CACHE PATH "The path to the Lua headers" FORCE)
+set(LUA_LIBRARY
+        "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.lib"
+        CACHE FILEPATH "The full path to the Lua library file" FORCE)
+set(LUA_DLL
+        "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll"
+        CACHE FILEPATH "The full path to the Lua library file" FORCE)
 
 if (NOT TARGET Lua::Lua)
-  add_library(Lua::Lua SHARED IMPORTED)
-  set_target_properties(Lua::Lua PROPERTIES
-    IMPORTED_LOCATION                   "${LUA_DLL}"
-    IMPORTED_IMPLIB               "${LUA_LIBRARY}"
-    INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
-  )
+    add_library(Lua::Lua SHARED IMPORTED)
+    set_target_properties(Lua::Lua PROPERTIES
+            IMPORTED_LOCATION                   "${LUA_DLL}"
+            IMPORTED_IMPLIB               "${LUA_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}"
+    )
 endif()
 
 include(FetchContent)
 FetchContent_Declare(
-  sol2
-  GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-  GIT_TAG        v3.3.0
+        sol2
+        GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+        GIT_TAG        v3.3.0
 )
 FetchContent_MakeAvailable(sol2)
-
-target_include_directories(${PROJECT_NAME} 
-    PRIVATE 
-    ${Boost_INCLUDE_DIRS}
-    ${LUA_INCLUDE_DIR}
-)
 
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
 set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
@@ -140,9 +132,9 @@ set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(RECASTNAVIGATION_DEBUGUTILS OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
-    recast
-    GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation.git
-    GIT_TAG v1.6.0
+        recast
+        GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation.git
+        GIT_TAG v1.6.0
 )
 
 FetchContent_MakeAvailable(recast)
@@ -153,82 +145,65 @@ if (NOT recast_POPULATED)
 endif()
 
 set(RECASTNAVIGATION_INCLUDE_DIRS
-    ${recast_SOURCE_DIR}/Recast/Include
-    ${recast_SOURCE_DIR}/Detour/Include
-    ${recast_SOURCE_DIR}/DetourCrowd/Include
-    ${recast_SOURCE_DIR}/DetourTileCache/Include
+        ${recast_SOURCE_DIR}/Recast/Include
+        ${recast_SOURCE_DIR}/Detour/Include
+        ${recast_SOURCE_DIR}/DetourCrowd/Include
+        ${recast_SOURCE_DIR}/DetourTileCache/Include
 )
 
-  target_include_directories(${PROJECT_NAME}
-      PRIVATE
-      ${RECASTNAVIGATION_INCLUDE_DIRS}
-  )
-
-target_link_libraries(${PROJECT_NAME} assimp glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-                      BulletDynamics BulletCollision LinearMath
-                      Jolt::Jolt
-                      Boost::serialization
-                      Lua::Lua
-                      sol2::sol2
-
-                        Recast
-                        Detour
-                        DetourCrowd
-                        DetourTileCache
-                      )
-
-list(REMOVE_ITEM PROJECT_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/main.cpp)
-
-add_library(GlitterLib ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-${IMGUI_IMPL_HEADERS} ${IMGUIZMO_IMPL_HEADERS} ${VENDORS_SOURCES})
+add_library(GlitterLib ${PROJECT_SOURCES}
+        ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
+          ${VENDORS_SOURCES} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_SOURCES})
 
 target_include_directories(GlitterLib
-    PUBLIC 
-    ${Boost_INCLUDE_DIRS}
-    ${LUA_INCLUDE_DIR}      
-)
-
-target_include_directories(GlitterLib
-    PRIVATE
-    ${RECASTNAVIGATION_INCLUDE_DIRS}
+        PUBLIC
+        ${PROJECT_HEADERS}
+        ${IMGUI_IMPL_HEADERS}
+        ${IMGUIZMO_IMPL_HEADERS}
+        ${Boost_INCLUDE_DIRS}
+        ${LUA_INCLUDE_DIR}
+        ${RECASTNAVIGATION_INCLUDE_DIRS}
 )
 
 target_link_libraries(GlitterLib assimp glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-                      BulletDynamics BulletCollision LinearMath
-                      Jolt::Jolt
-                      Boost::serialization
-                      Lua::Lua
-                      sol2::sol2
-                      )
+        ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
+        BulletDynamics BulletCollision LinearMath
+        Jolt::Jolt
+        Boost::serialization
+        Lua::Lua
+        sol2::sol2
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
+        Recast
+        Detour
+        DetourCrowd
+        DetourTileCache
+)
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Glitter/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    DEPENDS ${PROJECT_SHADERS})
+add_executable(Editor Glitter/editorMain.cpp)
+
+target_link_libraries(Editor PRIVATE GlitterLib)
+
+add_executable(ProjectManager Glitter/main.cpp)
+
+target_link_libraries(ProjectManager PRIVATE GlitterLib)
 
 add_subdirectory(Tests)
 
-add_custom_command(TARGET Glitter POST_BUILD
+add_custom_command(TARGET ProjectManager POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
           "${CMAKE_SOURCE_DIR}/EngineAssets"
-          "$<TARGET_FILE_DIR:Glitter>/EngineAssets"
+          "$<TARGET_FILE_DIR:ProjectManager>/EngineAssets"
 )
 
-add_custom_command(TARGET Glitter POST_BUILD
+add_custom_command(TARGET ProjectManager POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_directory
           "${CMAKE_SOURCE_DIR}/Glitter/Shaders"
-          "$<TARGET_FILE_DIR:Glitter>/Shaders"
+          "$<TARGET_FILE_DIR:ProjectManager>/Shaders"
 )
 
 # copy lua dll into exe directory
-add_custom_command(TARGET Glitter POST_BUILD
+add_custom_command(TARGET ProjectManager POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
           "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll"
-          "$<TARGET_FILE_DIR:Glitter>/"
+          "$<TARGET_FILE_DIR:ProjectManager>/"
 )
