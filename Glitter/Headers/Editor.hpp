@@ -10,8 +10,6 @@ class Editor
 {
 public:
     int openEditor();
-private:
-    GLFWwindow* mWindow = nullptr;
 };
 
 

@@ -119,7 +119,7 @@ bool Shared::endsWith(const std::string& value, const std::string& ending) {
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-int Shared::initAWindow(GLFWwindow* window)
+GLFWwindow* Shared::initAWindow()
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -134,12 +134,12 @@ int Shared::initAWindow(GLFWwindow* window)
 
     mWidth = mode->width;
     mHeight = mode->height;
-    window = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
 
     // Check for Valid Context
     if (window == nullptr) {
         fprintf(stderr, "Failed to Create OpenGL Context");
-        return EXIT_FAILURE;
+        return nullptr;
     }
 
     // Create Context and Load OpenGL Functions
@@ -150,7 +150,7 @@ int Shared::initAWindow(GLFWwindow* window)
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    return EXIT_SUCCESS;
+    return window;
 }
 
 void Shared::framebuffer_size_callback(GLFWwindow* window, int width, int height) {

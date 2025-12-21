@@ -57,7 +57,8 @@ int Editor::openEditor() {
     LuaRegistry::SetupLua(EngineState::state->luaEngine->state(), EngineState::state->currentActiveProjectDirectory);
 
     // Load GLFW and Create a Window
-    Shared::initAWindow(mWindow);
+    auto mWindow = EngineState::state->mWindow;
+    mWindow = Shared::initAWindow();
     Shared::initImguiBackend(mWindow);
     EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();

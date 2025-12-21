@@ -25,7 +25,7 @@ namespace Shared {
 
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    int initAWindow(GLFWwindow* window);
+    GLFWwindow* initAWindow();
 
     void initImguiBackend(GLFWwindow* window);
 

@@ -47,7 +47,7 @@ int main(int argc, char * argv[])
         infile.close();
     }
 
-    Shared::initAWindow(EngineState::state->mWindow);
+    EngineState::state->mWindow = Shared::initAWindow();
 
     Shared::initImguiBackend(EngineState::state->mWindow);
 
