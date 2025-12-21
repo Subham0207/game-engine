@@ -33,23 +33,7 @@ else()
     endif()
 endif()
 
-include_directories(Glitter/Headers/
-                    Glitter/Vendor/assimp/include/
-                    Glitter/Vendor/bullet/src/
-                    Glitter/Vendor/glad/include/
-                    Glitter/Vendor/glfw/include/
-                    Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/
-                    Glitter/Vendor/imgui/
-                    Glitter/Vendor/imgui/backends/
-                    Glitter/Vendor/imguizmo/
-                    Glitter/DepsHeaderAndLibs/Headers/
-                    Glitter/serializations/
-                    Glitter/Vendor/JoltPhysics/Jolt/
-                    )
-
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
-file(GLOB_RECURSE PROJECT_HEADERS Glitter/Headers/*.hpp)
 file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
@@ -61,28 +45,16 @@ file(GLOB PROJECT_CONFIGS CMakeLists.txt
                          .gitignore
                          .gitmodules)
 
-file(GLOB IMGUI_IMPL_HEADERS 
-Glitter/Vendor/imgui/*.h
-Glitter/Vendor/imgui/backends/imgui_impl_glfw.h
-Glitter/Vendor/imgui/backends/imgui_impl_opengl3.h
-)
-
 file(GLOB IMGUI_IMPL_SOURCES
 Glitter/Vendor/imgui/*.cpp
 Glitter/Vendor/imgui/backends/imgui_impl_glfw.cpp
 Glitter/Vendor/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-file(GLOB IMGUIZMO_IMPL_HEADERS 
-Glitter/Vendor/imguizmo/*.h
-)
 file(GLOB IMGUIZMO_IMPL_SOURCES
 Glitter/Vendor/imguizmo/*.cpp
 )
 
-                    
-
-source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
@@ -157,12 +129,25 @@ add_library(GlitterLib ${PROJECT_SOURCES}
 
 target_include_directories(GlitterLib
         PUBLIC
-        ${PROJECT_HEADERS}
-        ${IMGUI_IMPL_HEADERS}
-        ${IMGUIZMO_IMPL_HEADERS}
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo
         ${Boost_INCLUDE_DIRS}
         ${LUA_INCLUDE_DIR}
         ${RECASTNAVIGATION_INCLUDE_DIRS}
+
+        ${CMAKE_SOURCE_DIR}/Glitter/Headers/
+        ${CMAKE_SOURCE_DIR}/Glitter/serializations/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/bullet/src/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glfw/include/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt/
 )
 
 target_link_libraries(GlitterLib assimp glfw
@@ -183,7 +168,7 @@ add_executable(Editor Glitter/editorMain.cpp)
 
 target_link_libraries(Editor PRIVATE GlitterLib)
 
-add_executable(ProjectManager Glitter/main.cpp)
+add_executable(ProjectManager Glitter/projectManger.cpp)
 
 target_link_libraries(ProjectManager PRIVATE GlitterLib)
 
