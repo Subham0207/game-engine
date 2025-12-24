@@ -161,6 +161,33 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
     return animStateMachine;
 }
 
+void create_cmake_game_project(const std::string& projectDir, const std::string& projectName)
+{
+    fs::path root = fs::path(projectDir) / projectName;
+
+    //add cmakelist.txt
+    // using a "Template File" Approach via simple search-and-replace function to fill it out.
+
+    std::ifstream in(fs::path("E:/OpenGL/game-engine/Glitter/Headers/Helpers/cmakelist_project_template.txt").string());
+    std::ostringstream buffer;
+    buffer << in.rdbuf();
+
+    std::string content = buffer.str();
+
+    size_t pos;
+    while ((pos = content.find("{{PROJECT_NAME}}")) != std::string::npos) {
+        content.replace(pos, 16, projectName);
+    }
+
+    fs::path cmakelistfile_loc = root / "CMakeLists.txt"s;
+    std::ofstream out(cmakelistfile_loc);
+    out << content;
+
+    // (DONE) create a package out of your engine using cmake --install build --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake. [Later this figure out changes to have minimum accessors exposed in cmake]
+    // Then find_package cmd that we add to project's cmake can start using the engine lib/DLL files.
+    // update cmakelist.txt of engine to support install cmd.
+}
+
 int create_new_project(const std::string& currentDir, const std::string& projectName)
 {
     fs::path root = fs::path(currentDir) / projectName;
@@ -180,6 +207,9 @@ int create_new_project(const std::string& currentDir, const std::string& project
     fs::create_directories(root / "Library"); // cache/imports (ignore in VCS)
 
     EngineState::state->currentActiveProjectDirectory = root.string();
+
+
+    create_cmake_game_project(currentDir, projectName);
 
     // Manifest (keep it tiny; add fields as you grow)
     auto lvl = new Level();

@@ -4,7 +4,6 @@
 
 #ifndef GLITTER_EDITOR_HPP
 #define GLITTER_EDITOR_HPP
-#include "GLFW/glfw3.h"
 
 class Editor
 {

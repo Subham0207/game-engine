@@ -20,6 +20,8 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory);
 
 int create_new_project(const std::string& currentDir, const std::string& projectName);
 
+void create_cmake_game_project(const std::string& projectDir, const std::string& projectName);
+
 Character* addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory);
 
 AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter);

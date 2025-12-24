@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(Glitter)
+project(Glitter VERSION 0.1.0 LANGUAGES C CXX)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
@@ -11,13 +11,6 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(Glitter/Vendor/assimp)
 
-option(BUILD_BULLET2_DEMOS OFF)
-option(BUILD_CPU_DEMOS OFF)
-option(BUILD_EXTRAS OFF)
-option(BUILD_OPENGL3_DEMOS OFF)
-option(BUILD_UNIT_TESTS OFF)
-add_subdirectory(Glitter/Vendor/bullet)
-
 add_subdirectory(Glitter/Vendor/JoltPhysics/Build)
 
 enable_testing()
@@ -27,7 +20,7 @@ add_definitions(-DNOMINMAX)
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17")
     if(NOT WIN32)
         set(GLAD_LIBRARIES dl)
     endif()
@@ -60,7 +53,7 @@ source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
 set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/Glitter/Vendor/boost_1_89_0")
-set(Boost_USE_STATIC_LIBS ON) 
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_DEBUG ON)
@@ -123,52 +116,56 @@ set(RECASTNAVIGATION_INCLUDE_DIRS
         ${recast_SOURCE_DIR}/DetourTileCache/Include
 )
 
-add_library(GlitterLib ${PROJECT_SOURCES}
-        ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-          ${VENDORS_SOURCES} ${IMGUI_IMPL_SOURCES} ${IMGUIZMO_IMPL_SOURCES})
+add_library(GlitterLib SHARED
+        ${PROJECT_SOURCES}
+        ${VENDORS_SOURCES}
+        ${IMGUI_IMPL_SOURCES}
+        ${IMGUIZMO_IMPL_SOURCES})
 
 target_include_directories(GlitterLib
         PUBLIC
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo
-        ${Boost_INCLUDE_DIRS}
-        ${LUA_INCLUDE_DIR}
-        ${RECASTNAVIGATION_INCLUDE_DIRS}
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Headers>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/serializations>
+            $<INSTALL_INTERFACE:include>
 
-        ${CMAKE_SOURCE_DIR}/Glitter/Headers/
-        ${CMAKE_SOURCE_DIR}/Glitter/serializations/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/bullet/src/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glfw/include/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/
-        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt/
+        PRIVATE
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glfw/include/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt/
+            ${Boost_INCLUDE_DIRS}
+            ${LUA_INCLUDE_DIR}
+            ${RECASTNAVIGATION_INCLUDE_DIRS}
 )
 
-target_link_libraries(GlitterLib assimp glfw
-        ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-        BulletDynamics BulletCollision LinearMath
-        Jolt::Jolt
-        Boost::serialization
-        Lua::Lua
-        sol2::sol2
+target_link_libraries(GlitterLib
+        PRIVATE
+            assimp glfw
+            ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
+            Jolt::Jolt
+            Boost::serialization
+            Lua::Lua
+            sol2::sol2
 
-        Recast
-        Detour
-        DetourCrowd
-        DetourTileCache
+            Recast
+            Detour
+            DetourCrowd
+            DetourTileCache
 )
 
 add_executable(Editor Glitter/editorMain.cpp)
 
 target_link_libraries(Editor PRIVATE GlitterLib)
 
-add_executable(ProjectManager Glitter/projectManger.cpp)
+add_executable(ProjectManager Glitter/projectMangerMain.cpp)
 
 target_link_libraries(ProjectManager PRIVATE GlitterLib)
 
@@ -201,3 +198,75 @@ if(MSVC)
         )
     endforeach()
 endif()
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# Install the engine headers into:
+#   <prefix>/include/Glitter/...
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Headers/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter")
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/serializations/"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/serializations")
+
+# Install Glitter runtime + import lib:
+# - RUNTIME: DLL (Windows)
+# - ARCHIVE: .lib import library (Windows) / static lib
+# - LIBRARY: .so/.dylib
+install(TARGETS GlitterLib
+        EXPORT GlitterTargets
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+)
+
+# Install your runtime data so new projects can run immediately
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/EngineAssets"
+        DESTINATION ".")
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Shaders"
+        DESTINATION ".")
+
+# If you depend on this Lua DLL at runtime, include it in the installed SDK/bin
+install(FILES "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll"
+        DESTINATION "${CMAKE_INSTALL_BINDIR}")
+
+# ---- Export targets for find_package(Glitter CONFIG) ----
+# Where the package files will live:
+set(GLITTER_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/Glitter")
+
+# Export the target(s)
+install(EXPORT GlitterTargets
+        FILE GlitterTargets.cmake
+        NAMESPACE Glitter::
+        DESTINATION "${GLITTER_INSTALL_CMAKEDIR}"
+)
+
+# Generate GlitterConfig.cmake + GlitterConfigVersion.cmake
+# We'll generate a tiny config template into the build tree (no extra files needed)
+set(_glitter_config_in "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake.in")
+file(WRITE "${_glitter_config_in}"
+        "@PACKAGE_INIT@\n"
+        "include(\"\${CMAKE_CURRENT_LIST_DIR}/GlitterTargets.cmake\")\n"
+)
+
+configure_package_config_file(
+        "${_glitter_config_in}"
+        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake"
+        INSTALL_DESTINATION "${GLITTER_INSTALL_CMAKEDIR}"
+)
+
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake"
+        VERSION "${PROJECT_VERSION}"
+        COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake"
+        DESTINATION "${GLITTER_INSTALL_CMAKEDIR}"
+)
+
+set_target_properties(GlitterLib PROPERTIES EXPORT_NAME Glitter)

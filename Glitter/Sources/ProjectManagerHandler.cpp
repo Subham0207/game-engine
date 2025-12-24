@@ -1,5 +1,8 @@
-// Local Headers
-#include "Helpers/glitter.hpp"
+//
+// Created by subha on 25-12-2025.
+//
+
+#include "../Headers/ProjectManagerHandler.hpp"
 
 // System Headers
 #include <glad/glad.h>
@@ -29,9 +32,8 @@
 
 #include "Controls/ClientHandler.hpp"
 
-int main(int argc, char * argv[])
+int ProjectManagerHandler::startProjectManager()
 {
-
     EngineState::state = new EngineState();
     ClientHandler::clientHandler = new ClientHandler();
 
@@ -71,12 +73,12 @@ int main(int argc, char * argv[])
         glfwSwapBuffers(EngineState::state->mWindow);
         glfwPollEvents();
 
-         // Now it's safe to leave the loop
+        // Now it's safe to leave the loop
         if(!EngineState::state->currentActiveProjectDirectory.empty())
-        break;
+            break;
 
-    }   
-    
+    }
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -89,6 +91,6 @@ int main(int argc, char * argv[])
         EngineState::state->lastFrame = 0.0f;
         // return openEditor();
     }
-    
+
     return EXIT_SUCCESS;
 }
