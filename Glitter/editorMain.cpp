@@ -4,7 +4,7 @@
 
 #include <cstdlib>
 
-#include "Editor.hpp"
+#include <Editor.hpp>
 
 int main(int argc, char * argv[])
 {

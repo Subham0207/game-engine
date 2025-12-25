@@ -9,6 +9,10 @@ FetchContent_MakeAvailable(googletest)
 # Add the test executable and link it to the GlitterLib library
 add_executable(Test test.cpp)
 
+target_include_directories(Test PRIVATE
+        ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include
+)
+
 target_link_libraries(Test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GlitterLib)
 
 # Add test target

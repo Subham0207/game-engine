@@ -116,7 +116,7 @@ set(RECASTNAVIGATION_INCLUDE_DIRS
         ${recast_SOURCE_DIR}/DetourTileCache/Include
 )
 
-add_library(GlitterLib SHARED
+add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
         ${VENDORS_SOURCES}
         ${IMGUI_IMPL_SOURCES}
@@ -126,28 +126,26 @@ target_include_directories(GlitterLib
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Headers>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/serializations>
-            $<INSTALL_INTERFACE:include>
 
-        PRIVATE
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glfw/include/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/
-            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt/
-            ${Boost_INCLUDE_DIRS}
-            ${LUA_INCLUDE_DIR}
-            ${RECASTNAVIGATION_INCLUDE_DIRS}
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/glfw/include/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt/>
+            $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+            $<BUILD_INTERFACE:${LUA_INCLUDE_DIR}>
+            $<BUILD_INTERFACE:${RECASTNAVIGATION_INCLUDE_DIRS}>
+            $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(GlitterLib
-        PRIVATE
             assimp glfw
             ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
             Jolt::Jolt
@@ -161,11 +159,11 @@ target_link_libraries(GlitterLib
             DetourTileCache
 )
 
-add_executable(Editor Glitter/editorMain.cpp)
+add_executable(Editor ${CMAKE_SOURCE_DIR}/Glitter/editorMain.cpp)
 
 target_link_libraries(Editor PRIVATE GlitterLib)
 
-add_executable(ProjectManager Glitter/projectMangerMain.cpp)
+add_executable(ProjectManager ${CMAKE_SOURCE_DIR}/Glitter/projectMangerMain.cpp)
 
 target_link_libraries(ProjectManager PRIVATE GlitterLib)
 
@@ -199,74 +197,62 @@ if(MSVC)
     endforeach()
 endif()
 
+# --- 7. Installation & Packaging ---
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-# Install the engine headers into:
-#   <prefix>/include/Glitter/...
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Headers/"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter")
+set(GLITTER_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/Glitter")
 
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/serializations/"
-        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/serializations")
-
-# Install Glitter runtime + import lib:
-# - RUNTIME: DLL (Windows)
-# - ARCHIVE: .lib import library (Windows) / static lib
-# - LIBRARY: .so/.dylib
-install(TARGETS GlitterLib
+# UNIFIED INSTALL TARGETS (Only call this ONCE per target)
+install(TARGETS GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd DetourTileCache sol2
         EXPORT GlitterTargets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )
 
-# Install your runtime data so new projects can run immediately
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/EngineAssets"
-        DESTINATION ".")
+# Install Headers
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Headers/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/lua")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY "${recast_SOURCE_DIR}/Recast/Include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Recast")
+install(DIRECTORY "${recast_SOURCE_DIR}/Detour/Include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Detour")
 
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Shaders"
-        DESTINATION ".")
+# Install Bundled Dependencies
+install(FILES "${LUA_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+install(FILES "${LUA_DLL}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+install(DIRECTORY "${BOOST_ROOT}/boost" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(DIRECTORY "${BOOST_ROOT}/stage/lib/" DESTINATION "${CMAKE_INSTALL_LIBDIR}" FILES_MATCHING PATTERN "*.lib")
 
-# If you depend on this Lua DLL at runtime, include it in the installed SDK/bin
-install(FILES "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/lua54.dll"
-        DESTINATION "${CMAKE_INSTALL_BINDIR}")
-
-# ---- Export targets for find_package(Glitter CONFIG) ----
-# Where the package files will live:
-set(GLITTER_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/Glitter")
-
-# Export the target(s)
-install(EXPORT GlitterTargets
-        FILE GlitterTargets.cmake
-        NAMESPACE Glitter::
-        DESTINATION "${GLITTER_INSTALL_CMAKEDIR}"
-)
-
-# Generate GlitterConfig.cmake + GlitterConfigVersion.cmake
-# We'll generate a tiny config template into the build tree (no extra files needed)
+# --- 8. Generate Package Config ---
 set(_glitter_config_in "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake.in")
-file(WRITE "${_glitter_config_in}"
-        "@PACKAGE_INIT@\n"
-        "include(\"\${CMAKE_CURRENT_LIST_DIR}/GlitterTargets.cmake\")\n"
-)
+file(WRITE "${_glitter_config_in}" [=[
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
 
-configure_package_config_file(
-        "${_glitter_config_in}"
-        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake"
-        INSTALL_DESTINATION "${GLITTER_INSTALL_CMAKEDIR}"
-)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_dependency(Threads)
 
-write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake"
-        VERSION "${PROJECT_VERSION}"
-        COMPATIBILITY SameMajorVersion
-)
+set(BOOST_ROOT "${PACKAGE_PREFIX_DIR}")
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_NO_SYSTEM_PATHS ON)
+find_dependency(Boost 1.89.0 REQUIRED COMPONENTS serialization)
 
-install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake"
-        DESTINATION "${GLITTER_INSTALL_CMAKEDIR}"
-)
+if (NOT TARGET Lua::Lua)
+    add_library(Lua::Lua SHARED IMPORTED)
+    set_target_properties(Lua::Lua PROPERTIES
+        IMPORTED_LOCATION "${PACKAGE_PREFIX_DIR}/bin/lua54.dll"
+        IMPORTED_IMPLIB "${PACKAGE_PREFIX_DIR}/lib/lua54.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${PACKAGE_PREFIX_DIR}/include/Glitter/Vendor/lua")
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/GlitterTargets.cmake")
+]=])
+
+configure_package_config_file("${_glitter_config_in}" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" INSTALL_DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" VERSION "${PROJECT_VERSION}" COMPATIBILITY SameMajorVersion)
+
+install(EXPORT GlitterTargets FILE GlitterTargets.cmake NAMESPACE Glitter:: DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 
 set_target_properties(GlitterLib PROPERTIES EXPORT_NAME Glitter)

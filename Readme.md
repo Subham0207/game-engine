@@ -64,3 +64,9 @@ Texture Loading         | [stb](https://github.com/nothings/stb)
 ## Running on Clion
 Use these flags in cmake settings. i.e. set generator to vs 2022 and google test option to run MDD and MTD runtimes.
 `-G "Visual Studio 17 2022" -Dgtest_force_shared_crt=ON`
+
+## CMake recommendations
+1. Avoid using file(GLOB ...) and rather list files explicitly.
+2. Transitive Dependency: Engine dependency types in header. When this header is included in a project where engine is a package and this header is used. Then that engine dependency becomes dependency of the project header so needs to resolved ( Because header is copied and pasted ).
+3. FETCH_CONTENT Transitive dependencies and add_subdirectory(DEPENDENCY_SOURCE_DIRECTORY) are automatically resolved when you make a package out of your project. FIND_PACKAGE or hard code paths require find dependency to resolve.
+   a. Engine Dependencies that need find_dependency: BOOST, Lua,

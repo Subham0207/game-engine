@@ -183,6 +183,7 @@ void create_cmake_game_project(const std::string& projectDir, const std::string&
     std::ofstream out(cmakelistfile_loc);
     out << content;
 
+    //cmake --install E:\OpenGL\game-engine\cmake-build-debug-visual-studio --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake
     // (DONE) create a package out of your engine using cmake --install build --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake. [Later this figure out changes to have minimum accessors exposed in cmake]
     // Then find_package cmd that we add to project's cmake can start using the engine lib/DLL files.
     // update cmakelist.txt of engine to support install cmd.
