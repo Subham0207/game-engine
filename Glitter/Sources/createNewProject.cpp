@@ -250,7 +250,7 @@ int create_new_project(const std::string& currentDir, const std::string& project
 
     GenerateLuaLSConfig(root);
 
-    update_recent_projects_list(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json", root);
+    update_recent_projects_list(fs::path(EngineState::state->engineInstalledDirectory) / "user_prefs.json", root);
 
     delete lvl;
     delete character;

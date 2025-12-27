@@ -24,6 +24,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include <utility>
 #include <vector>
 
 #include "UI/outliner.hpp"
@@ -45,7 +46,12 @@
 #include "Controls/ClientHandler.hpp"
 
 
-int Editor::openEditor() {
+int Editor::openEditor(std::string enginePath) {
+
+    EngineState::state = new EngineState();
+    EngineState::state->setCurrentDirAsProjectDirectory();
+    EngineState::state->setEngineDirectory(std::move(enginePath));
+    ClientHandler::clientHandler = new ClientHandler();
 
     char cwd[MAX_PATH];
     if (GetCurrentDirectory(MAX_PATH, cwd)) {

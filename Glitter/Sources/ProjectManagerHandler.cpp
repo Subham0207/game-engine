@@ -37,8 +37,8 @@ int ProjectManagerHandler::startProjectManager()
     EngineState::state = new EngineState();
     ClientHandler::clientHandler = new ClientHandler();
 
-    if (fs::exists(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json")) {
-        std::ifstream infile(fs::path(EngineState::state->engineInstalledDirctory) / "user_prefs.json");
+    if (fs::exists(fs::path(EngineState::state->engineInstalledDirectory) / "user_prefs.json")) {
+        std::ifstream infile(fs::path(EngineState::state->engineInstalledDirectory) / "user_prefs.json");
         std::string line;
         while (std::getline(infile, line)) {
             // Check if the line is not empty before adding.

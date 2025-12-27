@@ -1,7 +1,8 @@
 #include <Physics/PhysicsObject.hpp>
 #include <EngineState.hpp>
 #include <Modals/3DModelType.hpp>
-
+#include<filesystem>
+namespace fs = std::filesystem;
 
 // These are physics object whose model should not be rendered on play. The model attached to the physics body is for visualization.
 
@@ -17,7 +18,14 @@ Physics::PhysicsObject::PhysicsObject(
 {
     if(modelPath != nullptr)
     {
-        addCustomModel(modelPath);
+        auto path = fs::path(EngineState::state->engineInstalledDirectory) / modelPath;
+        if (fs::exists(path)) {
+            std::cout << "STATUS: [FOUND]" << std::endl;
+            std::cout << "Absolute: " << fs::absolute(path) << std::endl;
+        } else {
+            std::cout << "STATUS: [NOT FOUND]" << std::endl;
+        }
+        addCustomModel(path.string());
         model->setTransform(position, rotation, scale);
     }
     this->physics = physics;

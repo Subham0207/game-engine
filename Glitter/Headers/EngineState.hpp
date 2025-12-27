@@ -20,6 +20,8 @@ namespace AI
 class EngineState{
 public:
     EngineState();
+    void setCurrentDirAsProjectDirectory();
+    void setEngineDirectory(std::string value);
 
     float deltaTime = 0.0f;	// Time between current frame and last frame
     float lastFrame = 0.0f; // Time of last frame
@@ -34,9 +36,9 @@ public:
 
     bool isWorldSpace = true;
 
-    std::string engineInstalledDirctory = fs::current_path().string();
+    std::string engineInstalledDirectory;
 
-    std::string currentActiveProjectDirectory = "";
+    std::string currentActiveProjectDirectory;
 
     Engine::Registry* engineRegistry = new Engine::Registry();
 

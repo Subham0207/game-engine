@@ -9,7 +9,7 @@
 
 BaseLight::BaseLight(LightType lightType, glm::vec3 pos)
 {
-    auto loc = std::filesystem::path(EngineState::state->engineInstalledDirctory);
+    auto loc = std::filesystem::path(EngineState::state->engineInstalledDirectory);
 
     switch (lightType)
     {

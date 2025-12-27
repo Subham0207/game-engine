@@ -4,11 +4,12 @@
 
 #ifndef GLITTER_EDITOR_HPP
 #define GLITTER_EDITOR_HPP
+#include <string>
 
 class Editor
 {
 public:
-    int openEditor();
+    int openEditor(std::string enginePath);
 };
 
 

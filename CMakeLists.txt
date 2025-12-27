@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(Glitter VERSION 0.1.0 LANGUAGES C CXX)
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
@@ -116,6 +118,10 @@ set(RECASTNAVIGATION_INCLUDE_DIRS
         ${recast_SOURCE_DIR}/DetourTileCache/Include
 )
 
+if(NOT APPLE)
+    set(CMAKE_INSTALL_RPATH $ORIGIN)
+endif ()
+
 add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
         ${VENDORS_SOURCES}
@@ -142,7 +148,7 @@ target_include_directories(GlitterLib
             $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
             $<BUILD_INTERFACE:${LUA_INCLUDE_DIR}>
             $<BUILD_INTERFACE:${RECASTNAVIGATION_INCLUDE_DIRS}>
-            $<INSTALL_INTERFACE:include>
+            $<INSTALL_INTERFACE:include/Glitter>
 )
 
 target_link_libraries(GlitterLib
@@ -211,6 +217,23 @@ install(TARGETS GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )
 
+set_target_properties(GlitterLib PROPERTIES
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+set_target_properties(GlitterLib PROPERTIES
+        COMPILE_PDB_NAME "GlitterLib"
+        COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>"
+)
+
+# Install the PDB so Project 5 can see it
+install(
+        FILES "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>/GlitterLib.pdb"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        OPTIONAL
+        CONFIGURATIONS Debug RelWithDebInfo
+)
+
 # Install Headers
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Headers/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/lua")
@@ -248,6 +271,12 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/GlitterTargets.cmake")
 ]=])
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/EngineAssets/"
+        DESTINATION EngineAssets)
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Shaders/"
+        DESTINATION Shaders)
 
 configure_package_config_file("${_glitter_config_in}" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" INSTALL_DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" VERSION "${PROJECT_VERSION}" COMPATIBILITY SameMajorVersion)

@@ -70,3 +70,12 @@ Use these flags in cmake settings. i.e. set generator to vs 2022 and google test
 2. Transitive Dependency: Engine dependency types in header. When this header is included in a project where engine is a package and this header is used. Then that engine dependency becomes dependency of the project header so needs to resolved ( Because header is copied and pasted ).
 3. FETCH_CONTENT Transitive dependencies and add_subdirectory(DEPENDENCY_SOURCE_DIRECTORY) are automatically resolved when you make a package out of your project. FIND_PACKAGE or hard code paths require find dependency to resolve.
    a. Engine Dependencies that need find_dependency: BOOST, Lua,
+4. make sure you have pdb (program database file) in pacakge install directory. so compilers can throw exception on code line.
+
+## Install cmd
+`cmake --install E:\OpenGL\game-engine\cmake-build-debug-visual-studio --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake`
+
+`cmake --build E:\OpenGL\game-engine\cmake-build-debug-visual-studio --target install --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake`
+
+vs code can find cpp file while debugging. ( so able to read pdb file correctly while clion cannot.)
+the opened cpp file had include errors. so it probably cannot find them.
