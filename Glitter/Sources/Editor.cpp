@@ -136,9 +136,11 @@ int Editor::openEditor(std::string enginePath) {
 
     //Create different shaders for the each model
 
+    auto rayVertPath = engineFSPath / "Shaders/rayCast.vert";
+    auto rayFragPath = engineFSPath / "Shaders/rayCast.frag";
     auto rayCastshader =  new Shader(
-        "./Shaders/rayCast.vert",
-        "./Shaders/rayCast.frag");
+        rayVertPath.u8string().c_str(),
+        rayFragPath.u8string().c_str());
 
     //Lights setup
     auto lights = new Lights(); //for PBR removing directional lights and spotlight; Set them back up later.

@@ -108,7 +108,10 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
 void Level::setupLevelVertices(std::vector<float> navVerts, std::vector<unsigned int> navTris)
 {
-    lvlVerticesShader = new Shader("./Shaders/debug/debug.vert","./Shaders/debug/debug.frag");
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertShader = engineFSPath / "Shaders/debug/debug.vert";
+    auto fragShader = engineFSPath / "Shaders/debug/debug.vert";
+    lvlVerticesShader = new Shader(vertShader.u8string().c_str(),fragShader.u8string().c_str());
     lvlVerticesShader->use();
     lvlVerticesMesh = new Mesh();
     for (size_t i = 0; i < navVerts.size(); i += 3) {
@@ -205,7 +208,10 @@ void Level::BuildLevelNavMesh()
         navMesh = builder->getNavMesh();
         navQuery = builder->getNavMeshQuery();
 
-        debugNavMeshShader = new Shader("./Shaders/debug/debug.vert","./Shaders/debug/debug.frag");
+        auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+        auto vertPath = engineFSPath / "Shaders/debug/debug.vert";
+        auto fragPath = engineFSPath / "Shaders/debug/debug.frag";
+        debugNavMeshShader = new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
         debugNavMeshShader->use();
         std::vector<float> outVerts;
         std::vector<unsigned> outTris;

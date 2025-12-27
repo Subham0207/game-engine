@@ -548,14 +548,19 @@ int* m_BoneCounter,
 std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 : Serializable()
 {
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     modeltype = ModelType::ACTUAL_MODEL; 
     if(m_BoneInfoMap && m_BoneCounter)
     {
-        shader =  new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
+        auto vertPath = engineFSPath / "Shaders/basic.vert";
+        auto fragPath = engineFSPath / "Shaders/pbr.frag";
+        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
     }
     else
     {
-        shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
+        auto vertPath = engineFSPath / "Shaders/staticShader.vert";
+        auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
     }
     shader->use();
     loadModel(path, m_BoneInfoMap, m_BoneCounter, onModelComponentsLoad);
@@ -578,7 +583,12 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
 
     //For character class shader used is different and is handled in character loadContent.
     if(!shader)
-    shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
+    {
+        auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+        auto vertPath = engineFSPath / "Shaders/staticShader.vert";
+        auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+    }
 
     if(physicsBodyType != "")
         this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));

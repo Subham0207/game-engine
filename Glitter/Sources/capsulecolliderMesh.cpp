@@ -140,7 +140,10 @@ Model* CapsuleColliderModel::createCapsuleModel(float radius, float halfHeight, 
     GenerateCapsuleMesh(capsuleVertices, capsuleIndices, radius, halfHeight, 16, 8);
 
     auto model = new Model();
-    model->shader =  new Shader("./Shaders/staticShader.vert","./Shaders/staticShader.frag");
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertPath = engineFSPath / "Shaders/staticShader.vert";
+    auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+    model->shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
     model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices));
     return model;
 }

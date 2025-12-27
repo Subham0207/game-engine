@@ -115,7 +115,10 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
 
 void DirectionalLight::setupShadowObjects()
 {
-    shadowMapShader = new Shader("./Shaders/shadowMap.vert", "./Shaders/shadowMap.frag");
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertpath = engineFSPath / "Shaders/shadowMap.vert";
+    auto fragPath = engineFSPath / "Shaders/shadowMap.frag";
+    shadowMapShader = new Shader(vertpath.u8string().c_str(), fragPath.u8string().c_str());
 
 	glGenFramebuffers(1, &shadowMapFBO);
 
@@ -204,9 +207,12 @@ void SpotLight::attachShaderUniforms(
 
 void SpotLight::setupShadowObjects()
 {
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertPath = engineFSPath  / "Shaders/spotlight/depth.vert";
+    auto fragPath = engineFSPath / "Shaders/spotlight/depth.frag";
     spotShadowShader = new Shader(
-        "./Shaders/spotlight/depth.vert",
-        "./Shaders/spotlight/depth.frag"
+        vertPath.u8string().c_str(),
+        fragPath.u8string().c_str()
     );
 
     glGenFramebuffers(1, &spotDepthFBO);
@@ -378,10 +384,14 @@ void PointLight::evaluateShadowMap(GLFWwindow* window)
 }
 void PointLight::setupShadowObjects()
 {
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertPath  = engineFSPath / "Shaders/pointlight/depthshader.vert";
+    auto fragPath = engineFSPath / "Shaders/pointlight/depthshader.frag";
+    auto geoPath = engineFSPath / "Shaders/pointlight/depthshader.geo";
     shadowMapShader = new Shader(
-        "./Shaders/pointlight/depthshader.vert",
-        "./Shaders/pointlight/depthshader.frag",
-        "./Shaders/pointlight/depthshader.geo"
+        vertPath.u8string().c_str(),
+        fragPath.u8string().c_str(),
+        geoPath.u8string().c_str()
         );
 
     glGenFramebuffers(1, &depthMapFBO);

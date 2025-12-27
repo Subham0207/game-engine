@@ -415,7 +415,11 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     //load model
     auto model_location = fs::path(filesMap[model_guid]);
     auto model = new Model();
-    model->shader = new Shader("./Shaders/basic.vert","./Shaders/pbr.frag");
+
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertShaderPath = engineFSPath / "Shaders/basic.vert";
+    auto fragShaderPath = engineFSPath / "Shaders/pbr.frag";
+    model->shader = new Shader(vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
     model->load(model_location.parent_path(), model_guid);
     this->model = model;
 

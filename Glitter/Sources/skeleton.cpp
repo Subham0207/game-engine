@@ -74,7 +74,10 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 void Skeleton::Skeleton::setup(std::string filename)
 {
     this->filename = filename;
-    bonesShader = new Shader("./Shaders/boneShader.vert", "./Shaders/boneShader.frag");
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertShader = engineFSPath / "Shaders/boneShader.vert";
+    auto fragShader = engineFSPath / "Shaders/boneShader.frag";
+    bonesShader = new Shader(vertShader.u8string().c_str(), fragShader.u8string().c_str());
     bonesShader->use();
     setupBoneBuffersOnGPU();
 }
