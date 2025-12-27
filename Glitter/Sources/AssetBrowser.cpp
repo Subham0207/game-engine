@@ -150,60 +150,68 @@ namespace ProjectAsset
     {
         if(!asset->isTextureIdAssigned)
         {
+            auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
             switch(asset->assetType)
             {
                 case AssetType::Directory:
                 {
+                    auto path = engineFSPath / "EngineAssets/folder.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/folder.png",
+                        path.u8string().c_str(),
                         "folder.png",
                         false);
                         break;
                 }
                 case AssetType::CharacterType:
                 {
+                    auto path = engineFSPath / "EngineAssets/character.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/character.png",
+                        path.u8string().c_str(),
                         "character.png",
                         false);
                         break;
                 }
                 case AssetType::ModelType:
                 {
+                    auto path = engineFSPath / "EngineAssets/model.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/model.png",
+                        path.u8string().c_str(),
                         "model.png",
                         false);
                         break;
                 }
                 case AssetType::BlendSpaceType:
                 {
+                    auto path = engineFSPath / "EngineAssets/blendspace.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/blendspace.png",
+                        path.u8string().c_str(),
                         "blendspace.png",
                         false);
                         break;
                 }
                 case AssetType::StateMachineType:
                 {
+                    auto path = engineFSPath / "EngineAssets/statemachine.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/statemachine.png",
+                        path.u8string().c_str(),
                         "statemachine.png",
                         false);
                         break;
                 }
                 case AssetType::AnimationType:
                 {
+                    auto path = engineFSPath / "EngineAssets/animation.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/animation.png",
+                        path.u8string().c_str(),
                         "animation.png",
                         false);
                         break;
                 }
                 default: 
                 {
+                    auto path = engineFSPath / "EngineAssets/unknown.png";
                     asset->textureId = Shared::TextureFromFile(
-                        "./EngineAssets/unknown.png",
+                        path.u8string().c_str(),
                         "unknown.png",
                         false);
                 }

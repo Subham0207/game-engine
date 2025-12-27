@@ -97,12 +97,28 @@ int Editor::openEditor(std::string enginePath) {
     // }
 
     //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
-    auto cubeMap = new CubeMap("./EngineAssets/rostock_laage_airport_8k.hdr");
-    auto equirectangularToCubemapShader = new Shader("./Shaders/cubemap.vert","./Shaders/equirectanglular_to_cubemap.frag");
-    auto irradianceShader = new Shader("./Shaders/cubemap.vert","./Shaders/irradiance_convolution.frag");
-    auto prefilterShader = new Shader("./Shaders/cubemap.vert","./Shaders/prefilter.frag");
-    auto brdfShader = new Shader("./Shaders/brdf.vert","./Shaders/brdf.frag");
-    auto backgroundShader = new Shader("./Shaders/background.vert","./Shaders/background.frag");
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto cubeMapPath = engineFSPath / "EngineAssets/rostock_laage_airport_8k.hdr";
+
+    auto cubeMapVertShader = engineFSPath / "Shaders/cubemap.vert";
+    auto cubeMapEquiShader = engineFSPath / "Shaders/equirectanglular_to_cubemap.frag";
+
+    auto cubeMapIrrShader = engineFSPath / "irradiance_convolution.frag";
+    auto cubeMapPreFilterShader = engineFSPath / "Shaders/prefilter.frag";
+
+    auto cubeMapBRDFVertShader = engineFSPath / "Shaders/brdf.vert";
+    auto cubeMapBRDFFragShader = engineFSPath / "Shaders/brdf.frag";
+
+    auto cubeMapBackgroundVertShader = engineFSPath / "Shaders/background.vert";
+    auto cubeMapBackgroundFragShader = engineFSPath / "Shaders/background.frag";
+
+    auto cubeMap = new CubeMap(cubeMapPath.string());
+    auto equirectangularToCubemapShader = new Shader(cubeMapVertShader.u8string().c_str(),cubeMapEquiShader.u8string().c_str());
+    auto irradianceShader = new Shader(cubeMapVertShader.u8string().c_str(),cubeMapIrrShader.u8string().c_str());
+    auto prefilterShader = new Shader(cubeMapVertShader.u8string().c_str(),cubeMapPreFilterShader.u8string().c_str());
+    auto brdfShader = new Shader(cubeMapBRDFVertShader.u8string().c_str(),cubeMapBRDFFragShader.u8string().c_str());
+    auto backgroundShader = new Shader(cubeMapBackgroundVertShader.u8string().c_str(),cubeMapBackgroundFragShader.u8string().c_str());
+
     cubeMap->setup(mWindow,
     *equirectangularToCubemapShader, *irradianceShader, *prefilterShader, *brdfShader);
 
