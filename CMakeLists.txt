@@ -194,15 +194,6 @@ add_custom_command(TARGET ProjectManager POST_BUILD
           "$<TARGET_FILE_DIR:ProjectManager>/"
 )
 
-if(MSVC)
-    foreach(tgt GlitterLib Editor ProjectManager)
-        set_target_properties(${tgt} PROPERTIES
-                PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>"
-                COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>"
-        )
-    endforeach()
-endif()
-
 # --- 7. Installation & Packaging ---
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -219,19 +210,6 @@ install(TARGETS GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd
 
 set_target_properties(GlitterLib PROPERTIES
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
-)
-
-set_target_properties(GlitterLib PROPERTIES
-        COMPILE_PDB_NAME "GlitterLib"
-        COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>"
-)
-
-# Install the PDB so Project 5 can see it
-install(
-        FILES "${CMAKE_BINARY_DIR}/pdb/$<CONFIG>/GlitterLib.pdb"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        OPTIONAL
-        CONFIGURATIONS Debug RelWithDebInfo
 )
 
 # Install Headers
