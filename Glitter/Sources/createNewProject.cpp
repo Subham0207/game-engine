@@ -168,7 +168,7 @@ void create_cmake_game_project(const std::string& projectDir, const std::string&
     //add cmakelist.txt
     // using a "Template File" Approach via simple search-and-replace function to fill it out.
 
-    std::ifstream in(fs::path("E:/OpenGL/game-engine/Glitter/Headers/Helpers/cmakelist_project_template.txt").string());
+    std::ifstream in(fs::path("./Template/cmakelist_project_template.txt").string());
     std::ostringstream buffer;
     buffer << in.rdbuf();
 
@@ -187,6 +187,18 @@ void create_cmake_game_project(const std::string& projectDir, const std::string&
     // (DONE) create a package out of your engine using cmake --install build --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake. [Later this figure out changes to have minimum accessors exposed in cmake]
     // Then find_package cmd that we add to project's cmake can start using the engine lib/DLL files.
     // update cmakelist.txt of engine to support install cmd.
+
+    fs::path source = "./Template/main.txt";
+    fs::path target = root / "main.cpp";
+
+    try {
+        // Simple copy command
+        fs::copy(source, target);
+        std::cout << "main.cpp created successfully" << std::endl;
+    }
+    catch (fs::filesystem_error& e) {
+        std::cerr << "Error creating main.cpp : " << e.what() << std::endl;
+    }
 }
 
 int create_new_project(const std::string& currentDir, const std::string& projectName)

@@ -1,0 +1,14 @@
+#include<Glitter/Editor.hpp>
+#include <string>
+
+#ifndef GLITTER_ENGINE
+#error GLITTER_ENGINE is not defined for this file/target
+#endif
+
+int main()
+{
+    auto editor = new Editor();
+    std::string value = GLITTER_ENGINE;
+    editor->openEditor(value);
+    return 0;
+}

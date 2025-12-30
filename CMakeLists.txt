@@ -187,6 +187,12 @@ add_custom_command(TARGET ProjectManager POST_BUILD
           "$<TARGET_FILE_DIR:ProjectManager>/Shaders"
 )
 
+add_custom_command(TARGET ProjectManager POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          "${CMAKE_SOURCE_DIR}/Glitter/Template"
+          "$<TARGET_FILE_DIR:ProjectManager>/Template"
+)
+
 # copy lua dll into exe directory
 add_custom_command(TARGET ProjectManager POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
@@ -255,6 +261,9 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/EngineAssets/"
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Shaders/"
         DESTINATION Shaders)
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Template/"
+        DESTINATION Template)
 
 configure_package_config_file("${_glitter_config_in}" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" INSTALL_DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" VERSION "${PROJECT_VERSION}" COMPATIBILITY SameMajorVersion)

@@ -1,0 +1,62 @@
+cmake_minimum_required(VERSION 3.0)
+project({{PROJECT_NAME}})
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(ENGINE_LOC "E:/opengl/Bins/glitterEngineBin")
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+endif()
+
+add_executable({{PROJECT_NAME}} main.cpp)
+
+list(APPEND CMAKE_PREFIX_PATH ${ENGINE_LOC})
+find_package(Glitter REQUIRED CONFIG)
+
+# Link libraries if any
+target_link_libraries({{PROJECT_NAME}} PRIVATE Glitter::Glitter)
+
+get_target_property(LUA_DLL_PATH Lua::Lua IMPORTED_LOCATION)
+
+# 3. Debugging: This will print the path during configuration
+message(STATUS "Lua DLL found at: ${LUA_DLL_PATH}")
+
+if(LUA_DLL_PATH)
+    add_custom_command(TARGET {{PROJECT_NAME}} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${LUA_DLL_PATH}"
+            "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>"
+            COMMENT "Copying Lua DLL to executable directory..."
+            VERBATIM
+    )
+else()
+    message(FATAL_ERROR "Could not find Lua DLL path for copying!")
+endif()
+
+add_custom_command(TARGET {{PROJECT_NAME}}  POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "${CMAKE_CURRENT_SOURCE_DIR}/Project.manifest.json"
+    "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Project.manifest.json"
+)
+
+add_custom_command(TARGET {{PROJECT_NAME}}  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          "${CMAKE_SOURCE_DIR}/Assets"
+          "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Assets"
+)
+
+add_custom_command(TARGET {{PROJECT_NAME}}  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+          "${CMAKE_SOURCE_DIR}/Levels"
+          "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Levels"
+)
+
+target_compile_definitions({{PROJECT_NAME}}  PRIVATE
+    GLITTER_ENGINE=\"${ENGINE_LOC}\"
+)
+
+get_target_property(_defs {{PROJECT_NAME}} COMPILE_DEFINITIONS)
+message(STATUS "{{PROJECT_NAME}} COMPILE_DEFINITIONS = ${_defs}")
