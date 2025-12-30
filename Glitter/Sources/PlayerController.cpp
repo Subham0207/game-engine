@@ -2,6 +2,8 @@
 #include <Helpers/raypicking.hpp>
 #include <Modals/CameraType.hpp>
 
+#include "EngineState.hpp"
+
 Controls::PlayerController::PlayerController(std::string filename)
     : movementSpeed(0.0f), targetSpeed(0.0f), movementDirection(0.0f), targetDirection(0.0f),
         isJumping(false), grounded(false), dodgeStart(false), interpolationSpeed(0.1f), directionVector(0.0f,0.0f,0.0f), inputXWorld(0.0f),
@@ -9,6 +11,11 @@ Controls::PlayerController::PlayerController(std::string filename)
         characterRotation(0.0f), characterPosition(0.0f,0.0f,0.0f)
 {
     cameraType = CameraType::TOP_DOWN;
+
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertPath = engineFSPath / "Shaders/rayCast.vert";
+    auto fragPath = engineFSPath / "Shaders/rayCast.frag";
+    new Shader(vertPath.u8string().c_str(), fragPath.u8string().c_str());
 }
 
 void Controls::PlayerController::setMovement(glm::vec3 dir)

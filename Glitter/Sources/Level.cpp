@@ -110,7 +110,7 @@ void Level::setupLevelVertices(std::vector<float> navVerts, std::vector<unsigned
 {
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertShader = engineFSPath / "Shaders/debug/debug.vert";
-    auto fragShader = engineFSPath / "Shaders/debug/debug.vert";
+    auto fragShader = engineFSPath / "Shaders/debug/debug.frag";
     lvlVerticesShader = new Shader(vertShader.u8string().c_str(),fragShader.u8string().c_str());
     lvlVerticesShader->use();
     lvlVerticesMesh = new Mesh();

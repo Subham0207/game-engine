@@ -103,7 +103,7 @@ int Editor::openEditor(std::string enginePath) {
     auto cubeMapVertShader = engineFSPath / "Shaders/cubemap.vert";
     auto cubeMapEquiShader = engineFSPath / "Shaders/equirectanglular_to_cubemap.frag";
 
-    auto cubeMapIrrShader = engineFSPath / "irradiance_convolution.frag";
+    auto cubeMapIrrShader = engineFSPath / "Shaders/irradiance_convolution.frag";
     auto cubeMapPreFilterShader = engineFSPath / "Shaders/prefilter.frag";
 
     auto cubeMapBRDFVertShader = engineFSPath / "Shaders/brdf.vert";
