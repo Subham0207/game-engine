@@ -127,12 +127,54 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         break;
                     case FileTypeOperation::importModelFile:
                         {
+                            //Create .model file.
+                            //If skeleton data is there then create .skeleton file.
+                            //Then we can create character entity obj file and use the skeleton.
+                            Assimp::Importer import;
+                            auto scene = AssimpHelpers::createAssimpScene(getUIState().filePath, import);
+                            bool skinned = AssimpHelpers::isSkinned(scene);
+                            auto path = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
+
                             getUIState().modelfileName = getUIState().filePath;
-                            auto model = new Model(getUIState().filePath);
-                            model->setModelMatrix(glm::identity<glm::mat4>());
-                            model->save(fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets");
-                            getActiveLevel().addRenderable(model);
-                            getUIState().renderables = *EngineState::state->activeLevel->renderables;  
+
+                            if (skinned)
+                            {
+                                const auto skeleton = std::make_shared<Skeleton::Skeleton>();
+                                skeleton->setup(getUIState().filePath);
+                                const auto model = new Model();
+                                model->LoadA3DModel(
+                                    scene,
+                                    true,
+                                    getUIState().filePath,
+                                    &skeleton->m_BoneInfoMap,
+                                    &skeleton->m_BoneCounter);
+
+                                model->setModelMatrix(glm::identity<glm::mat4>());
+                                getActiveLevel().addRenderable(model);
+
+                                Skeleton::Skeleton::ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
+                                Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
+
+                                skeleton->save(path);
+                                model->save(path);
+                            }
+                            else
+                            {
+                                const auto model = new Model();
+                                model->LoadA3DModel(
+                                    scene,
+                                    false,
+                                    getUIState().filePath,
+                                    nullptr,
+                                    nullptr);
+
+                                model->setModelMatrix(glm::identity<glm::mat4>());
+                                getActiveLevel().addRenderable(model);
+
+                                model->save(path);
+                            }
+
+                            getUIState().renderables = *EngineState::state->activeLevel->renderables;
                             showUI = false;
                         }
                         break;

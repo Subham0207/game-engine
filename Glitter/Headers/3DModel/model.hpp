@@ -34,10 +34,24 @@ class Model: public Renderable, public Serializable
 {
 public:
     Model()=default;
-    Model(std::string path,
-    std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
-    int* m_BoneCounter = nullptr,
-    std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
+    Model(
+        std::string path,
+        std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
+        int* m_BoneCounter = nullptr,
+        std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
+
+    // This can load 3d model file example: warrior.fbx;
+    void LoadA3DModel(
+        const aiScene* scene,
+        bool isSkinned,
+        const std::string& path,
+        std::map<std::string, BoneInfo>* m_BoneInfoMap,
+        int* m_BoneCounter);
+
+    void static processingVerticesForAMesh(
+        aiMesh* mesh,
+        std::vector<ProjectModals::Vertex> &vertices,
+        std::vector<unsigned int> &indices);
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
     void drawGeometryOnly() override;

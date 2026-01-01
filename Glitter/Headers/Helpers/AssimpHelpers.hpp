@@ -5,9 +5,12 @@
 #include"assimp/matrix4x4.h"
 #include"glm/glm.hpp"
 #include"glm/gtc/quaternion.hpp"
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
+#include <iostream>
 
-
-class AssimpGLMHelpers
+class AssimpHelpers
 {
 public:
 
@@ -30,5 +33,34 @@ public:
 	static inline glm::quat GetGLMQuat(const aiQuaternion& pOrientation)
 	{
 		return glm::quat(pOrientation.w, pOrientation.x, pOrientation.y, pOrientation.z);
+	}
+
+	static const aiScene* createAssimpScene(const std::string& path, Assimp::Importer& import)
+	{
+		const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+		{
+			std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
+			return nullptr;
+		}
+
+		return scene;
+	}
+
+	static bool isSkinned(const aiScene* scene)
+	{
+		bool hasSkeletalData = false;
+
+		if(scene)
+		{
+			for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+				if (scene->mMeshes[i]->HasBones()) {
+					hasSkeletalData = true;
+					break;
+				}
+			}
+		}
+		return hasSkeletalData;
 	}
 };

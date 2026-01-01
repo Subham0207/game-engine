@@ -2,9 +2,10 @@
 #include "3DModel/model.hpp"
 #include <iostream>
 #include <fstream>
+#include <utility>
 #include <vector>
 #include <filesystem>
-#include "Helpers/AssimpGLMHelpers.hpp"
+#include "Helpers/AssimpHelpers.hpp"
 #include <Helpers/vertexBoneDataHelper.hpp>
 #include "Helpers/Shared.hpp"
 #include <Modals/vertex.hpp>
@@ -26,8 +27,6 @@ void Model::loadModel(
 {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
-    boundingBox = new aiAABB();
-    calculateBoundingBox(scene);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -150,20 +149,15 @@ void Model::processNode(
     }
 }
 
-Mesh Model::processMesh(
+void Model::processingVerticesForAMesh(
     aiMesh* mesh,
-    const aiScene* scene,
-    std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter)
+    std::vector<ProjectModals::Vertex> &vertices,
+   std::vector<unsigned int> &indices)
 {
-   std::vector<ProjectModals::Vertex> vertices;
-   std::vector<unsigned int>indices;
-   std::vector<ProjectModals::Texture> textures;
-
     //1. Procesing vertices
    for(unsigned int i = 0; i < mesh->mNumVertices; i++)
    {
-    ProjectModals::Vertex vertex;
+    ProjectModals::Vertex vertex{};
     vertex.Position = glm::vec3(
      static_cast<float>(mesh->mVertices[i].x),
      static_cast<float>(mesh->mVertices[i].y),
@@ -234,9 +228,25 @@ Mesh Model::processMesh(
         // retrieve all indices of the face and store them in the indices vector
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
-    } 
+    }
+}
 
-    Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
+Mesh Model::processMesh(
+    aiMesh* mesh,
+    const aiScene* scene,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter)
+{
+    std::vector<ProjectModals::Vertex> vertices;
+    std::vector<unsigned int> indices;
+    processingVerticesForAMesh(mesh, vertices, indices);
+
+    std::vector<ProjectModals::Texture> textures;
+
+    if (m_BoneCounter && m_BoneInfoMap)
+    {
+        Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
+    }
 
     auto justMesh = Mesh(vertices, indices);
 
@@ -542,6 +552,39 @@ void Model::physicsUpdate()
     physicsObject->PhysicsUpdate();
 }
 
+void Model::LoadA3DModel(
+    const aiScene* scene,
+    bool isSkinned,
+    const std::string& path,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter
+    )
+{
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    modeltype = ModelType::ACTUAL_MODEL;
+    if(isSkinned)
+    {
+        auto vertPath = engineFSPath / "Shaders/basic.vert";
+        auto fragPath = engineFSPath / "Shaders/pbr.frag";
+        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+        processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
+    }
+    else
+    {
+        auto vertPath = engineFSPath / "Shaders/staticShader.vert";
+        auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+        shader = new Shader(vertPath.u8string().c_str(), fragPath.u8string().c_str());
+        processNode(scene->mRootNode, scene, nullptr, nullptr);
+    }
+    shader->use();
+
+
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    filename = fs::path(path).filename().string();
+}
+
 Model::Model(std::string path,
 std::map<std::string, BoneInfo>* m_BoneInfoMap,
 int* m_BoneCounter,
@@ -560,10 +603,10 @@ std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsL
     {
         auto vertPath = engineFSPath / "Shaders/staticShader.vert";
         auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+        shader = new Shader(vertPath.u8string().c_str(), fragPath.u8string().c_str());
     }
     shader->use();
-    loadModel(path, m_BoneInfoMap, m_BoneCounter, onModelComponentsLoad);
+    loadModel(path, m_BoneInfoMap, m_BoneCounter, std::move(onModelComponentsLoad));
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 

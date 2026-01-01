@@ -1,5 +1,5 @@
 #include <Helpers/vertexBoneDataHelper.hpp>
-#include <Helpers/AssimpGLMHelpers.hpp>
+#include <Helpers/AssimpHelpers.hpp>
 #include <iostream>
 
 namespace Helpers
@@ -44,7 +44,7 @@ namespace Helpers
                 newBoneInfo.parentIndex = -1;
                 auto bone = mesh->mBones[boneIndex];
                 if (bone->mOffsetMatrix != aiMatrix4x4()) {
-                    newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(bone->mOffsetMatrix);
+                    newBoneInfo.offset = AssimpHelpers::ConvertMatrixToGLMFormat(bone->mOffsetMatrix);
                 } 
                 else 
                 {
@@ -109,7 +109,7 @@ namespace Helpers
         aiMatrix4x4 inverseTransform = boneNode->mTransformation;
         inverseTransform.Inverse();  // Get the inverse bind pose
     
-        return AssimpGLMHelpers::ConvertMatrixToGLMFormat(inverseTransform);
+        return AssimpHelpers::ConvertMatrixToGLMFormat(inverseTransform);
     }
 
     aiNode* FindNodeRecursive(aiNode* node, const std::string& nodeName)

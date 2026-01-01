@@ -18,6 +18,25 @@ namespace Controls
     class PlayerController;
 }
 
+/*
+ * Character Entity prefab structure ( Used for serialization )
+    {
+        "classId": "WarriorCharacter",
+        "model_guid": "GUID", // static file
+        "skeleton_guid": "GUID", // static file
+        "statemachine": {
+            "classId": "warriorStateMachine" // states creation, switching on condition all live in this file
+        },
+    }
+
+    Nothing scriptable or anything that can be saved to static file in camera, capsule collider, playerController.
+    So we can create them in onStart() of WarriorCharacter derived class
+
+    When you import a character the editor UI will ask you to choose the type.
+    If you choose just model. It will create a .model file. ( which is not scriptable yet ). Click save it will not create Entity obj.
+    Choose Character. This will reveal additional option: Choose flavor of Character. Click save it will create entity obj similar to above.
+ */
+
 class Character: public Renderable, public Serializable
 {
 public:

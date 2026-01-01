@@ -1,20 +1,10 @@
 #pragma once
-#include "imgui.h"
 #include <vector>
 #include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/matrix_decompose.hpp"
 #include "EngineState.hpp"
-#include "3DModel/Animation/Animator.hpp"
-#include  <UI/FileExplorer.hpp>
 #include <Renderable/renderable.hpp>
-
-#include "assimp/scene.h"
-#include "Character/Character.hpp"
 #include "Level/Level.hpp"
-#include <filesystem>
-#include <UI/Blendspace2DUI.hpp>
 namespace fs = std::filesystem;
 
 

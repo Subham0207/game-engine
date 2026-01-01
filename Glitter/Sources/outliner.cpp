@@ -6,7 +6,9 @@
 #include <UI/PropertiesPanel.hpp>
 #include <AI/AI.hpp>
 #include <UI/AI_UI.hpp>
- 
+
+#include "UI/FileExplorer.hpp"
+
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
     {
@@ -454,13 +456,6 @@ void Outliner::ModelAndTextureSelectionWindow()
             getUIState().selectAFile = true;
             getUIState().showOpenButton = true;
             getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importModelFile;
-        }
-
-        if(ImGui::Button("Browse Character##1"))
-        {
-            getUIState().selectAFile = true;
-            getUIState().showOpenButton = true;
-            getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importCharacterFile;
         }
 
         UI::renderMaterialManagerComponent();

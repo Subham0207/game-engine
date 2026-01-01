@@ -9,8 +9,6 @@ bool UI::Shared::comboUI(const char* label, int &selectedIndex, std::vector<std:
     smNamePtrs.reserve(options.size()+1);
     smNamePtrs.push_back("None");
     for (auto& s : options) smNamePtrs.push_back(s.c_str());
-
-    auto& ui = *getUIState().characterUIState;
     
     return ImGui::Combo(
         label,
