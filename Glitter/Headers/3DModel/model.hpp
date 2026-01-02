@@ -51,7 +51,7 @@ public:
     void static processingVerticesForAMesh(
         aiMesh* mesh,
         std::vector<ProjectModals::Vertex> &vertices,
-        std::vector<unsigned int> &indices);
+        std::vector<unsigned int> &indices){};
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
     void drawGeometryOnly() override;

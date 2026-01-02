@@ -149,15 +149,20 @@ void Model::processNode(
     }
 }
 
-void Model::processingVerticesForAMesh(
+Mesh Model::processMesh(
     aiMesh* mesh,
-    std::vector<ProjectModals::Vertex> &vertices,
-   std::vector<unsigned int> &indices)
+    const aiScene* scene,
+    std::map<std::string, BoneInfo>* m_BoneInfoMap,
+    int* m_BoneCounter)
 {
+   std::vector<ProjectModals::Vertex> vertices;
+   std::vector<unsigned int>indices;
+   std::vector<ProjectModals::Texture> textures;
+
     //1. Procesing vertices
    for(unsigned int i = 0; i < mesh->mNumVertices; i++)
    {
-    ProjectModals::Vertex vertex{};
+    ProjectModals::Vertex vertex;
     vertex.Position = glm::vec3(
      static_cast<float>(mesh->mVertices[i].x),
      static_cast<float>(mesh->mVertices[i].y),
@@ -229,19 +234,6 @@ void Model::processingVerticesForAMesh(
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
-}
-
-Mesh Model::processMesh(
-    aiMesh* mesh,
-    const aiScene* scene,
-    std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter)
-{
-    std::vector<ProjectModals::Vertex> vertices;
-    std::vector<unsigned int> indices;
-    processingVerticesForAMesh(mesh, vertices, indices);
-
-    std::vector<ProjectModals::Texture> textures;
 
     if (m_BoneCounter && m_BoneInfoMap)
     {
@@ -567,6 +559,7 @@ void Model::LoadA3DModel(
         auto vertPath = engineFSPath / "Shaders/basic.vert";
         auto fragPath = engineFSPath / "Shaders/pbr.frag";
         shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+        shader->use();
         processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
     }
     else
@@ -574,9 +567,9 @@ void Model::LoadA3DModel(
         auto vertPath = engineFSPath / "Shaders/staticShader.vert";
         auto fragPath = engineFSPath / "Shaders/staticShader.frag";
         shader = new Shader(vertPath.u8string().c_str(), fragPath.u8string().c_str());
+        shader->use();
         processNode(scene->mRootNode, scene, nullptr, nullptr);
     }
-    shader->use();
 
 
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));

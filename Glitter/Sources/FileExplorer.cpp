@@ -150,6 +150,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                                     &skeleton->m_BoneCounter);
 
                                 model->setModelMatrix(glm::identity<glm::mat4>());
+
                                 getActiveLevel().addRenderable(model);
 
                                 Skeleton::Skeleton::ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
@@ -169,12 +170,11 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                                     nullptr);
 
                                 model->setModelMatrix(glm::identity<glm::mat4>());
+
                                 getActiveLevel().addRenderable(model);
 
                                 model->save(path);
                             }
-
-                            getUIState().renderables = *EngineState::state->activeLevel->renderables;
                             showUI = false;
                         }
                         break;
