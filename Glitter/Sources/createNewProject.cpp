@@ -192,9 +192,10 @@ void create_cmake_game_project(const std::string& projectDir, const std::string&
     fs::path target = root / "main.cpp";
 
     try {
-        // Simple copy command
         fs::copy(source, target);
-        std::cout << "main.cpp created successfully" << std::endl;
+        fs::create_directory(root / "src");
+        fs::create_directory(root / "src/headers");
+        fs::create_directory(root / "src/sources");
     }
     catch (fs::filesystem_error& e) {
         std::cerr << "Error creating main.cpp : " << e.what() << std::endl;

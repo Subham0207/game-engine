@@ -133,14 +133,28 @@ target_include_directories(GlitterLib
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Headers>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/serializations>
 
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Headers>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/serializations>
+
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo>
+
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/contrib/utf8cpp/source>
+
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/assimp>
+
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/glad>
+
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/glfw/include/>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/glm/>
+
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/stb>
+
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/backends/>
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/>
@@ -148,6 +162,7 @@ target_include_directories(GlitterLib
             $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
             $<BUILD_INTERFACE:${LUA_INCLUDE_DIR}>
             $<BUILD_INTERFACE:${RECASTNAVIGATION_INCLUDE_DIRS}>
+
             $<INSTALL_INTERFACE:include/Glitter>
 )
 
@@ -219,11 +234,17 @@ set_target_properties(GlitterLib PROPERTIES
 )
 
 # Install Headers
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Headers/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Headers/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Headers")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/serializations/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/serializations")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/lua-5.4.2/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/lua")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(DIRECTORY "${recast_SOURCE_DIR}/Recast/Include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Recast")
 install(DIRECTORY "${recast_SOURCE_DIR}/Detour/Include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Detour")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/glad")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/glm/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/glm")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/assimp")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/contrib/utf8cpp/source/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/assimp/contrib/utf8cpp/source")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/stb")
 
 # Install Bundled Dependencies
 install(FILES "${LUA_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")

@@ -6,15 +6,9 @@
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
-#include "assimp/postprocess.h"
 #include "3DModel/Skeleton/AnimData.hpp"
-
-#include "imgui.h"
-
 #include "GLFW/glfw3.h"
-
 #include <map>
-#include <serializeAClass.hpp>
 #include <Modals/material.hpp>
 #include <Lights/cubemap.hpp>
 #include <Renderable/renderable.hpp>
@@ -22,7 +16,6 @@
 #include <Serializable.hpp>
 #include <functional>
 #include <boost/serialization/shared_ptr.hpp>
-#include <boost/serialization/base_object.hpp>
 
 enum ModelType;
 

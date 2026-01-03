@@ -1,10 +1,8 @@
 #pragma once
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include <string>
-#include <fstream>
-#include <sstream>
 #include <iostream>
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 
 
 class Shader

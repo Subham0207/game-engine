@@ -1,4 +1,6 @@
 #include "Helpers/shader.hpp"
+#include <fstream>
+#include <sstream>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath)
 {

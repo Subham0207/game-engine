@@ -5,9 +5,9 @@
 #include <vector>
 #include "assimp/scene.h"
 #include <list>
-#include "../../../Vendor/glm/glm/glm.hpp"
+#include<glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include "../../../Vendor/glm/glm/gtx/quaternion.hpp"
+#include <glm/gtx/quaternion.hpp>
 #include "../../Helpers/AssimpHelpers.hpp"
 #include <serializeAClass.hpp>
 
