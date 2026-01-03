@@ -151,13 +151,13 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
 
                                 model->setModelMatrix(glm::identity<glm::mat4>());
 
-                                getActiveLevel().addRenderable(model);
-
                                 Skeleton::Skeleton::ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
                                 Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
 
                                 skeleton->save(path);
                                 model->save(path);
+
+                                delete model;
                             }
                             else
                             {
@@ -171,9 +171,9 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
 
                                 model->setModelMatrix(glm::identity<glm::mat4>());
 
-                                getActiveLevel().addRenderable(model);
-
                                 model->save(path);
+
+                                delete model;
                             }
                             showUI = false;
                         }

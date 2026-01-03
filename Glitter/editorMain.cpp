@@ -9,7 +9,7 @@
 int main(int argc, char * argv[])
 {
     auto editor = new Editor();
-    editor->openEditor("");
+    editor->openEditor("","");
 
     return EXIT_SUCCESS;
 }

@@ -18,9 +18,19 @@ void EngineState::setEngineDirectory(std::string value)
     engineInstalledDirectory = std::move(value);
 }
 
-void EngineState::setCurrentDirAsProjectDirectory()
+void EngineState::setCurrentActiveProjectDir(std::string value)
 {
-    currentActiveProjectDirectory = fs::current_path().string();
+    currentActiveProjectDirectory = std::move(value);
+}
+
+fs::path EngineState::navIntoProjectDir(std::string path)
+{
+    return fs::path(state->engineInstalledDirectory) / path;
+}
+
+fs::path EngineState::navIntoEnginDir(std::string path)
+{
+    return fs::path(state->currentActiveProjectDirectory) / path;
 }
 
 EngineState* EngineState::state = nullptr;

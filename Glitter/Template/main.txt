@@ -8,7 +8,8 @@
 int main()
 {
     auto editor = new Editor();
-    std::string value = GLITTER_ENGINE;
-    editor->openEditor(value);
+    std::string engine_root = GLITTER_ENGINE;
+    std::string project_root = CMAKE_ROOT_DIR;
+    editor->openEditor(engine_root, project_root);
     return 0;
 }

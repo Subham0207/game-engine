@@ -36,26 +36,13 @@ else()
     message(FATAL_ERROR "Could not find Lua DLL path for copying!")
 endif()
 
-add_custom_command(TARGET {{PROJECT_NAME}}  POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    "${CMAKE_CURRENT_SOURCE_DIR}/Project.manifest.json"
-    "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Project.manifest.json"
-)
-
-add_custom_command(TARGET {{PROJECT_NAME}}  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-          "${CMAKE_SOURCE_DIR}/Assets"
-          "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Assets"
-)
-
-add_custom_command(TARGET {{PROJECT_NAME}}  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-          "${CMAKE_SOURCE_DIR}/Levels"
-          "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Levels"
-)
-
 target_compile_definitions({{PROJECT_NAME}}  PRIVATE
     GLITTER_ENGINE=\"${ENGINE_LOC}\"
+)
+
+# At install time remember to not rely on this. And copy the files to root directory of game.exe.
+target_compile_definitions({{PROJECT_NAME}}  PRIVATE
+    CMAKE_ROOT_DIR=\"${CMAKE_SOURCE_DIR}\"
 )
 
 get_target_property(_defs {{PROJECT_NAME}} COMPILE_DEFINITIONS)

@@ -20,8 +20,11 @@ namespace AI
 class EngineState{
 public:
     EngineState();
-    void setCurrentDirAsProjectDirectory();
+    void setCurrentActiveProjectDir(std::string value);
     void setEngineDirectory(std::string value);
+
+    static fs::path navIntoProjectDir(std::string path);
+    static fs::path navIntoEnginDir(std::string path);
 
     float deltaTime = 0.0f;	// Time between current frame and last frame
     float lastFrame = 0.0f; // Time of last frame

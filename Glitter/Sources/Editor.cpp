@@ -46,11 +46,11 @@
 #include "Controls/ClientHandler.hpp"
 
 
-int Editor::openEditor(std::string enginePath) {
+int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
     EngineState::state = new EngineState();
-    EngineState::state->setCurrentDirAsProjectDirectory();
     EngineState::state->setEngineDirectory(std::move(enginePath));
+    EngineState::state->setCurrentActiveProjectDir(std::move(projectDir));
     ClientHandler::clientHandler = new ClientHandler();
 
     char cwd[MAX_PATH];

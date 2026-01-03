@@ -9,7 +9,7 @@
 class Editor
 {
 public:
-    int openEditor(std::string enginePath);
+    int openEditor(std::string enginePath, std::string projectDir);
 };
 
 

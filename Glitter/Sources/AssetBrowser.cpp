@@ -12,7 +12,7 @@ namespace ProjectAsset
     AssetBrowser::AssetBrowser()
     {
         this->showAssetBrowser = true;
-        currentPath = fs::current_path().string();
+        currentPath = EngineState::state->currentActiveProjectDirectory;
         LoadAssets();
     }
 
