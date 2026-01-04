@@ -12,9 +12,8 @@ class Outliner
 {
 public:
     // Constructor
-    Outliner(std::vector<Renderable *> renderable) {
+    Outliner() {
         // Initialize the items array or any other setup needed
-        getUIState().renderables = *EngineState::state->activeLevel->renderables;
         getUIState().selectedRenderableIndex = -1;
     }
 

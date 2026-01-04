@@ -4,16 +4,11 @@ namespace UI
 {
     class CharacterUI
     {
-        public:
-        CharacterUI()
-        {
-            selectedStateMachineIndex = 0;
-            showCharacterUI = false;
-            UIOpenedForCharacter = nullptr;
-        }
-        static void draw(Character* character,  bool &showUI);
-            int selectedStateMachineIndex;
-            bool showCharacterUI;
-            Character* UIOpenedForCharacter;
+    public:
+        CharacterUI();
+        void draw(bool &showUI);
+        bool showCharacterUI;
+    private:
+        std::string characterName;
     };
 }

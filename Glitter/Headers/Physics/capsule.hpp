@@ -24,7 +24,7 @@ namespace Physics
         }
         float radius;
         float halfHeight;
-        CapsuleColliderModel *capsule;
+        std::shared_ptr<CapsuleColliderModel> capsule;
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
         void addCustomModel(std::string modelPath) override;

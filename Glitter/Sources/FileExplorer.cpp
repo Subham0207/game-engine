@@ -181,11 +181,11 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                     case FileTypeOperation::importCharacterFile:
                         {
                             getUIState().modelfileName = getUIState().filePath;
-                            auto character = new Character(getUIState().filePath);
+                            auto character = std::make_shared<Character>(getUIState().filePath);
                             character->setModelMatrix(glm::identity<glm::mat4>());
-                            character->save(fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets");
+                            auto characterPath = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
+                            character->save(characterPath);
                             getActiveLevel().addRenderable(character);
-                            getUIState().renderables = *EngineState::state->activeLevel->renderables;    
                             showUI = false;                       
                         }
                         break;
@@ -241,7 +241,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         break;
                     case FileTypeOperation::loadModel:
                         {
-                            auto renderable = new Model();
+                            auto renderable = std::make_shared<Model>();
                             Model::loadFromFile(getUIState().filePath, *renderable);
                             getActiveLevel().addRenderable(renderable);
                             showUI = false;                      

@@ -23,7 +23,7 @@ bool rayPlaneHit(
     float& tOut, glm::vec3& X
 );
 
-int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<Renderable*>& renderables);
+int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<std::shared_ptr<Renderable>>& renderables);
 
 glm::vec3 getNormalizedCoordinateForDepth(double winX, double winY, double screenWidth, double screenHeight, double depth);
 
@@ -32,7 +32,7 @@ void setRay(double winX, double winY, glm::vec3& rayOrigin, glm::vec3& rayDir, g
 int handlePicking(
     double mouseX,
     double mouseY,
-    const std::vector<Renderable*>& renderables,
+    const std::vector<std::shared_ptr<Renderable>>& renderables,
     glm::mat4 &view,
     glm::mat4 &projection,
     unsigned int rayShader,

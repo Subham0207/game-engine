@@ -17,6 +17,8 @@ namespace Skeleton {
         {
         }
 
+        std::string GetClassId() const override { return "Skeleton"; }
+
         std::map<std::string, BoneInfo> m_BoneInfoMap;
         int m_BoneCounter = 0;
         std::vector<glm::vec3> bonePositions;

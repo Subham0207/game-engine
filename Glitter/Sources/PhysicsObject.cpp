@@ -75,12 +75,11 @@ void Physics::PhysicsObject::syncTransformation()
 
 void Physics::PhysicsObject::addCustomModel(std::string modelPath)
 {
-    model = new Model(modelPath);
+    model = std::make_shared<Model>(modelPath);
     model->modeltype = ModelType::COLLIDER;
 }
 
 void Physics::PhysicsObject::AddToLevel()
 {
     getActiveLevel().addRenderable(model);
-    getUIState().renderables = *EngineState::state->activeLevel->renderables;
 }

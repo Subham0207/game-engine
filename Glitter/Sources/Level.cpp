@@ -65,22 +65,22 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
             if(extension ==  ".model")
             {
-                auto model = new Model();
+                auto model = std::make_shared<Model>();
                 model->load(path, id);
                 model->setModelMatrix(M);
                 model->setInstanceId(instanceId);
                 auto filename = contentFilePath.stem().filename().string();
                 model->setFileName(filename);
-                this->renderables->push_back(model);
+                this->renderables.push_back(model);
                 instanceIdToSerializableMap[instanceId] = model;
             }
             if(extension ==  ".character")
             {
-                auto character = new Character();
+                auto character = std::make_shared<Character>();
                 character->load(path, id);
                 character->setModelMatrix(M);
                 character->setInstanceId(instanceId);
-                this->renderables->push_back(character);
+                this->renderables.push_back(character);
                 instanceIdToSerializableMap[instanceId] = character;
             }
         }
@@ -165,9 +165,9 @@ void Level::BuildLevelNavMesh()
 {
     int baseVert = 0;
 
-    for(int i=0;i<renderables->size();i++)
+    for(int i=0;i<renderables.size();i++)
     {
-        auto r = renderables->at(i);
+        auto r = renderables.at(i);
 
         if (!r->ShouldRender()) continue;
         if(r->getModelType() == ModelType::LIGHT) continue;
@@ -325,10 +325,10 @@ void Level::saveContent(fs::path contentFile, std::ostream &os)
     bs::ptree renderablesNode; // array node for all renderables
     bs::ptree aisNode; // array node for all renderables
 
-    for (size_t i = 0; i < renderables->size(); i++)
+    for (size_t i = 0; i < renderables.size(); i++)
     {
-        auto r = renderables->at(i);
-        if (auto* serializable = dynamic_cast<Serializable*>(r))
+        auto r = renderables.at(i);
+        if (std::shared_ptr<Serializable> serializable =std::dynamic_pointer_cast<Serializable>(r))
         {
             bs::ptree renderableNode;
 

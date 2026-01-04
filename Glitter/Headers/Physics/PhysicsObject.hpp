@@ -24,7 +24,7 @@ namespace Physics
         virtual void syncTransformation();
         virtual void addCustomModel(std::string modelPath);
         void AddToLevel();
-        Model * model;
+        std::shared_ptr<Model> model;
         PhysicsSystemWrapper* physics;
         JPH::BodyID physicsId;
     private:

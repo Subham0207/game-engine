@@ -15,21 +15,21 @@ BaseLight::BaseLight(LightType lightType, glm::vec3 pos)
     {
         case LightType::Directional :
         {
-            lightModel = new Model((loc / "EngineAssets" / "cube.fbx").string());
+            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string());
             lightModel->setDirName("directionalLight");
             break;
         }
         case LightType::Point :
         {
             
-            lightModel = new Model((loc / "EngineAssets" / "cube.fbx").string());
+            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string());
             lightModel->setDirName("pointLight");
             break;
         }
         case LightType::Spot :
         {
             
-            lightModel = new Model((loc / "EngineAssets" / "cube.fbx").string());
+            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string());
             lightModel->setDirName("spotLight");
             break;			
         }
@@ -93,13 +93,13 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
     shadowMapShader->use();
     glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
 
-    for(int i=0;i<lvlrenderables->size();i++)
+    for(int i=0;i<lvlrenderables.size();i++)
     {
-        if(lvlrenderables->at(i)->ShouldRender())
+        if(lvlrenderables.at(i)->ShouldRender())
         {
-            glm::mat4 model = (*lvlrenderables)[i]->getModelMatrix();
+            glm::mat4 model = (lvlrenderables)[i]->getModelMatrix();
             glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            (*lvlrenderables)[i]->drawGeometryOnly();
+            (lvlrenderables)[i]->drawGeometryOnly();
         }
     }
 
@@ -277,14 +277,14 @@ void SpotLight::evaluateShadowMap(GLFWwindow *window)
     glUniformMatrix4fv(glGetUniformLocation(spotShadowShader->ID, "lightSpaceMatrix"),
                        1, GL_FALSE, glm::value_ptr(spotLightSpaceMatrix));
 
-    for (int i = 0; i < lvlrenderables->size(); ++i)
+    for (int i = 0; i < lvlrenderables.size(); ++i)
     {
-        if (lvlrenderables->at(i)->ShouldRender())
+        if (lvlrenderables.at(i)->ShouldRender())
         {
-            glm::mat4 model = (*lvlrenderables)[i]->getModelMatrix();
+            glm::mat4 model = (lvlrenderables)[i]->getModelMatrix();
             glUniformMatrix4fv(glGetUniformLocation(spotShadowShader->ID, "model"),
                                1, GL_FALSE, glm::value_ptr(model));
-            (*lvlrenderables)[i]->drawGeometryOnly();
+            (lvlrenderables)[i]->drawGeometryOnly();
         }
     }
 
@@ -365,13 +365,13 @@ void PointLight::evaluateShadowMap(GLFWwindow* window)
     glUniform1f(glGetUniformLocation(shadowMapShader->ID, "far_plane"), farPlane);
 
     // 6) Draw scene with model matrices
-    for (int i = 0; i < lvlrenderables->size(); ++i)
+    for (int i = 0; i < lvlrenderables.size(); ++i)
     {
-        if (lvlrenderables->at(i)->ShouldRender())
+        if (lvlrenderables.at(i)->ShouldRender())
         {
-            glm::mat4 model = (*lvlrenderables)[i]->getModelMatrix();
+            glm::mat4 model = (lvlrenderables)[i]->getModelMatrix();
             glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            (*lvlrenderables)[i]->drawGeometryOnly();
+            (lvlrenderables)[i]->drawGeometryOnly();
         }
     }
 

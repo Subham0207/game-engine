@@ -72,6 +72,8 @@ namespace Controls
             virtual const std::string contentName() override {return filename; }
             void setFileName(std::string name){ this->filename = name;}
             std::vector<State*> states;
+
+            std::string GetClassId() const override { return "StateMachine"; }
             
         protected:
             virtual const std::string typeName() const override {return "statemachine"; }

@@ -16,7 +16,7 @@ class BaseLight
 {
 public:
 	BaseLight(LightType lightType, glm::vec3 pos);
-	Model* lightModel;
+	std::shared_ptr<Model> lightModel;
 };
 
 class DirectionalLight: public BaseLight {

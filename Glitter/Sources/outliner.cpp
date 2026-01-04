@@ -45,8 +45,8 @@ void Outliner::Render(Level &lvl) {
         ImGui::End();
     }
 
-    if(getUIState().characterUIState->UIOpenedForCharacter && getUIState().characterUIState->showCharacterUI)
-    UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter, getUIState().characterUIState->showCharacterUI);
+    // if(getUIState().characterUIState->UIOpenedForCharacter && getUIState().characterUIState->showCharacterUI)
+    // UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter, getUIState().characterUIState->showCharacterUI);
 
     if(getUIState().blendspace2DUIState->showBlendspaceUI)
     {
@@ -85,7 +85,7 @@ void Outliner::ModelMatrixComponent()
             if(getUIState().selectedRenderableIndex > -1)
         {
             auto index = getUIState().selectedRenderableIndex;
-            glm::mat4& modelMatrix = getActiveLevel().renderables->at(index)->getModelMatrix();
+            glm::mat4& modelMatrix = getActiveLevel().renderables.at(index)->getModelMatrix();
             glm::vec3 scale, rotation, translation, skew;
             glm::vec4 perspective;
             glm::quat orientation;
@@ -138,7 +138,7 @@ void Outliner::ModelMatrixComponent()
             //set radius and half height of capsule collider used on the character
             if(!EngineState::state->isPlay)
             {
-                if(auto character = dynamic_cast<Character *>(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
+                if(auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().renderables.at(getUIState().selectedRenderableIndex)))
                 {
                         auto capsule = character->capsuleCollider;
 
@@ -168,7 +168,7 @@ void Outliner::ModelMatrixComponent()
             }
             else
             {
-                if(auto character = dynamic_cast<Character *>(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
+                if(auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().renderables.at(getUIState().selectedRenderableIndex)))
                 {
                     ImGui::DragFloat("camera height", &character->cameraHeight, 0.005f);
                     ImGui::SameLine();
@@ -182,8 +182,8 @@ void Outliner::levelControlsComponent(Level &lvl)
     ImGui::Text("Current Level %s", lvl.levelname.c_str());
     if(ImGui::Button("Save Level"))
     {
-        lvl.save(
-            (fs::path(EngineState::state->currentActiveProjectDirectory) / "Levels"));
+        auto levelPath = EngineState::navIntoProjectDir("Levels");
+        lvl.save(levelPath);
     }
     if(ImGui::Button("Save Level as"))
     {
@@ -208,9 +208,9 @@ void Outliner::levelControlsComponent(Level &lvl)
         getUIState().characterUIState->showCharacterUI = true;
         auto selectedCharacterIndex = getUIState().selectedRenderableIndex;
         if(selectedCharacterIndex > -1)
-        if(auto character = dynamic_cast<Character *>(getActiveLevel().renderables->at(selectedCharacterIndex)))
+        if(auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().renderables.at(selectedCharacterIndex)))
         {
-            getUIState().characterUIState->UIOpenedForCharacter = character;
+            // getUIState().characterUIState->UIOpenedForCharacter = character;
         }
     }
 
@@ -267,20 +267,20 @@ void Outliner::levelControlsComponent(Level &lvl)
 }
 void Outliner::modelSelectorComponent()
 {
-    for (int i = 0; i < getActiveLevel().renderables->size(); ++i) {
+    for (int i = 0; i < getActiveLevel().renderables.size(); ++i) {
         // Optionally, push style changes here if you want to customize appearance
         // Render the radio button
         // The label for each button could be customized further if needed
-        std::string name = getActiveLevel().renderables->at(i)->getName();
+        std::string name = getActiveLevel().renderables.at(i)->getName();
         name+=std::to_string(i);
         if (ImGui::RadioButton(name.c_str(), &getUIState().selectedRenderableIndex, i)) {
             if(getUIState().selectedRenderableIndex == i)
             {
-                getActiveLevel().renderables->at(i)->setIsSelected(true);
+                getActiveLevel().renderables.at(i)->setIsSelected(true);
             }
             else
             {
-                getActiveLevel().renderables->at(i)->setIsSelected(false);
+                getActiveLevel().renderables.at(i)->setIsSelected(false);
                 
             }
         }
@@ -469,12 +469,12 @@ void Outliner::ModelAndTextureSelectionWindow()
         if(ImGui::Button("Save"))
         {
             auto dir = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
-            if(auto character = dynamic_cast<Character* >(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
+            if(auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().renderables.at(getUIState().selectedRenderableIndex)))
             {
                 character->save(dir);
             }
 
-            if(auto model = dynamic_cast<Model* >(getActiveLevel().renderables->at(getUIState().selectedRenderableIndex)))
+            if(auto model = std::dynamic_pointer_cast<Model>(getActiveLevel().renderables.at(getUIState().selectedRenderableIndex)))
             {
                 model->save(dir);
             }

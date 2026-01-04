@@ -5,7 +5,7 @@
 #include <Character/Character.hpp>
 #include <Modals/CameraType.hpp>
 
-AI::AI::AI(Character* character, std::string filename): Serializable()
+AI::AI::AI(std::shared_ptr<Character> character, std::string filename): Serializable()
 {
     this->playerController = character->playerController;
     this->controlledCharacterInstanceId = character->getInstanceId();
@@ -141,7 +141,7 @@ void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
     ia >> *this;
     //use controlledCharacterInstanceId re-assign playerController.
     // hook to character if present
-    if (auto* character = dynamic_cast<Character*>(getActiveLevel().instanceIdToSerializableMap[controlledCharacterInstanceId]))
+    if (auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().instanceIdToSerializableMap[controlledCharacterInstanceId]))
     {
         playerController = character->playerController;
         character->setCameraType(CameraType::TOP_DOWN);

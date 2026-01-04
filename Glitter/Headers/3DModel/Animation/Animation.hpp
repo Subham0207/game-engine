@@ -40,6 +40,8 @@ class Animation: public Serializable
 public:
 	Animation() = default;
 
+	std::string GetClassId() const override { return "Animation"; }
+
 	Animation(std::string& animationPath): Serializable()
 	{
 		generate_asset_guid();

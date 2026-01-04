@@ -33,6 +33,8 @@ public:
         int* m_BoneCounter = nullptr,
         std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
 
+    std::string GetClassId() const override { return "Model"; }
+
     // This can load 3d model file example: warrior.fbx;
     void LoadA3DModel(
         const aiScene* scene,

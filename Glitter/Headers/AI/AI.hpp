@@ -13,7 +13,8 @@ namespace AI
     {
     public:
         AI()=default;
-        AI(Character* character, std::string filename);
+        std::string GetClassId() const override { return "AI"; }
+        AI(std::shared_ptr<Character> character, std::string filename);
         void onStart();
         void Tick(float deltaTime);
         void setPath(std::vector<glm::vec3> path);

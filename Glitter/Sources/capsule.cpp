@@ -64,7 +64,7 @@ void Physics::Capsule::syncTransformation()
 }
 void Physics::Capsule::addCustomModel(std::string modelPath)
 {
-    capsule = new CapsuleColliderModel(radius, halfHeight);
+    capsule = std::make_shared<CapsuleColliderModel>(radius, halfHeight);
     getActiveLevel().addRenderable(capsule);
     model = capsule->model;
 }

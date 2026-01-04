@@ -26,7 +26,7 @@ namespace UI
         //List all the character instance ids in the level.
         for(auto itr: getActiveLevel().instanceIdToSerializableMap)
         {
-            if(auto character = dynamic_cast<Character*>(itr.second))
+            if(auto character = std::dynamic_pointer_cast<Character>(itr.second))
             {
                 getUIState().ai_ui_state->charactersList.push_back(character->getName());
                 getUIState().ai_ui_state->characters.push_back(character);

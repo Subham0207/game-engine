@@ -184,11 +184,9 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     }
 
 
-    auto renderables = lvl->renderables;
-
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-    auto outliner = new Outliner(*renderables);
+    auto outliner = new Outliner();
     auto assetBrowser = new ProjectAsset::AssetBrowser();
 
     glm::vec3 rayOrigin, rayDir;
@@ -222,18 +220,18 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
                 //make the physics objects transformations ( including scale ) same as thier model
                 getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
 
-                for(int i=0;i<lvlrenderables->size();i++)
+                for(int i=0;i<lvlrenderables.size();i++)
                 {
-                    lvlrenderables->at(i)->syncTransformationToPhysicsEntity();
+                    lvlrenderables.at(i)->syncTransformationToPhysicsEntity();
                 }
             }
             else
             {
                 getPhysicsSystem().Update(EngineState::state->deltaTime);
 
-                for(int i=0;i<lvlrenderables->size();i++)
+                for(int i=0;i<lvlrenderables.size();i++)
                 {
-                    lvlrenderables->at(i)->physicsUpdate();
+                    lvlrenderables.at(i)->physicsUpdate();
                 }
             }
         }
@@ -312,14 +310,14 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
             light.evaluateShadowMap(mWindow);
 
         // render the model
-        for(int i=0;i<lvlrenderables->size();i++)
+        for(int i=0;i<lvlrenderables.size();i++)
         {
-            if(lvlrenderables->at(i)->ShouldRender())
+            if(lvlrenderables.at(i)->ShouldRender())
             {
-                lvlrenderables->at(i)->useAttachedShader();
+                lvlrenderables.at(i)->useAttachedShader();
                 glActiveTexture(GL_TEXTURE0 + 9);
                 glBindTexture(GL_TEXTURE_2D, lights->directionalLights[0].shadowMap);
-                (*lvlrenderables)[i]->draw(EngineState::state->deltaTime, *activeCamera, lights, cubeMap);
+                lvlrenderables[i]->draw(EngineState::state->deltaTime, *activeCamera, lights, cubeMap);
             }
         }
 
@@ -348,7 +346,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             InputHandler::currentInputHandler->lastX,
             InputHandler::currentInputHandler->lastY,
-            *lvlrenderables,
+            lvlrenderables,
             view,
             proj,
             rayCastshader->ID,
@@ -361,7 +359,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
 
         if(getSelectedIndex > -1)
-        (*lvlrenderables)[getSelectedIndex]->imguizmoManipulate((*activeCamera)->viewMatrix(), ((*activeCamera)->projectionMatrix()));
+        lvlrenderables[getSelectedIndex]->imguizmoManipulate((*activeCamera)->viewMatrix(), ((*activeCamera)->projectionMatrix()));
 
         //Render the outliner
         outliner->Render(*lvl);

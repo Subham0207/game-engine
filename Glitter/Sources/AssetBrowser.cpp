@@ -98,8 +98,9 @@ namespace ProjectAsset
                                     auto filesMap = getEngineRegistryFilesMap();
                                     if (auto it = filesMap.find(guid); it != filesMap.end())
                                     {
-                                        auto model = new Model();
-                                        model->load(fs::path(selectedAsset.filepath).parent_path(), guid);
+                                        auto model = std::make_shared<Model>();
+                                        auto modelPath = fs::path(selectedAsset.filepath).parent_path();
+                                        model->load(modelPath, guid);
                                         model->setModelMatrix(glm::identity<glm::mat4>());
                                         auto filename = fs::path(filesMap[guid]).filename().stem().string();
                                         model->setFileName(filename);

@@ -123,7 +123,7 @@ void renderRayWithIntersection(const glm::vec3& rayOrigin, const glm::vec3& rayE
 
 }
 
-int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<Renderable*>& renderables) {
+int selectModel(const glm::vec3& rayOrigin, const glm::vec3& rayDir, glm::vec3& rayEnd, const std::vector<std::shared_ptr<Renderable>>& renderables) {
     int closestModelIndex = -1;
     float closestDistance = std::numeric_limits<float>::max();
     glm::vec3 closestIntersectionPoint;
@@ -195,7 +195,7 @@ glm::vec3 getNormalizedCoordinateForDepth(double winX, double winY, double scree
 int handlePicking(
     double mouseX,
     double mouseY,
-    const std::vector<Renderable*>& renderables,
+    const std::vector<std::shared_ptr<Renderable>>& renderables,
     glm::mat4 &view,
     glm::mat4 &projection,
     unsigned int rayShader,

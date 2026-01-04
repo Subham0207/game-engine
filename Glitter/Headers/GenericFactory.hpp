@@ -14,13 +14,13 @@
 template <typename TBase>
 class GenericFactory {
 public:
-    using CreatorFunc = std::function<std::unique_ptr<TBase>()>;
+    using CreatorFunc = std::function<std::shared_ptr<TBase>()>;
 
     static void Register(const std::string& id, CreatorFunc func) {
         GetTable()[id] = func;
     }
 
-    static std::unique_ptr<TBase> Create(const std::string& id) {
+    static std::shared_ptr<TBase> Create(const std::string& id) {
         auto it = GetTable().find(id);
         if (it != GetTable().end()) {
             return it->second();
@@ -37,9 +37,11 @@ private:
 //This is the factory responsible to create any derived class's objects, that are defined in a project.
 //Make sure you register the derived class so the engine knows about it.
 using CharacterFactory = GenericFactory<Character>;
+using StateMachineFactory = GenericFactory<Controls::StateMachine>;
 
 //This is the macro to use to register a derived class.
 #define REGISTER_CHARACTER(ClassName, Key) \
+std::string ClassName::GetClassId() const { return Key; } \
 static struct ClassName##Registrar { \
 ClassName##Registrar() { \
 CharacterFactory::Register(Key, []() { \

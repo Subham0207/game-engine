@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,7 +21,7 @@ namespace UI
 
             Shared::EditableText filename;
             std::vector<std::string> charactersList;
-            std::vector<Character*> characters;
+            std::vector<std::shared_ptr<Character>> characters;
             int selectedCharacterFromList;
     };
 }

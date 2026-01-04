@@ -228,7 +228,7 @@ int create_new_project(const std::string& currentDir, const std::string& project
     // Manifest (keep it tiny; add fields as you grow)
     auto lvl = new Level();
 
-    auto floorBox = new Model("./EngineAssets/cube.fbx");
+    auto floorBox = std::make_shared<Model>("./EngineAssets/cube.fbx");
     floorBox->setTransform(glm::vec3(0.0f),glm::quat(), glm::vec3(100.0f,1.0f,100.0f));
     floorBox->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
     floorBox->save(root/ "Assets");
@@ -266,16 +266,15 @@ int create_new_project(const std::string& currentDir, const std::string& project
     update_recent_projects_list(fs::path(EngineState::state->engineInstalledDirectory) / "user_prefs.json", root);
 
     delete lvl;
-    delete character;
 
     std::cout << "Created project '" << projectName << "' at " << root << "\n";
     std::cout << "Project ID: " << projectId << "\n";
     return 0;
 }
 
-Character *addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory)
+std::shared_ptr<Character> addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory)
 {
-    auto character = new Character("./EngineAssets/Aj.fbx");
+    auto character = std::make_shared<Character>("./EngineAssets/Aj.fbx");
     character->model->setTransform(glm::vec3(0.0f,3.0f,0.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
     character->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
 
@@ -285,7 +284,7 @@ Character *addPlayableCharacter(std::filesystem::path root, std::filesystem::pat
     return character;
 }
 
-AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter)
+AI::AI* addAICharacter(std::filesystem::path root, std::shared_ptr<Character> aiCharacter)
 {
     //NOTE: We are using the same character only to save so there are no two instances of samething on disk. And we get 1 guid or character.
     //While loading the AI -- be sure to load another instance of the character using its guid.

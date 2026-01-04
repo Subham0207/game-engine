@@ -22,8 +22,8 @@ int create_new_project(const std::string& currentDir, const std::string& project
 
 void create_cmake_game_project(const std::string& projectDir, const std::string& projectName);
 
-Character* addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory);
+std::shared_ptr<Character> addPlayableCharacter(std::filesystem::path root, std::filesystem::path projectAssetDirectory);
 
-AI::AI* addAICharacter(std::filesystem::path root, Character* aiCharacter);
+AI::AI* addAICharacter(std::filesystem::path root, std::shared_ptr<Character> aiCharacter);
 
 void GenerateLuaLSConfig(const fs::path& projectRoot);

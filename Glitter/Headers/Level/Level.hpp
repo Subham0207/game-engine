@@ -49,10 +49,10 @@ class Level: public Serializable{
 
         void loadMainLevelOfCurrentProject();
 
-        void addRenderable(Renderable *renderable){
+        void addRenderable(const shared_ptr<Renderable>& renderable){
             modelFilePaths.push_back(renderable->getName());
             modelTransformations.push_back(&renderable->getModelMatrix());
-            renderables->push_back(renderable);
+            renderables.push_back(renderable);
         }
 
         void addAI(AI::AI* ai);
@@ -60,13 +60,13 @@ class Level: public Serializable{
         std::vector<std::string> modelFilePaths;
         std::vector<glm::mat4*> modelTransformations;
         std::vector<Sprites::Text*> textSprites;
-        std::vector<Renderable *> *renderables = new std::vector<Renderable *>();
+        std::vector<shared_ptr<Renderable>> renderables = std::vector<shared_ptr<Renderable>>();
         std::vector<AI::AI*> AIs;
         std::string levelname = "level1";
 
         std::vector<Camera*> cameras;
 
-        std::map<std::string, Serializable* > instanceIdToSerializableMap;
+        std::map<std::string, std::shared_ptr<Serializable>> instanceIdToSerializableMap;
 
         void tickAIs(float deltaTime);
 

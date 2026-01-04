@@ -44,6 +44,8 @@ public:
     Character(std::string filepath);
     ~Character();
 
+    std::string GetClassId() const override { return "Character"; }
+
     Model* model;
     std::string model_guid;
 
@@ -155,7 +157,6 @@ public:
     {
         camera->cameraType = cameratype;
     }
-
 protected:
     virtual const std::string typeName() const override {return "character"; }
     virtual const std::string contentName() override {return filename; }

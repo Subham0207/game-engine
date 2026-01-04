@@ -69,9 +69,9 @@ class CapsuleColliderModel: public Renderable{
 
         bool isSelected = false;
 
-        Model* model;
+        std::shared_ptr<Model> model;
 
         void GenerateCapsuleMesh(std::vector<ProjectModals::Vertex>& vertices, std::vector<unsigned int>& indices, float radius, float halfHeight, int segments, int rings);
 
-        Model* createCapsuleModel(float radius = 0.5f, float halfHeight = 1.0f, int segments = 16, int rings = 8);
+        std::shared_ptr<Model>  createCapsuleModel(float radius = 0.5f, float halfHeight = 1.0f, int segments = 16, int rings = 8);
 };

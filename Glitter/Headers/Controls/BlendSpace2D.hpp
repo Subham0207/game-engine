@@ -52,6 +52,8 @@ public:
         this->blendspaceName = blendspaceName;
         generate_asset_guid();
     };
+
+    std::string GetClassId() const override { return "BlendSpace2D"; }
     
     void AddBlendPoint(glm::vec2 pos, Animation* anim) {
         blendPoints.push_back(BlendPoint(pos, anim) );

@@ -15,6 +15,8 @@ class Serializable
         std::string getInstanceId();
         void setInstanceId(std::string id);
         virtual const std::string contentName() = 0;
+
+        virtual std::string GetClassId() const = 0;
     protected:
         virtual void saveContent(fs::path contentFileLocation, std::ostream& os) = 0;
         virtual void loadContent(fs::path contentFileLocation, std::istream& is) = 0;

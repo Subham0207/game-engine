@@ -133,13 +133,13 @@ void CapsuleColliderModel::GenerateCapsuleMesh(std::vector<ProjectModals::Vertex
     addHemisphere(false); // bottom
 }
 
-Model* CapsuleColliderModel::createCapsuleModel(float radius, float halfHeight, int segments, int rings)
+std::shared_ptr<Model> CapsuleColliderModel::createCapsuleModel(float radius, float halfHeight, int segments, int rings)
 {
     std::vector<ProjectModals::Vertex> capsuleVertices;
     std::vector<unsigned int> capsuleIndices;
     GenerateCapsuleMesh(capsuleVertices, capsuleIndices, radius, halfHeight, 16, 8);
 
-    auto model = new Model();
+    auto model = std::make_shared<Model>();
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/staticShader.vert";
     auto fragPath = engineFSPath / "Shaders/staticShader.frag";
