@@ -13,6 +13,8 @@
 #include <Physics/capsule.hpp>
 #include <Serializable.hpp>
 
+#include "CharacterPrefabConfig.hpp"
+
 namespace Controls
 {
     class PlayerController;
@@ -53,6 +55,7 @@ public:
     std::string filename;
 
     void static saveToFile(std::string filename,  Character &character);
+    void static loadPrefabIntoActiveLevel(const CharacterPrefabConfig& characterPrefab);
 
     void loadStateMachine(std::string stateMachine_guid);
     void deleteStateMachine();

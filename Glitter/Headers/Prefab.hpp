@@ -7,6 +7,8 @@
 
 #include <filesystem>
 #include <Character/Character.hpp>
+
+#include "Character/CharacterPrefabConfig.hpp"
 namespace fs = std::filesystem;
 
 /*
@@ -24,10 +26,10 @@ namespace Engine
     {
     public:
         static void writePrefab(fs::path path, PrefabType type);
+        static void writeCharacterPrefab(fs::path path, CharacterPrefabConfig& character);
         static void loadFromPrefabFile(fs::path path, PrefabType type);
+        static void readCharacterPrefab(fs::path path, CharacterPrefabConfig& character);
     private:
-        static void readCharacterPrefab(fs::path path);
-        static void writeCharacterPrefab(fs::path path, std::shared_ptr<Character> character);
     };
 
 }

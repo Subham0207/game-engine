@@ -45,8 +45,7 @@ void Outliner::Render(Level &lvl) {
         ImGui::End();
     }
 
-    // if(getUIState().characterUIState->UIOpenedForCharacter && getUIState().characterUIState->showCharacterUI)
-    // UI::CharacterUI::draw(getUIState().characterUIState->UIOpenedForCharacter, getUIState().characterUIState->showCharacterUI);
+    getUIState().characterUIState->draw();
 
     if(getUIState().blendspace2DUIState->showBlendspaceUI)
     {
@@ -203,15 +202,10 @@ void Outliner::levelControlsComponent(Level &lvl)
         getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::LoadLvlFile;
     }
 
-    if(ImGui::Button("Open character"))
+    if(ImGui::Button("Create character"))
     {
-        getUIState().characterUIState->showCharacterUI = true;
-        auto selectedCharacterIndex = getUIState().selectedRenderableIndex;
-        if(selectedCharacterIndex > -1)
-        if(auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().renderables.at(selectedCharacterIndex)))
-        {
-            // getUIState().characterUIState->UIOpenedForCharacter = character;
-        }
+        auto character = new CharacterPrefabConfig();
+        getUIState().characterUIState->start(*character);
     }
 
     if(ImGui::Button("Create new blendspace"))

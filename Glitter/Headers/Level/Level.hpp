@@ -39,6 +39,8 @@ class Level: public Serializable{
     public:
         Level();
 
+        std::string GetClassId() const override { return "Level"; }
+
         bool static checkIfLevelFileExists(std::string  filename)
         {
                 if (fs::exists(filename)) {

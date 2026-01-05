@@ -7,6 +7,9 @@
 #include <Modals/FileType.hpp>
 #include <UI/StatemachineUI.hpp>
 
+#include "Prefab.hpp"
+#include "UI/CharacterUI.hpp"
+
 namespace ProjectAsset
 {
     AssetBrowser::AssetBrowser()
@@ -67,8 +70,7 @@ namespace ProjectAsset
                                     currentPath = fs::path(assets[i].filepath).string();
                                     refreshAssetBrowser = true;
                                 }
-
-                                if(selectedAsset.assetType == AssetType::BlendSpaceType)
+                                else if(selectedAsset.assetType == AssetType::BlendSpaceType)
                                 {
                                     auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
                                     auto filesMap = getEngineRegistryFilesMap();
@@ -80,8 +82,7 @@ namespace ProjectAsset
                                         getUIState().blendspace2DUIState->showBlendspaceUI = true;
                                     }
                                 }
-
-                                if(selectedAsset.assetType == AssetType::StateMachineType)
+                                else if(selectedAsset.assetType == AssetType::StateMachineType)
                                 {
                                     auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
                                     auto filesMap = getEngineRegistryFilesMap();
@@ -91,8 +92,7 @@ namespace ProjectAsset
                                         statemachine->load(fs::path(selectedAsset.filepath).parent_path(), guid);
                                     }
                                 }
-                                
-                                if(selectedAsset.assetType == AssetType::ModelType)
+                                else if(selectedAsset.assetType == AssetType::ModelType)
                                 {
                                     auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
                                     auto filesMap = getEngineRegistryFilesMap();
@@ -107,6 +107,12 @@ namespace ProjectAsset
                                         getActiveLevel().addRenderable(model);
                                     }
                                     
+                                }
+                                else if (selectedAsset.assetType == AssetType::CharacterType)
+                                {
+                                    auto characterPrefab = new CharacterPrefabConfig();
+                                    Engine::Prefab::readCharacterPrefab(selectedAsset.filepath, *characterPrefab);
+                                    getUIState().characterUIState->start(*characterPrefab, selectedAsset.filepath);
                                 }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){

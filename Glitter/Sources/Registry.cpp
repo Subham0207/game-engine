@@ -73,4 +73,16 @@ void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filep
     {
         blendpaceFileMap[guid] = filepath;
     }
+
+    suffix = ".model";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        modelFileMap[guid] = filepath;
+    }
+
+    suffix = ".skeleton";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        skeletonFileMap[guid] = filepath;
+    }
 }

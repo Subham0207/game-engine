@@ -4,6 +4,8 @@
 #include <EngineState.hpp>
 #include <Controls/PlayerController.hpp>
 #include <Modals/CameraType.hpp>
+
+#include "GenericFactory.hpp"
 namespace fs = std::filesystem;
 
 Character::Character(std::string filepath): Serializable(){
@@ -74,6 +76,34 @@ void Character::saveToFile(std::string filename, Character &character)
     boost::archive::text_oarchive oa(ofs);
     oa << character;
     ofs.close();
+}
+
+void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& characterPrefab)
+{
+    auto character = CharacterFactory::Create(characterPrefab.classId);
+    auto filesMap = getEngineRegistryFilesMap();
+    if (const auto it = filesMap.find(characterPrefab.modelGuid); it != filesMap.end())
+    {
+        auto model = new Model();
+        auto modelParentPath = fs::path(filesMap[characterPrefab.modelGuid]).parent_path();
+        model->load(modelParentPath, characterPrefab.modelGuid);
+        character->model = model;
+        character->model_guid = characterPrefab.modelGuid;
+    }
+    if (const auto it = filesMap.find(characterPrefab.skeletonGuid); it != filesMap.end())
+    {
+        auto skeleton = new Skeleton::Skeleton();
+        auto skeletonParentPath = fs::path(filesMap[characterPrefab.skeletonGuid]).parent_path();
+        skeleton->load(skeletonParentPath, characterPrefab.skeletonGuid);
+        character->skeleton = skeleton;
+        character->skeleton_guid = characterPrefab.skeletonGuid;
+    }
+    if (!characterPrefab.stateMachineClassId.empty())
+    {
+        auto statemachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
+    }
+
+    getActiveLevel().renderables.emplace_back(character);
 }
 
 void Character::loadFromFile(const std::string &filename, Character &character)
