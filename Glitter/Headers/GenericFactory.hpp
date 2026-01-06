@@ -10,6 +10,11 @@
 #include <memory>
 #include <string>
 
+class Character;
+namespace Controls
+{
+    class StateMachine;
+}
 template <typename TBase>
 class GenericFactory {
 public:
@@ -38,17 +43,19 @@ private:
 using CharacterFactory = GenericFactory<Character>;
 using StateMachineFactory = GenericFactory<Controls::StateMachine>;
 
-//This is the macro to use to register a derived class.
-#define CHARACTER_BODY(ClassName) \
+#define REGISTER_BODY(ClassName) \
 public: \
 std::string GetClassId() const override { return #ClassName; }
 
-// This goes in the implementation file (.cpp)
-#define REGISTER_CHARACTER(ClassName, Key) \
+// General Registration macro
+// ClassName: The derived class
+// Key: The string ID used for lookup
+// FactoryType: The alias (e.g., CharacterFactory or StateMachineFactory)
+#define REGISTER_TYPE(ClassName, Key, FactoryType) \
 static struct ClassName##Registrar { \
 ClassName##Registrar() { \
-CharacterFactory::Register(Key, []() { \
-return std::make_unique<ClassName>(); \
+FactoryType::Register(Key, []() { \
+return std::make_shared<ClassName>(); \
 }); \
 } \
 } global_##ClassName##Registrar;
