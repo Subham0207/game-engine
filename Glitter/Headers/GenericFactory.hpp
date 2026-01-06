@@ -9,7 +9,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <Character/Character.hpp>
 
 template <typename TBase>
 class GenericFactory {
@@ -40,8 +39,12 @@ using CharacterFactory = GenericFactory<Character>;
 using StateMachineFactory = GenericFactory<Controls::StateMachine>;
 
 //This is the macro to use to register a derived class.
+#define CHARACTER_BODY(ClassName) \
+public: \
+std::string GetClassId() const override { return #ClassName; }
+
+// This goes in the implementation file (.cpp)
 #define REGISTER_CHARACTER(ClassName, Key) \
-std::string ClassName::GetClassId() const { return Key; } \
 static struct ClassName##Registrar { \
 ClassName##Registrar() { \
 CharacterFactory::Register(Key, []() { \
