@@ -187,176 +187,27 @@ std::vector<unsigned int> Character::GetIndices()
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     if(animator)
-    updateFinalBoneMatrix(deltaTime);
+        updateFinalBoneMatrix(deltaTime);
 
     if(model)
-    model->draw(deltaTime, camera, lights, cubeMap);
+        model->draw(deltaTime, camera, lights, cubeMap);
 
     if(skeleton)
-    skeleton->draw(camera, getModelMatrix());
+        skeleton->draw(camera, getModelMatrix());
 
     if(EngineState::state->isPlay)
     {
-        //--
-        if(this->camera && this->camera->cameraType == CameraType::TOP_DOWN)
-        {
-            this->camera->cameraPos = (model->GetPosition() - glm::vec3(0,0,cameraDistance)) + glm::vec3(0,cameraHeight,0);
-        }
-        else 
-        {
-            glm::vec3 position = model->GetPosition();
-            position.y+=5.0f;
-            this->camera->tick(position, glm::degrees(glm::eulerAngles(model->GetRot())));
-        }
-        //--
-        
-        //-- Turn to Mouse position on XZ plane
-        forwardVector = glm::rotate( model->GetRot(), glm::vec3(0.0f, 0.0f, 1.0f));
-        rightVector = model->GetRot() * glm::vec3(1.0f, 0.0f, 0.0f);
+        this->onTick();
 
         if(playerController)
         {
-            //Only execute if playerController active otherwise produces nan.
-           
-            glm::quat desiredRot;
-            //This condition already tells us that this character is not playerControlled. 
-            //So check if there is input from PlayerController, if yes it is AI controlled.
-            if(EngineState::state->playerControllers[EngineState::state->activePlayerControllerId] == playerController && this->camera)
-            {
-                switch (this->camera->cameraType)
-                {
-                    case CameraType::TOP_DOWN:
-                    {
-                        playerController->cameraType = CameraType::TOP_DOWN;
-                        desiredRot = playerController->faceMouseOnXZ(
-                            model->GetPosition(),
-                            InputHandler::currentInputHandler->lastX,
-                            InputHandler::currentInputHandler->lastY,
-                            this->camera->viewMatrix(),
-                            this->camera->projectionMatrix()
-                        );
-                        break;
-                    }
-                    case CameraType::THIRD_PERSON:
-                    {
-                        playerController->cameraType = CameraType::THIRD_PERSON;
-                        // when third person camera
-                        //cameraFront.Y rotation is used when W key is hit to face forward.
-                        //LEFT, RIGHT AND Backward will be adjusted accordingly using cameraFront.
-                        auto dir = glm::vec3(playerController->inputXWorld, 0.0f, playerController->inputZWorld);
-                        if(glm::length(dir) > 0.00001f) // Essentially means W_PRESSED then face camera direction
-                        {
-                            if(playerController->isAiming)
-                            {
-                                desiredRot =  glm::angleAxis(this->camera->theta, glm::vec3(0,1,0));
-                                this->camera->lastPlayerYaw = this->camera->theta;
-                            }
-                            else
-                            {
-                                // calculate desired rotation based on camera view
-                                auto cameraFront = this->camera->getFront();
-                                auto cameraRight = this->camera->getRight();
-                                glm::vec3 forwardXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
-                                glm::vec3 rightXZ = glm::normalize(glm::vec3(cameraRight.x, 0.0f, cameraRight.z));
-                                glm::vec3 moveDir = forwardXZ * playerController->inputZWorld 
-                                - rightXZ   * playerController->inputXWorld;
-                                float targetYaw = std::atan2(moveDir.x, moveDir.z);
-                                float yaw = smoothAngle(this->camera->lastPlayerYaw, targetYaw, playerController->interpolationSpeed);
-                                this->camera->lastPlayerYaw = yaw;
-                                desiredRot = glm::angleAxis(yaw, glm::vec3(0, 1, 0));
-                            }
-                        }
-                        else
-                        {
-                            desiredRot =  glm::angleAxis(this->camera->lastPlayerYaw, glm::vec3(0,1,0));
-                        }
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
-            else if(playerController->inputVectorLength > 0.00001f)
-            {
-                //AI movement 
-                float desiredYaw = std::atan2(playerController->inputXWorld, playerController->inputZWorld);
-                desiredRot =  glm::angleAxis(desiredYaw, glm::vec3(0, 1, 0));
-
-                //GET character forward vector 
-                // GET input direction vector turn the player by that much.
-            }
-            else
-            desiredRot =  glm::identity<glm::quat>();
-
-            //--
-            
-            float xfactor = playerController->movementDirection;
-            float yfactor = playerController->movementSpeed;
-            getUIState().scrubbedPoint.x = xfactor;
-            getUIState().scrubbedPoint.y = yfactor;
-            
             if(!animStateMachine_guid.empty())
             animStateMachine->tick(playerController, animator);
-            
-            //apply force to capsule in direction
-            if(capsuleCollider && capsuleCollider->physics)
-            {
-                float x = 0.0f,z = 0.0f;
-                switch (this->camera->cameraType)
-                {
-                    case CameraType::TOP_DOWN:
-                    {
-                        x = playerController->dodgeStart ? playerController->lookDirection.x :playerController->inputXWorld;
-                        z = playerController->dodgeStart ? playerController->lookDirection.z :playerController->inputZWorld;
-                        break;
-                    }
-                    case CameraType::THIRD_PERSON:
-                    {
-                        auto cameraFront = this->camera->getFront();
-                        auto cameraRight = this->camera->getRight();
-                        glm::vec3 forwardXZ = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
-                        glm::vec3 rightXZ = glm::normalize(glm::vec3(cameraRight.x, 0.0f, cameraRight.z));
-
-                        glm::vec3 moveDir = forwardXZ * playerController->inputZWorld 
-                  - rightXZ   * playerController->inputXWorld;
-                        x = moveDir.x;
-                        z = moveDir.z;
-                        break;
-                    }                
-                    default:
-                        break;
-                }
-
-                //Right now dodging is thought from top-down camera.
-                //Even when idle x,z will have a value based on mouse pos on screen and dodge animation will play moving the character to x,z. Unless mouse is directly on top of the player ( which we have not handled yet)
-                //In third person camera when idle x,z won't have value. Lets still move the player by some x,z based on if dodging in player facing direction if idle. In other cases we still dodge to moving direction already.
-                capsuleCollider->movebody(
-                    x,
-                    0.0f,
-                    z,
-                    deltaTime,
-                    model->GetPosition(),
-                    desiredRot,
-                    playerController->isJumping,
-                    playerController->dodgeStart ? 8.0f: 4.0f
-                );
-                
-                playerController->grounded = capsuleCollider ? capsuleCollider->grounded: false;
-                playerController->update(glm::mat3(getModelMatrix()), GetPosition());
-                
-                auto capsuleWorldPos = capsuleCollider->model->GetPosition();
-                auto relativePosition =  glm::vec3(
-                    capsuleWorldPos.x + capsuleColliderPosRelative.x,
-                    capsuleWorldPos.y + capsuleColliderPosRelative.y,
-                    capsuleWorldPos.z + capsuleColliderPosRelative.z
-                );
-                
-                model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
-            }
         }
     }
     else
     {
+        // this logic can just stay in characterBase class.
         animator->blendSelection = nullptr;
         animator->m_CurrentAnimation = nullptr;
         if(capsuleCollider && capsuleCollider->physics)

@@ -54,6 +54,10 @@ public:
     Animator* animator;
     std::string filename;
 
+    virtual void onStart() = 0;
+    virtual void onTick() = 0;
+    virtual void onDestroy() = 0;
+
     void static saveToFile(std::string filename,  Character &character);
     void static loadPrefabIntoActiveLevel(const CharacterPrefabConfig& characterPrefab);
 

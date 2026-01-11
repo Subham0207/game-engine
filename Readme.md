@@ -12,10 +12,10 @@ cd Build
 1. download source code from https://www.boost.org/releases/latest/.
 2. extract file and put in under ./Glitter/Vendor/
 3. cd into boost directory. For more detail follow https://www.boost.org/doc/user-guide/getting-started.html or run following cmds
-    run booststrap.bat
-    then b2.exe to compile lib. And then
-    b2 install --prefix=../Boost_install
-4. Note the version of boost is what is referenced in cmakelist of your project. So if you downloded a different version update that.
+    `run booststrap.bat`
+    then `b2.exe` to compile lib. And then
+    `b2 install --prefix=../Boost_install`
+4. Note the version of boost is what is referenced in cmakelist of your project. So if you downloaded a different version update that.
 
 Now, run build from vs code or execute `.\run_debug.bat` to generate build files
 Then make sure in build/cmakecache.txt to make -- `gtest_force_shared_crt:BOOL=ON`. Read More detail on this in Documention file of this project.
