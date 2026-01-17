@@ -44,9 +44,17 @@
 #include <Controls/PlayerController.hpp>
 
 #include "Controls/ClientHandler.hpp"
+#include "Event/EventBus.hpp"
+#include "Event/EventQueue.hpp"
+#include "Event/InputContext.hpp"
 
 
 int Editor::openEditor(std::string enginePath, std::string projectDir) {
+
+    EventBus bus;
+    EventQueue queue;
+    InputContext inputCtx;
+    inputCtx.queue = &queue;
 
     EngineState::state = new EngineState();
     EngineState::state->setEngineDirectory(std::move(enginePath));
@@ -77,6 +85,11 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     auto level = new Level();
     EngineState::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
     auto defaultCamera = new Camera("defaultcamera");
+    bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
+    {
+        defaultCamera->onMouseMove(e);
+    });
+
     auto lvl = EngineState::state->activeLevel;
     // State::state->activeLevel = new level(); state already has a new level initialized
     lvl->cameras.push_back(defaultCamera);
@@ -200,6 +213,11 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
 
+        queue.drain([&](const Event& e)
+        {
+            bus.dispatch(e);
+        });
+
         //delta time -- making things time dependent
         auto activeCamera = &InputHandler::currentInputHandler->m_Camera;
         float currentFrame = glfwGetTime();
@@ -208,7 +226,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         auto lvlrenderables = getActiveLevel().renderables;
 
-        ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime);
+        ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, inputCtx);
         if(EngineState::state->isPlay)
         {
             *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];

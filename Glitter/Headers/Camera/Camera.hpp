@@ -6,6 +6,8 @@
 #include "assimp/scene.h"
 
 #include <serializeAClass.hpp>
+
+#include "Event/Event.hpp"
 enum CameraType;
 
 class Camera
@@ -33,10 +35,10 @@ public:
 		return cameraFront;
 	}
 
-	void onMouseMove();
+	void onMouseMove(const MouseMoveEvent& e);
 	void tick(glm::vec3 playerPos, glm::vec3 playerRot);
-	void processDefaultCamera(InputHandler *currentInputHandler);
-	void processThirdPersonCamera(InputHandler *currentInputHandler);
+	void processDefaultCamera(double xOffset, double yOffset);
+	void processThirdPersonCamera(double xOffset, double yOffset);
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);

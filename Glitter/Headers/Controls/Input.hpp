@@ -1,12 +1,13 @@
 #pragma once
 #include "GLFW/glfw3.h"
 #include "Camera/Camera.hpp"
+#include "Event/InputContext.hpp"
 
 class InputHandler
 {
 public:
 	InputHandler(Camera* camera, GLFWwindow* m_Window,float screenWidth, float screenHeight);
-	void handleInput(float deltaTime);
+	void handleInput(float deltaTime, InputContext& inputCtx);
 	static InputHandler* currentInputHandler;
 	unsigned int mouseState = GLFW_CURSOR_DISABLED;
 	float lastX,lastY;
@@ -23,7 +24,7 @@ private:
 
 	static void handleTransformGizmo(GLFWwindow* window);
 
-	void handleEditorInput(float deltaTime);
+	void handleEditorInput(float deltaTime, InputContext& inputCtx);
 	void handlePlay();
 	bool firstMouse = true;
 	float yaw = -90.0f;

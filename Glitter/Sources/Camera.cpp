@@ -85,20 +85,18 @@ void Camera::lookAt(glm::vec3 whereToLook)
     cameraUp    = up;
 }
 
-void Camera::onMouseMove()
+void Camera::onMouseMove(const MouseMoveEvent& e)
 {
-    auto currentInputHandler = InputHandler::currentInputHandler;
-
-    if(currentInputHandler->mouseState == GLFW_CURSOR_NORMAL)
-    return;  
+    if(e.mouseState == GLFW_CURSOR_NORMAL)
+        return;
 
     switch (cameraType)
     {
         case CameraType::TOP_DOWN:
-            processDefaultCamera(currentInputHandler);
+            processDefaultCamera(e.xOffset, e.yOffset);
             break;
         case CameraType::THIRD_PERSON:
-            processThirdPersonCamera(currentInputHandler);
+            processThirdPersonCamera(e.xOffset, e.yOffset);
             break;
         default:
             break;
@@ -111,12 +109,12 @@ void Camera::tick(glm::vec3 playerPos, glm::vec3 playerRot)
     lookAt(playerPos);
 }
 
-void Camera::processDefaultCamera(InputHandler *currentInputHandler)
+void Camera::processDefaultCamera(double xOffset, double yOffset)
 {
     const float sensitivity = 0.05f;
 
-    yaw += (currentInputHandler->getXOffset() * sensitivity);
-    pitch += (currentInputHandler->getYOffset() * sensitivity);
+    yaw += (xOffset * sensitivity);
+    pitch += (yOffset * sensitivity);
 
     if (pitch > 89.0f)
     pitch = 89.0f;
@@ -130,10 +128,10 @@ void Camera::processDefaultCamera(InputHandler *currentInputHandler)
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(direction);
 }
-void Camera::processThirdPersonCamera(InputHandler *currentInputHandler)
+void Camera::processThirdPersonCamera(double xOffset, double yOffset)
 {
-    calculateAngleAroundPlayer(currentInputHandler->getXOffset());
-    pitch -= (currentInputHandler->getYOffset() * 0.05); // make it += for inverted vertical input
+    calculateAngleAroundPlayer(xOffset);
+    pitch -= (yOffset * 0.05); // make it += for inverted vertical input
     if (pitch > 89.0f)
         pitch = 89.0f;
     if (pitch < -30.0f)

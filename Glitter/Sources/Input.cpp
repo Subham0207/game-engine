@@ -7,6 +7,8 @@
 #include <EngineState.hpp>
 #include <ImGuizmo.h>
 
+#include "Event/InputContext.hpp"
+
 InputHandler* InputHandler::currentInputHandler = nullptr;
 
 InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth, float screenHeight)
@@ -17,7 +19,7 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
     m_Window = window;
 }
 
-void InputHandler::handleInput(float deltaTime)
+void InputHandler::handleInput(float deltaTime, InputContext& inputCtx)
 {
     if (glfwGetKey(m_Window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
@@ -43,7 +45,7 @@ void InputHandler::handleInput(float deltaTime)
 
     if(!EngineState::state->isPlay)
     {
-        handleEditorInput(deltaTime);
+        handleEditorInput(deltaTime, inputCtx);
     }
     else
     {
@@ -51,9 +53,10 @@ void InputHandler::handleInput(float deltaTime)
     }
 }
 
-void InputHandler::handleEditorInput(float deltaTime)
+void InputHandler::handleEditorInput(float deltaTime,InputContext& inputCtx)
 {
     handleBasicMovement(deltaTime);
+    glfwSetWindowUserPointer(m_Window, &inputCtx);
     glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
@@ -139,6 +142,9 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
         return;
     }
 
+    auto* ctx = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
+    if (!ctx || !ctx->queue)return;
+
     //Once we know imgui is not processing that input; process the input.
     if (currentInputHandler->firstMouse) // initially set to true
     {
@@ -152,7 +158,7 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     currentInputHandler->lastX = xpos;
     currentInputHandler->lastY = ypos;
 
-    currentInputHandler->m_Camera->onMouseMove();
+    ctx->queue->push<MouseMoveEvent>(currentInputHandler->getXOffset(), currentInputHandler->getYOffset(), currentInputHandler->mouseState);
 }
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
