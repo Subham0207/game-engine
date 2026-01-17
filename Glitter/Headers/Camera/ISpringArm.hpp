@@ -12,9 +12,9 @@ class ISpringArm
 public:
     virtual ~ISpringArm() = default;
 
-    virtual void moveArm();
-    virtual glm::vec3 getEndPosition();
-    virtual void setPivotPos(glm::vec3 pivotPosition);
-    virtual glm::vec3 getPivotPos();
+    virtual void moveArm() = 0;
+    virtual glm::vec3 getEndPosition() = 0;
+    virtual void setPivotPos(glm::vec3 pivotPosition) = 0;
+    virtual glm::vec3 getPivotPos() = 0;
 };
 #endif //GLITTER_ISPRINGARM_HPP

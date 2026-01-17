@@ -60,12 +60,12 @@ public:
 	float calculateHorizontalDistance();
     float calculateVerticalDistance();
     glm::vec3 calculateCameraPosition(glm::vec3 playerPos, glm::vec3 playerRot);
+	void lookAt(glm::vec3 whereToLook);
 
 protected:
 private:
 	void setupView();
 	void setupProjection();
-	void lookAt(glm::vec3 whereToLook);
 	unsigned int viewLoc;
 	unsigned int projectionLoc;
 	float fov = 45.0f;

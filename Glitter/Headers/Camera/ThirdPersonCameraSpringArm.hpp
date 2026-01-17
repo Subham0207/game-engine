@@ -6,8 +6,8 @@
 #define GLITTER_SPRINGARM_HPP
 #include <glm/glm.hpp>
 
-#include "ISpringArm.hpp"
-#include "Controls/Input.hpp"
+#include <Camera/ISpringArm.hpp>
+#include <Controls/Input.hpp>
 
 
 class ThirdPersonCameraSpringArm: ISpringArm

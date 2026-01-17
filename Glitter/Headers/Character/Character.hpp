@@ -44,7 +44,7 @@ class Character: public Renderable, public Serializable
 public:
     Character() = default;
     Character(std::string filepath);
-    ~Character();
+    ~Character() override;
 
     std::string GetClassId() const override { return "Character"; }
 
@@ -54,9 +54,9 @@ public:
     Animator* animator;
     std::string filename;
 
-    virtual void onStart() = 0;
-    virtual void onTick() = 0;
-    virtual void onDestroy() = 0;
+    virtual void onStart(){};
+    virtual void onTick(){};
+    virtual void onDestroy(){};
 
     void static saveToFile(std::string filename,  Character &character);
     void static loadPrefabIntoActiveLevel(const CharacterPrefabConfig& characterPrefab);
@@ -164,6 +164,7 @@ public:
     {
         camera->cameraType = cameratype;
     }
+    Camera* camera;
 protected:
     virtual const std::string typeName() const override {return "character"; }
     virtual const std::string contentName() override {return filename; }
@@ -172,12 +173,13 @@ protected:
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 
 private:
-    Camera* camera;
 
     glm::mat4 transformation;
 
     glm::vec3 forwardVector;
     glm::vec3 rightVector;
+
+    bool started = false;
 
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
     float smoothAngle(float current, float target, float t);

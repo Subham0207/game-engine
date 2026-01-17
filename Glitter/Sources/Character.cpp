@@ -197,7 +197,15 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
 
     if(EngineState::state->isPlay)
     {
-        this->onTick();
+        if (!started)
+        {
+            this->onStart();
+            started = true;
+        }
+        else
+        {
+            this->onTick();
+        }
 
         if(playerController)
         {
@@ -208,6 +216,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
     else
     {
         // this logic can just stay in characterBase class.
+        started = false;
         animator->blendSelection = nullptr;
         animator->m_CurrentAnimation = nullptr;
         if(capsuleCollider && capsuleCollider->physics)
