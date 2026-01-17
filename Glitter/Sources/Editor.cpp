@@ -43,6 +43,7 @@
 #include <UI/PropertiesPanel.hpp>
 #include <Controls/PlayerController.hpp>
 
+#include "Camera/FlyCam.hpp"
 #include "Controls/ClientHandler.hpp"
 #include "Event/EventBus.hpp"
 #include "Event/EventQueue.hpp"
@@ -84,7 +85,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     //Loading Level -- making .lvl as the extention of my levelfile
     auto level = new Level();
     EngineState::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
-    auto defaultCamera = new Camera("defaultcamera");
+    auto defaultCamera = new FlyCam("defaultcamera");
     bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
     {
         defaultCamera->onMouseMove(e);

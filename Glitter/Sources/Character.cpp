@@ -38,7 +38,6 @@ Character::Character(std::string filepath): Serializable(){
 
     camera = new Camera("charactercamera");
     camera->cameraPos = model->GetPosition();
-    camera->cameraType = CameraType::THIRD_PERSON;
     float pitchAngle = 0.3f;
     glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
     glm::quat newRot = pitchQuat * model->GetRot();
@@ -341,7 +340,6 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     //Create new camera
     camera = new Camera("charactercamera");
     camera->setFOV(70.0f);
-    camera->cameraType = CameraType::THIRD_PERSON;
     camera->cameraPos = model->GetPosition();
     float pitchAngle = 0.3f;
     glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));

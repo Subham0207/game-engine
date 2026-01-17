@@ -2,25 +2,22 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-
 #include "assimp/scene.h"
-
 #include <serializeAClass.hpp>
-
 #include "Event/Event.hpp"
-enum CameraType;
 
 class Camera
 {
 friend class InputHandler;
 public:
-	Camera();
+virtual ~Camera() = default;
+Camera();
 	Camera(std::string name);
 	void updateMVP(unsigned int shader);
 	glm::vec3 getPosition();
 	glm::vec3 getFront();
 	glm::vec3 getRight();
-	void Camera::FrameModel(const aiAABB& boundingBox);
+	void FrameModel(const aiAABB& boundingBox);
 	void setFOV(float fov){this->fov = fov;}
 
 	glm::mat4 viewMatrix(){
@@ -35,10 +32,9 @@ public:
 		return cameraFront;
 	}
 
-	void onMouseMove(const MouseMoveEvent& e);
+	virtual void onMouseMove(const MouseMoveEvent& e);
+
 	void tick(glm::vec3 playerPos, glm::vec3 playerRot);
-	void processDefaultCamera(double xOffset, double yOffset);
-	void processThirdPersonCamera(double xOffset, double yOffset);
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -46,22 +42,6 @@ public:
 	glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
 	std::string cameraName;
 
-	//First Person camera
-	float yaw = -90.0f;
-	float pitch = 0.0f;
-
-	//Third person camera parameters
-	float maxDistance = 10.0f;
-	float cameraDistance = 16.0f;
-	float cameraHeight = 7.0f;
-	float angleAroundPlayer = 0.0f;
-	float theta = 0.0f;
-	float lastPlayerYaw = 0.0f;
-	CameraType cameraType;
-	void calculateAngleAroundPlayer(float offset);
-	float calculateHorizontalDistance();
-    float calculateVerticalDistance();
-    glm::vec3 calculateCameraPosition(glm::vec3 playerPos, glm::vec3 playerRot);
 	void lookAt(glm::vec3 whereToLook);
 
 protected:

@@ -6,11 +6,9 @@
 
 Camera::Camera()
 {
-    cameraType = CameraType::TOP_DOWN;
 }
 
 Camera::Camera(std::string name): cameraName(name){
-cameraType = CameraType::TOP_DOWN;
 }
 
 void Camera::updateMVP(unsigned int shader)
@@ -89,85 +87,10 @@ void Camera::onMouseMove(const MouseMoveEvent& e)
 {
     if(e.mouseState == GLFW_CURSOR_NORMAL)
         return;
-
-    switch (cameraType)
-    {
-        case CameraType::TOP_DOWN:
-            processDefaultCamera(e.xOffset, e.yOffset);
-            break;
-        case CameraType::THIRD_PERSON:
-            processThirdPersonCamera(e.xOffset, e.yOffset);
-            break;
-        default:
-            break;
-    }
 }
 
 void Camera::tick(glm::vec3 playerPos, glm::vec3 playerRot)
 {
-    cameraPos = calculateCameraPosition(playerPos, playerRot);
+    //most likely we don't need this since we will call this in Character derived class itself after assigning position of camera.
     lookAt(playerPos);
-}
-
-void Camera::processDefaultCamera(double xOffset, double yOffset)
-{
-    const float sensitivity = 0.05f;
-
-    yaw += (xOffset * sensitivity);
-    pitch += (yOffset * sensitivity);
-
-    if (pitch > 89.0f)
-    pitch = 89.0f;
-    if (pitch < -89.0f)
-    pitch = -89.0f;
-
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(direction);
-}
-void Camera::processThirdPersonCamera(double xOffset, double yOffset)
-{
-    calculateAngleAroundPlayer(xOffset);
-    pitch -= (yOffset * 0.05); // make it += for inverted vertical input
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -30.0f)
-        pitch = -30.0f;
-    cameraDistance = calculateHorizontalDistance();
-    cameraHeight = calculateVerticalDistance();
-}
-
-void Camera::calculateAngleAroundPlayer(float offset)
-{
-    angleAroundPlayer -= offset * 0.0005;
-}
-
-float Camera::calculateHorizontalDistance()
-{
-    return maxDistance * cos(glm::radians(pitch));
-}
-
-float Camera::calculateVerticalDistance()
-{
-    return maxDistance * sin(glm::radians(pitch));
-}
-
-glm::vec3 Camera::calculateCameraPosition(glm::vec3 playerPos, glm::vec3 playerRot)
-{
-    glm::vec3 position;
-
-    // Only use angleAroundPlayer to orbit
-    theta =  angleAroundPlayer;
-
-    float offsetX = cameraDistance * sin(theta);
-    float offsetZ = cameraDistance * cos(theta);
-
-    position.x = playerPos.x - offsetX;
-    position.z = playerPos.z - offsetZ;
-    position.y = playerPos.y + cameraHeight;
-
-    return position;
 }

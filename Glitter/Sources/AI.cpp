@@ -144,7 +144,6 @@ void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
     if (auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().instanceIdToSerializableMap[controlledCharacterInstanceId]))
     {
         playerController = character->playerController;
-        character->setCameraType(CameraType::TOP_DOWN);
     }
 
     EngineState::state->ais.push_back(this);
