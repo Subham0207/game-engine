@@ -22,6 +22,11 @@ struct BlendPoint {
         position = pos;
         this->animation = animation;
     }
+    BlendPoint(glm::vec2 pos, std::string animationGuid){
+        this->animationGuid = animationGuid;
+        position = pos;
+        this->animation = nullptr; // maybe, Right way load the animation.
+    }
 
     private:
         friend class boost::serialization::access;
@@ -57,6 +62,10 @@ public:
     
     void AddBlendPoint(glm::vec2 pos, Animation* anim) {
         blendPoints.push_back(BlendPoint(pos, anim) );
+    }
+
+    void AddBlendPoint(glm::vec2 pos, const std::string& animationGuid) {
+        blendPoints.emplace_back(pos, animationGuid );
     }
 
     BlendSelection* GetBlendSelection(glm::vec2 input);

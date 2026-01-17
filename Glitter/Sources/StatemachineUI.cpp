@@ -153,6 +153,20 @@ void UI::StatemachineUI::draw(Controls::StateMachine* statemachine, bool &showUI
          smUI->reInitStateNamePtrs();
       }
 
+      if(ImGui::CollapsingHeader("Animations"))
+      {
+         for (int i = 0;i < smUI->animations.animationnames.size();i++)
+         {
+            ImGui::Text(smUI->animations.animationnames[i]);
+            ImGui::SameLine();
+            ImGui::Text(smUI->animations.animationguids[i].c_str());
+            ImGui::SameLine();
+            if (ImGui::SmallButton(("Copy##"s + std::to_string(i)).c_str())) {
+               ImGui::SetClipboardText(smUI->animations.animationguids[i].c_str());
+            }
+         }
+      }
+
    ImGui::End();
 }
 

@@ -63,9 +63,19 @@ Controls::StateMachine::StateMachine(std::string filename): Serializable()
 void Controls::StateMachine::tick(Controls::PlayerController* playerController, Animator* animator)
 {
     if(!activeState)
-    return;
+        return;
 
-    //Order of execution here is very importatant to correctly apply pose transition
+    if (!started)
+    {
+        this->onStart();
+        started = true;
+    }
+    else
+    {
+        this->onTick();
+    }
+
+    //Order of execution here is very important to correctly apply pose transition
     //1. first setPoseTransition bool if present.
     for (size_t i = 0; i < activeState->toStateWhenCondition.size(); i++)
     {

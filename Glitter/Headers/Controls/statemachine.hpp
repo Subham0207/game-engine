@@ -65,6 +65,11 @@ namespace Controls
         public:
             StateMachine()=default;
             StateMachine(std::string filename);
+
+            virtual void onStart(){};
+            virtual void onTick(){};
+            virtual void onDestroy(){};
+
             void tick(Controls::PlayerController* playerController, Animator* animator);
             void setActiveState(std::shared_ptr<State> state);
             std::shared_ptr<State> getActiveState() {return activeState;};
@@ -90,6 +95,8 @@ namespace Controls
             std::shared_ptr<State> stateGraph;
             std::shared_ptr<State> activeState;
             std::string filename;
+
+            bool started = false;
             
             friend class boost::serialization::access;
             template<class Archive>

@@ -70,7 +70,7 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
         statemachineNames.emplace_back(fst);
     }
 
-    showCharacterUI = true;
+    showCharacterUI = false;
 }
 void UI::CharacterUI::draw()
 {

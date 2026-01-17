@@ -15,6 +15,9 @@ void FlyCam::onMouseMove(const MouseMoveEvent& e)
 {
     Camera::onMouseMove(e);
 
+    if(e.mouseState == GLFW_CURSOR_NORMAL)
+        return;
+
     moveCamera(e.xOffset, e.yOffset);
 }
 
