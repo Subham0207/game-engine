@@ -53,6 +53,12 @@ void Controls::State::assignAnimation(Animation* animation)
     this->animation = animation;
 }
 
+void Controls::State::assignAnimation(std::string animationGuid)
+{
+    this->animationGuid = animationGuid;
+    this->animation = nullptr;
+}
+
 Controls::StateMachine::StateMachine(std::string filename): Serializable()
 {
     stateGraph = NULL;

@@ -9,14 +9,14 @@
 UI::CharacterUI::CharacterUI() : characterConfig()
 {
     showCharacterUI = false;
-    characterName = "Character UI";
+    characterName.value = "Character UI";
     characterPrefabConfig = nullptr;
 }
 
 void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string characterName)
 {
     this->characterPrefabConfig = &characterPrefab;
-    this->characterName = characterName;
+    this->characterName.value = characterName;
 
     registeredClassNames = std::vector<std::string>();
     int index = 0;
@@ -74,13 +74,16 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
 }
 void UI::CharacterUI::draw()
 {
-    if (ImGui::Begin(characterName.c_str(), &showCharacterUI))
+    if (ImGui::Begin(this->characterName.value.c_str(), &showCharacterUI))
     {
         //ClassId:  List all keys of CharactorFactory to choose from.
         //model_guid: List all the .model files from Engine registry.
         //skeleton_guid: list all .skeleton files from Engine registry.
         //statemachineClassId: List All keys from statemachineFactory.
         ;
+
+        UI::Shared::EditableTextUI("filename", characterName);
+
         UI::Shared::comboUI(
             "Choose Character Class",
             characterConfig.selectedRegisteredCharacterIndex,
@@ -108,14 +111,14 @@ void UI::CharacterUI::draw()
         //After all selection is made. save it to character.prefab.
         if (ImGui::Button("Save"))
         {
-            characterPrefabConfig->classId = registeredClassNames[characterConfig.selectedRegisteredCharacterIndex];
-            auto model_guid = EngineState::state->engineRegistry->modelFileMap[modelNames[characterConfig.selectedModelIndex]];
-            auto skeleton_guid = EngineState::state->engineRegistry->skeletonFileMap[skeletonNames[characterConfig.selectedSkeletonIndex]];
+            characterPrefabConfig->classId = registeredClassNames[characterConfig.selectedRegisteredCharacterIndex - 1];
+            auto model_guid = EngineState::state->engineRegistry->modelFileMap[modelNames[characterConfig.selectedModelIndex - 1 ]];
+            auto skeleton_guid = EngineState::state->engineRegistry->skeletonFileMap[skeletonNames[characterConfig.selectedSkeletonIndex -1]];
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->skeletonGuid = skeleton_guid;
-            characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfig.selectedStateMachineIndex];
+            characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfig.selectedStateMachineIndex - 1];
 
-            auto filepath = EngineState::navIntoProjectDir("Assets"s + characterName);
+            auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value);
             Engine::Prefab::writeCharacterPrefab(filepath, *characterPrefabConfig);
         }
 

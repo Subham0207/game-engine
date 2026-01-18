@@ -7,9 +7,12 @@
 #include <string>
 
 struct CharacterPrefabConfig {
+    std::string name;
+
     std::string classId;
     std::string modelGuid;
     std::string skeletonGuid;
     std::string stateMachineClassId;
+
 };
 #endif //GLITTER_CHARACTERPREFABINFO_HPP

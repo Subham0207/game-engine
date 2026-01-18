@@ -1,6 +1,7 @@
 #include <Character/Character.hpp>
 
 #include "Character/CharacterPrefabConfig.hpp"
+#include "Shared/EditableText.hpp"
 
 namespace UI
 {
@@ -20,7 +21,7 @@ namespace UI
         void start(CharacterPrefabConfig& characterPrefab, std::string characterName = "Character UI");
         bool showCharacterUI;
     private:
-        std::string characterName;
+        Shared::EditableText characterName;
 
         CharacterPrefabConfig* characterPrefabConfig;
 

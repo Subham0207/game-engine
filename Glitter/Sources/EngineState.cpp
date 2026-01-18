@@ -25,12 +25,12 @@ void EngineState::setCurrentActiveProjectDir(std::string value)
 
 fs::path EngineState::navIntoProjectDir(std::string path)
 {
-    return fs::path(state->engineInstalledDirectory) / path;
+    return fs::path(state->currentActiveProjectDirectory) / path;
 }
 
 fs::path EngineState::navIntoEnginDir(std::string path)
 {
-    return fs::path(state->currentActiveProjectDirectory) / path;
+    return fs::path(state->engineInstalledDirectory) / path;
 }
 
 EngineState* EngineState::state = nullptr;
