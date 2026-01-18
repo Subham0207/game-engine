@@ -138,6 +138,7 @@ namespace ProjectAsset
         for (const auto& entry : dirIt)
         {
             std::string extension = entry.path().extension().string();
+            //We are filterig all filetypes so only meta files go through.
             if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);
             if(
                 !(extension == toString(FileType::CharacterType) ||

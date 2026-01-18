@@ -4,6 +4,7 @@
 
 #include "GenericFactory.hpp"
 #include "Prefab.hpp"
+#include "Modals/FileType.hpp"
 #include "UI/Shared/ComboUI.hpp"
 
 UI::CharacterUI::CharacterUI() : characterConfig()
@@ -118,7 +119,7 @@ void UI::CharacterUI::draw()
             characterPrefabConfig->skeletonGuid = skeleton_guid;
             characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfig.selectedStateMachineIndex - 1];
 
-            auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value);
+            auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value + "." +  std::string(toString(FileType::CharacterType)));
             Engine::Prefab::writeCharacterPrefab(filepath, *characterPrefabConfig);
         }
 

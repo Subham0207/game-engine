@@ -8,7 +8,10 @@
 #include <boost/property_tree/json_parser.hpp>
 
 #include "EngineState.hpp"
-#include "GenericFactory.hpp"
+#include "boost/uuid/random_generator.hpp"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_io.hpp"
+#include "Modals/FileType.hpp"
 namespace bs = boost::property_tree;
 
 #include <utility>
@@ -69,6 +72,17 @@ namespace Engine
             // Write the property tree to a JSON file
             // The third argument (true) enables pretty-printing (indentation)
             bs::write_json(path.string(), root);
+
+            bs::ptree meta;
+            auto guid = boost::uuids::to_string(boost::uuids::random_generator()());
+            meta.put("guid", guid);
+            meta.put("type", toString(FileType::CharacterType));
+            meta.put("version", "0.1");
+            meta.put("content.relative_path", path.filename().string());
+
+            const fs::path metaFile = path.parent_path() / (guid +  ".meta.json");
+            write_json(metaFile.string(), meta);
+
             std::cout << "Successfully wrote prefab to " << path.string() << std::endl;
         } catch (const bs::json_parser_error& e) {
             std::cerr << "Error writing JSON: " << e.what() << std::endl;
