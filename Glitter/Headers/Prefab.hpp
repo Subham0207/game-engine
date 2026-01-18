@@ -28,7 +28,7 @@ namespace Engine
         static void writePrefab(fs::path path, PrefabType type);
         static void writeCharacterPrefab(fs::path path, CharacterPrefabConfig& character);
         static void loadFromPrefabFile(fs::path path, PrefabType type);
-        static void readCharacterPrefab(fs::path path, CharacterPrefabConfig& character);
+        static void readCharacterPrefab(fs::path metaFilePath, CharacterPrefabConfig& character);
     private:
     };
 

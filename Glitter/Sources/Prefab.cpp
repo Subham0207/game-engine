@@ -35,12 +35,14 @@ namespace Engine
     {
     }
 
-    void Prefab::readCharacterPrefab(fs::path path, CharacterPrefabConfig& character)
+    void Prefab::readCharacterPrefab(fs::path metaFilePath, CharacterPrefabConfig& character)
     {
         try {
+            auto justMetaGuid = metaFilePath.stem().stem().string();
+            auto filepath = metaFilePath.parent_path() / fs::path(getEngineRegistryFilesMap()[justMetaGuid]).filename();
             bs::ptree root;
             // Load the json file into the property tree
-            bs::read_json(path.string(), root);
+            bs::read_json(filepath.string(), root);
             // Accessing top-level values
             character.classId = root.get<std::string>("classId");
             character.modelGuid = root.get<std::string>("model_guid");
