@@ -17,6 +17,7 @@ namespace ProjectAsset
         this->showAssetBrowser = true;
         currentPath = EngineState::state->currentActiveProjectDirectory;
         LoadAssets();
+        selectedAsset = {};
     }
 
     void AssetBrowser::RenderAssetBrowser(){
@@ -43,6 +44,7 @@ namespace ProjectAsset
 
 
                 ImVec2 availableSize = ImGui::GetContentRegionAvail();
+                bool openCharacterPopup = false;
                 int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
                 // List files and directories
                 if (ImGui::BeginChild("AssetGridScrollable", ImVec2(availableSize.x, availableSize.y), false, ImGuiWindowFlags_HorizontalScrollbar))
@@ -64,7 +66,7 @@ namespace ProjectAsset
                                 ImVec4(1, 1, 1, 1)
                             ))
                             {
-                                auto selectedAsset = assets[i];
+                                selectedAsset = assets[i];
                                 if(selectedAsset.assetType == AssetType::Directory)
                                 {
                                     currentPath = fs::path(assets[i].filepath).string();
@@ -110,9 +112,7 @@ namespace ProjectAsset
                                 }
                                 else if (selectedAsset.assetType == AssetType::CharacterType)
                                 {
-                                    auto characterPrefab = new CharacterPrefabConfig();
-                                    Engine::Prefab::readCharacterPrefab(selectedAsset.filepath, *characterPrefab);
-                                    getUIState().characterUIState->start(*characterPrefab, selectedAsset.filepath);
+                                    openCharacterPopup = true;
                                 }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
@@ -127,9 +127,38 @@ namespace ProjectAsset
                     ImGui::EndTable();
 
                 }
-            }
             ImGui::EndChild();
+
+                ImGuiID popup_id = ImGui::GetID("CharacterActionPopup");
+                if (openCharacterPopup)
+                    ImGui::OpenPopup(popup_id);
+
+                if (ImGui::BeginPopup("CharacterActionPopup"))
+                {
+                    if (ImGui::MenuItem("Edit in Character UI"))
+                    {
+                        auto characterPrefab = new CharacterPrefabConfig();
+                        Engine::Prefab::readCharacterPrefab(selectedAsset.filepath, *characterPrefab);
+                        getUIState().characterUIState->start(*characterPrefab, selectedAsset.filepath);
+                    }
+
+                    if (ImGui::MenuItem("Add Character to Level"))
+                    {
+                        // Your logic to instantiate the character into the current scene
+                        // Engine::Level::SpawnCharacter(selectedAsset.filepath);
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("Cancel"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+
             ImGui::End();
+            }
     }
     
     void AssetBrowser::LoadAssets(){

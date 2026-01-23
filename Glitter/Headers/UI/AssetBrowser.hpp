@@ -50,6 +50,8 @@ namespace ProjectAsset{
         float padding = 10.0f;
         float itemSize = 64.0f;
 
+        Asset selectedAsset;
+
         void LoadAssets();
         void RenderAsset(Asset* asset);
     };

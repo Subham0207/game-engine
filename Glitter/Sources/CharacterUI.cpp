@@ -71,10 +71,13 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
         statemachineNames.emplace_back(fst);
     }
 
-    showCharacterUI = false;
+    showCharacterUI = true;
 }
 void UI::CharacterUI::draw()
 {
+    if (!showCharacterUI)
+        return;
+
     if (ImGui::Begin(this->characterName.value.c_str(), &showCharacterUI))
     {
         //ClassId:  List all keys of CharactorFactory to choose from.
