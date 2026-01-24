@@ -49,7 +49,7 @@ namespace Controls
         void Play(Controls::PlayerController* playerController, Animator* animator);
         void assignBlendspace(BlendSpace2D* blendspace);
         void assignAnimation(Animation* animation);
-        void Controls::State::assignAnimation(std::string animationGuid);
+        void assignAnimation(std::string animationGuid);
 
         private:
             friend class boost::serialization::access;

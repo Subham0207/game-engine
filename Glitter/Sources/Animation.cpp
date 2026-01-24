@@ -9,8 +9,9 @@ Animation* Animation::loadAnimation(std::string guid)
     if (loadedAnimations.find(guid) != loadedAnimations.end())
         return loadedAnimations[guid];
 
-    auto filepath = getEngineRegistryFilesMap()[guid];
-    auto animation = new Animation(filepath);
+    auto parentPath = fs::path(getEngineRegistryFilesMap()[guid]).parent_path();
+    auto animation = new Animation();
+    animation->load(parentPath, guid);
     loadedAnimations[guid] = animation;
 
     return animation;

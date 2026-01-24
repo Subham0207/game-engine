@@ -56,7 +56,7 @@ void Controls::State::assignAnimation(Animation* animation)
 void Controls::State::assignAnimation(std::string animationGuid)
 {
     this->animationGuid = animationGuid;
-    this->animation = nullptr;
+    this->animation = Animation::loadAnimation(animationGuid);
 }
 
 Controls::StateMachine::StateMachine(std::string filename): Serializable()
@@ -68,18 +68,16 @@ Controls::StateMachine::StateMachine(std::string filename): Serializable()
 
 void Controls::StateMachine::tick(Controls::PlayerController* playerController, Animator* animator)
 {
-    if(!activeState)
-        return;
-
     if (!started)
     {
         this->onStart();
         started = true;
     }
-    else
-    {
-        this->onTick();
-    }
+
+    if(!activeState)
+        return;
+
+    this->onTick();
 
     //Order of execution here is very important to correctly apply pose transition
     //1. first setPoseTransition bool if present.

@@ -6,7 +6,8 @@ namespace fs = std::filesystem;
 class Serializable
 {
     public:
-        Serializable();
+    virtual ~Serializable() = default;
+    Serializable();
         virtual void save(fs::path &assetRoot);
         virtual void load(fs::path& assetRoot, std::string filename);
         virtual void deleteFile();
