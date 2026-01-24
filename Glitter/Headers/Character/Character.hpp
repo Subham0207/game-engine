@@ -98,7 +98,7 @@ public:
     };
 
     std::string getName() override{
-        return model->getName();
+        return filename;
     }
 
     std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string filePath, aiTextureType textureType) override{
@@ -115,7 +115,7 @@ public:
     
     Controls::PlayerController* playerController;
     
-    Controls::StateMachine* animStateMachine;
+    std::shared_ptr<Controls::StateMachine> animStateMachine;
     std::string animStateMachine_guid;
 
     Physics::Capsule* capsuleCollider;

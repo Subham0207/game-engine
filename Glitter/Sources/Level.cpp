@@ -6,6 +6,9 @@
 #include <AI/NavMeshBuilder.hpp>
 #include <Modals/3DModelType.hpp>
 #include <AI/AI.hpp>
+
+#include "GenericFactory.hpp"
+#include "Prefab.hpp"
 namespace bs = boost::property_tree;
 namespace fs = std::filesystem;
 
@@ -154,6 +157,42 @@ void Level::tickAIs(float deltaTime)
     {
         ai->Tick(deltaTime);
     }
+}
+
+void Level::spawnCharacter(fs::path filepath)
+{
+    CharacterPrefabConfig characterPrefab;
+    Engine::Prefab::readCharacterPrefab(filepath, characterPrefab);
+
+    auto character = CharacterFactory::Create(characterPrefab.classId);
+    character->animator = new Animator();
+    character->filename = filepath.stem().string();
+
+    auto model = new Model();
+    auto modelParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.modelGuid]).parent_path();
+    model->load(modelParentPath, characterPrefab.modelGuid);
+    character->model = model;
+
+    auto skeleton = new Skeleton::Skeleton();
+    auto skeletonParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.skeletonGuid]).parent_path();
+    skeleton->load(skeletonParentPath, characterPrefab.skeletonGuid);
+    character->skeleton = skeleton;
+
+    character->animStateMachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
+
+    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
+    character->capsuleColliderPosRelative = glm::vec3(0.0f);
+
+    character->camera = new Camera("charactercamera");
+    character->camera->cameraPos = model->GetPosition();
+    float pitchAngle = 0.3f;
+    glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
+    glm::quat newRot = pitchQuat * model->GetRot();
+    character->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
+    character->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    cameras.push_back(character->camera);
+    addRenderable(character);
 }
 
 void Level::addAI(AI::AI* ai)

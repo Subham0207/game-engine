@@ -16,7 +16,7 @@ int openAProject(const std::string& currentDir);
 
 void update_recent_projects_list(const fs::path& projects_file_path, const fs::path& new_project_path);
 
-Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory);
+std::shared_ptr<Controls::StateMachine> setupStateMachine(fs::path projectAssetDirectory);
 
 int create_new_project(const std::string& currentDir, const std::string& projectName);
 

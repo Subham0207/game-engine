@@ -50,7 +50,6 @@ Character::~Character()
 {
     EngineState::state->playerControllers.clear();
     delete playerController;
-    delete animStateMachine;
     delete model;
     delete animator;
     delete skeleton;
@@ -208,7 +207,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
 
         if(playerController)
         {
-            if(!animStateMachine_guid.empty())
+            if(animStateMachine != nullptr)
             animStateMachine->tick(playerController, animator);
         }
     }
@@ -270,10 +269,6 @@ void Character::saveContent(fs::path contentFile, std::ostream& os)
     this->skeleton->save(contentFile.parent_path());
     this->skeleton_guid = skeleton->getAssetId();
 
-    //save statemachine
-    this->animStateMachine->save(contentFile.parent_path());
-    this->animStateMachine_guid = animStateMachine->getAssetId();
-
     Character::saveToFile(contentFile.string(), *this);
 }
 
@@ -281,15 +276,13 @@ void Character::loadStateMachine(std::string stateMachine_guid)
 {
     auto filesMap = EngineState::state->engineRegistry->renderableSaveFileMap;
     auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);
-    this->animStateMachine = new Controls::StateMachine();
+    this->animStateMachine = std::make_shared<Controls::StateMachine>();
     this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
     this->animStateMachine_guid = stateMachine_guid;
 }
 
 void Character::deleteStateMachine()
 {
-    this->animStateMachine_guid = "";
-    delete this->animStateMachine;
 }
 
 void Character::loadContent(fs::path contentFile, std::istream& is)
@@ -326,7 +319,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //load statemachine
     auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);
-    this->animStateMachine = new Controls::StateMachine();
+    this->animStateMachine = std::make_shared<Controls::StateMachine>();
     this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
 
 

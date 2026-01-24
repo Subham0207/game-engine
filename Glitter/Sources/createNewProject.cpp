@@ -63,7 +63,7 @@ void update_recent_projects_list(const fs::path& projects_file_path, const fs::p
     std::cout << "Successfully updated recent projects file: " << projects_file_path << std::endl;
 }
 
-Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
+std::shared_ptr<Controls::StateMachine> setupStateMachine(fs::path projectAssetDirectory)
 {
     //animations
     auto rootAnimationPath = fs::path("E:/OpenGL/Models/Animations");
@@ -89,7 +89,7 @@ Controls::StateMachine* setupStateMachine(fs::path projectAssetDirectory)
     }
 
     //state machine 
-    auto animStateMachine = new Controls::StateMachine("characterMovements");
+    auto animStateMachine = std::make_shared<Controls::StateMachine>("characterMovements");
     auto locomotionState = std::make_shared<Controls::State>("Locomotion");
     auto jumpState = std::make_shared<Controls::State>("Jump");
     auto dodgeRollState = std::make_shared<Controls::State>("DodgeRoll");

@@ -146,6 +146,7 @@ namespace ProjectAsset
                     {
                         // Your logic to instantiate the character into the current scene
                         // Engine::Level::SpawnCharacter(selectedAsset.filepath);
+                        getActiveLevel().spawnCharacter(selectedAsset.filepath);
                     }
 
                     ImGui::Separator();

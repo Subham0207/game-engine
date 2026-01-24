@@ -116,8 +116,19 @@ void UI::CharacterUI::draw()
         if (ImGui::Button("Save"))
         {
             characterPrefabConfig->classId = registeredClassNames[characterConfig.selectedRegisteredCharacterIndex - 1];
-            auto model_guid = EngineState::state->engineRegistry->modelFileMap[modelNames[characterConfig.selectedModelIndex - 1 ]];
-            auto skeleton_guid = EngineState::state->engineRegistry->skeletonFileMap[skeletonNames[characterConfig.selectedSkeletonIndex -1]];
+
+            auto modelFileMap = EngineState::state->engineRegistry->modelFileMap;
+            auto model_guid = std::find_if(modelFileMap.begin(), modelFileMap.end(), [&](const auto& pair)
+            {
+                return pair.second == modelNames[characterConfig.selectedModelIndex - 1];
+            })->first;
+
+            auto skeletonFileMap = EngineState::state->engineRegistry->skeletonFileMap;
+            auto skeleton_guid = std::find_if(skeletonFileMap.begin(), skeletonFileMap.end(), [&](const auto& pair)
+            {
+                return pair.second == skeletonNames[characterConfig.selectedSkeletonIndex - 1];
+            })->first;
+
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->skeletonGuid = skeleton_guid;
             characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfig.selectedStateMachineIndex - 1];
