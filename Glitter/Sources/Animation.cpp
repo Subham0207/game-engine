@@ -1,6 +1,20 @@
 #include <3DModel/Animation/Animation.hpp>
 #include <iostream>
-#include <fstream> 
+#include <fstream>
+
+#include "EngineState.hpp"
+
+Animation* Animation::loadAnimation(std::string guid)
+{
+    if (loadedAnimations.find(guid) != loadedAnimations.end())
+        return loadedAnimations[guid];
+
+    auto filepath = getEngineRegistryFilesMap()[guid];
+    auto animation = new Animation(filepath);
+    loadedAnimations[guid] = animation;
+
+    return animation;
+}
 
 void Animation::saveContent(fs::path contentFile, std::ostream& os)
 {

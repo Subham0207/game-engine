@@ -40,6 +40,9 @@ class Animation: public Serializable
 public:
 	Animation() = default;
 
+	static inline std::map<std::string, Animation*> loadedAnimations;
+	static Animation* loadAnimation(std::string guid);
+
 	std::string GetClassId() const override { return "Animation"; }
 
 	Animation(std::string& animationPath): Serializable()

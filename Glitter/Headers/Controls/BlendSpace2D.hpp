@@ -25,7 +25,7 @@ struct BlendPoint {
     BlendPoint(glm::vec2 pos, std::string animationGuid){
         this->animationGuid = animationGuid;
         position = pos;
-        this->animation = nullptr; // maybe, Right way load the animation.
+        this->animation = Animation::loadAnimation(animationGuid);
     }
 
     private:
