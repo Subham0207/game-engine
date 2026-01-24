@@ -10,6 +10,8 @@
 #include <EngineRegistry.hpp>
 #include <LuaEngine/LuaEngine.hpp>
 #include <Controls/statemachine.hpp>
+
+#include "Event/EventBus.hpp"
 namespace fs = std::filesystem;
 
 namespace AI
@@ -73,6 +75,8 @@ public:
     PhysicsSystemWrapper* physics = new PhysicsSystemWrapper();
 
     LuaEngine* luaEngine = new LuaEngine();
+
+    EventBus bus = EventBus();
 };
 
 ProjectAsset::UIState& getUIState();

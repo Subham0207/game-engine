@@ -180,6 +180,10 @@ void Level::spawnCharacter(fs::path filepath)
 
     character->animStateMachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
 
+    //TODO: make this playerController a scriptable file.
+    character->playerController = new Controls::PlayerController("WarriorPlayerController");
+    EngineState::state->playerControllers.push_back(character->playerController);
+
     character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
     character->capsuleColliderPosRelative = glm::vec3(0.0f);
 

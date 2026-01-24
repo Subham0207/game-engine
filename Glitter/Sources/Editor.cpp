@@ -52,7 +52,6 @@
 
 int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
-    EventBus bus;
     EventQueue queue;
     InputContext inputCtx;
     inputCtx.queue = &queue;
@@ -86,7 +85,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     auto level = new Level();
     EngineState::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
     auto defaultCamera = new FlyCam("defaultcamera");
-    bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
+    EngineState::state->bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
     {
         defaultCamera->onMouseMove(e);
     });
@@ -216,7 +215,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         queue.drain([&](const Event& e)
         {
-            bus.dispatch(e);
+            EngineState::state->bus.dispatch(e);
         });
 
         //delta time -- making things time dependent

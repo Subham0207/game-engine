@@ -15,12 +15,12 @@ class ThirdPersonCameraSpringArm: ISpringArm
 public:
     ThirdPersonCameraSpringArm();
 
-    void moveArm() override;
+    void moveArm(const MouseMoveEvent& e) override;
     glm::vec3 getEndPosition() override;
     void setPivotPos(glm::vec3 pivotPosition) override;
     glm::vec3 getPivotPos() override;
 private:
-    void processThirdPersonCamera(float xMouseOffsetOnScreen, float yMouseOffsetOnScreen);
+    void processThirdPersonCamera(double xMouseOffsetOnScreen, double yMouseOffsetOnScreen);
     glm::vec3 calculateEndPosition(glm::vec3 playerPos);
     void calculateAngleAroundPlayer(float offset);
 

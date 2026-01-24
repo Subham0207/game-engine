@@ -7,12 +7,14 @@
 
 #include <glm/glm.hpp>
 
+#include "Event/Event.hpp"
+
 class ISpringArm
 {
 public:
     virtual ~ISpringArm() = default;
 
-    virtual void moveArm() = 0;
+    virtual void moveArm(const MouseMoveEvent& e) = 0;
     virtual glm::vec3 getEndPosition() = 0;
     virtual void setPivotPos(glm::vec3 pivotPosition) = 0;
     virtual glm::vec3 getPivotPos() = 0;
