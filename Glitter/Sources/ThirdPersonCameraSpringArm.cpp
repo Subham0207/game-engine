@@ -9,6 +9,7 @@ ThirdPersonCameraSpringArm::ThirdPersonCameraSpringArm()
     springArmHorizontalLength = 16.0f;
     springArmVerticalLength = 7.0f;
     angleAroundPlayer = 0.0f;
+    springArmLength = 10.0f;
     theta = 0.0f;
     yaw = -90.0f;
     pitch = 0.0f;
