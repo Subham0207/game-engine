@@ -240,7 +240,6 @@ void Character::useAttachedShader()
 
 void Character::setFinalBoneMatrix(int boneIndex, glm::mat4 transform)
 {
-    model->shader->use();
     model->shader->setMat4("finalBonesMatrices[" + std::to_string(boneIndex) + "]", transform);
 }
 

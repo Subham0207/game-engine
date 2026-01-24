@@ -165,11 +165,19 @@ void Level::spawnCharacter(fs::path filepath)
     Engine::Prefab::readCharacterPrefab(filepath, characterPrefab);
 
     auto character = CharacterFactory::Create(characterPrefab.classId);
-    character->animator = new Animator();
     character->filename = filepath.stem().string();
+
+    character->animator = new Animator();
 
     auto model = new Model();
     auto modelParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.modelGuid]).parent_path();
+
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertPath = engineFSPath / "Shaders/basic.vert";
+    auto fragPath = engineFSPath / "Shaders/pbr.frag";
+    auto shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+    model->shader = shader;
+
     model->load(modelParentPath, characterPrefab.modelGuid);
     character->model = model;
 
@@ -194,8 +202,8 @@ void Level::spawnCharacter(fs::path filepath)
     glm::quat newRot = pitchQuat * model->GetRot();
     character->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
     character->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
-
     cameras.push_back(character->camera);
+
     addRenderable(character);
 }
 

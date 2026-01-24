@@ -1,6 +1,7 @@
 #include "Helpers/shader.hpp"
 #include <fstream>
 #include <sstream>
+#include <string>
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath)
 {
@@ -147,6 +148,10 @@ void Shader::setVec3(const std::string& name, const glm::vec3& v) const
 GLint Shader::getUniformLocation(const std::string& name) const
 {
     int loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) std::cerr << "uniform inactive/not found for " << name << std::endl ;
+    if (loc == -1)
+    {
+        std::string errorMsg = "SHADER ERROR: Uniform '" + name + "' not found or inactive in shader ID: " + std::to_string(ID);
+        throw std::runtime_error(errorMsg);
+    }
     return loc;
 }
