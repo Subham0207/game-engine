@@ -29,7 +29,7 @@ Character::Character(std::string filepath): Serializable(){
 
     skeleton->BuildBoneHierarchy();
 
-    playerController = new Controls::PlayerController(filename);
+    playerController = std::make_shared<Controls::PlayerController>(filename);
     EngineState::state->playerControllers.push_back(playerController);
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
@@ -49,7 +49,6 @@ Character::Character(std::string filepath): Serializable(){
 Character::~Character()
 {
     EngineState::state->playerControllers.clear();
-    delete playerController;
     delete model;
     delete animator;
     delete skeleton;
@@ -211,13 +210,10 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
             animStateMachine->tick(playerController, animator);
         }
 
-        capsuleCollider->movebody(
-            0.0f,
-            0.0f,
-            0.0f,
+        capsuleCollider->moveBody(
             deltaTime,
-            model->GetPosition(),
-            glm::identity<glm::quat>(),
+            movementOffset,
+            rotationOffset,
             playerController->isJumping,
             playerController->dodgeStart ? 8.0f: 4.0f
         );
@@ -333,7 +329,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->skeleton->load(skeleton_Location.parent_path(), skeleton_guid);
 
     //create new player controller 
-    playerController = new Controls::PlayerController(contentName());
+    playerController = std::make_shared<Controls::PlayerController>(contentName());
     EngineState::state->playerControllers.push_back(playerController);
 
     //load statemachine

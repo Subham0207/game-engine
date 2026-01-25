@@ -11,6 +11,7 @@ namespace UI
         int selectedModelIndex;
         int selectedSkeletonIndex;
         int selectedStateMachineIndex;
+        int selectedPlayerControllerIndex;
     };
 
     class CharacterUI
@@ -32,6 +33,7 @@ namespace UI
         std::vector<std::string> modelNames;
         std::vector<std::string> skeletonNames;
         std::vector<std::string> statemachineNames;
+        std::vector<std::string> playerControllerNames;
 
     };
 }

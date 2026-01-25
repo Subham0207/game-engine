@@ -19,7 +19,7 @@ namespace AI
         void Tick(float deltaTime);
         void setPath(std::vector<glm::vec3> path);
         void calculatePath(glm::vec3 startingPos, glm::vec3 targetPos);
-        Controls::PlayerController* playerController;
+        std::shared_ptr<Controls::PlayerController> playerController;
         
         void setFilename(std::string filename){this->filename = filename;}
 

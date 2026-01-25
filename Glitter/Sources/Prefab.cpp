@@ -49,6 +49,7 @@ namespace Engine
             character.skeletonGuid = root.get<std::string>("skeleton_guid");
             // Accessing nested values using the dot notation
             character.stateMachineClassId = root.get<std::string>("statemachine.classId");
+            character.playerControllerClassId = root.get<std::string>("playerController.classId");
         } catch (const bs::json_parser_error& e) {
             std::cerr << "Error parsing JSON: " << e.what() << std::endl;
         } catch (const bs::ptree_error& e) {
@@ -69,6 +70,7 @@ namespace Engine
         // Create the nested object structure using dot notation
         // Boost will automatically create the "statemachine" node
         root.put("statemachine.classId", character.stateMachineClassId);
+        root.put("playerController.classId", character.playerControllerClassId);
 
         try {
             // Write the property tree to a JSON file

@@ -113,7 +113,7 @@ public:
     Skeleton::Skeleton* skeleton;
     std::string skeleton_guid;
     
-    Controls::PlayerController* playerController;
+    std::shared_ptr<Controls::PlayerController> playerController;
     
     std::shared_ptr<Controls::StateMachine> animStateMachine;
     std::string animStateMachine_guid;
@@ -159,6 +159,27 @@ public:
     {
         generate_instance_guid();
     }
+
+    [[nodiscard]] glm::vec3 movement_offset() const
+    {
+        return movementOffset;
+    }
+
+    void set_movement_offset(const glm::vec3& movement_offset)
+    {
+        movementOffset = movement_offset;
+    }
+
+    [[nodiscard]] glm::quat rotation_offset() const
+    {
+        return rotationOffset;
+    }
+
+    void set_rotation_offset(const glm::quat& rotation_offset)
+    {
+        rotationOffset = rotation_offset;
+    }
+
     Camera* camera;
 protected:
     virtual const std::string typeName() const override {return "character"; }
@@ -168,6 +189,8 @@ protected:
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 
 private:
+    glm::vec3 movementOffset;
+    glm::quat rotationOffset;
 
     glm::mat4 transformation;
 

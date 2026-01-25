@@ -21,6 +21,8 @@ namespace Controls
     public:
         PlayerController(std::string filename);
 
+        [[nodiscard]] std::string virtual GetClassId() const { return "PlayerController"; }
+
         float movementSpeed = 0.0f;           // Current speed (blended)
         float targetSpeed = 0.0f;             // Target speed (where we want to go)
         float movementDirection = 0.0f;   // Current direction (blended)

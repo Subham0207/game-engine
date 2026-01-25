@@ -70,7 +70,7 @@ void InputHandler::handlePlay()
     //That means the state machine would be called on every frame but based on if the player controller has a input for it it would respond
     //We can place the state machine update in character update for now
     auto id = EngineState::state->activePlayerControllerId;
-    Controls::PlayerController* playerController = nullptr;
+    std::shared_ptr<Controls::PlayerController> playerController = nullptr;
     if(EngineState::state->playerControllers.size() > 0)
     playerController = EngineState::state->playerControllers.at(id);
 

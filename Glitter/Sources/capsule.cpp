@@ -69,19 +69,25 @@ void Physics::Capsule::addCustomModel(std::string modelPath)
     model = capsule->model;
 }
 
-void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm::vec3 characterCurrentPos, glm::quat glmYaw, bool& want_jump, float walkSpeed)
+void Physics::Capsule::moveBody(
+    float deltaTime,
+    glm::vec3 moveOffset,
+    glm::quat rotationOffset,
+    bool& want_jump,
+    float walkSpeed,
+    float jumpSpeed
+    )
 {
     using namespace JPH;
     TempAllocatorImpl temp(64 * 1024);
 
     // Choose sane units (meters). Tune from here if your world is scaled.
     const Vec3 kGravity = Vec3(0.0f, -9.81f, 0.0f);
-    const float kJumpSpeed = 6.0f;     // m/s (try 4–8 first, not 900)
 
     // Desired horizontal velocity from input (x,z). Keep y = 0
-    Vec3 desired_horizontal = Vec3(x, 0.0f, z) * walkSpeed;
+    Vec3 desired_horizontal = Vec3(moveOffset.x, moveOffset.y, moveOffset.z) * walkSpeed;
 
-    Vec3 v;
+    Vec3 v{};
 
     if (character->GetGroundState() == CharacterBase::EGroundState::OnGround)
     {
@@ -91,7 +97,7 @@ void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm:
         if (want_jump == true)
         {
             // Add an instant vertical impulse along the up axis once
-            v += kJumpSpeed * character->GetUp();
+            v += jumpSpeed * character->GetUp();
             want_jump = false;
         }
     }
@@ -107,9 +113,9 @@ void Physics::Capsule::movebody(float x, float y, float z, float deltaTime, glm:
     character->SetLinearVelocity(v);
 
     // Rotation handoff (GLM wxyz -> Jolt xyzw ctor)
-    JPH::Quat joltYaw(glmYaw.x, glmYaw.y, glmYaw.z, glmYaw.w);
-    joltYaw = joltYaw.Normalized();
-    character->SetRotation(joltYaw);    
+    JPH::Quat rotOffset(rotationOffset.x, rotationOffset.y, rotationOffset.z, rotationOffset.w);
+    rotOffset = rotOffset.Normalized();
+    character->SetRotation(rotOffset);
 
     CharacterVirtual::ExtendedUpdateSettings eus;
     character->ExtendedUpdate(deltaTime, kGravity, eus, {}, {}, {}, {}, temp);

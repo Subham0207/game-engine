@@ -71,6 +71,18 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
         statemachineNames.emplace_back(fst);
     }
 
+    playerControllerNames = std::vector<std::string>();
+    index=0;
+    for (const auto& [fst, snd] : PlayerControllerFactory::GetTable())
+    {
+        if (fst == characterPrefab.playerControllerClassId)
+        {
+            characterConfig.selectedStateMachineIndex = index;
+        }
+        index+=1;
+        playerControllerNames.emplace_back(fst);
+    }
+
     showCharacterUI = true;
 }
 void UI::CharacterUI::draw()
@@ -112,6 +124,12 @@ void UI::CharacterUI::draw()
             statemachineNames
         );
 
+        UI::Shared::comboUI(
+            "Choose a PlayerController",
+            characterConfig.selectedPlayerControllerIndex,
+            playerControllerNames
+        );
+
         //After all selection is made. save it to character.prefab.
         if (ImGui::Button("Save"))
         {
@@ -132,6 +150,7 @@ void UI::CharacterUI::draw()
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->skeletonGuid = skeleton_guid;
             characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfig.selectedStateMachineIndex - 1];
+            characterPrefabConfig->playerControllerClassId = playerControllerNames[characterConfig.selectedPlayerControllerIndex - 1];
 
             auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value + "." +  std::string(toString(FileType::CharacterType)));
             Engine::Prefab::writeCharacterPrefab(filepath, *characterPrefabConfig);

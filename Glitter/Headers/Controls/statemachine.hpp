@@ -46,7 +46,7 @@ namespace Controls
         
         State()=default;
         State(std::string stateName);
-        void Play(Controls::PlayerController* playerController, Animator* animator);
+        void Play(std::shared_ptr<Controls::PlayerController> playerController, Animator* animator);
         void assignBlendspace(BlendSpace2D* blendspace);
         void assignAnimation(Animation* animation);
         void assignAnimation(std::string animationGuid);
@@ -71,7 +71,7 @@ namespace Controls
             virtual void onTick(){};
             virtual void onDestroy(){};
 
-            void tick(Controls::PlayerController* playerController, Animator* animator);
+            void tick(std::shared_ptr<Controls::PlayerController> playerController, Animator* animator);
             void setActiveState(std::shared_ptr<State> state);
             std::shared_ptr<State> getActiveState() {return activeState;};
             std::shared_ptr<State> getStateGraph() {return stateGraph;}

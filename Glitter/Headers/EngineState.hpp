@@ -66,7 +66,7 @@ public:
     bool isPlay = false;
 
     int activePlayerControllerId = 0;
-    std::vector<Controls::PlayerController*> playerControllers = std::vector<Controls::PlayerController*>();
+    std::vector<std::shared_ptr<Controls::PlayerController>> playerControllers = std::vector<std::shared_ptr<Controls::PlayerController>>();
     std::vector<AI::AI*> ais;
     std::vector<Controls::StateMachine*> statemachines = std::vector<Controls::StateMachine*>();
 

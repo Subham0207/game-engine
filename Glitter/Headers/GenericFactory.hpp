@@ -14,6 +14,7 @@ class Character;
 namespace Controls
 {
     class StateMachine;
+    class PlayerController;
 }
 template <typename TBase>
 class GenericFactory {
@@ -42,6 +43,7 @@ private:
 //Make sure you register the derived class so the engine knows about it.
 using CharacterFactory = GenericFactory<Character>;
 using StateMachineFactory = GenericFactory<Controls::StateMachine>;
+using PlayerControllerFactory = GenericFactory<Controls::PlayerController>;
 
 #define REGISTER_BODY(ClassName) \
 public: \
