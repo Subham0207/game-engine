@@ -210,6 +210,26 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
             if(animStateMachine != nullptr)
             animStateMachine->tick(playerController, animator);
         }
+
+        capsuleCollider->movebody(
+            0.0f,
+            0.0f,
+            0.0f,
+            deltaTime,
+            model->GetPosition(),
+            glm::identity<glm::quat>(),
+            playerController->isJumping,
+            playerController->dodgeStart ? 8.0f: 4.0f
+        );
+
+        auto capsuleWorldPos = capsuleCollider->model->GetPosition();
+        auto relativePosition =  glm::vec3(
+            capsuleWorldPos.x + capsuleColliderPosRelative.x,
+            capsuleWorldPos.y + capsuleColliderPosRelative.y,
+            capsuleWorldPos.z + capsuleColliderPosRelative.z
+        );
+
+        model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
     }
     else
     {
