@@ -19,6 +19,7 @@ public:
     glm::vec3 getEndPosition() override;
     void setPivotPos(glm::vec3 pivotPosition) override;
     glm::vec3 getPivotPos() override;
+    float getTheta() const{ return theta; }
 private:
     void processThirdPersonCamera(double xMouseOffsetOnScreen, double yMouseOffsetOnScreen);
     glm::vec3 calculateEndPosition(glm::vec3 playerPos);

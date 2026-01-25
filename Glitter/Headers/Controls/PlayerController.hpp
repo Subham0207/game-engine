@@ -17,11 +17,15 @@ enum CameraType;
 namespace Controls
 {
     class PlayerController: public RegisterBinding
-    {        
+    {
     public:
         PlayerController(std::string filename);
 
         [[nodiscard]] std::string virtual GetClassId() const { return "PlayerController"; }
+
+        virtual void onStart(){};
+        virtual void onTick(){};
+        virtual void OnDestroy(){};
 
         float movementSpeed = 0.0f;           // Current speed (blended)
         float targetSpeed = 0.0f;             // Target speed (where we want to go)

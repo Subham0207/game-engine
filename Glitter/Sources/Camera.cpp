@@ -70,6 +70,8 @@ void Camera::FrameModel(const aiAABB& boundingBox) {
 
 void Camera::lookAt(glm::vec3 whereToLook)
 {
+    assert(!glm::any(glm::isnan(whereToLook)) && "whereToLook contains NaN values!");
+
     const glm::vec3 WORLD_UP(0.0f, 1.0f, 0.0f);
 
     // Direction FROM camera TO target

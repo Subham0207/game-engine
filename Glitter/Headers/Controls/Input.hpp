@@ -1,21 +1,23 @@
 #pragma once
-#include "GLFW/glfw3.h"
 #include "Camera/Camera.hpp"
 #include "Event/InputContext.hpp"
 
+class GLFWWindow;
 class InputHandler
 {
 public:
 	InputHandler(Camera* camera, GLFWwindow* m_Window,float screenWidth, float screenHeight);
 	void handleInput(float deltaTime, InputContext& inputCtx);
 	static InputHandler* currentInputHandler;
-	unsigned int mouseState = GLFW_CURSOR_DISABLED;
+	unsigned int mouseState;
 	float lastX,lastY;
 	Camera* m_Camera;
 	bool leftClickPressed = false;
 	bool rightClickPressed = false;
 	float getXOffset(){return xOffset;}
 	float getYOffset(){return yOffset;}
+
+	[[nodiscard]] bool isKeyPressed(int key) const;
 private:
 	void handleBasicMovement(float deltaTime);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);

@@ -181,6 +181,7 @@ public:
     }
 
     Camera* camera;
+    float smoothAngle(float current, float target, float t);
 protected:
     virtual const std::string typeName() const override {return "character"; }
     virtual const std::string contentName() override {return filename; }
@@ -189,8 +190,8 @@ protected:
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 
 private:
-    glm::vec3 movementOffset;
-    glm::quat rotationOffset;
+    glm::vec3 movementOffset{};
+    glm::quat rotationOffset = glm::identity<glm::quat>();
 
     glm::mat4 transformation;
 
@@ -200,7 +201,6 @@ private:
     bool started = false;
 
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
-    float smoothAngle(float current, float target, float t);
 
 
     friend class boost::serialization::access;

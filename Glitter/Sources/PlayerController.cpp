@@ -20,54 +20,30 @@ Controls::PlayerController::PlayerController(std::string filename)
 
 void Controls::PlayerController::setMovement(glm::vec3 dir)
 {
-    // The input here is actually normalized vector in world space from character position.
-    // so input alone should not decide which animation to play
-    // compare  input to forward vector to decide that
-    // so example: forward vector (0.5,0,-1), input (0.5,0,-1), same direction so moveforward
-    inputVectorLength =  glm::length(dir);
-    if(cameraType == CameraType::TOP_DOWN)
+    if(isAiming)
     {
-        // this logic is also by default useful in applying the statemachine to AI
-        auto modelInverseRotation = glm::transpose(characterRotation);// character space
-        glm::vec3 characterInputDirection = modelInverseRotation * dir;
-
-        auto normCharacterInputDirection = glm::normalize(characterInputDirection);
-        if (glm::length(normCharacterInputDirection) > 0.00001f) {
-            targetSpeed = normCharacterInputDirection.z;
-            targetDirection = -normCharacterInputDirection.x;
+        if(glm::length(dir) > 0.00001f)
+        {
+            targetSpeed = dir.z;
+            targetDirection = -dir.x;
         }
-        else{
+        else
+        {
             targetSpeed = 0.0f;
             targetDirection = 0.0f;
         }
     }
-    else if (cameraType == CameraType::THIRD_PERSON)
+    else
     {
-        if(isAiming)
+        if(glm::length(dir) > 0.00001f)
         {
-            if(glm::length(dir) > 0.00001f)
-            {
-                targetSpeed = dir.z;
-                targetDirection = -dir.x;
-            }
-            else
-            {
-                targetSpeed = 0.0f;
-                targetDirection = 0.0f;
-            }
+            targetSpeed = 1.0f; // to always return walking forward blendpoint when not aiming.
+            targetDirection = 0.0f;
         }
         else
         {
-            if(glm::length(dir) > 0.00001f)
-            {
-                targetSpeed = 1.0f; // to always return walking forward blendpoint when not aiming.
-                targetDirection = 0.0f;
-            }
-            else
-            {
-                targetSpeed = 0.0f;
-                targetDirection = 0.0f;
-            }
+            targetSpeed = 0.0f;
+            targetDirection = 0.0f;
         }
     }
 

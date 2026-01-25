@@ -6,6 +6,7 @@
 #include "imgui_impl_glfw.h"
 #include <EngineState.hpp>
 #include <ImGuizmo.h>
+#include "GLFW/glfw3.h"
 
 #include "Event/InputContext.hpp"
 
@@ -17,6 +18,7 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
     lastX = screenWidth;
     lastY = screenHeight;
     m_Window = window;
+    mouseState = GLFW_CURSOR_DISABLED;
 }
 
 void InputHandler::handleInput(float deltaTime, InputContext& inputCtx)
@@ -109,6 +111,12 @@ void InputHandler::handlePlay()
         playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
     }
 }
+
+bool InputHandler::isKeyPressed(int key) const
+{
+    return glfwGetKey(m_Window, key) == GLFW_PRESS;
+}
+
 void InputHandler::handleBasicMovement(float deltaTime)
 {
     ImGuiIO& io = ImGui::GetIO();

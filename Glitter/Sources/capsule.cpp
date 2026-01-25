@@ -115,6 +115,7 @@ void Physics::Capsule::moveBody(
     // Rotation handoff (GLM wxyz -> Jolt xyzw ctor)
     JPH::Quat rotOffset(rotationOffset.x, rotationOffset.y, rotationOffset.z, rotationOffset.w);
     rotOffset = rotOffset.Normalized();
+    assert(!rotOffset.IsNaN() && "Jolt Quaternion became NaN after normalization!");
     character->SetRotation(rotOffset);
 
     CharacterVirtual::ExtendedUpdateSettings eus;
@@ -124,6 +125,13 @@ void Physics::Capsule::moveBody(
     ground_normal = character->GetGroundNormal();
     landed        = listener->has_landed_this_frame; // if you track it
     character->UpdateGroundVelocity();
+
+    if (character->GetPosition().IsNaN()) {
+        // RESET character to a safe position or previous frame position
+        character->SetPosition(JPH::Vec3(0, 10, 0));
+        character->SetLinearVelocity(JPH::Vec3::sZero());
+        assert(false && "Jolt Character went NaN!");
+    }
 }
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
@@ -174,6 +182,8 @@ void Physics::Capsule::PhysicsUpdate()
     auto transform = character->GetPosition();
     auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
 
+    assert(!glm::any(glm::isnan(transformglm)) && "Jolt Character Position is NaN!");
+
     auto rotation = character->GetRotation();
     auto rotationglm = glm::quat(
                         static_cast<float>(rotation.GetW()),
@@ -182,5 +192,7 @@ void Physics::Capsule::PhysicsUpdate()
                         static_cast<float>(rotation.GetZ())
                     );
 
+    assert(!glm::any(glm::isnan(glm::vec4(rotationglm.x, rotationglm.y, rotationglm.z, rotationglm.w)))
+           && "Jolt Character Rotation is NaN!");
     model->setTransformFromPhysics(transformglm, rotationglm);
 }
