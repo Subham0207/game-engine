@@ -16,12 +16,13 @@ public:
     ThirdPersonCameraSpringArm();
 
     void moveArm(const MouseMoveEvent& e) override;
+    void onTick();
     glm::vec3 getEndPosition() override;
     void setPivotPos(glm::vec3 pivotPosition) override;
     glm::vec3 getPivotPos() override;
     float getTheta() const{ return theta; }
 private:
-    void processThirdPersonCamera(double xMouseOffsetOnScreen, double yMouseOffsetOnScreen);
+    void solveSpringArmConstraints(double xMouseOffsetOnScreen, double yMouseOffsetOnScreen);
     glm::vec3 calculateEndPosition(glm::vec3 playerPos);
     void calculateAngleAroundPlayer(float offset);
 

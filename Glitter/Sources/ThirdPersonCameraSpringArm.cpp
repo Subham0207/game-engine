@@ -17,7 +17,11 @@ ThirdPersonCameraSpringArm::ThirdPersonCameraSpringArm()
 
 void ThirdPersonCameraSpringArm::moveArm(const MouseMoveEvent& e)
 {
-    processThirdPersonCamera(e.xOffset, e.yOffset);
+    solveSpringArmConstraints(e.xOffset, e.yOffset);
+}
+
+void ThirdPersonCameraSpringArm::onTick()
+{
     m_springArmEndPosition = calculateEndPosition(m_springArmPivotPosition);
 }
 
@@ -51,7 +55,7 @@ float ThirdPersonCameraSpringArm::calculateVerticalDistance()
     return springArmLength * sin(glm::radians(pitch));
 }
 
-void ThirdPersonCameraSpringArm::processThirdPersonCamera(double xMouseOffsetOnScreen, double yMouseOffsetOnScreen)
+void ThirdPersonCameraSpringArm::solveSpringArmConstraints(double xMouseOffsetOnScreen, double yMouseOffsetOnScreen)
 {
     calculateAngleAroundPlayer(xMouseOffsetOnScreen);
     pitch -= (yMouseOffsetOnScreen * 0.05); // make it += for inverted vertical input

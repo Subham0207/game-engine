@@ -194,6 +194,16 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
 
     if(EngineState::state->isPlay)
     {
+        if (!started)
+        {
+            this->onStart();
+            started = true;
+        }
+        else
+        {
+            this->onTick();
+        }
+
         if(playerController)
         {
             if(animStateMachine != nullptr)
@@ -216,16 +226,6 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
         );
 
         model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
-
-        if (!started)
-        {
-            this->onStart();
-            started = true;
-        }
-        else
-        {
-            this->onTick();
-        }
     }
     else
     {
