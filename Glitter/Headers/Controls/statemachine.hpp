@@ -19,17 +19,19 @@ namespace Controls
     {
         std::shared_ptr<State> state = NULL;
         int index;
-        LuaCondition condition;
+        LuaCondition luaCondition;
+        std::function<bool()> cppCondition = []{return false;};
 
         ToStateWhenCondition()=default;
         ToStateWhenCondition(std::shared_ptr<State> state, std::string condition);
+        ToStateWhenCondition(std::shared_ptr<State> state, std::function<bool()> condition);
 
         private:
             friend class boost::serialization::access;
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {
                 ar & state;
-                ar & condition;
+                ar & luaCondition;
             }
     };
 
@@ -49,7 +51,12 @@ namespace Controls
         void Play(std::shared_ptr<Controls::PlayerController> playerController, Animator* animator);
         void assignBlendspace(BlendSpace2D* blendspace);
         void assignAnimation(Animation* animation);
-        void assignAnimation(std::string animationGuid);
+        void assignAnimation(std::string animationGuid, bool noLoop, std::function<void()> animNotify);
+
+        //only used in case of animation;
+        bool noLoop = false;
+        std::function<void()> animNotify;
+        // ---------------------
 
         private:
             friend class boost::serialization::access;

@@ -6,7 +6,14 @@
 Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> state, std::string condition)
 {
     this->state = state;
-    this->condition = LuaCondition{condition};
+    this->luaCondition = LuaCondition{condition};
+    this->cppCondition = []{return false;};
+}
+
+Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> state, std::function<bool()> condition)
+{
+    this->state = state;
+    this->cppCondition = condition;
 }
 
 Controls::State::State(std::string stateName)
@@ -23,21 +30,22 @@ void Controls::State::Play(std::shared_ptr<Controls::PlayerController> playerCon
     {
         animator->PlayAnimation(animation);
         // Logic to excecute animation only once -- AnimNotify
-        auto duration = animation->GetDuration();
-        if(stateName == "DodgeRoll" && animator->m_ElapsedTime > duration)
+        if (noLoop)
         {
-            playerController->dodgeStart = false;
-            animator->m_ElapsedTime = 0.0f;
+            auto duration = animation->GetDuration();
+            if(animator->m_ElapsedTime > duration)
+            {
+                // execute a function passed from outside
+                animNotify();
+                animator->m_ElapsedTime = 0.0f;
+            }
         }
         return;
     }
 
     if(!blendspaceGuid.empty())
     {
-        float xfactor = playerController->movementDirection;
-        float yfactor = playerController->movementSpeed;
-        
-        auto blendSelection = blendspace->GetBlendSelection(glm::vec2(xfactor, yfactor));
+        auto blendSelection = blendspace->GetBlendSelection();
         animator->PlayAnimationBlended(blendSelection);
     }
 }
@@ -53,10 +61,12 @@ void Controls::State::assignAnimation(Animation* animation)
     this->animation = animation;
 }
 
-void Controls::State::assignAnimation(std::string animationGuid)
+void Controls::State::assignAnimation(std::string animationGuid, bool noLoop, std::function<void()> animNotify)
 {
     this->animationGuid = animationGuid;
     this->animation = Animation::loadAnimation(animationGuid);
+    this->noLoop = noLoop;
+    this->animNotify = animNotify;
 }
 
 Controls::StateMachine::StateMachine(std::string filename): Serializable()
@@ -83,8 +93,9 @@ void Controls::StateMachine::tick(std::shared_ptr<Controls::PlayerController> pl
     //1. first setPoseTransition bool if present.
     for (size_t i = 0; i < activeState->toStateWhenCondition.size(); i++)
     {
-        auto playeThisState = activeState->toStateWhenCondition[i].condition.evaluate(getLuaEngine(), playerController);
-        if(playeThisState)
+        // auto playThisState = activeState->toStateWhenCondition[i].luaCondition.evaluate(getLuaEngine(), playerController);
+        auto playThisState = activeState->toStateWhenCondition[i].cppCondition();
+        if(playThisState)
         {
             activeState = activeState->toStateWhenCondition[i].state;
             animator->initNoLoopAnimation();

@@ -385,7 +385,7 @@ void UI::StatemachineUI::firstFrameHandler(Controls::StateMachine* statemachine)
             ToStateWhenConditionUI toStateWhenCondition;
             toStateWhenCondition.IndexToState = i->toStateWhenCondition[j].index;
 
-            auto condition = i->toStateWhenCondition[j].condition.source();
+            auto condition = i->toStateWhenCondition[j].luaCondition.source();
             const std::size_t n = std::min(condition.size(), MAX_SOURCE_LENGTH - 1);
             std::memcpy(toStateWhenCondition.WhenCondition.data(), condition.data(), n);
             

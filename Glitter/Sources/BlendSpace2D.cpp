@@ -5,7 +5,7 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-BlendSelection* BlendSpace2D::GetBlendSelection(glm::vec2 input) {
+BlendSelection* BlendSpace2D::GetBlendSelection() {
     auto result = new BlendSelection {nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
 
     if (blendPoints.empty()) return result; // No animations available
@@ -20,34 +20,34 @@ BlendSelection* BlendSpace2D::GetBlendSelection(glm::vec2 input) {
     auto bottomLeft = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
     auto bottomRight = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
     for (auto& point : blendPoints) {
-        float distance = glm::length(point.position - input);
+        float distance = glm::length(point.position - scrubberLocation);
 
-        if (point.position.x <= input.x && point.position.y >= input.y && distance < minDistTL) {
+        if (point.position.x <= scrubberLocation.x && point.position.y >= scrubberLocation.y && distance < minDistTL) {
             minDistTL = distance;
             topLeft = &point;
             hasTL = true;
         }
 
-        if (point.position.x >= input.x && point.position.y >= input.y && distance < minDistTR) {
+        if (point.position.x >= scrubberLocation.x && point.position.y >= scrubberLocation.y && distance < minDistTR) {
             minDistTR = distance;
             topRight = &point;
             hasTR = true;
         }
 
-        if (point.position.x <= input.x && point.position.y <= input.y && distance < minDistBL) {
+        if (point.position.x <= scrubberLocation.x && point.position.y <= scrubberLocation.y && distance < minDistBL) {
             minDistBL = distance;
             bottomLeft = &point;
             hasBL = true;
         }
 
-        if (point.position.x >= input.x && point.position.y <= input.y && distance < minDistBR) {
+        if (point.position.x >= scrubberLocation.x && point.position.y <= scrubberLocation.y && distance < minDistBR) {
             minDistBR = distance;
             bottomRight = &point;
             hasBR = true;
         }
     }
 
-    calculateBlendFactors(input, *result, *topLeft, *topRight, *bottomLeft, *bottomRight);
+    calculateBlendFactors(scrubberLocation, *result, *topLeft, *topRight, *bottomLeft, *bottomRight);
     
     result->bottomLeft = bottomLeft;
     result->bottomRight = bottomRight;

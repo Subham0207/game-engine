@@ -50,11 +50,11 @@ void Outliner::Render(Level &lvl) {
     if(getUIState().blendspace2DUIState->showBlendspaceUI)
     {
         auto blendspace = getUIState().blendspace2DUIState->UIOpenedForBlendspace;
+        blendspace->setScrubberLocation(
+        glm::vec2( getUIState().blendspace2DUIState->scrubbedPoint.x,
+        getUIState().blendspace2DUIState->scrubbedPoint.y));
         auto selection = blendspace->GetBlendSelection
-        (
-            glm::vec2( getUIState().blendspace2DUIState->scrubbedPoint.x,
-            getUIState().blendspace2DUIState->scrubbedPoint.y)
-        );
+        ();
         UI::Blendspace2DUI::draw(blendspace, selection, getUIState().blendspace2DUIState->showBlendspaceUI);
     }
 

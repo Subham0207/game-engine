@@ -55,6 +55,7 @@ public:
     BlendSpace2D(std::string blendspaceName): Serializable(){
         blendPoints = std::vector<BlendPoint>();
         this->blendspaceName = blendspaceName;
+        scrubberLocation = glm::vec2(0.0f, 0.0f);
         generate_asset_guid();
     };
 
@@ -68,12 +69,16 @@ public:
         blendPoints.emplace_back(pos, animationGuid );
     }
 
-    BlendSelection* GetBlendSelection(glm::vec2 input);
+    BlendSelection* GetBlendSelection();
 
     void generateTimeWarpCurve(std::shared_ptr<AssimpNodeData> rootNode, std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> &timewarpCurveMap);
     std::vector<BlendPoint> blendPoints;
 
     std::string blendspaceName;
+
+    void setScrubberLocation(glm::vec2 loc){scrubberLocation = loc;}
+    [[nodiscard]] glm::vec2 getScrubberLocation() const {return scrubberLocation;};
+
 protected:
     virtual const std::string typeName() const override {return "blendspace"; }
     virtual const std::string contentName() override {return blendspaceName; }
@@ -82,6 +87,8 @@ protected:
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 
 private:
+    glm::vec2 scrubberLocation{};
+
     void calculateBlendFactors(
         glm::vec2 input,
         BlendSelection& result,
