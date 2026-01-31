@@ -276,7 +276,7 @@ std::shared_ptr<Character> addPlayableCharacter(std::filesystem::path root, std:
 {
     auto character = std::make_shared<Character>("./EngineAssets/Aj.fbx");
     character->model->setTransform(glm::vec3(0.0f,3.0f,0.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
-    character->capsuleColliderPosRelative = glm::vec3(0.0f,-2.5f,0.0f);
+    character->modelRelativePosition = glm::vec3(0.0f,-2.5f,0.0f);
 
     character->animStateMachine = setupStateMachine(projectAssetDirectory);
 

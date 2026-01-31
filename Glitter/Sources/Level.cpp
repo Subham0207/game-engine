@@ -193,7 +193,7 @@ void Level::spawnCharacter(fs::path filepath)
     EngineState::state->playerControllers.push_back(character->playerController);
 
     character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
-    character->capsuleColliderPosRelative = glm::vec3(0.0f);
+    character->modelRelativePosition = glm::vec3(0.0f);
 
     character->camera = new Camera("charactercamera");
     character->camera->cameraPos = model->GetPosition();

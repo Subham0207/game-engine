@@ -34,7 +34,7 @@ Character::Character(std::string filepath): Serializable(){
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
 
-    capsuleColliderPosRelative = glm::vec3(0.0f);
+    modelRelativePosition = glm::vec3(0.0f);
 
     camera = new Camera("charactercamera");
     camera->cameraPos = model->GetPosition();
@@ -181,13 +181,35 @@ std::vector<unsigned int> Character::GetIndices()
 {
     return model->GetIndices();
 }
+
+void Character::imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
+{
+    ImGuizmo::Manipulate(
+glm::value_ptr(viewMatrix),
+glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::WORLD, glm::value_ptr(getModelMatrix()));
+}
+
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     if(animator)
         updateFinalBoneMatrix(deltaTime);
 
     if(model)
+    {
         model->draw(deltaTime, camera, lights, cubeMap);
+
+        auto characterWorldPos = GetPosition();
+        auto relativePosition =  glm::vec3(
+            characterWorldPos.x + modelRelativePosition.x,
+            characterWorldPos.y + modelRelativePosition.y,
+            characterWorldPos.z + modelRelativePosition.z
+        );
+
+        model->setTransform(relativePosition, GetRot(), GetScale());
+    }
+
+    if (capsuleCollider)
+        capsuleCollider->tick();
 
     if(skeleton)
         skeleton->draw(camera, getModelMatrix());
@@ -210,41 +232,29 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
             animStateMachine->tick(playerController, animator);
         }
 
-        capsuleCollider->moveBody(
-            deltaTime,
-            movementOffset,
-            rotationOffset,
-            playerController->isJumping,
-            playerController->dodgeStart ? 8.0f: 4.0f
-        );
+        if (capsuleCollider)
+            capsuleCollider->moveBody(
+                deltaTime,
+                movementOffset,
+                rotationOffset,
+                playerController->isJumping,
+                playerController->dodgeStart ? 8.0f: 4.0f
+            );
 
-        auto capsuleWorldPos = capsuleCollider->model->GetPosition();
-        auto relativePosition =  glm::vec3(
-            capsuleWorldPos.x + capsuleColliderPosRelative.x,
-            capsuleWorldPos.y + capsuleColliderPosRelative.y,
-            capsuleWorldPos.z + capsuleColliderPosRelative.z
-        );
-
-        model->setTransformFromPhysics(relativePosition, capsuleCollider->model->GetRot());
     }
     else
     {
         // this logic can just stay in characterBase class.
         started = false;
-        animator->blendSelection = nullptr;
-        animator->m_CurrentAnimation = nullptr;
+        if (animator)
+        {
+            animator->blendSelection = nullptr;
+            animator->m_CurrentAnimation = nullptr;
+        }
         if(capsuleCollider && capsuleCollider->physics)
         {
-            auto characterWorldPos = model->GetPosition();
-            auto relativePosition =  glm::vec3(
-                characterWorldPos.x - capsuleColliderPosRelative.x,
-                characterWorldPos.y - capsuleColliderPosRelative.y,
-                characterWorldPos.z - capsuleColliderPosRelative.z
-            );
-    
-            capsuleCollider->model->setTransformFromPhysics(relativePosition, model->GetRot());
-            capsuleCollider->position = relativePosition;
-            capsuleCollider->rotation = model->GetRot();
+            capsuleCollider->setWorldPosition(GetPosition());
+            capsuleCollider->setWorldRotation(GetRot());
         }
     }
 }
@@ -261,14 +271,13 @@ void Character::setFinalBoneMatrix(int boneIndex, glm::mat4 transform)
 
 void Character::physicsUpdate()
 {
-    capsuleCollider->PhysicsUpdate();
 }
 
 void Character::syncTransformationToPhysicsEntity()
 {
     //The capsule mesh will be attached to the character so when character moves that mesh updates
     //that should be enough to update the physics collider correctly
-    capsuleCollider->syncTransformation();
+    // capsuleCollider->syncTransformation();
 }
 
 

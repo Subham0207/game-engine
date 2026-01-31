@@ -30,6 +30,10 @@ Physics::Capsule::Capsule
     this->radius = radius;
     this->halfHeight = halfHeight;
     addCustomModel("");
+
+    JPH::Vec3 jphPosition(position.x, position.y, position.z);
+    CreateCharacterVirtualPhysics(&physics->physicsSystem,
+    jphPosition, halfHeight, radius);
 }
 
 void Physics::Capsule::syncTransformation()
@@ -133,6 +137,12 @@ void Physics::Capsule::moveBody(
         assert(false && "Jolt Character went NaN!");
     }
 }
+
+void Physics::Capsule::tick()
+{
+    model->setModelMatrix(getWorldTransformation());
+}
+
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
     //The reinit does not happen during play; So we only need to update the Model geometry and not collider.
@@ -175,6 +185,41 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
             body.SetRestitution(0.0f);
         }
     }
+}
+
+glm::mat4 Physics::Capsule::getWorldTransformation()
+{
+    auto transform = character->GetWorldTransform();
+    return AssimpHelpers::ConvertMatrixToGLMFormat(transform);
+}
+
+glm::vec3 Physics::Capsule::getWorldPosition()
+{
+    auto pos = character->GetPosition();
+    return AssimpHelpers::toGlM(pos);
+}
+
+glm::quat Physics::Capsule::getWorldRotation()
+{
+    auto rot = character->GetRotation();
+    return AssimpHelpers::toGlM(rot);
+}
+
+glm::vec3 Physics::Capsule::getWorldScale()
+{
+    return glm::vec3(1.0f, 1.0f, 1.0f);
+}
+
+void Physics::Capsule::setWorldPosition(glm::vec3 position)
+{
+    auto pos = JPH::RVec3(position.x, position.y, position.z);
+    character->SetPosition(pos);
+}
+
+void Physics::Capsule::setWorldRotation(glm::quat rotation)
+{
+    auto rot = JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w);
+    character->SetRotation(rot);
 }
 
 void Physics::Capsule::PhysicsUpdate()

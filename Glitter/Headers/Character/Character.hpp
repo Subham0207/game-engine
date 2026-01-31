@@ -12,6 +12,7 @@
 #include <Controls/statemachine.hpp>
 #include <Physics/capsule.hpp>
 #include <Serializable.hpp>
+#include <Controls/Empty.hpp>
 
 #include "CharacterPrefabConfig.hpp"
 
@@ -81,20 +82,17 @@ public:
 
     void useAttachedShader() override;
 
-    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override
-    {
-        model->imguizmoManipulate(viewMatrix, projMatrix);
-    }
+    void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override;
 
     std::vector<Mesh>* getMeshes() override{
         return model->getMeshes();
     };
     glm::mat4& getModelMatrix() override{
-        return model->getModelMatrix();
+        return empty.getWorldTransform();
     };
 
     void setModelMatrix(glm::mat4 matrix) override{
-       model->setModelMatrix(matrix);
+        empty.setWorldTransform(matrix);
     };
 
     std::string getName() override{
@@ -119,6 +117,9 @@ public:
     std::string animStateMachine_guid;
 
     Physics::Capsule* capsuleCollider;
+    glm::vec3 modelRelativePosition;
+
+    //Deprecated
     glm::vec3 capsuleColliderPosRelative;
 
     void physicsUpdate() override;
@@ -126,30 +127,30 @@ public:
     float cameraHeight = 7;
     float cameraDistance = 16;
 
-    virtual glm::vec3 GetPosition()
+    glm::vec3 GetPosition() override
     {
-        return model->GetPosition();
+        return empty.getWorldPosition();
     }
 
-    virtual glm::vec3 GetScale()
+    glm::vec3 GetScale() override
     {
-        return model->GetScale();
+        return empty.getScale();
     }
 
-    virtual glm::quat GetRot()
+    glm::quat GetRot() override
     {
-        return model->GetRot();
+        return empty.getWorldRotation();
     }
 
-    virtual std::string GetGuid() override {
+    std::string GetGuid() override {
         return getAssetId();
     }
 
-    virtual void setIsSelected(bool isSelected) override
+    void setIsSelected(bool isSelected) override
     {
         this->isSelected = isSelected;
     };
-    virtual bool getIsSelected() override
+    bool getIsSelected() override
     {
         return isSelected;
     };
@@ -193,6 +194,9 @@ private:
     glm::vec3 movementOffset{};
     glm::quat rotationOffset = glm::identity<glm::quat>();
 
+    Controls::Empty empty{};
+
+    //deprecated
     glm::mat4 transformation;
 
     glm::vec3 forwardVector;

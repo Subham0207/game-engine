@@ -24,6 +24,8 @@ namespace Physics
         }
         float radius;
         float halfHeight;
+
+        void tick();
         std::shared_ptr<CapsuleColliderModel> capsule;
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
@@ -47,6 +49,14 @@ namespace Physics
         JPH::Ref<JPH::CharacterVirtualSettings> set;
         MyContactListener *listener;
         JPH::CharacterVirtual *character;
+
+        glm::mat4 getWorldTransformation();
+        glm::vec3 getWorldPosition();
+        glm::quat getWorldRotation();
+        glm::vec3 getWorldScale();
+
+        void setWorldPosition(glm::vec3 position);
+        void setWorldRotation(glm::quat rotation);
 
         // std::unique_ptr<JPH::TempAllocator> m_temp;
 

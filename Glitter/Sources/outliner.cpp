@@ -158,11 +158,11 @@ void Outliner::ModelMatrixComponent()
                         }
 
                         ImGui::Text("Capsule Collider position");
-                        ImGui::DragFloat("X1##translation", &character->capsuleColliderPosRelative.x, 0.005f);
+                        ImGui::DragFloat("X1##translation", &character->modelRelativePosition.x, 0.005f);
                         ImGui::SameLine();
-                        ImGui::DragFloat("Y1##translation", &character->capsuleColliderPosRelative.y, 0.005f);
+                        ImGui::DragFloat("Y1##translation", &character->modelRelativePosition.y, 0.005f);
                         ImGui::SameLine();
-                        ImGui::DragFloat("Z1##translation", &character->capsuleColliderPosRelative.z, 0.005f);
+                        ImGui::DragFloat("Z1##translation", &character->modelRelativePosition.z, 0.005f);
                 }
             }
             else

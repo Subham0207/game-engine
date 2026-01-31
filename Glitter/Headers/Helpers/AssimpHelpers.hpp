@@ -9,6 +9,9 @@
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 #include <iostream>
+#include <Jolt/Jolt.h>
+#include <Jolt/Math/Mat44.h>
+#include "glm/gtc/type_ptr.hpp"
 
 class AssimpHelpers
 {
@@ -23,6 +26,20 @@ public:
 		to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
 		to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
 		return to;
+	}
+
+	static inline glm::mat4 ConvertMatrixToGLMFormat(const JPH::RMat44& joltMat) {
+		return glm::make_mat4(reinterpret_cast<const float*>(&joltMat));
+	}
+
+	static inline glm::vec3 toGlM(const JPH::RVec3& joltVec3)
+	{
+		return glm::make_vec3(reinterpret_cast<const float*>(&joltVec3));
+	}
+
+	static inline glm::quat toGlM(const JPH::Quat& joltQuat)
+	{
+		return glm::make_quat(reinterpret_cast<const float*>(&joltQuat));
 	}
 
 	static inline glm::vec3 GetGLMVec(const aiVector3D& vec) 
