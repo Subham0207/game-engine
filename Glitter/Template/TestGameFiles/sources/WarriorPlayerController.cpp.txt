@@ -1,0 +1,7 @@
+#include <WarriorPlayerController.hpp>
+
+REGISTER_TYPE(WarriorPlayerController, "WarriorPlayerController", PlayerControllerFactory)
+
+
+WarriorPlayerController::WarriorPlayerController(): Controls::PlayerController("WarriorPlayerController")
+{}
