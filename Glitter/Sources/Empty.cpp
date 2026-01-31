@@ -14,7 +14,7 @@ namespace Controls
         return transform;
     }
 
-    void Empty::setWorldTransform(const glm::mat4 matrix)
+    void Empty::setWorldTransform(const glm::mat4& matrix)
     {
         this->transform = matrix;
     }
@@ -33,6 +33,24 @@ namespace Controls
         glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
         glm::mat4 R = glm::toMat4(rotation);
         glm::mat4 S = glm::scale(glm::mat4(1.0f), getScale());
+
+        transform = T * R * S;
+    }
+
+    void Empty::setWorldPosition(const glm::vec3& position)
+    {
+        const glm::mat4 T = glm::translate(glm::mat4(1.0f), position);
+        const glm::mat4 R = glm::toMat4(getWorldRotation());
+        const glm::mat4 S = glm::scale(glm::mat4(1.0f), getScale());
+
+        transform = T * R * S;
+    }
+
+    void Empty::setWorldRotation(const glm::quat& rotation)
+    {
+        const glm::mat4 T = glm::translate(glm::mat4(1.0f), getWorldPosition());
+        const glm::mat4 R = glm::toMat4(rotation);
+        const glm::mat4 S = glm::scale(glm::mat4(1.0f), getScale());
 
         transform = T * R * S;
     }

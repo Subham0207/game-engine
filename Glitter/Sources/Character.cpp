@@ -233,6 +233,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
         }
 
         if (capsuleCollider)
+        {
             capsuleCollider->moveBody(
                 deltaTime,
                 movementOffset,
@@ -240,6 +241,9 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
                 playerController->isJumping,
                 playerController->dodgeStart ? 8.0f: 4.0f
             );
+
+            setWorldTransform(capsuleCollider->getWorldPosition(), capsuleCollider->getWorldRotation());
+        }
 
     }
     else
@@ -347,7 +351,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->animStateMachine->load(stateMachine_Location.parent_path(), stateMachine_guid);
 
 
-    auto radius = this->capsuleCollider->radius;
+    auto radius = this->capsuleCollider->mRadius;
     auto halfHeight = 2.0f;
     delete this->capsuleCollider;
 

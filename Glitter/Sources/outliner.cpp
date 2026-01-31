@@ -144,17 +144,17 @@ void Outliner::ModelMatrixComponent()
                         ImGui::Text("Capsule Collider Settings");
 
                         ImGui::PushItemWidth(150.0f);
-                        ImGui::InputFloat("Radius", &capsule->radius, 0.1f, 0.25f, "%.3f");
-                        ImGui::InputFloat("Half Height", &capsule->halfHeight, 0.1f, 0.25f, "%.3f");
+                        ImGui::InputFloat("Radius", &capsule->mRadius, 0.1f, 0.25f, "%.3f");
+                        ImGui::InputFloat("Half Height", &capsule->mHalfHeight, 0.1f, 0.25f, "%.3f");
                         ImGui::PopItemWidth();
 
                         // Clamp to avoid invalid geometry
-                        capsule->radius = std::max(0.01f, capsule->radius);
-                        capsule->halfHeight = std::max(0.01f, capsule->halfHeight);
+                        capsule->mRadius = std::max(0.01f, capsule->mRadius);
+                        capsule->mHalfHeight = std::max(0.01f, capsule->mHalfHeight);
 
                         if (ImGui::Button("Apply"))
                         {
-                            capsule->reInit(capsule->radius, capsule->halfHeight);
+                            capsule->reInit(capsule->mRadius, capsule->mHalfHeight);
                         }
 
                         ImGui::Text("Capsule Collider position");

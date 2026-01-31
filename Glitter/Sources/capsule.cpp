@@ -27,8 +27,8 @@ Physics::Capsule::Capsule
     )
 {
     set = nullptr;
-    this->radius = radius;
-    this->halfHeight = halfHeight;
+    this->mRadius = radius;
+    this->mHalfHeight = halfHeight;
     addCustomModel("");
 
     JPH::Vec3 jphPosition(position.x, position.y, position.z);
@@ -51,7 +51,7 @@ void Physics::Capsule::syncTransformation()
     if(!set)
     {
         CreateCharacterVirtualPhysics(&physics->physicsSystem,
-            jphPosition, halfHeight, radius);
+            jphPosition, mHalfHeight, mRadius);
     }
     else
     {
@@ -62,13 +62,13 @@ void Physics::Capsule::syncTransformation()
         set->Release();
         delete listener;
         CreateCharacterVirtualPhysics(&physics->physicsSystem,
-            jphPosition, halfHeight, radius);
+            jphPosition, mHalfHeight, mRadius);
 
     }
 }
 void Physics::Capsule::addCustomModel(std::string modelPath)
 {
-    capsule = std::make_shared<CapsuleColliderModel>(radius, halfHeight);
+    capsule = std::make_shared<CapsuleColliderModel>(mRadius, mHalfHeight);
     getActiveLevel().addRenderable(capsule);
     model = capsule->model;
 }
@@ -146,10 +146,22 @@ void Physics::Capsule::tick()
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
     //The reinit does not happen during play; So we only need to update the Model geometry and not collider.
-    this->radius = radius;
-    this->halfHeight = halfHeight;
-    capsule->reGenerateCapsuleColliderMesh(radius, halfHeight);
+    this->mRadius = radius;
+    this->mHalfHeight = halfheight;
+    capsule->reGenerateCapsuleColliderMesh(radius, halfheight);
     model = capsule->model;
+
+    auto jphPosition = character->GetPosition();
+
+    if (character) {
+        character->SetListener(nullptr);
+        character = nullptr;
+    }
+    set->Release();
+    delete listener;
+
+    CreateCharacterVirtualPhysics(&physics->physicsSystem,
+    jphPosition, halfheight, radius);
 }
 
 void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
@@ -187,9 +199,9 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     }
 }
 
-glm::mat4 Physics::Capsule::getWorldTransformation()
+glm::mat4 Physics::Capsule::getWorldTransformation() const
 {
-    auto transform = character->GetWorldTransform();
+    const auto transform = character->GetWorldTransform();
     return AssimpHelpers::ConvertMatrixToGLMFormat(transform);
 }
 

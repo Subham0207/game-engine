@@ -22,8 +22,8 @@ namespace Physics
         ~Capsule()
         {
         }
-        float radius;
-        float halfHeight;
+        float mRadius;
+        float mHalfHeight;
 
         void tick();
         std::shared_ptr<CapsuleColliderModel> capsule;
@@ -50,7 +50,7 @@ namespace Physics
         MyContactListener *listener;
         JPH::CharacterVirtual *character;
 
-        glm::mat4 getWorldTransformation();
+        glm::mat4 getWorldTransformation() const;
         glm::vec3 getWorldPosition();
         glm::quat getWorldRotation();
         glm::vec3 getWorldScale();
@@ -68,8 +68,8 @@ namespace Physics
         friend class boost::serialization::access;
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
-            ar & radius;
-            ar & halfHeight;
+            ar & mRadius;
+            ar & mHalfHeight;
         }
     };
 }

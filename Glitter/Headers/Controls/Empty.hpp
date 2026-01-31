@@ -15,11 +15,15 @@ namespace Controls
     public:
         glm::mat4& getWorldTransform();
 
-        void setWorldTransform(glm::mat4 matrix);
+        void setWorldTransform(const glm::mat4& matrix);
 
         void setWorldTransform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale);
 
         void setWorldTransform(const glm::vec3& position, const glm::quat& rotation);
+
+        void setWorldPosition(const glm::vec3& position);
+
+        void setWorldRotation(const glm::quat& rotation);
 
         glm::vec3 getWorldPosition();
 

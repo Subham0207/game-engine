@@ -142,6 +142,16 @@ public:
         return empty.getWorldRotation();
     }
 
+    void setWorldTransform(const glm::mat4& transform)
+    {
+        empty.setWorldTransform(transform);
+    }
+
+    void setWorldTransform(const glm::vec3& position, const glm::quat& rotation)
+    {
+        empty.setWorldTransform(position, rotation);
+    }
+
     std::string GetGuid() override {
         return getAssetId();
     }
