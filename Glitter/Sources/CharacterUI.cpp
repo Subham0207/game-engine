@@ -7,7 +7,7 @@
 #include "Modals/FileType.hpp"
 #include "UI/Shared/ComboUI.hpp"
 
-UI::CharacterUI::CharacterUI() : characterConfig()
+UI::CharacterUI::CharacterUI() : characterConfigUIModel()
 {
     showCharacterUI = false;
     characterName.value = "Character UI";
@@ -25,7 +25,7 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     {
         if(fst == characterPrefab.classId)
         {
-            characterConfig.selectedRegisteredCharacterIndex = index;
+            characterConfigUIModel.selectedRegisteredCharacterIndex = toUiIndex(index);
         }
         index+=1;
         registeredClassNames.emplace_back(fst);
@@ -37,9 +37,9 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     for (auto& model : modelMap)
     {
         auto filename = model.second;
-        if (filename == characterPrefab.modelGuid)
+        if (model.first == characterPrefab.modelGuid)
         {
-            characterConfig.selectedModelIndex = index;
+            characterConfigUIModel.selectedModelIndex = toUiIndex(index);
         }
         index+=1;
         modelNames.emplace_back(filename);
@@ -51,9 +51,9 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     for (auto& skeleton : skeletonMap)
     {
         auto filename = skeleton.second;
-        if (filename == characterPrefab.skeletonGuid)
+        if (skeleton.first == characterPrefab.skeletonGuid)
         {
-            characterConfig.selectedSkeletonIndex = index;
+            characterConfigUIModel.selectedSkeletonIndex = toUiIndex(index);
         }
         index+=1;
         skeletonNames.emplace_back(filename);
@@ -65,7 +65,7 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     {
         if (fst == characterPrefab.stateMachineClassId)
         {
-            characterConfig.selectedStateMachineIndex = index;
+            characterConfigUIModel.selectedStateMachineIndex = toUiIndex(index);
         }
         index+=1;
         statemachineNames.emplace_back(fst);
@@ -77,7 +77,7 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     {
         if (fst == characterPrefab.playerControllerClassId)
         {
-            characterConfig.selectedStateMachineIndex = index;
+            characterConfigUIModel.selectedPlayerControllerIndex = toUiIndex(index);
         }
         index+=1;
         playerControllerNames.emplace_back(fst);
@@ -85,6 +85,19 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
 
     showCharacterUI = true;
 }
+
+int UI::CharacterUI::toUiIndex(int dataTypeIndex)
+{
+    // 0th is reserved for None, From 1st index your data starts.
+    return dataTypeIndex + 1;
+}
+
+int UI::CharacterUI::toDataTypeIndex(int UiIndex)
+{
+    // None will be 0th index so don't call this function.
+    return UiIndex - 1;
+}
+
 void UI::CharacterUI::draw()
 {
     if (!showCharacterUI)
@@ -102,55 +115,55 @@ void UI::CharacterUI::draw()
 
         UI::Shared::comboUI(
             "Choose Character Class",
-            characterConfig.selectedRegisteredCharacterIndex,
+            characterConfigUIModel.selectedRegisteredCharacterIndex,
             registeredClassNames
             );
 
         UI::Shared::comboUI(
             "Choose a model",
-            characterConfig.selectedModelIndex,
+            characterConfigUIModel.selectedModelIndex,
             modelNames
             );
 
         UI::Shared::comboUI(
             "Choose a skeletal",
-            characterConfig.selectedSkeletonIndex,
+            characterConfigUIModel.selectedSkeletonIndex,
             skeletonNames
             );
 
         UI::Shared::comboUI(
             "Choose a statemachine",
-            characterConfig.selectedStateMachineIndex,
+            characterConfigUIModel.selectedStateMachineIndex,
             statemachineNames
         );
 
         UI::Shared::comboUI(
             "Choose a PlayerController",
-            characterConfig.selectedPlayerControllerIndex,
+            characterConfigUIModel.selectedPlayerControllerIndex,
             playerControllerNames
         );
 
         //After all selection is made. save it to character.prefab.
         if (ImGui::Button("Save"))
         {
-            characterPrefabConfig->classId = registeredClassNames[characterConfig.selectedRegisteredCharacterIndex - 1];
+            characterPrefabConfig->classId = registeredClassNames[characterConfigUIModel.selectedRegisteredCharacterIndex - 1];
 
             auto modelFileMap = EngineState::state->engineRegistry->modelFileMap;
             auto model_guid = std::find_if(modelFileMap.begin(), modelFileMap.end(), [&](const auto& pair)
             {
-                return pair.second == modelNames[characterConfig.selectedModelIndex - 1];
+                return pair.second == modelNames[characterConfigUIModel.selectedModelIndex - 1];
             })->first;
 
             auto skeletonFileMap = EngineState::state->engineRegistry->skeletonFileMap;
             auto skeleton_guid = std::find_if(skeletonFileMap.begin(), skeletonFileMap.end(), [&](const auto& pair)
             {
-                return pair.second == skeletonNames[characterConfig.selectedSkeletonIndex - 1];
+                return pair.second == skeletonNames[characterConfigUIModel.selectedSkeletonIndex - 1];
             })->first;
 
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->skeletonGuid = skeleton_guid;
-            characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfig.selectedStateMachineIndex - 1];
-            characterPrefabConfig->playerControllerClassId = playerControllerNames[characterConfig.selectedPlayerControllerIndex - 1];
+            characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfigUIModel.selectedStateMachineIndex - 1];
+            characterPrefabConfig->playerControllerClassId = playerControllerNames[characterConfigUIModel.selectedPlayerControllerIndex - 1];
 
             auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value + "." +  std::string(toString(FileType::CharacterType)));
             Engine::Prefab::writeCharacterPrefab(filepath, *characterPrefabConfig);

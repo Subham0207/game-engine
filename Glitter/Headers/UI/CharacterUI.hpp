@@ -22,12 +22,15 @@ namespace UI
         void start(CharacterPrefabConfig& characterPrefab, std::string characterName = "Character UI");
         bool showCharacterUI;
     private:
+        int toUiIndex(int dataTypeIndex);
+        int toDataTypeIndex(int UiIndex);
+
         Shared::EditableText characterName;
 
         CharacterPrefabConfig* characterPrefabConfig;
 
         // UI data
-        CharacterConfigUIModel characterConfig;
+        CharacterConfigUIModel characterConfigUIModel;
 
         std::vector<std::string> registeredClassNames;
         std::vector<std::string> modelNames;
