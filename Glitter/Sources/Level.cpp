@@ -159,13 +159,16 @@ void Level::tickAIs(float deltaTime)
     }
 }
 
-void Level::spawnCharacter(fs::path filepath)
+void Level::spawnCharacter(fs::path metaFilePath)
 {
     CharacterPrefabConfig characterPrefab;
-    Engine::Prefab::readCharacterPrefab(filepath, characterPrefab);
+    Engine::Prefab::readCharacterPrefab(metaFilePath, characterPrefab);
 
     auto character = CharacterFactory::Create(characterPrefab.classId);
-    character->filename = filepath.stem().string();
+
+    auto guid = fs::path(metaFilePath).filename().stem().stem().string();
+    auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
+    character->filename = filename;
 
     character->animator = new Animator();
 

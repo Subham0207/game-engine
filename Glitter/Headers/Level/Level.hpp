@@ -57,7 +57,7 @@ class Level: public Serializable{
             renderables.push_back(renderable);
         }
 
-        void spawnCharacter(fs::path filepath);
+        void spawnCharacter(fs::path metaFilePath);
 
         void addAI(AI::AI* ai);
 
