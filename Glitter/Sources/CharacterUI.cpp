@@ -14,10 +14,12 @@ UI::CharacterUI::CharacterUI() : characterConfigUIModel()
     characterPrefabConfig = nullptr;
 }
 
-void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string characterName)
+void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string characterMetaFilePath)
 {
     this->characterPrefabConfig = &characterPrefab;
-    this->characterName.value = characterName;
+    auto guid = fs::path(characterMetaFilePath).filename().stem().stem().string();
+    auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
+    this->characterName.setText(filename);
 
     registeredClassNames = std::vector<std::string>();
     int index = 0;

@@ -19,7 +19,7 @@ namespace UI
     public:
         CharacterUI();
         void draw();
-        void start(CharacterPrefabConfig& characterPrefab, std::string characterName = "Character UI");
+        void start(CharacterPrefabConfig& characterPrefab, std::string characterMetaFilePath = "Character UI");
         bool showCharacterUI;
     private:
         int toUiIndex(int dataTypeIndex);
