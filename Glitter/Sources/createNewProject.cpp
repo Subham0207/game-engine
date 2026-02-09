@@ -240,9 +240,9 @@ int create_new_project(const std::string& currentDir, const std::string& project
     character->generateInstanceGuid(); // essentially means a new instance of character.
     lvl->addRenderable(character);
 
-    auto ai = addAICharacter(root, character);
-    lvl->addAI(ai);
-    lvl->save(root / "Levels");
+    // auto ai = addAICharacter(root, character);
+    // lvl->addAI(ai);
+    // lvl->save(root / "Levels");
 
     std::string manifest = std::string(R"({
         "engineVersion": "0.1.0",

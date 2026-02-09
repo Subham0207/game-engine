@@ -169,6 +169,7 @@ void Level::spawnCharacter(fs::path metaFilePath)
     auto guid = fs::path(metaFilePath).filename().stem().stem().string();
     auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
     character->filename = filename;
+    character->setAssetId(guid);
 
     character->animator = new Animator();
 

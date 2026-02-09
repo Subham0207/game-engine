@@ -70,6 +70,7 @@ std::string Serializable::getInstanceId()
 }
 
 void Serializable::setInstanceId(std::string id){instance_guid_ = id;}
+void Serializable::setAssetId(std::string id){asset_guid_ = id;}
 
 void Serializable::load(fs::path& assetRoot, std::string filename) {
 

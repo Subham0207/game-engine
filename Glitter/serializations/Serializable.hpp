@@ -15,6 +15,7 @@ class Serializable
         
         std::string getInstanceId();
         void setInstanceId(std::string id);
+        void setAssetId(std::string id);
         virtual const std::string contentName() = 0;
 
         virtual std::string GetClassId() const = 0;
