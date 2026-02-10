@@ -138,7 +138,8 @@ namespace ProjectAsset
                     if (ImGui::MenuItem("Edit in Character UI"))
                     {
                         auto characterPrefab = new CharacterPrefabConfig();
-                        Engine::Prefab::readCharacterPrefab(selectedAsset.filepath, *characterPrefab);
+                        auto actualFilepath = Shared::metaFileToActualPath(selectedAsset.filepath);
+                        Engine::Prefab::readCharacterPrefab(actualFilepath, *characterPrefab);
                         getUIState().characterUIState->start(*characterPrefab, selectedAsset.filepath);
                     }
 

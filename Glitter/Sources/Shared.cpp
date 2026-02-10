@@ -193,3 +193,9 @@ void APIENTRY Shared::glDebugOutput(const GLenum source, const GLenum type, cons
               << "Msg: " << message << "\n"
               << "============================\n";
 }
+
+fs::path Shared::metaFileToActualPath(const fs::path& path)
+{
+    auto justMetaGuid = path.stem().stem().string();
+    return path.parent_path() / fs::path(getEngineRegistryFilesMap()[justMetaGuid]).filename();
+}

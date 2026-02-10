@@ -86,6 +86,12 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 this->renderables.push_back(character);
                 instanceIdToSerializableMap[instanceId] = character;
             }
+            if (extension == ".characterprefab")
+            {
+                auto character = spawnCharacter(contentFilePath, M, instanceId);
+                character->setInstanceId(instanceId);
+                instanceIdToSerializableMap[instanceId] = character;
+            }
         }
 
         const bs::ptree& aisNode = levelContent.get_child("ais");
@@ -159,7 +165,7 @@ void Level::tickAIs(float deltaTime)
     }
 }
 
-void Level::spawnCharacter(fs::path metaFilePath)
+shared_ptr<Character> Level::spawnCharacter(fs::path metaFilePath, glm::mat4 transform, std::string instanceId)
 {
     CharacterPrefabConfig characterPrefab;
     Engine::Prefab::readCharacterPrefab(metaFilePath, characterPrefab);
@@ -170,6 +176,8 @@ void Level::spawnCharacter(fs::path metaFilePath)
     auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
     character->filename = filename;
     character->setAssetId(guid);
+    character->setWorldTransform(transform);
+    character->setInstanceId(std::move(instanceId));
 
     character->animator = new Animator();
 
@@ -209,6 +217,8 @@ void Level::spawnCharacter(fs::path metaFilePath)
     cameras.push_back(character->camera);
 
     addRenderable(character);
+
+    return character;
 }
 
 void Level::addAI(AI::AI* ai)

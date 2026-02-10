@@ -11,6 +11,7 @@
 #include "boost/uuid/random_generator.hpp"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_io.hpp"
+#include "Helpers/Shared.hpp"
 #include "Modals/FileType.hpp"
 namespace bs = boost::property_tree;
 
@@ -35,11 +36,9 @@ namespace Engine
     {
     }
 
-    void Prefab::readCharacterPrefab(fs::path metaFilePath, CharacterPrefabConfig& character)
+    void Prefab::readCharacterPrefab(fs::path filepath, CharacterPrefabConfig& character)
     {
         try {
-            auto justMetaGuid = metaFilePath.stem().stem().string();
-            auto filepath = metaFilePath.parent_path() / fs::path(getEngineRegistryFilesMap()[justMetaGuid]).filename();
             bs::ptree root;
             // Load the json file into the property tree
             bs::read_json(filepath.string(), root);

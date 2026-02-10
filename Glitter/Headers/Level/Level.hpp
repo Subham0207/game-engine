@@ -57,7 +57,7 @@ class Level: public Serializable{
             renderables.push_back(renderable);
         }
 
-        void spawnCharacter(fs::path metaFilePath);
+        shared_ptr<Character> spawnCharacter(fs::path filepath, glm::mat4 transform = glm::identity<glm::mat4>(), std::string instanceId = "");
 
         void addAI(AI::AI* ai);
 
