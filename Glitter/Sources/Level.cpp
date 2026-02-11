@@ -165,14 +165,14 @@ void Level::tickAIs(float deltaTime)
     }
 }
 
-shared_ptr<Character> Level::spawnCharacter(fs::path metaFilePath, glm::mat4 transform, std::string instanceId)
+shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 transform, std::string instanceId)
 {
     CharacterPrefabConfig characterPrefab;
-    Engine::Prefab::readCharacterPrefab(metaFilePath, characterPrefab);
+    Engine::Prefab::readCharacterPrefab(actualFilePath, characterPrefab);
 
     auto character = CharacterFactory::Create(characterPrefab.classId);
 
-    auto guid = fs::path(metaFilePath).filename().stem().stem().string();
+    auto guid = fs::path(actualFilePath).filename().stem().stem().string();
     auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
     character->filename = filename;
     character->setAssetId(guid);
@@ -204,7 +204,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path metaFilePath, glm::mat4 tra
     character->playerController = PlayerControllerFactory::Create(characterPrefab.playerControllerClassId);
     EngineState::state->playerControllers.push_back(character->playerController);
 
-    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
+    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleHalfHeight, characterPrefab.capsuleHalfHeight, true, true);
     character->modelRelativePosition = glm::vec3(0.0f);
 
     character->camera = new Camera("charactercamera");

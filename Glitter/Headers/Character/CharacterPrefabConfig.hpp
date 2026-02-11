@@ -10,10 +10,14 @@ struct CharacterPrefabConfig {
     std::string name;
 
     std::string classId;
+
     std::string modelGuid;
+    glm::vec3 modelRelativePosition{};
+    float capsuleHalfHeight = 0.0f;
+    float capsuleRadius = 0.0f;
+
     std::string skeletonGuid;
     std::string stateMachineClassId;
     std::string playerControllerClassId;
-
 };
 #endif //GLITTER_CHARACTERPREFABINFO_HPP

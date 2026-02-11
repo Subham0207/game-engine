@@ -44,7 +44,17 @@ namespace Engine
             bs::read_json(filepath.string(), root);
             // Accessing top-level values
             character.classId = root.get<std::string>("classId");
+
             character.modelGuid = root.get<std::string>("model_guid");
+            character.modelRelativePosition = glm::vec3(
+                root.get<float>("modelRelativePosition.x"),
+                root.get<float>("modelRelativePosition.y"),
+                root.get<float>("modelRelativePosition.z")
+                );
+
+            character.capsuleHalfHeight = root.get<float>("capsuleHalfHeight");
+            character.capsuleHalfHeight = root.get<float>("capsuleRadius");
+
             character.skeletonGuid = root.get<std::string>("skeleton_guid");
             // Accessing nested values using the dot notation
             character.stateMachineClassId = root.get<std::string>("statemachine.classId");
@@ -63,7 +73,14 @@ namespace Engine
 
         // Set top-level values
         root.put("classId", character.classId);
+
         root.put("model_guid", character.modelGuid);
+        root.put("modelRelativePosition.x", character.modelRelativePosition.x);
+        root.put("modelRelativePosition.y", character.modelRelativePosition.y);
+        root.put("modelRelativePosition.z", character.modelRelativePosition.z);
+        root.put("capsuleHalfHeight", character.capsuleHalfHeight);
+        root.put("capsuleRadius", character.capsuleRadius);
+
         root.put("skeleton_guid", character.skeletonGuid);
 
         // Create the nested object structure using dot notation

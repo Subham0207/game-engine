@@ -10,16 +10,19 @@
 UI::CharacterUI::CharacterUI() : characterConfigUIModel()
 {
     showCharacterUI = false;
-    characterName.value = "Character UI";
+    characterName.setText("Character");
     characterPrefabConfig = nullptr;
 }
 
 void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string characterMetaFilePath)
 {
     this->characterPrefabConfig = &characterPrefab;
-    auto guid = fs::path(characterMetaFilePath).filename().stem().stem().string();
-    auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
-    this->characterName.setText(filename);
+    if (!characterMetaFilePath.empty())
+    {
+        auto guid = fs::path(characterMetaFilePath).filename().stem().stem().string();
+        auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
+        this->characterName.setText(filename);
+    }
 
     registeredClassNames = std::vector<std::string>();
     int index = 0;
@@ -46,6 +49,9 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
         index+=1;
         modelNames.emplace_back(filename);
     }
+    characterConfigUIModel.modelRelativePosition = characterPrefab.modelRelativePosition;
+    characterConfigUIModel.capsuleHalfHeight = characterPrefab.capsuleHalfHeight;
+    characterConfigUIModel.capsuleRadius = characterPrefab.capsuleRadius;
 
     auto skeletonMap = EngineState::state->engineRegistry->skeletonFileMap;
     skeletonNames = std::vector<std::string>();
@@ -127,6 +133,10 @@ void UI::CharacterUI::draw()
             modelNames
             );
 
+        ImGui::DragFloat3("Vector Position", &characterConfigUIModel.modelRelativePosition.x, 0.1f);
+        ImGui::SliderFloat("Capsule Half Height", &characterConfigUIModel.capsuleHalfHeight, 0.0f, 100.0f);
+        ImGui::SliderFloat("Capsule Radius", &characterConfigUIModel.capsuleRadius, 0.0f, 100.0f);
+
         UI::Shared::comboUI(
             "Choose a skeletal",
             characterConfigUIModel.selectedSkeletonIndex,
@@ -163,6 +173,10 @@ void UI::CharacterUI::draw()
             })->first;
 
             characterPrefabConfig->modelGuid = model_guid;
+            characterPrefabConfig->modelRelativePosition = characterConfigUIModel.modelRelativePosition;
+            characterPrefabConfig->capsuleHalfHeight = characterConfigUIModel.capsuleHalfHeight;
+            characterPrefabConfig->capsuleRadius = characterConfigUIModel.capsuleRadius;
+
             characterPrefabConfig->skeletonGuid = skeleton_guid;
             characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfigUIModel.selectedStateMachineIndex - 1];
             characterPrefabConfig->playerControllerClassId = playerControllerNames[characterConfigUIModel.selectedPlayerControllerIndex - 1];

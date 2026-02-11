@@ -8,7 +8,13 @@ namespace UI
     struct CharacterConfigUIModel
     {
         int selectedRegisteredCharacterIndex;
+
         int selectedModelIndex;
+
+        glm::vec3 modelRelativePosition;
+        float capsuleHalfHeight;
+        float capsuleRadius;
+
         int selectedSkeletonIndex;
         int selectedStateMachineIndex;
         int selectedPlayerControllerIndex;
@@ -19,7 +25,7 @@ namespace UI
     public:
         CharacterUI();
         void draw();
-        void start(CharacterPrefabConfig& characterPrefab, std::string characterMetaFilePath = "Character UI");
+        void start(CharacterPrefabConfig& characterPrefab, std::string characterMetaFilePath = "");
         bool showCharacterUI;
     private:
         int toUiIndex(int dataTypeIndex);
