@@ -52,6 +52,7 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     characterConfigUIModel.modelRelativePosition = characterPrefab.modelRelativePosition;
     characterConfigUIModel.capsuleHalfHeight = characterPrefab.capsuleHalfHeight;
     characterConfigUIModel.capsuleRadius = characterPrefab.capsuleRadius;
+    characterConfigUIModel.modelScale = characterPrefab.modelScale;
 
     auto skeletonMap = EngineState::state->engineRegistry->skeletonFileMap;
     skeletonNames = std::vector<std::string>();
@@ -133,9 +134,10 @@ void UI::CharacterUI::draw()
             modelNames
             );
 
-        ImGui::DragFloat3("Vector Position", &characterConfigUIModel.modelRelativePosition.x, 0.1f);
-        ImGui::SliderFloat("Capsule Half Height", &characterConfigUIModel.capsuleHalfHeight, 0.0f, 100.0f);
-        ImGui::SliderFloat("Capsule Radius", &characterConfigUIModel.capsuleRadius, 0.0f, 100.0f);
+        ImGui::DragFloat3("Model Relative Position", &characterConfigUIModel.modelRelativePosition.x, 0.1f);
+        ImGui::DragFloat("Capsule Half Height", &characterConfigUIModel.capsuleHalfHeight, 0.1f);
+        ImGui::DragFloat("Capsule Radius", &characterConfigUIModel.capsuleRadius, 0.1f);
+        ImGui::DragFloat3("Model Scale", &characterConfigUIModel.modelScale.x, 0.1f);
 
         UI::Shared::comboUI(
             "Choose a skeletal",
@@ -174,6 +176,8 @@ void UI::CharacterUI::draw()
 
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->modelRelativePosition = characterConfigUIModel.modelRelativePosition;
+            characterPrefabConfig->modelScale = characterConfigUIModel.modelScale;
+
             characterPrefabConfig->capsuleHalfHeight = characterConfigUIModel.capsuleHalfHeight;
             characterPrefabConfig->capsuleRadius = characterConfigUIModel.capsuleRadius;
 

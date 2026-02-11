@@ -14,6 +14,7 @@ namespace UI
         glm::vec3 modelRelativePosition;
         float capsuleHalfHeight;
         float capsuleRadius;
+        glm::vec3 modelScale;
 
         int selectedSkeletonIndex;
         int selectedStateMachineIndex;

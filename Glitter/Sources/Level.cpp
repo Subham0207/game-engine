@@ -178,6 +178,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     character->setAssetId(guid);
     character->setWorldTransform(transform);
     character->setInstanceId(std::move(instanceId));
+    character->setScale(characterPrefab.modelScale);
 
     character->animator = new Animator();
 
@@ -204,8 +205,8 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     character->playerController = PlayerControllerFactory::Create(characterPrefab.playerControllerClassId);
     EngineState::state->playerControllers.push_back(character->playerController);
 
-    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleHalfHeight, characterPrefab.capsuleHalfHeight, true, true);
-    character->modelRelativePosition = glm::vec3(0.0f);
+    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
+    character->modelRelativePosition = characterPrefab.modelRelativePosition;
 
     character->camera = new Camera("charactercamera");
     character->camera->cameraPos = model->GetPosition();

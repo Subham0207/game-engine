@@ -152,6 +152,15 @@ public:
         empty.setWorldTransform(position, rotation);
     }
 
+    void setScale(glm::vec3 scale)
+    {
+        empty.setWorldTransform(
+            GetPosition(),
+            GetRot(),
+            scale
+            );
+    }
+
     std::string GetGuid() override {
         return getAssetId();
     }

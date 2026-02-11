@@ -51,9 +51,15 @@ namespace Engine
                 root.get<float>("modelRelativePosition.y"),
                 root.get<float>("modelRelativePosition.z")
                 );
+            character.modelScale = glm::vec3(
+            root.get<float>("modelScale.x"),
+            root.get<float>("modelScale.y"),
+            root.get<float>("modelScale.z")
+            );
+
 
             character.capsuleHalfHeight = root.get<float>("capsuleHalfHeight");
-            character.capsuleHalfHeight = root.get<float>("capsuleRadius");
+            character.capsuleRadius = root.get<float>("capsuleRadius");
 
             character.skeletonGuid = root.get<std::string>("skeleton_guid");
             // Accessing nested values using the dot notation
@@ -78,6 +84,11 @@ namespace Engine
         root.put("modelRelativePosition.x", character.modelRelativePosition.x);
         root.put("modelRelativePosition.y", character.modelRelativePosition.y);
         root.put("modelRelativePosition.z", character.modelRelativePosition.z);
+
+        root.put("modelScale.x", character.modelScale.x);
+        root.put("modelScale.y", character.modelScale.y);
+        root.put("modelScale.z", character.modelScale.z);
+
         root.put("capsuleHalfHeight", character.capsuleHalfHeight);
         root.put("capsuleRadius", character.capsuleRadius);
 
