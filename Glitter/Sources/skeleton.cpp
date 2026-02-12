@@ -73,7 +73,7 @@ void Skeleton::Skeleton::draw(Camera* camera, glm::mat4 &modelMatrix)
 }
 void Skeleton::Skeleton::setup(std::string filename)
 {
-    this->filename = filename;
+    this->filename = fs::path(filename).filename().string();
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertShader = engineFSPath / "Shaders/boneShader.vert";
     auto fragShader = engineFSPath / "Shaders/boneShader.frag";
@@ -93,7 +93,7 @@ void Skeleton::Skeleton::updateModelAndViewPosMatrix(Camera *camera, glm::mat4 &
 
 void Skeleton::Skeleton::saveContent(fs::path contentFile, std::ostream& os)
 {
-    fs::path dir = fs::path(contentFile.string()).parent_path();
+    fs::path dir = contentFile.parent_path();
     if (dir.empty()) {
         // Set the directory to the current working directory
         dir = fs::current_path();

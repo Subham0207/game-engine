@@ -177,7 +177,14 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     character->filename = filename;
     character->setAssetId(guid);
     character->setWorldTransform(transform);
-    character->setInstanceId(std::move(instanceId));
+    if (instanceId.empty())
+    {
+        character->generateInstanceGuid();
+    }
+    else
+    {
+        character->setInstanceId(std::move(instanceId));
+    }
     character->setScale(characterPrefab.modelScale);
 
     character->animator = new Animator();

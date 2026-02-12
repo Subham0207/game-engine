@@ -17,6 +17,10 @@ TEST(Character, OnPlayEndCharacterShouldBeBackToTPose){
     auto testSerializationMacro =  new TestSerializeMacro();
 }
 
-TEST(Character, CharacterShouldFaceMouseDirection){
+TEST(ProjectManager, ShouldCreateNewProject){
+    auto testSerializationMacro =  new TestSerializeMacro();
+}
+
+TEST(FileExplorer, ShouldImportModelWithOrSkeletonData){
     auto testSerializationMacro =  new TestSerializeMacro();
 }

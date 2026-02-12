@@ -234,15 +234,16 @@ int create_new_project(const std::string& currentDir, const std::string& project
     floorBox->save(root/ "Assets");
     lvl->addRenderable(floorBox);
     
-    auto character = addPlayableCharacter(root, projectAssetDirectory);
-    lvl->addRenderable(character);
-    
-    character->generateInstanceGuid(); // essentially means a new instance of character.
-    lvl->addRenderable(character);
+    // auto character = addPlayableCharacter(root, projectAssetDirectory);
+    // lvl->addRenderable(character);
+    //
+    // character->generateInstanceGuid(); // essentially means a new instance of character.
+    // lvl->addRenderable(character);
 
     // auto ai = addAICharacter(root, character);
     // lvl->addAI(ai);
-    // lvl->save(root / "Levels");
+
+    lvl->save(root / "Levels");
 
     std::string manifest = std::string(R"({
         "engineVersion": "0.1.0",
