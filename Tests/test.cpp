@@ -24,3 +24,7 @@ TEST(ProjectManager, ShouldCreateNewProject){
 TEST(FileExplorer, ShouldImportModelWithOrSkeletonData){
     auto testSerializationMacro =  new TestSerializeMacro();
 }
+
+TEST(AssetBrowser, ShouldPassCorrectAssetGuidToCharacterObjectThatGotSpawnedIntoLevel){
+    auto testSerializationMacro =  new TestSerializeMacro();
+}

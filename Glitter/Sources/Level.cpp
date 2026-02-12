@@ -89,7 +89,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             if (extension == ".characterprefab")
             {
                 auto character = spawnCharacter(contentFilePath, M, instanceId);
-                character->setInstanceId(instanceId);
+                character->setAssetId(id);
                 instanceIdToSerializableMap[instanceId] = character;
             }
         }
@@ -172,10 +172,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
 
     auto character = CharacterFactory::Create(characterPrefab.classId);
 
-    auto guid = fs::path(actualFilePath).filename().stem().stem().string();
-    auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
-    character->filename = filename;
-    character->setAssetId(guid);
+    character->filename = actualFilePath.filename().stem().string();
     character->setWorldTransform(transform);
     if (instanceId.empty())
     {
