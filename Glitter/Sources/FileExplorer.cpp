@@ -153,6 +153,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
 
                                 Skeleton::Skeleton::ReadHierarchyData(skeleton->m_RootNode, scene->mRootNode);
                                 Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
+                                skeleton->BuildBoneHierarchy();
 
                                 skeleton->save(path);
                                 model->save(path);
