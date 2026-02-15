@@ -21,6 +21,7 @@ namespace AI
         void OnTick(float deltaTime) override;
         void OnDestroy() override{};
         void setPath(std::vector<glm::vec3> path);
+        std::vector<glm::vec3> getPath(){return path;}
         void calculatePath(glm::vec3 startingPos, glm::vec3 targetPos);
         // std::shared_ptr<Controls::PlayerController> playerController;
         
@@ -30,6 +31,7 @@ namespace AI
         void setCharacterInstanceId(std::string controlledCharacterInstanceId){this->controlledCharacterInstanceId=controlledCharacterInstanceId;}
         virtual const std::string contentName() override {return filename; }
 
+        bool started = false;
     protected:
         virtual const std::string typeName() const override {return "AI"; }
 

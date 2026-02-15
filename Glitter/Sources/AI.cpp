@@ -27,37 +27,45 @@ void AI::AI::OnTick(float deltaTime)
  //--- If yes, then pass that to playercontroller.
  //----- wait say 2 sec and then set target direction choosen to false.
  //--- If no, then choose a direction.
-    if(!EngineState::state->isPlay) return;
+    started = EngineState::state->isPlay;
+    if(started)
+    {
+        this->OnStart();
+    }
+    else
+    {
+        return;
+    }
     if(path.size() == 0) return;
-    if(currentPathIndex == path.size())
-    {
-        // playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
-        return;
-    }
-    // glm::vec3 pos = playerController->characterPosition;
-    glm::vec3 pos = glm::vec3{};
-    const float MAX_DT = 0.1f; // 100ms, ~10 FPS worst case
-    if (deltaTime > MAX_DT) deltaTime = MAX_DT;
-
-    elapsedTime += deltaTime;
-
-    glm::vec3 target = path[currentPathIndex];
-    glm::vec3 posXZ    = glm::vec3(pos.x,    0.0f, pos.z);
-    glm::vec3 targetXZ = glm::vec3(target.x, 0.0f, target.z);
-    auto speed = 20.0f;
-
-    targetDirection = targetXZ - posXZ;
-    float targetDistance = glm::length(targetDirection);
-
-    if (targetDistance < arrivalRadius)
-    {
-        currentPathIndex++;
-        // playerController->setMovement(glm::vec3(0.0f));
-        return;
-    }
-
-    glm::vec3 dir = targetDirection / targetDistance; // normalized safely
-    glm::vec3 movement = dir * speed * deltaTime;
+    // if(currentPathIndex == path.size())
+    // {
+    //     // playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
+    //     return;
+    // }
+    // // glm::vec3 pos = playerController->characterPosition;
+    // glm::vec3 pos = glm::vec3{};
+    // const float MAX_DT = 0.1f; // 100ms, ~10 FPS worst case
+    // if (deltaTime > MAX_DT) deltaTime = MAX_DT;
+    //
+    // elapsedTime += deltaTime;
+    //
+    // glm::vec3 target = path[currentPathIndex];
+    // glm::vec3 posXZ    = glm::vec3(pos.x,    0.0f, pos.z);
+    // glm::vec3 targetXZ = glm::vec3(target.x, 0.0f, target.z);
+    // auto speed = 20.0f;
+    //
+    // targetDirection = targetXZ - posXZ;
+    // float targetDistance = glm::length(targetDirection);
+    //
+    // if (targetDistance < arrivalRadius)
+    // {
+    //     currentPathIndex++;
+    //     // playerController->setMovement(glm::vec3(0.0f));
+    //     return;
+    // }
+    //
+    // glm::vec3 dir = targetDirection / targetDistance; // normalized safely
+    // glm::vec3 movement = dir * speed * deltaTime;
     // playerController->setMovement(movement);
 
     //randomly going around
