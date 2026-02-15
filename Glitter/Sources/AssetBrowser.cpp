@@ -8,6 +8,7 @@
 #include <UI/StatemachineUI.hpp>
 
 #include "Prefab.hpp"
+#include "UI/AI_UI.hpp"
 #include "UI/CharacterUI.hpp"
 
 namespace ProjectAsset
@@ -45,6 +46,7 @@ namespace ProjectAsset
 
                 ImVec2 availableSize = ImGui::GetContentRegionAvail();
                 bool openCharacterPopup = false;
+                bool openAIPopup = false;
                 int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
                 // List files and directories
                 if (ImGui::BeginChild("AssetGridScrollable", ImVec2(availableSize.x, availableSize.y), false, ImGuiWindowFlags_HorizontalScrollbar))
@@ -114,6 +116,10 @@ namespace ProjectAsset
                                 {
                                     openCharacterPopup = true;
                                 }
+                                else if (selectedAsset.assetType == AssetType::AI)
+                                {
+                                    openAIPopup = true;
+                                }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
                                     ImGui::SetDragDropPayload("ASSET_PATH", selectedAsset.filepath.c_str(),  selectedAsset.filepath.size() + 1);
@@ -129,9 +135,37 @@ namespace ProjectAsset
                 }
             ImGui::EndChild();
 
-                ImGuiID popup_id = ImGui::GetID("CharacterActionPopup");
+                ImGuiID character_popup_id = ImGui::GetID("CharacterActionPopup");
+                ImGuiID ai_popup_id = ImGui::GetID("AiActionPopup");
                 if (openCharacterPopup)
-                    ImGui::OpenPopup(popup_id);
+                    ImGui::OpenPopup(character_popup_id);
+                if (openAIPopup)
+                    ImGui::OpenPopup(ai_popup_id);
+
+                if (ImGui::BeginPopup("AiActionPopup"))
+                {
+                    if (ImGui::MenuItem("Edit in AI UI"))
+                    {
+                        auto aiPrefab = std::make_shared<AiPrefab>();
+                        auto actualFilePath = Shared::metaFileToActualPath(selectedAsset.filepath);
+                        Engine::Prefab::readAIPrefab(actualFilePath, aiPrefab);
+                        getUIState().ai_ui_state->start(aiPrefab, selectedAsset.filepath);
+                    }
+
+                    if (ImGui::MenuItem("Add AI to Level"))
+                    {
+                        auto actualFilepath = Shared::metaFileToActualPath(fs::path(selectedAsset.filepath));
+                        getActiveLevel().spawnAI(actualFilepath);
+                    }
+
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("Cancel"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
 
                 if (ImGui::BeginPopup("CharacterActionPopup"))
                 {

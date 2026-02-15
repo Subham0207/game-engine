@@ -58,14 +58,15 @@ class Level: public Serializable{
         }
 
         shared_ptr<Character> spawnCharacter(fs::path filepath, glm::mat4 transform = glm::identity<glm::mat4>(), std::string instanceId = "");
+        void spawnAI(fs::path filepath, std::string instanceId = "");
 
-        void addAI(AI::AI* ai);
+        void addAI(std::shared_ptr<AI::AI> ai);
 
         std::vector<std::string> modelFilePaths;
         std::vector<glm::mat4*> modelTransformations;
         std::vector<Sprites::Text*> textSprites;
         std::vector<shared_ptr<Renderable>> renderables = std::vector<shared_ptr<Renderable>>();
-        std::vector<AI::AI*> AIs;
+        std::vector<shared_ptr<AI::AI>> AIs;
         std::string levelname = "level1";
 
         std::vector<Camera*> cameras;

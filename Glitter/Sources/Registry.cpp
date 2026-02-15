@@ -85,4 +85,10 @@ void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filep
     {
         skeletonFileMap[guid] = filepath;
     }
+
+    suffix = toString(FileType::CharacterType).data();
+    if(Shared::endsWith(filepath, suffix))
+    {
+        characterPrefabMap[guid] = filepath;
+    }
 }

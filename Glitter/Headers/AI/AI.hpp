@@ -3,23 +3,26 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/base_object.hpp>
 
+#include "Controls/Controller.hpp"
+
 namespace Controls{
     class PlayerController;
 }
 class Character;
 namespace AI
 {
-    class AI: public Serializable
+    class AI: public Serializable, public Controls::Controller
     {
     public:
         AI()=default;
         std::string GetClassId() const override { return "AI"; }
         AI(std::shared_ptr<Character> character, std::string filename);
-        void onStart();
-        void Tick(float deltaTime);
+        void OnStart() override;
+        void OnTick(float deltaTime) override;
+        void OnDestroy() override{};
         void setPath(std::vector<glm::vec3> path);
         void calculatePath(glm::vec3 startingPos, glm::vec3 targetPos);
-        std::shared_ptr<Controls::PlayerController> playerController;
+        // std::shared_ptr<Controls::PlayerController> playerController;
         
         void setFilename(std::string filename){this->filename = filename;}
 

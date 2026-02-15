@@ -290,7 +290,7 @@ AI::AI* addAICharacter(std::filesystem::path root, std::shared_ptr<Character> ai
     //NOTE: We are using the same character only to save so there are no two instances of samething on disk. And we get 1 guid or character.
     //While loading the AI -- be sure to load another instance of the character using its guid.
     aiCharacter->model->setTransform(glm::vec3(0.0f,3.0f,1.0f),glm::quat(), glm::vec3(0.03f,0.03,0.03));
-    auto playerController = aiCharacter->playerController;
+    auto playerController = aiCharacter->controller;
     // aiCharacter->capsuleCollider->halfHeight = 2.0f;
     // getActiveLevel().addRenderable(aiCharacter);
     auto ai = new AI::AI(aiCharacter, "defaultAI");

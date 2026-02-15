@@ -7,7 +7,7 @@
 
 AI::AI::AI(std::shared_ptr<Character> character, std::string filename): Serializable()
 {
-    this->playerController = character->playerController;
+    // this->playerController = character->controller;
     this->controlledCharacterInstanceId = character->getInstanceId();
     this->filename = filename;
     targetDirection = glm::vec3(0.0f,0.0f,0.0f);
@@ -18,10 +18,10 @@ AI::AI::AI(std::shared_ptr<Character> character, std::string filename): Serializ
 
     EngineState::state->ais.push_back(this);
 }
-void AI::AI::onStart()
+void AI::AI::OnStart()
 {
 }
-void AI::AI::Tick(float deltaTime)
+void AI::AI::OnTick(float deltaTime)
 {
  //check if a target direction is choosen.
  //--- If yes, then pass that to playercontroller.
@@ -31,10 +31,11 @@ void AI::AI::Tick(float deltaTime)
     if(path.size() == 0) return;
     if(currentPathIndex == path.size())
     {
-        playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
+        // playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
         return;
     }
-    glm::vec3 pos = playerController->characterPosition;
+    // glm::vec3 pos = playerController->characterPosition;
+    glm::vec3 pos = glm::vec3{};
     const float MAX_DT = 0.1f; // 100ms, ~10 FPS worst case
     if (deltaTime > MAX_DT) deltaTime = MAX_DT;
 
@@ -51,13 +52,13 @@ void AI::AI::Tick(float deltaTime)
     if (targetDistance < arrivalRadius)
     {
         currentPathIndex++;
-        playerController->setMovement(glm::vec3(0.0f));
+        // playerController->setMovement(glm::vec3(0.0f));
         return;
     }
 
     glm::vec3 dir = targetDirection / targetDistance; // normalized safely
     glm::vec3 movement = dir * speed * deltaTime;
-    playerController->setMovement(movement);
+    // playerController->setMovement(movement);
 
     //randomly going around
     // if(targetDirChoosen)
@@ -131,7 +132,7 @@ void AI::AI::saveContent(fs::path contentFileLocation, std::ostream &os)
     oa << *this;
     ofs.close();
 
-    getActiveLevel().AIs.push_back(this);
+    // getActiveLevel().AIs.push_back(this);
 }
 
 void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
@@ -143,7 +144,7 @@ void AI::AI::loadContent(fs::path contentFileLocation, std::istream &is)
     // hook to character if present
     if (auto character = std::dynamic_pointer_cast<Character>(getActiveLevel().instanceIdToSerializableMap[controlledCharacterInstanceId]))
     {
-        playerController = character->playerController;
+        // playerController = character->controller;
     }
 
     EngineState::state->ais.push_back(this);

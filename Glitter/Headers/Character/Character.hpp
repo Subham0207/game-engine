@@ -111,7 +111,7 @@ public:
     Skeleton::Skeleton* skeleton;
     std::string skeleton_guid;
     
-    std::shared_ptr<Controls::PlayerController> playerController;
+    std::shared_ptr<Controls::Controller> controller;
     
     std::shared_ptr<Controls::StateMachine> animStateMachine;
     std::string animStateMachine_guid;

@@ -64,13 +64,64 @@ namespace Engine
             character.skeletonGuid = root.get<std::string>("skeleton_guid");
             // Accessing nested values using the dot notation
             character.stateMachineClassId = root.get<std::string>("statemachine.classId");
-            character.playerControllerClassId = root.get<std::string>("playerController.classId");
+            character.controllerClassId = root.get<std::string>("playerController.classId");
         } catch (const bs::json_parser_error& e) {
             std::cerr << "Error parsing JSON: " << e.what() << std::endl;
         } catch (const bs::ptree_error& e) {
             std::cerr << "Error extracting data: " << e.what() << std::endl;
         }
 
+    }
+
+    void Prefab::writeAIPrefab(fs::path path, std::shared_ptr<AiPrefab> ai)
+    {
+        try
+        {
+            bs::ptree root;
+
+            root.put("classId", ai->classId);
+            root.put("characterPrefabAssetId", ai->characterPrefabAssetId);
+
+            savePrefab(path, root);
+        }
+        catch (const bs::json_parser_error& e) {
+            std::cerr << "Error writing JSON: " << e.what() << std::endl;
+        }
+    }
+
+    void Prefab::readAIPrefab(fs::path filepath, std::shared_ptr<AiPrefab> ai)
+    {
+        try
+        {
+            bs::ptree root;
+            bs::read_json(filepath.string(), root);
+
+            ai->name = filepath.filename().stem().string();
+            ai->classId = root.get<std::string>("classId");
+            ai->characterPrefabAssetId = root.get<std::string>("characterPrefabAssetId");
+
+        }catch (const bs::json_parser_error& e) {
+            std::cerr << "Error parsing JSON: " << e.what() << std::endl;
+        } catch (const bs::ptree_error& e) {
+            std::cerr << "Error extracting data: " << e.what() << std::endl;
+        }
+    }
+
+    void Prefab::savePrefab(const fs::path& path, const bs::ptree& root)
+    {
+        bs::write_json(path.string(), root);
+
+        bs::ptree meta;
+        auto guid = boost::uuids::to_string(boost::uuids::random_generator()());
+        meta.put("guid", guid);
+        meta.put("type", toString(FileType::CharacterType));
+        meta.put("version", "0.1");
+        meta.put("content.relative_path", path.filename().string());
+
+        const fs::path metaFile = path.parent_path() / (guid +  ".meta.json");
+        write_json(metaFile.string(), meta);
+
+        std::cout << "Successfully wrote prefab to " << path.string() << std::endl;
     }
 
     void Prefab::writeCharacterPrefab(fs::path path, CharacterPrefabConfig& character)
@@ -97,24 +148,10 @@ namespace Engine
         // Create the nested object structure using dot notation
         // Boost will automatically create the "statemachine" node
         root.put("statemachine.classId", character.stateMachineClassId);
-        root.put("playerController.classId", character.playerControllerClassId);
+        root.put("playerController.classId", character.controllerClassId);
 
         try {
-            // Write the property tree to a JSON file
-            // The third argument (true) enables pretty-printing (indentation)
-            bs::write_json(path.string(), root);
-
-            bs::ptree meta;
-            auto guid = boost::uuids::to_string(boost::uuids::random_generator()());
-            meta.put("guid", guid);
-            meta.put("type", toString(FileType::CharacterType));
-            meta.put("version", "0.1");
-            meta.put("content.relative_path", path.filename().string());
-
-            const fs::path metaFile = path.parent_path() / (guid +  ".meta.json");
-            write_json(metaFile.string(), meta);
-
-            std::cout << "Successfully wrote prefab to " << path.string() << std::endl;
+            savePrefab(path, root);
         } catch (const bs::json_parser_error& e) {
             std::cerr << "Error writing JSON: " << e.what() << std::endl;
         }

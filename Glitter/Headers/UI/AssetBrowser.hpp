@@ -16,6 +16,7 @@ namespace ProjectAsset{
         BlendSpaceType,
         StateMachineType,
         AnimationType,
+        AI,
         png,
         jpg,
         Unknown

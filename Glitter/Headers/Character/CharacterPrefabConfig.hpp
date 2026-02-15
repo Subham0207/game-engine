@@ -20,6 +20,6 @@ struct CharacterPrefabConfig {
 
     std::string skeletonGuid;
     std::string stateMachineClassId;
-    std::string playerControllerClassId;
+    std::string controllerClassId;
 };
 #endif //GLITTER_CHARACTERPREFABINFO_HPP

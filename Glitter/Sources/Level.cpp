@@ -9,12 +9,15 @@
 
 #include "GenericFactory.hpp"
 #include "Prefab.hpp"
+#include "boost/uuid/random_generator.hpp"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_io.hpp"
 namespace bs = boost::property_tree;
 namespace fs = std::filesystem;
 
 Level::Level(): Serializable()
 {
-    AIs = std::vector<AI::AI*>();
+    AIs = std::vector<std::shared_ptr<AI::AI>>();
 }
 
 void Level::loadMainLevelOfCurrentProject()
@@ -102,7 +105,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
             std::string id = aiNode.get<std::string>("assetId");
 
             auto aiContentFilePath = fs::path(filesMap[id]);
-            auto ai = new AI::AI();
+            auto ai = std::make_shared<AI::AI>();
             auto path = aiContentFilePath.parent_path();
             ai->load(path, id);
             ai->setInstanceId(aiEntityId);
@@ -161,7 +164,7 @@ void Level::tickAIs(float deltaTime)
 {
     for(auto ai: AIs)
     {
-        ai->Tick(deltaTime);
+        ai->OnTick(deltaTime);
     }
 }
 
@@ -206,8 +209,11 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     character->animStateMachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
 
     //TODO: make this playerController a scriptable file.
-    character->playerController = PlayerControllerFactory::Create(characterPrefab.playerControllerClassId);
-    EngineState::state->playerControllers.push_back(character->playerController);
+    character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);
+    if (auto playerController = std::dynamic_pointer_cast<Controls::PlayerController>(character->controller))
+    {
+        EngineState::state->playerControllers.push_back(playerController);
+    }
 
     character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
     character->modelRelativePosition = characterPrefab.modelRelativePosition;
@@ -226,7 +232,11 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     return character;
 }
 
-void Level::addAI(AI::AI* ai)
+void Level::spawnAI(fs::path filepath, std::string instanceId)
+{
+}
+
+void Level::addAI(std::shared_ptr<AI::AI> ai)
 {
     AIs.push_back(ai);
 }
@@ -444,7 +454,7 @@ void Level::saveContent(fs::path contentFile, std::ostream &os)
     for (size_t i = 0; i < AIs.size(); i++)
     {
         auto ai = AIs[i];
-        if (auto* serializable = dynamic_cast<Serializable*>(ai))
+        if (auto serializable = std::dynamic_pointer_cast<Serializable>(ai))
         {
             bs::ptree aiNode;
 

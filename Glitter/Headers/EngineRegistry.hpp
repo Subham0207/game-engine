@@ -19,6 +19,7 @@ namespace Engine
             std::map<std::string, std::string> blendpaceFileMap;
             std::map<std::string, std::string> modelFileMap;
             std::map<std::string, std::string> skeletonFileMap;
+            std::map<std::string, std::string> characterPrefabMap;
 
             void init();
             void update(std::string guid, std::string filepath);

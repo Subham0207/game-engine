@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <Controls/Input.hpp>
 #include <EngineState.hpp>
+#include <Controls/Controller.hpp>
 #include <Controls/PlayerController.hpp>
 #include <Modals/CameraType.hpp>
 
@@ -29,8 +30,9 @@ Character::Character(std::string filepath): Serializable(){
 
     skeleton->BuildBoneHierarchy();
 
-    playerController = std::make_shared<Controls::PlayerController>(filename);
+    auto playerController = std::make_shared<Controls::PlayerController>(filename);
     EngineState::state->playerControllers.push_back(playerController);
+    controller = playerController;
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
 
@@ -226,20 +228,23 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
             this->onTick();
         }
 
-        if(playerController)
+        if(controller)
         {
             if(animStateMachine != nullptr)
-            animStateMachine->tick(playerController, animator);
+            animStateMachine->tick(animator);
         }
 
         if (capsuleCollider)
         {
+            // TODO: Add setIsJumping() and setWalkSpeed() methods in CapsuleCollider. So we can set these values from the derived character class.
+            bool isJumping = false;
+            bool dodgeStart = false;
             capsuleCollider->moveBody(
                 deltaTime,
                 movementOffset,
                 rotationOffset,
-                playerController->isJumping,
-                playerController->dodgeStart ? 8.0f: 4.0f
+                isJumping,
+                dodgeStart ? 8.0f: 4.0f
             );
 
             setWorldTransform(capsuleCollider->getWorldPosition(), capsuleCollider->getWorldRotation());
@@ -342,8 +347,9 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->skeleton->load(skeleton_Location.parent_path(), skeleton_guid);
 
     //create new player controller 
-    playerController = std::make_shared<Controls::PlayerController>(contentName());
+    auto playerController = std::make_shared<Controls::PlayerController>(contentName());
     EngineState::state->playerControllers.push_back(playerController);
+    controller = playerController;
 
     //load statemachine
     auto stateMachine_Location = fs::path(filesMap[stateMachine_guid]);

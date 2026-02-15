@@ -24,7 +24,7 @@ Controls::State::State(std::string stateName)
     blendspace = NULL;
 }
 
-void Controls::State::Play(std::shared_ptr<Controls::PlayerController> playerController, Animator* animator)
+void Controls::State::Play(Animator* animator)
 {
     if(!animationGuid.empty())
     {
@@ -76,7 +76,7 @@ Controls::StateMachine::StateMachine(std::string filename): Serializable()
     this->filename = filename;
 };
 
-void Controls::StateMachine::tick(std::shared_ptr<Controls::PlayerController> playerController, Animator* animator)
+void Controls::StateMachine::tick(Animator* animator)
 {
     if (!started)
     {
@@ -104,7 +104,7 @@ void Controls::StateMachine::tick(std::shared_ptr<Controls::PlayerController> pl
     }
 
     //2. then set blendselection and m_currentAnimation
-    activeState->Play(playerController, animator);
+    activeState->Play(animator);
     //3. not here but executes: it is the actual poseTransition logic
 }
 

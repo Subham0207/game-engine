@@ -222,7 +222,8 @@ void Outliner::levelControlsComponent(Level &lvl)
 
     if(ImGui::Button("Create new AI"))
     {
-        UI::AI_UI::start();
+        auto aiPrefab = std::shared_ptr<AiPrefab>{};
+        getUIState().ai_ui_state->start(aiPrefab);
     }
     
     std::vector<const char*> cPlayerControllerNames;

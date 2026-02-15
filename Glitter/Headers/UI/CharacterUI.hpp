@@ -18,7 +18,7 @@ namespace UI
 
         int selectedSkeletonIndex;
         int selectedStateMachineIndex;
-        int selectedPlayerControllerIndex;
+        int selectedControllerIndex;
     };
 
     class CharacterUI
@@ -29,9 +29,6 @@ namespace UI
         void start(CharacterPrefabConfig& characterPrefab, std::string characterMetaFilePath = "");
         bool showCharacterUI;
     private:
-        int toUiIndex(int dataTypeIndex);
-        int toDataTypeIndex(int UiIndex);
-
         Shared::EditableText characterName;
 
         CharacterPrefabConfig* characterPrefabConfig;
@@ -43,7 +40,7 @@ namespace UI
         std::vector<std::string> modelNames;
         std::vector<std::string> skeletonNames;
         std::vector<std::string> statemachineNames;
-        std::vector<std::string> playerControllerNames;
+        std::vector<std::string> controllerNames;
 
     };
 }

@@ -2,65 +2,94 @@
 #include <imgui.h>
 #include <EngineState.hpp>
 #include <UI/Shared/ComboUI.hpp>
+#include <UI/Shared/Utils.hpp>
 
+#include "GenericFactory.hpp"
+#include "Prefab.hpp"
 #include "AI/AI.hpp"
+#include "Modals/FileType.hpp"
 #include "UI/Shared/EditableText.hpp"
 
 namespace UI
 {
     AI_UI::AI_UI()
     {
-        filename= {
-            "AI",
-            "AI",
-            false
-         };
         showUI = false;
-        selectedCharacterFromList = 0; // NONE is 0
+        aiPrefabName.setText("AI");
+        aiPrefabRef = nullptr;
     }
 
-    void AI_UI::start()
+    void AI_UI::start(const std::shared_ptr<AiPrefab>& aiPrefab, const std::string& aiMetaFilePath)
     {
-        getUIState().ai_ui_state->showUI = true;
-
-        //List all the character instance ids in the level.
-        for(auto itr: getActiveLevel().instanceIdToSerializableMap)
+        this->aiPrefabRef = aiPrefab;
+        if (!aiMetaFilePath.empty())
         {
-            if(auto character = std::dynamic_pointer_cast<Character>(itr.second))
+            auto guid = fs::path(aiMetaFilePath).filename().stem().stem().string();
+            auto filename = fs::path(getEngineRegistryFilesMap()[guid]).filename().stem().string();
+            this->aiPrefabName.setText(filename);
+        }
+        else
+        {
+            this->aiPrefabName.setText("AI");
+        }
+
+        int index = 0;
+        aiClassNames = std::vector<std::string>();
+        //Read all AI registered class names
+
+
+        index = 0;
+        characterPrefabNames = std::vector<std::string>();
+        auto characterMap = EngineState::state->engineRegistry->characterPrefabMap;
+        //Read all characterPrefabs
+        for (auto& character: characterMap)
+        {
+            if (character.first == aiPrefab->characterPrefabAssetId)
             {
-                getUIState().ai_ui_state->charactersList.push_back(character->getName());
-                getUIState().ai_ui_state->characters.push_back(character);
+                aiPrefabUIState.selectedCharacterPrefabIndex = Utils::toUiIndex(index);
             }
+            characterPrefabNames.emplace_back(character.second);
+            index +=1;
         }
     }
 
     void AI_UI::draw()
     {
-        if(ImGui::Begin(filename.value.c_str(), &showUI))
+        if (!showUI)
+            return;
+
+        if (ImGui::Begin(this->aiPrefabName.value.c_str(), &showUI))
         {
-            Shared::EditableTextUI("##savethistatemachine", filename);
-            if(Shared::comboUI(
-                "Select a character from level",
-                selectedCharacterFromList,
-                charactersList
-            ))
-            {
-                
-            }
-            if (ImGui::Button("Save"))
-            {
-                save();
-            }
+            UI::Shared::EditableTextUI("Filename", aiPrefabName);
+
+            UI::Shared::comboUI(
+                "Choose AI class",
+                aiPrefabUIState.selectedAiClassIndex,
+                aiClassNames
+                );
+
+            UI::Shared::comboUI(
+                "Choose AI class",
+                aiPrefabUIState.selectedCharacterPrefabIndex,
+                characterPrefabNames
+                );
+
+            this->save();
+
         }
         ImGui::End();
     }
 
     void AI_UI::save() const
     {
-        //Create a AI class object. Pass all the variables to it and call save no it.
-        const auto character = characters[selectedCharacterFromList-1]; // -1 to account for 1 none.
-        auto ai = new AI::AI(character,filename.value);
-        auto dir = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets";
-        ai->save(dir);
+        if (ImGui::Button("Save"))
+        {
+            aiPrefabRef->name = this->aiPrefabName.value;
+            aiPrefabRef->classId = aiClassNames[Utils::toDataTypeIndex(aiPrefabUIState.selectedAiClassIndex)];
+            aiPrefabRef->characterPrefabAssetId = characterPrefabNames[Utils::toDataTypeIndex(aiPrefabUIState.selectedCharacterPrefabIndex)];
+
+            auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + aiPrefabName.value + "." +  std::string(toString(FileType::AI)));
+            Engine::Prefab::writeAIPrefab(filepath, aiPrefabRef);
+        }
     }
 }

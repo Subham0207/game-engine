@@ -9,6 +9,7 @@
 #include <LuaEngine/LuaEngine.hpp>
 #include <Helpers/shader.hpp>
 
+#include "Controller.hpp"
 #include "LuaEngine/LuaRegistry.hpp"
 #include "LuaEngine/LuaClassBuilder.hpp"
 #include "LuaEngine/RegisterBinding.hpp"
@@ -16,16 +17,16 @@ enum CameraType;
 
 namespace Controls
 {
-    class PlayerController: public RegisterBinding
+    class PlayerController: public RegisterBinding, public Controller
     {
     public:
         PlayerController(std::string filename);
 
         [[nodiscard]] std::string virtual GetClassId() const { return "PlayerController"; }
 
-        virtual void onStart(){};
-        virtual void onTick(){};
-        virtual void OnDestroy(){};
+        void OnStart() override {};
+        void OnTick(float deltaTime) override {};
+        void OnDestroy() override {};
 
         float movementSpeed = 0.0f;           // Current speed (blended)
         float targetSpeed = 0.0f;             // Target speed (where we want to go)
