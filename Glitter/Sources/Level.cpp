@@ -214,6 +214,10 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     {
         EngineState::state->playerControllers.push_back(playerController);
     }
+    if (auto ai = std::dynamic_pointer_cast<AI::AI>(character->controller))
+    {
+        addAI(ai);
+    }
 
     character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
     character->modelRelativePosition = characterPrefab.modelRelativePosition;
