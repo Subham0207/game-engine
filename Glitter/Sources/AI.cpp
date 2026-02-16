@@ -96,7 +96,7 @@ void AI::AI::setPath(std::vector<glm::vec3> path)
 
 void AI::AI::calculatePath(glm::vec3 startingPos, glm::vec3 targetPos)
 {
-    currentPathIndex = 0.0f;
+    currentPathIndex = 0;
     path.clear();
 
     std::vector<float> startingLocFloat;
