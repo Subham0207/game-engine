@@ -279,6 +279,21 @@ void Outliner::modelSelectorComponent()
                 
             }
         }
+        ImGui::SameLine();
+        if (ImGui::Button(("Copy"s + "##"s + std::to_string(i)).c_str()))
+        {
+            getActiveLevel().createACopyForRenderableAt(i);
+        }
+
+        ImGui::SameLine();
+        if(ImGui::Button(("Delete" "##"s + std::to_string(i)).c_str()))
+        {
+            getActiveLevel().renderables.erase(getActiveLevel().renderables.begin() + i);
+            if (getUIState().selectedRenderableIndex == i)
+            {
+                getUIState().selectedRenderableIndex = i - 1;
+            }
+        }
         // Optionally, pop style changes here if you made any
     }
 }

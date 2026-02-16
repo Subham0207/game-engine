@@ -57,6 +57,8 @@ class Level: public Serializable{
             renderables.push_back(renderable);
         }
 
+        void createACopyForRenderableAt(int index);
+
         shared_ptr<Character> spawnCharacter(fs::path filepath, glm::mat4 transform = glm::identity<glm::mat4>(), std::string instanceId = "");
         void spawnAI(fs::path filepath, std::string instanceId = "");
 

@@ -168,6 +168,16 @@ void Level::tickAIs(float deltaTime)
     }
 }
 
+void Level::createACopyForRenderableAt(int index)
+{
+    auto renderable = renderables.at(index);
+    if (auto model = std::dynamic_pointer_cast<Model>(renderable))
+    {
+        auto modelCopy = std::make_shared<Model>(*model);
+        addRenderable(modelCopy);
+    }
+}
+
 shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 transform, std::string instanceId)
 {
     CharacterPrefabConfig characterPrefab;
