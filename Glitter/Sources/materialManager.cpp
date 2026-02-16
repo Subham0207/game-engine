@@ -47,7 +47,7 @@ void UI::materialsFoundInModel()
 
     if(getUIState().selectedRenderableIndex > -1)
     {
-        Renderable* renderable = getUIState().renderables[getUIState().selectedRenderableIndex];
+        std::shared_ptr<Renderable> renderable = getActiveLevel().renderables[getUIState().selectedRenderableIndex];
 
         if(renderable != nullptr)
         {

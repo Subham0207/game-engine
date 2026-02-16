@@ -88,8 +88,8 @@ void ProjectAsset::saveAFile(std::string& currentPath,
                 InputText("##Filename", getUIState().saveAsFileName);
                 if (ImGui::Button("Save") && getUIState().selectedRenderableIndex > -1)
                 {
-                    auto renderable = getUIState().renderables.at(getUIState().selectedRenderableIndex);
-                    if(auto* model = dynamic_cast<Model*>(renderable))
+                    auto renderable = getActiveLevel().renderables.at(getUIState().selectedRenderableIndex);
+                    if(auto model = std::dynamic_pointer_cast<Model>(renderable))
                     {
                         Model::saveSerializedModel("Assets/" + getUIState().saveAsFileName, *model);
                     }
@@ -194,7 +194,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             if(getUIState().selectedRenderableIndex < 0)
                             break;
-                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
                             getUIState().materials[getUIState().materialIndex]->albedo = texture;
                             showUI = false;                      
@@ -204,7 +204,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             if(getUIState().selectedRenderableIndex < 0)
                             break;
-                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
                             getUIState().materials[getUIState().materialIndex]->normal = texture;
                             showUI = false;                      
@@ -214,7 +214,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             if(getUIState().selectedRenderableIndex < 0)
                             break;
-                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
                             getUIState().materials[getUIState().materialIndex]->metalness = texture;
                             showUI = false;                      
@@ -224,7 +224,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             if(getUIState().selectedRenderableIndex < 0)
                             break;
-                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
                             getUIState().materials[getUIState().materialIndex]->roughness = texture;
                             showUI = false;                      
@@ -234,7 +234,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                         {
                             if(getUIState().selectedRenderableIndex < 0)
                             break;
-                            auto texture = getUIState().renderables[getUIState().selectedRenderableIndex]
+                            auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
                             getUIState().materials[getUIState().materialIndex]->ao = texture;
                             showUI = false;                      
