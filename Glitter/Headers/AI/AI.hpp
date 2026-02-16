@@ -32,6 +32,11 @@ namespace AI
         virtual const std::string contentName() override {return filename; }
 
         bool started = false;
+
+        std::vector<glm::vec3>& getVariables()
+        {
+            return variables;
+        }
     protected:
         virtual const std::string typeName() const override {return "AI"; }
 
@@ -51,6 +56,8 @@ namespace AI
         std::string filename;
 
         std::string controlledCharacterInstanceId;
+
+        std::vector<glm::vec3> variables;
 
         friend class boost::serialization::access;
         template<class Archive>

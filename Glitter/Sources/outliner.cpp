@@ -163,6 +163,20 @@ void Outliner::ModelMatrixComponent()
                         ImGui::DragFloat("Y1##translation", &character->modelRelativePosition.y, 0.005f);
                         ImGui::SameLine();
                         ImGui::DragFloat("Z1##translation", &character->modelRelativePosition.z, 0.005f);
+
+
+                        if (auto aiController = std::dynamic_pointer_cast<AI::AI>(character->controller))
+                        {
+                            ImGui::Text("Variables from AI Controller");
+                            auto& variables = aiController->getVariables();
+                            for (int i = 0; i < variables.size(); i++)
+                            {
+                                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+                                ImGui::DragFloat3(("patrol position"s + "##" + std::to_string(i)).c_str(), &variables[i].x);
+                                ImGui::PopItemWidth();
+                            }
+                            ImGui::Text("-----------------------------");
+                        }
                 }
             }
             else
