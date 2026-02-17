@@ -94,6 +94,27 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 auto character = spawnCharacter(contentFilePath, M, instanceId);
                 character->setAssetId(id);
                 instanceIdToSerializableMap[instanceId] = character;
+
+                if(auto pathVariablesNode = renderable.get_child_optional("patrol_variables"))
+                {
+                    if (auto aiController = std::dynamic_pointer_cast<AI::AI>(character->controller))
+                    {
+                        auto& variables = aiController->getVariables();
+
+                        for (auto& [key, tree] : *pathVariablesNode)
+                        {
+                            glm::vec3 pos;
+
+                            // Get the x, y, z values.
+                            // Using get<float> ensures the string in the JSON is converted correctly.
+                            pos.x = tree.get<float>("x", 0.0f); // 0.0f is a default value if 'x' is missing
+                            pos.y = tree.get<float>("y", 0.0f);
+                            pos.z = tree.get<float>("z", 0.0f);
+
+                            variables.push_back(pos);
+                        }
+                    }
+                }
             }
         }
 
@@ -223,6 +244,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     if (auto playerController = std::dynamic_pointer_cast<Controls::PlayerController>(character->controller))
     {
         EngineState::state->playerControllers.push_back(playerController);
+        playerController->setCharacter(character);
     }
     if (auto ai = std::dynamic_pointer_cast<AI::AI>(character->controller))
     {
@@ -459,9 +481,29 @@ void Level::saveContent(fs::path contentFile, std::ostream &os)
 
             renderableNode.add_child("transform", transformNode);
 
+            if (auto character = std::dynamic_pointer_cast<Character>(r))
+            {
+
+                if (auto aiController = std::dynamic_pointer_cast<AI::AI>(character->controller))
+                {
+                    bs::ptree variablesNode;
+                    for (const auto& vec : aiController->getVariables())
+                    {
+                        bs::ptree vNode;
+                        vNode.put("x", vec.x);
+                        vNode.put("y", vec.y);
+                        vNode.put("z", vec.z);
+
+                        variablesNode.push_back(std::make_pair("", vNode));
+                    }
+
+                    renderableNode.add_child("patrol_variables", variablesNode);
+                }
+
+            }
+
             // Append to array
             renderablesNode.add_child(serializable->getInstanceId(), renderableNode);
-
         }
     }
 

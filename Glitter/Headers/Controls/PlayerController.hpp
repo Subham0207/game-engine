@@ -14,11 +14,13 @@
 #include "LuaEngine/LuaClassBuilder.hpp"
 #include "LuaEngine/RegisterBinding.hpp"
 enum CameraType;
-
+class Character;
 namespace Controls
 {
     class PlayerController: public RegisterBinding, public Controller
     {
+    private:
+        std::shared_ptr<Character> character;
     public:
         PlayerController(std::string filename);
 
@@ -56,6 +58,9 @@ namespace Controls
         CameraType cameraType;
 
         void setMovement(glm::vec3 dir);
+
+        std::shared_ptr<Character> getCharacter();
+        void setCharacter(const std::shared_ptr<Character>& characterRef);
 
         void setJumping()
         {

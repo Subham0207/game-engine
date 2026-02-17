@@ -37,6 +37,11 @@ namespace AI
         {
             return variables;
         }
+
+        void setVariables(const std::vector<glm::vec3>& vars)
+        {
+            this->variables=vars;
+        }
     protected:
         virtual const std::string typeName() const override {return "AI"; }
 

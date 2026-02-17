@@ -229,7 +229,11 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, inputCtx);
         if(EngineState::state->isPlay)
         {
-            *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
+            // *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
+            if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
+            {
+                *activeCamera = character->camera;
+            }
 
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess

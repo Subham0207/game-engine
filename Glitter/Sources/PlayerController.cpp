@@ -1,7 +1,7 @@
 #include <Controls/PlayerController.hpp>
 #include <Helpers/raypicking.hpp>
 #include <Modals/CameraType.hpp>
-
+#include <Character/Character.hpp>
 #include "EngineState.hpp"
 
 Controls::PlayerController::PlayerController(std::string filename)
@@ -49,6 +49,16 @@ void Controls::PlayerController::setMovement(glm::vec3 dir)
 
     inputXWorld = dir.x;
     inputZWorld = dir.z;
+}
+
+std::shared_ptr<Character> Controls::PlayerController::getCharacter()
+{
+    return this->character;
+}
+
+void Controls::PlayerController::setCharacter(const std::shared_ptr<Character>& characterRef)
+{
+    this->character = characterRef;
 }
 
 glm::quat Controls::PlayerController::faceMouseOnXZ(
