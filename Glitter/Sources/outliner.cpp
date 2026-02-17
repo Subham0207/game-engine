@@ -171,9 +171,25 @@ void Outliner::ModelMatrixComponent()
                             auto& variables = aiController->getVariables();
                             for (int i = 0; i < variables.size(); i++)
                             {
+                                ImGui::PushID(&variables[i]);
+
                                 ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
-                                ImGui::DragFloat3(("patrol position"s + "##" + std::to_string(i)).c_str(), &variables[i].x);
+                                ImGui::DragFloat3("patrol position", &variables[i].x);
+                                ImGui::SameLine();
+                                if(ImGui::Button("Delete"))
+                                {
+                                    variables.erase(variables.begin() + i);
+                                    ImGui::PopItemWidth();
+                                    ImGui::PopID();
+                                    break;
+                                }
+
                                 ImGui::PopItemWidth();
+                                ImGui::PopID();
+                            }
+                            if(ImGui::Button("Add node"))
+                            {
+                                variables.emplace_back(glm::vec3{0.0f});
                             }
                             ImGui::Text("-----------------------------");
                         }
