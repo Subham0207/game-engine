@@ -111,16 +111,17 @@ void Mesh::setupMesh()
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // Binds VAO -> VBO
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(ProjectModals::Vertex), &vertices[0], GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // Binds VAO -> EBO
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
         &indices[0], GL_STATIC_DRAW);
 
     // vertex positions
     glEnableVertexAttribArray(0);
+    // GL_FALSE -- is for normalization; And Helps in saving space say in color attribute where we can pass 4Bit values for color ( 255, 255, 255 )
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex), (void*)0);
     // vertex normals
     glEnableVertexAttribArray(1);
@@ -131,8 +132,6 @@ void Mesh::setupMesh()
     //Vertex Color
     glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex), (void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::Color));
-
-    //TODO: maybe we are missing tangents and bitangents binding here...
 
     // Tangent
     glEnableVertexAttribArray(4);

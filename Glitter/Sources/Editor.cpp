@@ -156,8 +156,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         rayFragPath.u8string().c_str());
 
     //Lights setup
-    auto lights = new Lights(); //for PBR removing directional lights and spotlight; Set them back up later.
-    // lights->directionalLights.push_back(DirectionalLight(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f)));
+    auto lights = new Lights();
 
     glm::vec3 pointLightPositions[] = {
         glm::vec3(0.7f,  2.0f,  2.0f),
@@ -224,7 +223,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         EngineState::state->deltaTime = currentFrame - EngineState::state->lastFrame;
         EngineState::state->lastFrame = currentFrame;
 
-        auto lvlrenderables = getActiveLevel().renderables;
+        auto& lvlrenderables = getActiveLevel().renderables;
 
         ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, inputCtx);
         if(EngineState::state->isPlay)
@@ -235,6 +234,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
                 *activeCamera = character->camera;
             }
 
+            //TODO: Remove below code after removing syncTransformationToPhysicsEntity() from Model class. And handle this functionality in same way as Character class does.
             //Update transform of physics enabled renderables
             //How do we get the transforms for a objects from the physics engine --- by its id i would guess
             if(getPhysicsSystem().isFirstPhysicsEnabledFrame == true)

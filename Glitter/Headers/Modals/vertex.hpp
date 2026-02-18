@@ -29,7 +29,9 @@ namespace ProjectModals{
         //weights from each bone
         float m_Weights[MAX_BONE_INFLUENCE];
         
-        //animated vertex pos
+        //Animated vertex pos
+        //NOTE: the vertex position is of default pose/T-Pose. Animation is applying on GPU side.
+        //Here we are applying the animation and then the below is the updated vertex position which is stored on CPU for selection.
         glm::vec3 animatedPos;
 
     private:
