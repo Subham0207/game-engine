@@ -43,9 +43,12 @@ public:
 
         glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
         glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+
+        //Generate a Buffer of size 512 * 512 with depth enabled; And then attach it to the RBO;
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
+        //Reserve empty memory for the Cubemap on GPU; GL_RGB16F is for 16 bit image
         glGenTextures(1, &envCubemap);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         for (unsigned int i = 0; i < 6; ++i)
@@ -93,6 +96,7 @@ public:
 
         //---------------------------IrradianceMap
 
+        //Reserve Empty memory on GPU
         glGenTextures(1, &irradianceMap);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         for (unsigned int i = 0; i < 6; ++i)
@@ -131,6 +135,7 @@ public:
 
 
         //-------------------prefiltered shader
+        //Reserve memory
         glGenTextures(1, &prefilterMap);
         glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
         for (unsigned int i = 0; i < 6; ++i)
@@ -143,6 +148,7 @@ public:
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+        //Generate prefilter map for specular information
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
         prefilterShader.use();
@@ -154,7 +160,7 @@ public:
         unsigned int maxMipLevels = 5;
         for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
         {
-            // reisze framebuffer according to mip-level size.
+            // resize framebuffer according to mip-level size. So we have res: 128(shiny) -> 64 -> 32 -> 16 -> 8 (rough).
             unsigned int mipWidth  = (128 * std::pow(0.5, mip));
             unsigned int mipHeight = (128 * std::pow(0.5, mip));
             glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
@@ -167,7 +173,7 @@ public:
             {
                 prefilterShader.setMat4("view", captureViews[i]);
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-                                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+                                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);//Writing to different mip levels.
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 renderCube();
@@ -208,6 +214,9 @@ public:
         int scrWidth, scrHeight;
         glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
         glViewport(0, 0, scrWidth, scrHeight);
+
+        glDeleteFramebuffers(1, &captureFBO);
+        glDeleteRenderbuffers(1, &captureRBO);
     }
     void renderCube()
     {
@@ -293,8 +302,11 @@ private:
             glBindTexture(GL_TEXTURE_2D, hdrTexture);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
 
+            //Handle texture warping: take the last pixel of the edge and repeat infinitely in both X and Y axis of texture.
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+            //Setup Mipmaps: How image renders at distance. GL_LINEAR is avg of four neighboring pixels.
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
