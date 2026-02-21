@@ -10,7 +10,8 @@ layout (location = 5) in vec3 aBitangent;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightProjection;
+
+uniform mat4 dirLightVP;
 uniform mat4 spotLightSpaceMatrix;
 
 out vec3 Normal;
@@ -35,7 +36,7 @@ void main()
     Normal = normalize(normalMatrix * totalNormal);
     Tangent   = normalize(normalMatrix * aTangent);
     Bitangent = normalize(normalMatrix * aBitangent);
-    FragPosLightSpace = lightProjection * model * totalPosition;
+    FragPosLightSpace = dirLightVP * model * totalPosition;
     SpotFragPosLightSpace = spotLightSpaceMatrix * model * totalPosition;
 
     TexCoords = aTexCoords;

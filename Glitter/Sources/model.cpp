@@ -398,7 +398,7 @@ void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
 void Model::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     bindCubeMapTextures(cubeMap);
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lights->directionalLights[0].lightProjection));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(lights->directionalLights[0].dirLightVP));
     camera->updateMVP(shader->ID);
     updateModelAndViewPosMatrix(camera);
 

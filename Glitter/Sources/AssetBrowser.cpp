@@ -196,8 +196,8 @@ namespace ProjectAsset
                     ImGui::EndPopup();
                 }
 
-            ImGui::End();
             }
+            ImGui::End();
     }
     
     void AssetBrowser::LoadAssets(){

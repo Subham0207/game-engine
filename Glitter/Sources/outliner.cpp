@@ -42,8 +42,8 @@ void Outliner::Render(Level &lvl) {
 
         propertiesPanel();
     
-        ImGui::End();
     }
+    ImGui::End();
 
     getUIState().characterUIState->draw();
 

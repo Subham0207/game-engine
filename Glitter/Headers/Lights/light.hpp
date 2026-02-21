@@ -36,7 +36,7 @@ public:
 
 	Shader* shadowMapShader;
 	unsigned int shadowMapWidth,shadowMapHeight;
-	glm::mat4 lightProjection;
+	glm::mat4 dirLightVP;
 
 	DirectionalLight(
 		glm::vec3 position, // Note we take position to update the light 3d model but for directional light position does not matter.

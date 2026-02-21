@@ -80,7 +80,7 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
     auto lightPos = 20.0f * lightModel->GetPosition();
     direction = lightPos - glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    lightProjection = orthgonalProjection * lightView;
+    dirLightVP = orthgonalProjection * lightView;
 
     glEnable(GL_DEPTH_TEST);
 
@@ -91,7 +91,7 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
 
     // Draw scene for shadow map
     shadowMapShader->use();
-    glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+    glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(dirLightVP));
 
     for(int i=0;i<lvlrenderables.size();i++)
     {
@@ -151,10 +151,10 @@ void DirectionalLight::setupShadowObjects()
     auto lightPos = 20.0f * lightModel->GetPosition();
     direction = lightPos - glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	lightProjection = orthgonalProjection * lightView;
+	dirLightVP = orthgonalProjection * lightView;
 
     shadowMapShader->use();
-	glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+	glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(dirLightVP));
 
 }
 
