@@ -169,10 +169,10 @@ void Character::updateFinalBoneMatrix(float deltatime)
     }
 }
 
-void Character::drawGeometryOnly()
+void Character::drawGeometryOnly(float deltaTime)
 {
     if(model)
-    model->drawGeometryOnly();
+    model->drawGeometryOnly(deltaTime);
 }
 
 std::vector<ProjectModals::Vertex> Character::GetWorldVertices()
@@ -193,9 +193,6 @@ glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::W
 
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
-    if(animator)
-        updateFinalBoneMatrix(deltaTime);
-
     if(model)
     {
         model->draw(deltaTime, camera, lights, cubeMap);

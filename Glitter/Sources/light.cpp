@@ -99,7 +99,21 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
         {
             glm::mat4 model = (lvlrenderables)[i]->getModelMatrix();
             glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            (lvlrenderables)[i]->drawGeometryOnly();
+            // Character bone matrix update
+            if (auto character = std::dynamic_pointer_cast<Character>(lvlrenderables[i]))
+            {
+                glUniform1i(glGetUniformLocation(shadowMapShader->ID, "isAnimated"), 1);
+
+                auto transforms = character->animator->GetFinalBoneMatrices();
+                for (int j = 0; j < transforms.size(); j++) {
+                    std::string name = "finalBonesMatrices[" + std::to_string(j) + "]";
+                    shadowMapShader->setMat4(name, transforms[j]);
+                }
+            } else {
+                glUniform1i(glGetUniformLocation(shadowMapShader->ID, "isAnimated"), 0);
+            }
+            //---------------------------
+            (lvlrenderables)[i]->drawGeometryOnly(deltaTime);
         }
     }
 
@@ -243,7 +257,7 @@ void SpotLight::setupShadowObjects()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SpotLight::evaluateShadowMap(GLFWwindow *window)
+void SpotLight::evaluateShadowMap(GLFWwindow *window, float deltaTime)
 {
     glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
@@ -284,7 +298,19 @@ void SpotLight::evaluateShadowMap(GLFWwindow *window)
             glm::mat4 model = (lvlrenderables)[i]->getModelMatrix();
             glUniformMatrix4fv(glGetUniformLocation(spotShadowShader->ID, "model"),
                                1, GL_FALSE, glm::value_ptr(model));
-            (lvlrenderables)[i]->drawGeometryOnly();
+            if (auto character = std::dynamic_pointer_cast<Character>(lvlrenderables[i]))
+            {
+                glUniform1i(glGetUniformLocation(spotShadowShader->ID, "isAnimated"), 1);
+
+                auto transforms = character->animator->GetFinalBoneMatrices();
+                for (int j = 0; j < transforms.size(); j++) {
+                    std::string name = "finalBonesMatrices[" + std::to_string(j) + "]";
+                    spotShadowShader->setMat4(name, transforms[j]);
+                }
+            } else {
+                glUniform1i(glGetUniformLocation(spotShadowShader->ID, "isAnimated"), 0);
+            }
+            (lvlrenderables)[i]->drawGeometryOnly(deltaTime);
         }
     }
 
@@ -322,7 +348,7 @@ void PointLight::attachShaderUniforms(
     glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), this->intensity);
 }
 
-void PointLight::evaluateShadowMap(GLFWwindow* window)
+void PointLight::evaluateShadowMap(GLFWwindow* window, float deltaTime)
 {
     glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
@@ -371,7 +397,19 @@ void PointLight::evaluateShadowMap(GLFWwindow* window)
         {
             glm::mat4 model = (lvlrenderables)[i]->getModelMatrix();
             glUniformMatrix4fv(glGetUniformLocation(shadowMapShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-            (lvlrenderables)[i]->drawGeometryOnly();
+            if (auto character = std::dynamic_pointer_cast<Character>(lvlrenderables[i]))
+            {
+                glUniform1i(glGetUniformLocation(shadowMapShader->ID, "isAnimated"), 1);
+
+                auto transforms = character->animator->GetFinalBoneMatrices();
+                for (int j = 0; j < transforms.size(); j++) {
+                    std::string name = "finalBonesMatrices[" + std::to_string(j) + "]";
+                    shadowMapShader->setMat4(name, transforms[j]);
+                }
+            } else {
+                glUniform1i(glGetUniformLocation(shadowMapShader->ID, "isAnimated"), 0);
+            }
+            (lvlrenderables)[i]->drawGeometryOnly(deltaTime);
         }
     }
 

@@ -49,7 +49,7 @@ public:
         std::vector<unsigned int> &indices){};
 
     void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
-    void drawGeometryOnly() override;
+    void drawGeometryOnly(float deltaTime) override;
 
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
     virtual std::vector<unsigned int> GetIndices() override;

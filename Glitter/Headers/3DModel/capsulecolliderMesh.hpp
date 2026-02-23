@@ -10,7 +10,7 @@ class CapsuleColliderModel: public Renderable{
         void reGenerateCapsuleColliderMesh(float radius, float halfheight);
 
         void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
-        void drawGeometryOnly() override {};
+        void drawGeometryOnly(float deltaTime) override {};
 
         std::vector<std::shared_ptr<Modals::Material>> getMaterials() override;
 

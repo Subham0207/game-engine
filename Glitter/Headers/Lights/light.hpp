@@ -106,7 +106,7 @@ public:
 	);
 
 	void setupShadowObjects();
-	void evaluateShadowMap(GLFWwindow* window);
+	void evaluateShadowMap(GLFWwindow* window, float deltaTime);
 };
 
 class PointLight: public BaseLight {
@@ -142,7 +142,7 @@ public:
 		std::string diffuseUniform,
 		std::string intensityUniform);
 	
-	void evaluateShadowMap(GLFWwindow* window);
+	void evaluateShadowMap(GLFWwindow* window, float deltaTime);
 private:
 	void setupShadowObjects();
 };

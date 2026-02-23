@@ -10,7 +10,7 @@ enum ModelType;
 class Renderable {
 public:
     virtual void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) = 0;
-    virtual void drawGeometryOnly() = 0;
+    virtual void drawGeometryOnly(float deltaTime) = 0;
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() { return std::vector<ProjectModals::Vertex>();};
     virtual std::vector<unsigned int> GetIndices() {return std::vector<unsigned int>();};
     virtual void BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,

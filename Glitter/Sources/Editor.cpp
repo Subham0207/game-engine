@@ -220,7 +220,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         //delta time -- making things time dependent
         auto activeCamera = &InputHandler::currentInputHandler->m_Camera;
         float currentFrame = glfwGetTime();
-        EngineState::state->deltaTime = currentFrame - EngineState::state->lastFrame;
+        float deltaTime = currentFrame - EngineState::state->lastFrame;
+        EngineState::state->deltaTime = deltaTime;
         EngineState::state->lastFrame = currentFrame;
 
         auto& lvlrenderables = getActiveLevel().renderables;
@@ -325,11 +326,27 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         getActiveLevel().tickAIs(EngineState::state->deltaTime);
 
-        lights->directionalLights[0].evaluateShadowMap(mWindow, EngineState::state->deltaTime, *activeCamera, lights, cubeMap);
-        lights->spotLights[0].evaluateShadowMap(mWindow);
+        //Update animation before Shadow pass and Lighting pass to get correct shadows and lighting.
+        for(int i=0;i<lvlrenderables.size();i++)
+        {
+            if(lvlrenderables.at(i)->ShouldRender())
+            {
+                if (auto character = std::dynamic_pointer_cast<Character>(lvlrenderables.at(i)))
+                {
+                    if(character->animator)
+                    {
+                        character->useAttachedShader();
+                        character->updateFinalBoneMatrix(deltaTime);
+                    }
+                }
+            }
+        }
+
+        lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
+        lights->spotLights[0].evaluateShadowMap(mWindow, deltaTime);
 
         for(auto& light : lights->pointLights)
-            light.evaluateShadowMap(mWindow);
+            light.evaluateShadowMap(mWindow, deltaTime);
 
         // render the model
         for(int i=0;i<lvlrenderables.size();i++)

@@ -320,7 +320,7 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
     
 }
 
-void Model::drawGeometryOnly()
+void Model::drawGeometryOnly(float deltaTime)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(shader);
