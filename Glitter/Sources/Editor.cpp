@@ -216,6 +216,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     LightingPass lightingPass{};
     PostProcess postProcess{};
 
+    EngineState::state->postProcess = &postProcess;
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
 

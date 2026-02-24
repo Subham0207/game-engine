@@ -14,6 +14,7 @@ namespace fs = std::filesystem;
 
 PostProcess::PostProcess()
 {
+    exposure = 1.0f;
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vsPath = engineFSPath / "Shaders/PostProcessing/PostProcess.vert";
     auto fsPath = engineFSPath / "Shaders/PostProcessing/PostProcess.frag";
@@ -76,6 +77,7 @@ void PostProcess::draw(
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, this->screenTexture);
     postProcessShader->setInt("screenTexture", 0);
+    postProcessShader->setFloat("exposure", exposure);
 
     // Draw the fullscreen triangle/quad
     glDisable(GL_DEPTH_TEST);

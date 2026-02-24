@@ -7,6 +7,7 @@
 #include <AI/AI.hpp>
 #include <UI/AI_UI.hpp>
 
+#include "RenderPipeline/PostProcess.hpp"
 #include "UI/FileExplorer.hpp"
 
 void Outliner::Render(Level &lvl) {
@@ -423,6 +424,11 @@ void Outliner::popupForErrorsAndWarning()
 }
 void Outliner::debugOptions()
 {
+    //post process variables
+    auto postProcess = EngineState::state->postProcess;
+    ImGui::Text("----POST PROCESS----");
+        ImGui::DragFloat("Exposure##PostProcessExposure", &postProcess->getExposure());
+    ImGui::Text("---------------------");
 
     if(EngineState::state->playerControllers.size() > 0)
     {

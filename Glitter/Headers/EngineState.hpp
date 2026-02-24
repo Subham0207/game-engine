@@ -19,6 +19,8 @@ namespace AI
     class AI;
 }
 
+class PostProcess;
+
 class EngineState{
 public:
     EngineState();
@@ -77,6 +79,8 @@ public:
     LuaEngine* luaEngine = new LuaEngine();
 
     EventBus bus = EventBus();
+
+    PostProcess* postProcess = nullptr;
 };
 
 ProjectAsset::UIState& getUIState();

@@ -23,12 +23,15 @@ public:
         );
 
     void attachFBO();
+    float& getExposure(){return exposure;}
 
 private:
     unsigned int fbo;
     unsigned int rbo;
     unsigned int screenTexture;
     Shader* postProcessShader;
+
+    float exposure = 1.0f;
 
     void renderFullscreenTriangle();
 };
