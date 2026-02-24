@@ -43,7 +43,7 @@ void Camera::setupView()
 void Camera::setupProjection()
 {
     float aspect = (float)mWidth / (float)mHeight;
-    projection = glm::perspective(glm::radians(fov),  aspect, 0.001f, 1000.0f);
+    projection = glm::perspective(glm::radians(fov),  aspect, 0.1f, 1000.0f);
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
