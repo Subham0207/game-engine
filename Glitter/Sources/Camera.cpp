@@ -36,14 +36,11 @@ glm::vec3 Camera::getRight()
 
 void Camera::setupView()
 {
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 }
 
 void Camera::setupProjection()
 {
-    float aspect = (float)mWidth / (float)mHeight;
-    projection = glm::perspective(glm::radians(fov),  aspect, 0.1f, 1000.0f);
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
@@ -91,8 +88,9 @@ void Camera::onMouseMove(const MouseMoveEvent& e)
         return;
 }
 
-void Camera::tick(glm::vec3 playerPos, glm::vec3 playerRot)
+void Camera::tick()
 {
-    //most likely we don't need this since we will call this in Character derived class itself after assigning position of camera.
-    lookAt(playerPos);
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    float aspect = (float)mWidth / (float)mHeight;
+    projection = glm::perspective(glm::radians(fov),  aspect, 0.1f, 1000.0f);
 }

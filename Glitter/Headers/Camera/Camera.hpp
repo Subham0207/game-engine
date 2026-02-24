@@ -34,7 +34,7 @@ Camera();
 
 	virtual void onMouseMove(const MouseMoveEvent& e);
 
-	void tick(glm::vec3 playerPos, glm::vec3 playerRot);
+	void tick();
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);

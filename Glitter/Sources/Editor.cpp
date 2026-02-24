@@ -227,7 +227,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         });
 
         //delta time -- making things time dependent
-        auto activeCamera = &InputHandler::currentInputHandler->m_Camera;
+        auto activeCamera = InputHandler::currentInputHandler->m_Camera;
         float currentFrame = glfwGetTime();
         float deltaTime = currentFrame - EngineState::state->lastFrame;
         EngineState::state->deltaTime = deltaTime;
@@ -241,7 +241,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
             // *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
             if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
             {
-                *activeCamera = character->camera;
+                activeCamera = character->camera;
+                ClientHandler::clientHandler->inputHandler->m_Camera = activeCamera;
             }
 
             //TODO: Remove below code after removing syncTransformationToPhysicsEntity() from Model class. And handle this functionality in same way as Character class does.
@@ -280,7 +281,9 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         //glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        cubeMap->Draw((*activeCamera)->viewMatrix(), (*activeCamera)->projectionMatrix(), *backgroundShader);
+        activeCamera->tick();
+
+        cubeMap->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix(), *backgroundShader);
 
         for(auto &i: lights->pointLights)
         {
@@ -330,10 +333,10 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         else
         {
             if(getUIState().renderNavMesh)
-            getActiveLevel().renderDebugNavMesh(*activeCamera);
+            getActiveLevel().renderDebugNavMesh(activeCamera);
         }
 
-        // getActiveLevel().renderLevelvertices(*activeCamera);
+        // getActiveLevel().renderLevelvertices(activeCamera);
 
         getActiveLevel().tickAIs(EngineState::state->deltaTime);
 
@@ -357,7 +360,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
             shadowPass,
             lightingPass,
             lvlrenderables,
-            *activeCamera,
+            activeCamera,
             lights,
             cubeMap,
             deltaTime
@@ -365,7 +368,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         for(int i=0;i<getActiveLevel().textSprites.size();i++)
         {
-            getActiveLevel().textSprites.at(i)->RenderText3D((*activeCamera)->viewMatrix(), (*activeCamera)->projectionMatrix());
+            getActiveLevel().textSprites.at(i)->RenderText3D(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
         }
 
 
@@ -382,7 +385,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         auto getSelectedIndex = outliner->GetSelectedIndex();
         rayCastshader->use();
-        (*activeCamera)->updateMVP(rayCastshader->ID);
+        activeCamera->updateMVP(rayCastshader->ID);
         auto view = InputHandler::currentInputHandler->m_Camera->viewMatrix();
         auto proj = InputHandler::currentInputHandler->m_Camera->projectionMatrix();
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
@@ -401,7 +404,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
 
         if(getSelectedIndex > -1)
-        lvlrenderables[getSelectedIndex]->imguizmoManipulate((*activeCamera)->viewMatrix(), ((*activeCamera)->projectionMatrix()));
+        lvlrenderables[getSelectedIndex]->imguizmoManipulate(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
 
         //Render the outliner
         outliner->Render(*lvl);
