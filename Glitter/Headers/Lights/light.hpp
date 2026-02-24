@@ -8,7 +8,6 @@
 #include <GLFW/glfw3.h>
 class Model;
 class Shader;
-class Camera;
 class CubeMap;
 class Lights;
 
@@ -52,7 +51,7 @@ public:
 		std::string colorUniform,
 		std::string intensityUniform);
 
-	void evaluateShadowMap(GLFWwindow* window, float deltaTime, Camera* activeCamera, Lights *lights, CubeMap *cubeMap);
+	void evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO);
 private:
 	void setupShadowObjects();
 };
@@ -106,7 +105,7 @@ public:
 	);
 
 	void setupShadowObjects();
-	void evaluateShadowMap(GLFWwindow* window, float deltaTime);
+	void evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO);
 };
 
 class PointLight: public BaseLight {
@@ -142,7 +141,7 @@ public:
 		std::string diffuseUniform,
 		std::string intensityUniform);
 	
-	void evaluateShadowMap(GLFWwindow* window, float deltaTime);
+	void evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO);
 private:
 	void setupShadowObjects();
 };

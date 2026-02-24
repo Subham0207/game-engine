@@ -71,7 +71,7 @@ void DirectionalLight::attachShaderUniforms(
     glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), intensity);
 }
 
-void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Camera* activeCamera, Lights *lights, CubeMap *cubeMap)
+void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO)
 {
     glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
@@ -120,7 +120,7 @@ void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, Ca
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "Shadow FBO incomplete!" << std::endl;
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
@@ -257,7 +257,7 @@ void SpotLight::setupShadowObjects()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SpotLight::evaluateShadowMap(GLFWwindow *window, float deltaTime)
+void SpotLight::evaluateShadowMap(GLFWwindow *window, float deltaTime, unsigned int FBO)
 {
     glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
@@ -314,7 +314,7 @@ void SpotLight::evaluateShadowMap(GLFWwindow *window, float deltaTime)
         }
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
@@ -348,7 +348,7 @@ void PointLight::attachShaderUniforms(
     glUniform1f(glGetUniformLocation(shaderId, intensityUniform.c_str()), this->intensity);
 }
 
-void PointLight::evaluateShadowMap(GLFWwindow* window, float deltaTime)
+void PointLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO)
 {
     glCullFace(GL_FRONT);
     auto lvlrenderables = getActiveLevel().renderables;
@@ -414,7 +414,7 @@ void PointLight::evaluateShadowMap(GLFWwindow* window, float deltaTime)
     }
 
     // 7) Restore default FBO and viewport
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);

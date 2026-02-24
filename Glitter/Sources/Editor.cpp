@@ -48,6 +48,9 @@
 #include "Event/EventBus.hpp"
 #include "Event/EventQueue.hpp"
 #include "Event/InputContext.hpp"
+#include "RenderPipeline/LightingPass.hpp"
+#include "RenderPipeline/PostProcess.hpp"
+#include "RenderPipeline/ShadowPass.hpp"
 
 
 int Editor::openEditor(std::string enginePath, std::string projectDir) {
@@ -209,6 +212,10 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(Shared::glDebugOutput, nullptr);
 
+    ShadowPass shadowPass(mWindow, lights);
+    LightingPass lightingPass{};
+    PostProcess postProcess{};
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
 
@@ -265,9 +272,11 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
             getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
         }
 
+        postProcess.attachFBO();
+
         // Background Fill Color
-        glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         cubeMap->Draw((*activeCamera)->viewMatrix(), (*activeCamera)->projectionMatrix(), *backgroundShader);
 
@@ -342,23 +351,15 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
             }
         }
 
-        lights->directionalLights[0].evaluateShadowMap(mWindow, deltaTime, *activeCamera, lights, cubeMap);
-        lights->spotLights[0].evaluateShadowMap(mWindow, deltaTime);
-
-        for(auto& light : lights->pointLights)
-            light.evaluateShadowMap(mWindow, deltaTime);
-
-        // render the model
-        for(int i=0;i<lvlrenderables.size();i++)
-        {
-            if(lvlrenderables.at(i)->ShouldRender())
-            {
-                lvlrenderables.at(i)->useAttachedShader();
-                glActiveTexture(GL_TEXTURE0 + 9);
-                glBindTexture(GL_TEXTURE_2D, lights->directionalLights[0].shadowMap);
-                lvlrenderables[i]->draw(EngineState::state->deltaTime, *activeCamera, lights, cubeMap);
-            }
-        }
+        postProcess.draw(
+            shadowPass,
+            lightingPass,
+            lvlrenderables,
+            *activeCamera,
+            lights,
+            cubeMap,
+            deltaTime
+            );
 
         for(int i=0;i<getActiveLevel().textSprites.size();i++)
         {
