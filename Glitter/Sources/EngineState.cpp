@@ -25,7 +25,12 @@ void EngineState::setCurrentActiveProjectDir(std::string value)
 
 fs::path EngineState::navIntoProjectDir(std::string path)
 {
-    return fs::path(state->currentActiveProjectDirectory) / path;
+    auto filePath = fs::path(state->currentActiveProjectDirectory) / path;
+    auto parentPath = filePath.parent_path();
+    if (!fs::exists(parentPath)) {
+            fs::create_directories(parentPath);
+    }
+    return filePath;
 }
 
 fs::path EngineState::navIntoEnginDir(std::string path)

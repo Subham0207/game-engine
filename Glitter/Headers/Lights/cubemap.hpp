@@ -16,6 +16,7 @@ public:
     CubeMap(std::string location){
         this->hdrTexture = loadHDR(location);
     }
+    void writeTextureToDisk(int width, int height, unsigned int textureId, bool isMipmapped, bool is2D, std::string name);
     void Draw(glm::mat4 view,  glm::mat4 projection, Shader backgroundShader)
     {
         // glActiveTexture(GL_TEXTURE0);
@@ -217,6 +218,10 @@ public:
 
         glDeleteFramebuffers(1, &captureFBO);
         glDeleteRenderbuffers(1, &captureRBO);
+
+        writeTextureToDisk(32,32, irradianceMap, false, false, "irradiance");
+        writeTextureToDisk(128,128, prefilterMap, true, false, "prefilter");
+        writeTextureToDisk(512,512, brdfLUTTexture, false, true, "brdfLUT");
     }
     void renderCube()
     {
