@@ -15,8 +15,9 @@ void CubeMap::writeTextureToDisk(int width, int height, unsigned int textureId, 
         glBindTexture(GL_TEXTURE_2D, textureId);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, data);
 
-        auto path = EngineState::navIntoProjectDir("Assets/IBL/brdf_lut.hdr"s);;
-        stbi_write_hdr(path.string().c_str(), width, height, 3, data);
+        const std::string brdfPath = "Assets"s + "/IBL/"s + name + "_brdf_lut.hdr";
+        auto filename = EngineState::navIntoProjectDir(brdfPath);
+        stbi_write_hdr(filename.string().c_str(), width, height, 3, data);
 
         delete[] data;
         return;
@@ -40,7 +41,7 @@ void CubeMap::writeTextureToDisk(int width, int height, unsigned int textureId, 
                           GL_FLOAT,
                           data);
 
-            auto path = "Assets"s + "/IBL/"s + name + "_"
+            const auto path = "Assets"s + "/IBL/"s + name + "_"
                                    + std::to_string(mip) + "_face_"s + std::to_string(face) + ".hdr"s;
             auto filename = EngineState::navIntoProjectDir(path);
 
