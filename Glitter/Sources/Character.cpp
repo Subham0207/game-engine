@@ -125,11 +125,6 @@ void Character::updateFinalBoneMatrix(float deltatime)
     if(animator != nullptr)
     {
         auto transforms = animator->GetFinalBoneMatrices();
-        for (int i = 0; i < transforms.size(); ++i)
-        {
-            // Apply finalBoneMatrix to GPU
-            setFinalBoneMatrix(i, transforms[i]);
-        }
 
         // Apply finalBoneMatrix to CPU mesh as well since we use CPU based selection; TODO: Later add this to a flag so we can switch to other selection methods
         // each vertex has info which bone is influencing it and its position
@@ -153,24 +148,18 @@ void Character::updateFinalBoneMatrix(float deltatime)
             }
         }
     }
-    else{
-        //MAXBONES 100
-        for (int i = 0; i < 100; ++i)
-        {
-            glm::mat4 identityMatrix = glm::mat4(1.0f);
-            setFinalBoneMatrix(i, identityMatrix);
-        }
-    }
 
     //For Debuggging
-    if(model != nullptr)
-    {
-        model->shader->setInt("displayBoneIndex", getUIState().selectedBoneId);
-    }
+    // if(model != nullptr)
+    // {
+    //     model->shader->setInt("displayBoneIndex", getUIState().selectedBoneId);
+    // }
 }
 
 void Character::drawGeometryOnly(float deltaTime)
 {
+    uploadBoneMatricesToGPU();
+
     if(model)
     model->drawGeometryOnly(deltaTime);
 }
@@ -193,6 +182,8 @@ glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::W
 
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
+    uploadBoneMatricesToGPU();
+
     if(model)
     {
         model->draw(deltaTime, camera, lights, cubeMap);
@@ -265,14 +256,34 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
     }
 }
 
-void Character::useAttachedShader()
+void Character::setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const
 {
-    model->useAttachedShader();
+    for (auto & mesh : model->meshes)
+    {
+        mesh.mMaterial->GetShader()->setMat4("finalBonesMatrices[" + std::to_string(boneIndex) + "]", transform);
+    }
 }
 
-void Character::setFinalBoneMatrix(int boneIndex, glm::mat4 transform)
+
+void Character::uploadBoneMatricesToGPU() const
 {
-    model->shader->setMat4("finalBonesMatrices[" + std::to_string(boneIndex) + "]", transform);
+    if (animator != nullptr)
+    {
+        const auto transforms = animator->GetFinalBoneMatrices();
+        for (int boneIndex = 0; boneIndex < transforms.size(); ++boneIndex)
+        {
+            setFinalBoneMatrix(boneIndex, transforms[boneIndex]);
+        }
+    }
+    else
+    {
+        for (int boneIndex = 0; boneIndex < 100; ++boneIndex)
+        {
+            auto identityMatrix = glm::mat4(1.0f);
+            setFinalBoneMatrix(boneIndex, identityMatrix);
+        }
+    }
+
 }
 
 void Character::physicsUpdate()
@@ -331,7 +342,8 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertShaderPath = engineFSPath / "Shaders/basic.vert";
     auto fragShaderPath = engineFSPath / "Shaders/pbr.frag";
-    model->shader = new Shader(vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
+    auto material = std::make_shared<Materials::Material>(vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
+    //TODO: how to use this material and still be able to assign materialInstances to meshes.
     model->load(model_location.parent_path(), model_guid);
     this->model = model;
 

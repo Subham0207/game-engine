@@ -353,12 +353,6 @@ void Outliner::manageModels()
         getUIState().showOpenButton = false;
         getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::saveModel;
     }
-    if(ImGui::Button("Load a Model"))
-    {
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = true;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::loadModel;
-    }
 }
 void Outliner::manageAnimationsForSelectedModel()
 {

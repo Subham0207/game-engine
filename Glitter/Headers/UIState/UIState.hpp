@@ -5,7 +5,7 @@
 #include <ImGuizmo.h>
 #include <Renderable/renderable.hpp>
 #include <UI/Blendspace2DUI.hpp>
-#include <Modals/material.hpp>
+#include <Materials/IMaterial.hpp>
 
 namespace fs = std::filesystem;
 
@@ -66,7 +66,7 @@ namespace ProjectAsset {
 
         // Details of ModelType selection window
         std::string modelfileName="";
-        std::vector<std::shared_ptr<Modals::Material>> materials;
+        std::vector<std::shared_ptr<Materials::IMaterial>> materials;
         std::string saveAsFileName = "";
 
         std::vector<Animation*> animations;

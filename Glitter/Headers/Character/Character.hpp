@@ -61,8 +61,6 @@ public:
 
     virtual ModelType getModelType() override {return model->modeltype;}
 
-    void useAttachedShader() override;
-
     void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override;
 
     std::vector<Mesh>* getMeshes() override{
@@ -84,7 +82,7 @@ public:
         return model->LoadTexture(filePath, textureType);
     }
 
-    std::vector<std::shared_ptr<Modals::Material>> getMaterials() override
+    std::vector<std::shared_ptr<Materials::IMaterial>> getMaterials() override
     {
         return model->getMaterials();
     }
@@ -204,7 +202,8 @@ private:
 
     bool started = false;
 
-    void setFinalBoneMatrix(int boneIndex, glm::mat4 transform);
+    void setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const;
+    void uploadBoneMatricesToGPU() const;
 
 
     friend class boost::serialization::access;

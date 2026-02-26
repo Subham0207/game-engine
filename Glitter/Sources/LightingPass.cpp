@@ -16,7 +16,6 @@ void LightingPass::draw(
     {
         if(renderables.at(i)->ShouldRender())
         {
-            renderables.at(i)->useAttachedShader();
             //TODO: to also attach shadowMap of other light sources. And update the shader accordingly
             glActiveTexture(GL_TEXTURE0 + 9);
             glBindTexture(GL_TEXTURE_2D, lightSystem->directionalLights[0].shadowMap);

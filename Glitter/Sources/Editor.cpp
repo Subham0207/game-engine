@@ -349,7 +349,6 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
                 {
                     if(character->animator)
                     {
-                        character->useAttachedShader();
                         character->updateFinalBoneMatrix(deltaTime);
                     }
                 }

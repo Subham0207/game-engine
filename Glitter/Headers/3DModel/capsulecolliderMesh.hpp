@@ -12,7 +12,7 @@ class CapsuleColliderModel: public Renderable{
         void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
         void drawGeometryOnly(float deltaTime) override {};
 
-        std::vector<std::shared_ptr<Modals::Material>> getMaterials() override;
+        std::vector<std::shared_ptr<Materials::IMaterial>> getMaterials() override;
 
         void imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix) override
         {

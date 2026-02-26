@@ -14,7 +14,6 @@ CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
 
 void CapsuleColliderModel::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
-    model->useAttachedShader();
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     model->draw(deltaTime, camera, lights, cubeMap);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -25,7 +24,7 @@ void CapsuleColliderModel::reGenerateCapsuleColliderMesh(float radius, float hal
     model = createCapsuleModel(radius, halfheight); //TODO: add destructor to Model class.
 }
 
-std::vector<std::shared_ptr<Modals::Material>> CapsuleColliderModel::getMaterials()
+std::vector<std::shared_ptr<Materials::IMaterial>> CapsuleColliderModel::getMaterials()
 {
     return model->getMaterials();
 }
@@ -143,8 +142,9 @@ std::shared_ptr<Model> CapsuleColliderModel::createCapsuleModel(float radius, fl
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/staticShader.vert";
     auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-    model->shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
-    model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices));
+    auto material =  std::make_shared<Materials::Material>(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+    //TODO: how do still be able to pass
+    model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices,material));
     return model;
 }
 

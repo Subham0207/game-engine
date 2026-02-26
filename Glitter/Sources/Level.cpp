@@ -167,7 +167,7 @@ void Level::renderLevelvertices(Camera *camera)
     glm::mat4 mvp = projection * view * glm::mat4(1.0f);  
     lvlVerticesShader->setMat4("uMVP", mvp);
     lvlVerticesShader->setVec3("uColor", glm::vec3(0.0f, 0.3f, 0.0f));
-    lvlVerticesMesh->Draw(lvlVerticesShader);
+    lvlVerticesMesh->DrawOnlyGeometry();
 }
 
 void Level::renderDebugNavMesh(Camera *camera)
@@ -178,7 +178,7 @@ void Level::renderDebugNavMesh(Camera *camera)
     glm::mat4 mvp = projection * view * glm::mat4(1.0f);  
     debugNavMeshShader->setMat4("uMVP", mvp);
     debugNavMeshShader->setVec3("uColor", glm::vec3(0.0f, 0.3f, 0.0f));
-    debugNavMesh->Draw(debugNavMeshShader);
+    debugNavMesh->DrawOnlyGeometry();
 }
 
 void Level::tickAIs(float deltaTime)
@@ -226,8 +226,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/basic.vert";
     auto fragPath = engineFSPath / "Shaders/pbr.frag";
-    auto shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
-    model->shader = shader;
+    auto material = std::make_shared<Materials::Material>(vertPath.string(), fragPath.string());
 
     model->load(modelParentPath, characterPrefab.modelGuid);
     character->model = model;

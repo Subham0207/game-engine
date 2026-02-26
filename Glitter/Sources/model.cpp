@@ -16,6 +16,10 @@
 #include <Physics/box.hpp>
 #include <Modals/3DModelType.hpp>
 
+#include "Materials/MaterialInstance.hpp"
+#include "Materials/Material.hpp"
+#include "Materials/TextureUnits.hpp"
+
 // using namespace std;
 namespace fs = std::filesystem;
 
@@ -25,6 +29,23 @@ void Model::loadModel(
     int* m_BoneCounter,
     std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 {
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+
+    std::shared_ptr<Materials::Material> material;
+
+    if(m_BoneInfoMap && m_BoneCounter)
+    {
+        const auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
+        const auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
+        material = std::make_shared<Materials::Material>(vertPath, fragPath);
+    }
+    else
+    {
+        auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
+        auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
+        material = std::make_shared<Materials::Material>(vertPath, fragPath);
+    }
+    //material->Bind(); // But the texture units are not initialized yet.
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -36,7 +57,7 @@ void Model::loadModel(
     directory = path.substr(0, path.find_last_of('/'));
 
 
-    processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
+    processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter, material);
 
     if(onModelComponentsLoad)
     onModelComponentsLoad(&import, scene);
@@ -90,7 +111,7 @@ std::shared_ptr<ProjectModals::Texture> Model::processEmbeddedTexture(const aiSc
             }
         }
     }
-    return shared_ptr<ProjectModals::Texture>(nullptr);
+    return {nullptr};
 }
 
 std::shared_ptr<ProjectModals::Texture> Model::loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType)
@@ -133,19 +154,20 @@ void Model::processNode(
     aiNode* node,
      const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter)
+    int* m_BoneCounter,
+    std::shared_ptr<Materials::Material> material)
 {
     for(unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         // Store the information about a mesh
         // that we can comprehend right now and push into an array
-        meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter));
+        meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter, material));
     }
 
     for(unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        processNode(node->mChildren[i], scene, m_BoneInfoMap, m_BoneCounter);
+        processNode(node->mChildren[i], scene, m_BoneInfoMap, m_BoneCounter, material);
     }
 }
 
@@ -153,7 +175,8 @@ Mesh Model::processMesh(
     aiMesh* mesh,
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter)
+    int* m_BoneCounter,
+    std::shared_ptr<Materials::Material> material)
 {
    std::vector<ProjectModals::Vertex> vertices;
    std::vector<unsigned int>indices;
@@ -240,7 +263,7 @@ Mesh Model::processMesh(
         Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
     }
 
-    auto justMesh = Mesh(vertices, indices);
+    auto justMesh = Mesh(vertices, indices, std::make_shared<Materials::MaterialInstance>(material));
 
     //3. process materials
     // What if there are no textures found there is no reason to error out on that case
@@ -254,43 +277,43 @@ Mesh Model::processMesh(
         aiTextureType_METALNESS
     };
 
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    aiMaterial* ai_material = scene->mMaterials[mesh->mMaterialIndex];
     // if (justMesh.material) {
     //     justMesh.material.reset();
     // }
     try
     {
-        justMesh.material = std::make_shared<Modals::Material>();
+        auto& textureUnits = justMesh.mMaterial->GetTextureUnits();
         for (aiTextureType type : textureTypes) {
-            if (!justMesh.material) { 
+            if (!justMesh.mMaterial) {
                 break; 
             } 
             switch (type)
             {
                 case aiTextureType_DIFFUSE:
-                    justMesh.material->albedo = processEmbeddedTexture(scene, material, type);
+                    textureUnits.albedo = processEmbeddedTexture(scene, ai_material, type);
                     break;
                 case aiTextureType_SPECULAR:
-                    justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
+                    textureUnits.roughness = processEmbeddedTexture(scene, ai_material, type);
                     break;
                 case aiTextureType_NORMALS:
-                    justMesh.material->normal = processEmbeddedTexture(scene, material, type);
+                    textureUnits.normal = processEmbeddedTexture(scene, ai_material, type);
                     break;
                 case aiTextureType_DIFFUSE_ROUGHNESS:
-                    justMesh.material->roughness = processEmbeddedTexture(scene, material, type);
+                    textureUnits.roughness = processEmbeddedTexture(scene, ai_material, type);
                     break;
                 case aiTextureType_AMBIENT_OCCLUSION:
-                    justMesh.material->ao = processEmbeddedTexture(scene, material, type);
+                    textureUnits.ao = processEmbeddedTexture(scene, ai_material, type);
                     break;
                 case aiTextureType_METALNESS:
-                    justMesh.material->metalness = processEmbeddedTexture(scene, material, type);
+                    textureUnits.metalness = processEmbeddedTexture(scene, ai_material, type);
                     break;
                 default:
                     break;
             }
         }
     
-        materials.push_back(justMesh.material);
+        materials.push_back(justMesh.mMaterial);
 
     }catch(std::exception &e)
     {
@@ -323,7 +346,7 @@ void Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type)
 void Model::drawGeometryOnly(float deltaTime)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
-        meshes[i].Draw(shader);
+        meshes[i].DrawOnlyGeometry();
 }
 
 std::vector<unsigned int> Model::GetIndices()
@@ -398,16 +421,9 @@ void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
 void Model::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     bindCubeMapTextures(cubeMap);
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(lights->directionalLights[0].dirLightVP));
-    camera->updateMVP(shader->ID);
-    updateModelAndViewPosMatrix(camera);
-
-    if(modeltype == ModelType::ACTUAL_MODEL)
-    lights->Render(shader->ID);
 
 	for (unsigned int i = 0; i < meshes.size(); i++)
-		meshes[i].Draw(shader);
-
+		meshes[i].Draw(camera, lights, modeltype, modelMatrix);
 
     if(physicsObject)
     {
@@ -433,18 +449,6 @@ void Model::bindCubeMapTextures(CubeMap *cubeMap)
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap->prefilterMap);
     glActiveTexture(GL_TEXTURE0+8);
     glBindTexture(GL_TEXTURE_2D, cubeMap->brdfLUTTexture);
-}
-
-void Model::updateModelAndViewPosMatrix(Camera* camera)
-{
-    auto cameraPosition = camera->getPosition();
-    shader->setMat4("model", this->modelMatrix);
-    glUniform3f(glGetUniformLocation(shader->ID, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
-}
-
-void Model::useAttachedShader()
-{
-    shader->use();
 }
 
 aiAABB *Model::GetBoundingBox()
@@ -501,7 +505,7 @@ void Model::imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
     glm::value_ptr(viewMatrix),
     glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(modelMatrix));
 }
-void Model::loadFromFile(const std::string &filename, Model &model)
+void Model::loadFromFile(const std::string &filename, Model &model, std::shared_ptr<Materials::Material>& material)
 {
 
     try
@@ -515,7 +519,7 @@ void Model::loadFromFile(const std::string &filename, Model &model)
         std::cout << "Exception while opening the model file: " << e.what();
     }
 
-    Model::initOnGPU(&model);
+    Model::initOnGPU(&model, material);
 }
 
 void UpdateEngineStateWithFoundTexture(aiTextureType type)
@@ -556,19 +560,17 @@ void Model::LoadA3DModel(
     modeltype = ModelType::ACTUAL_MODEL;
     if(isSkinned)
     {
-        auto vertPath = engineFSPath / "Shaders/basic.vert";
-        auto fragPath = engineFSPath / "Shaders/pbr.frag";
-        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
-        shader->use();
-        processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter);
+        auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
+        auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
+        auto material = std::make_shared<Materials::Material>(vertPath, fragPath);
+        processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter, material);
     }
     else
     {
-        auto vertPath = engineFSPath / "Shaders/staticShader.vert";
-        auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-        shader = new Shader(vertPath.u8string().c_str(), fragPath.u8string().c_str());
-        shader->use();
-        processNode(scene->mRootNode, scene, nullptr, nullptr);
+        auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
+        auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
+        auto material = std::make_shared<Materials::Material>(vertPath, fragPath);
+        processNode(scene->mRootNode, scene, nullptr, nullptr, material);
     }
 
 
@@ -584,21 +586,7 @@ int* m_BoneCounter,
 std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 : Serializable()
 {
-    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    modeltype = ModelType::ACTUAL_MODEL; 
-    if(m_BoneInfoMap && m_BoneCounter)
-    {
-        auto vertPath = engineFSPath / "Shaders/basic.vert";
-        auto fragPath = engineFSPath / "Shaders/pbr.frag";
-        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
-    }
-    else
-    {
-        auto vertPath = engineFSPath / "Shaders/staticShader.vert";
-        auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-        shader = new Shader(vertPath.u8string().c_str(), fragPath.u8string().c_str());
-    }
-    shader->use();
+    modeltype = ModelType::ACTUAL_MODEL;
     loadModel(path, m_BoneInfoMap, m_BoneCounter, std::move(onModelComponentsLoad));
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -614,23 +602,21 @@ void Model::saveContent(fs::path contentFile, std::ostream& os)
 
 void Model::loadContent(fs::path contentFile, std::istream& is)
 {
+    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto vertPath = engineFSPath / "Shaders/staticShader.vert";
+    auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+    auto material = std::make_shared<Materials::Material>(
+        vertPath.string(), fragPath.string());
+
     modeltype = ModelType::ACTUAL_MODEL;
-    Model::loadFromFile(contentFile.string(), *this);
+    Model::loadFromFile(contentFile.string(), *this, material);
 
-    //For character class shader used is different and is handled in character loadContent.
-    if(!shader)
-    {
-        auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-        auto vertPath = engineFSPath / "Shaders/staticShader.vert";
-        auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-        shader =  new Shader(vertPath.u8string().c_str(),fragPath.u8string().c_str());
-    }
 
-    if(physicsBodyType != "")
+    if(!physicsBodyType.empty())
         this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
 }
 
-void Model::initOnGPU(Model* model)
+void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material)
 {
     //Load textures to GPU
     //Read from the filenames that need to be loaded
@@ -652,7 +638,7 @@ void Model::initOnGPU(Model* model)
 
    for (size_t i = 0; i < model->meshes.size(); i++) {
         // Ensure mesh and material exist
-        if(model->meshes[i].material){
+        if(model->meshes[i].mMaterial){
             
             // Helper lambda to find and assign the ID
             auto assign_id = [&](std::shared_ptr<ProjectModals::Texture>& texturePtr) {
@@ -675,13 +661,13 @@ void Model::initOnGPU(Model* model)
                 }
             };
 
-            auto material = model->meshes[i].material;
+            auto material = model->meshes[i].mMaterial;
 
-            if (material->albedo)    assign_id(material->albedo);
-            if (material->ao)        assign_id(material->ao);
-            if (material->metalness) assign_id(material->metalness);
-            if (material->normal)    assign_id(material->normal);
-            if (material->roughness) assign_id(material->roughness);
+            if (material->GetTextureUnits().albedo)    assign_id(material->GetTextureUnits().albedo);
+            if (material->GetTextureUnits().ao)        assign_id(material->GetTextureUnits().ao);
+            if (material->GetTextureUnits().metalness) assign_id(material->GetTextureUnits().metalness);
+            if (material->GetTextureUnits().normal)    assign_id(material->GetTextureUnits().normal);
+            if (material->GetTextureUnits().roughness) assign_id(material->GetTextureUnits().roughness);
         }
     }
     

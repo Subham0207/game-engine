@@ -23,10 +23,9 @@ public:
     virtual glm::vec3 GetScale() = 0;
     virtual std::string getName() = 0;
     virtual std::shared_ptr<ProjectModals::Texture> LoadTexture(std::string filePath, aiTextureType textureType) = 0;
-    virtual std::vector<std::shared_ptr<Modals::Material>> getMaterials() = 0;
+    virtual std::vector<std::shared_ptr<Materials::IMaterial>> getMaterials() = 0;
     virtual void setModelMatrix(glm::mat4 matrix) {}
     virtual void setFileName(std::string filename) {}
-    virtual void useAttachedShader() {};
     virtual ~Renderable() = default;
     virtual bool ShouldRender() {return true;}; // implment this method and return false for debug meshes.
     virtual ModelType getModelType() = 0;

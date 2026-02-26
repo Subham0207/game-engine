@@ -9,13 +9,16 @@
 #include "3DModel/Skeleton/AnimData.hpp"
 #include "GLFW/glfw3.h"
 #include <map>
-#include <Modals/material.hpp>
+#include <Materials/IMaterial.hpp>
 #include <Lights/cubemap.hpp>
 #include <Renderable/renderable.hpp>
 #include <Lights/light.hpp>
 #include <Serializable.hpp>
 #include <functional>
 #include <boost/serialization/shared_ptr.hpp>
+
+#include "Materials/Material.hpp"
+#include "Modals/texture.hpp"
 
 enum ModelType;
 
@@ -58,10 +61,6 @@ public:
     virtual ModelType getModelType() override {return modeltype;}
 
     void bindCubeMapTextures(CubeMap *cubeMap);
-
-    void updateModelAndViewPosMatrix(Camera* camera);
-
-    void useAttachedShader() override;
 
     bool ShouldRender() override;
 
@@ -144,7 +143,7 @@ public:
     }
 
 
-    std::vector<std::shared_ptr<Modals::Material>> getMaterials() override
+    std::vector<std::shared_ptr<Materials::IMaterial>> getMaterials() override
     {
         return materials;
     }
@@ -155,13 +154,13 @@ public:
     
     void static saveSerializedModel(std::string filename, Model &model);
 
-    void static loadFromFile(const std::string &filename, Model &model);
+    void static loadFromFile(const std::string &filename, Model &model, std::shared_ptr<Materials::Material>& material);
 
     void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
     void syncTransformationToPhysicsEntity() override;
     void physicsUpdate() override;
 
-    void static initOnGPU(Model* model);
+    void static initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material);
 
     const std::string contentName() override { return filename;}
     const std::string typeName() const override {return "model";}
@@ -180,11 +179,10 @@ public:
     ModelType modeltype;
     bool isSelected = false;
 
-    Shader* shader;
     std::vector<Mesh> meshes;
     
     std::string filename;
-    std::vector<std::shared_ptr<Modals::Material>> materials;
+    std::vector<std::shared_ptr<Materials::IMaterial>> materials;
     std::vector<std::shared_ptr<ProjectModals::Texture>> textureIds;
 private:
     std::string directory;
@@ -204,7 +202,8 @@ private:
     aiNode* node,
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter);
+    int* m_BoneCounter,
+    std::shared_ptr<Materials::Material> material);
 
     std::shared_ptr<ProjectModals::Texture> processEmbeddedTexture(const aiScene* scene, aiMaterial* material, aiTextureType type);
     
@@ -212,7 +211,8 @@ private:
     aiMesh* mesh,
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
-    int* m_BoneCounter);
+    int* m_BoneCounter,
+    std::shared_ptr<Materials::Material> material);
 
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
 

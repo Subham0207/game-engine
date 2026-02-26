@@ -2,7 +2,7 @@
 #include <imgui.h>
 #include "EngineState.hpp"
 #include <Helpers/window3d.hpp>
-#include <Modals/material.hpp>
+#include <Materials/IMaterial.hpp>
 
 void UI::renderMaterialManagerComponent()
 {
@@ -17,27 +17,27 @@ void UI::renderMaterialManagerComponent()
         int textureIndex = 2; // This is just for UI purposes
 
         ImGui::Text("Albedo");
-        UI::UpdateOrDisplayTexture(materials[i]->albedo,
+        UI::UpdateOrDisplayTexture(materials[i]->GetTextureUnits().albedo,
         i,textureIndex,ProjectAsset::FileTypeOperation::albedoTexture);
 
         ImGui::Text("Normal");
         ImGui::SameLine();
-        UI::UpdateOrDisplayTexture( materials[i]->normal,
+        UI::UpdateOrDisplayTexture( materials[i]->GetTextureUnits().normal,
         i,textureIndex+1,ProjectAsset::FileTypeOperation::normalTexture);
 
         ImGui::Text("Metalness");
         ImGui::SameLine();
-        UI::UpdateOrDisplayTexture( materials[i]->metalness,
+        UI::UpdateOrDisplayTexture( materials[i]->GetTextureUnits().metalness,
         i,textureIndex+2,ProjectAsset::FileTypeOperation::metalnessTexture);
 
         ImGui::Text("Roughness");
         ImGui::SameLine();
-        UI::UpdateOrDisplayTexture( materials[i]->roughness,
+        UI::UpdateOrDisplayTexture( materials[i]->GetTextureUnits().roughness,
         i,textureIndex+3,ProjectAsset::FileTypeOperation::roughnessTexture);
 
         ImGui::Text("AO");
         ImGui::SameLine();
-        UI::UpdateOrDisplayTexture( materials[i]->ao,
+        UI::UpdateOrDisplayTexture( materials[i]->GetTextureUnits().ao,
         i,textureIndex+4,ProjectAsset::FileTypeOperation::aoTexture);
     }
 }

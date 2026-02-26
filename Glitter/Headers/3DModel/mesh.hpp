@@ -20,19 +20,24 @@
 #include <boost/serialization/base_object.hpp>
 
 #include <Modals/vertex.hpp>
-#include <Modals/material.hpp>
+#include "Materials/IMaterial.hpp"
+#include "Materials/MaterialInstance.hpp"
 
-    class Mesh {
+enum ModelType;
+class Camera;
+class Lights;
+class Mesh {
     public:
         // mesh data
         std::vector<ProjectModals::Vertex>       vertices;
         std::vector<unsigned int> indices;
 
-        std::shared_ptr<Modals::Material> material{};
+        std::shared_ptr<Materials::IMaterial> mMaterial;
 
         Mesh()=default;
-        Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices);
-        void Draw(Shader* shader);
+        Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Materials::IMaterial> material);
+        void DrawOnlyGeometry();
+        void Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix);
         void setupMesh();
 
         std::vector<ProjectModals::Vertex> GetWorldVertices();
@@ -48,6 +53,6 @@
         void serialize(Archive &ar, const unsigned int version) {
             ar & vertices;
             ar & indices;
-            ar & material;
+            ar & mMaterial;
         }
     };

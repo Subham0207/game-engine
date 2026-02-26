@@ -196,7 +196,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE);
-                            getUIState().materials[getUIState().materialIndex]->albedo = texture;
+                            getUIState().materials[getUIState().materialIndex]->GetTextureUnits().albedo = texture;
                             showUI = false;                      
                         }
                         break;
@@ -206,7 +206,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_NORMALS);
-                            getUIState().materials[getUIState().materialIndex]->normal = texture;
+                            getUIState().materials[getUIState().materialIndex]->GetTextureUnits().normal = texture;
                             showUI = false;                      
                         }
                         break;
@@ -216,7 +216,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_METALNESS);
-                            getUIState().materials[getUIState().materialIndex]->metalness = texture;
+                            getUIState().materials[getUIState().materialIndex]->GetTextureUnits().metalness = texture;
                             showUI = false;                      
                         }
                         break;
@@ -226,7 +226,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_DIFFUSE_ROUGHNESS);
-                            getUIState().materials[getUIState().materialIndex]->roughness = texture;
+                            getUIState().materials[getUIState().materialIndex]->GetTextureUnits().roughness = texture;
                             showUI = false;                      
                         }
                         break;
@@ -236,15 +236,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                             break;
                             auto texture = getActiveLevel().renderables[getUIState().selectedRenderableIndex]
                             ->LoadTexture(getUIState().filePath, aiTextureType_AMBIENT_OCCLUSION);
-                            getUIState().materials[getUIState().materialIndex]->ao = texture;
-                            showUI = false;                      
-                        }
-                        break;
-                    case FileTypeOperation::loadModel:
-                        {
-                            auto renderable = std::make_shared<Model>();
-                            Model::loadFromFile(getUIState().filePath, *renderable);
-                            getActiveLevel().addRenderable(renderable);
+                            getUIState().materials[getUIState().materialIndex]->GetTextureUnits().ao = texture;
                             showUI = false;                      
                         }
                         break;

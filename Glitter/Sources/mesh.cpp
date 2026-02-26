@@ -1,104 +1,40 @@
 #include "3DModel/mesh.hpp"
 #include <EngineState.hpp>
+#include <Camera/Camera.hpp>
+#include "Modals/3DModelType.hpp"
 
-Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices)
+Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Materials::IMaterial> material)
 {
     this->vertices = vertices;
     this->indices = indices;
 
     setupMesh();
+
+    mMaterial = material;
 }
 
-void Mesh::Draw(Shader* shader)
+void Mesh::DrawOnlyGeometry()
 {
-    // if(textureIds->size() == 0)
-    // {
-    //     shader->setBool("useTexture", false);
-    // }
-    // else{
-    // shader->setBool("useTexture", true);
-    // }
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}
 
-    const std::vector<aiTextureType> textureTypes = {
-        aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_METALNESS,
-        aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_AMBIENT_OCCLUSION
-    };
+void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix)
+{
+    auto shaderProgramId = mMaterial->GetShader()->ID;
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(lightSystem->directionalLights[0].dirLightVP));
+    camera->updateMVP(shaderProgramId);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    for(unsigned int i = 0;i < textureTypes.size(); i++)
-    {
-        switch (textureTypes[i])
-        {
-            case aiTextureType_DIFFUSE:
-            {
-                glActiveTexture(GL_TEXTURE0 + 1);
-                if(material &&  material->albedo)
-                {
-                    glBindTexture(GL_TEXTURE_2D, material->albedo->id);
-                }
-                else{
-                    glBindTexture(GL_TEXTURE_2D, getUIState().whiteAOTextureID);                    
-                }
-                break;
-            }
-            case aiTextureType_NORMALS:
-            {
-                glActiveTexture(GL_TEXTURE0 + 2);
-                if(material &&  material->normal)
-                {
-                    glBindTexture(GL_TEXTURE_2D, material->normal->id);
-                }
-                else{
-                    glBindTexture(GL_TEXTURE_2D, getUIState().flatNormalTextureID); 
-                }
-                break;
-            }
-            case aiTextureType_METALNESS:
-            {
-                glActiveTexture(GL_TEXTURE0 + 3);
-                if(material &&  material->metalness)
-                {
-                    glBindTexture(GL_TEXTURE_2D, material->metalness->id);
-                }
-                else{
-                    glBindTexture(GL_TEXTURE_2D, getUIState().whiteAOTextureID);                    
-                }
-                break;
-            }
-            case aiTextureType_DIFFUSE_ROUGHNESS:
-            {
-                glActiveTexture(GL_TEXTURE0 + 4);
-                if(material &&  material->roughness)
-                {
-                    glBindTexture(GL_TEXTURE_2D, material->roughness->id);
-                }
-                else{
-                    glBindTexture(GL_TEXTURE_2D, getUIState().whiteAOTextureID);                    
-                }
-                break;
-            }
-            case aiTextureType_AMBIENT_OCCLUSION:
-            {
-                glActiveTexture(GL_TEXTURE0 + 5);
-                if(material &&  material->ao)
-                {
-                    glBindTexture(GL_TEXTURE_2D, material->ao->id);
-                }
-                else{
-                    glBindTexture(GL_TEXTURE_2D, getUIState().whiteAOTextureID);                    
-                }
-                break;
-            }
-            default:
-                break;
-        }
-    }
+    auto cameraPosition = camera->getPosition();
+    mMaterial->GetShader()->setMat4("model", modelMatrix);
+    glUniform3f(glGetUniformLocation(shaderProgramId, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
 
-    // I don't need to active texture 0 again ?? Why was I doing this ?
-    // glActiveTexture(GL_TEXTURE0);
+    if(modelType == ModelType::ACTUAL_MODEL)
+        lightSystem->Render(shaderProgramId);
 
-    // draw meshs
+    mMaterial->Bind();
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
