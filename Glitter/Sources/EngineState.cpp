@@ -39,3 +39,17 @@ fs::path EngineState::navIntoEnginDir(std::string path)
 }
 
 EngineState* EngineState::state = nullptr;
+
+void EngineState::GenerateDefaultMaterials()
+{
+    auto vertPath = fs::path(engineInstalledDirectory) / "Shaders/staticShader.vert";
+    auto fragPath = fs::path(engineInstalledDirectory) / "Shaders/staticShader.frag";
+    defaultMaterial = std::make_shared<Materials::Material>("DefaultMaterial", vertPath.string(), fragPath.string());
+    auto& textureUnits = defaultMaterial->GetTextureUnits();
+    textureUnits.albedo->id = getUIState().nonMetalicTextureID;
+    textureUnits.normal->id = getUIState().flatNormalTextureID;
+    textureUnits.metalness->id = getUIState().nonMetalicTextureID;
+    textureUnits.roughness->id = getUIState().whiteAOTextureID;
+    textureUnits.ao->id = getUIState().whiteAOTextureID;
+    defaultMaterialInstance = std::make_shared<Materials::MaterialInstance>("defaultMaterialInstance", defaultMaterial) ;
+}

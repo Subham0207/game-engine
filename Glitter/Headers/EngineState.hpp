@@ -57,6 +57,8 @@ public:
         std::cout << "mat[3]: " << mat[3][0] <<" "<< mat[3][1] <<" "<< mat[3][2] << " " << mat[3][3] << std::endl;
     }
 
+    void GenerateDefaultMaterials();
+
     LimitedVector<std::string> errorStack = LimitedVector<std::string>(1000);
     LimitedVector<std::string> warningStack = LimitedVector<std::string>(1000);
     LimitedVector<std::string> successStack = LimitedVector<std::string>(1000);
@@ -81,6 +83,9 @@ public:
     EventBus bus = EventBus();
 
     PostProcess* postProcess = nullptr;
+
+    std::shared_ptr<Materials::Material> defaultMaterial;
+    std::shared_ptr<Materials::MaterialInstance> defaultMaterialInstance;
 };
 
 ProjectAsset::UIState& getUIState();

@@ -145,9 +145,10 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
     //Generate textureIds for Some Default texture
     getUIState().metalicTextureID = Shared::generateMetallicTexture();
-    getUIState().nonMetalicTextureID = Shared::generateMetallicTexture();
+    getUIState().nonMetalicTextureID = Shared::generateNonMetallicTexture();
     getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
     getUIState().flatNormalTextureID= Shared::generateFlatNormalTexture();
+    EngineState::state->GenerateDefaultMaterials();
 
 
     //Create different shaders for the each model

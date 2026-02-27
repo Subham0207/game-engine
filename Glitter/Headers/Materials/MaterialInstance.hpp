@@ -4,21 +4,21 @@
 
 #ifndef GLITTER_MATERIALINSTANCE_HPP
 #define GLITTER_MATERIALINSTANCE_HPP
+#pragma once
 #include <map>
-
 #include "IMaterial.hpp"
 #include "TextureUnits.hpp"
 #include "Material.hpp"
 
 namespace Materials
 {
-    class MaterialInstance: public IMaterial, public Serializable
+    class MaterialInstance: public IMaterial
     {
     public:
         std::string GetClassId() const override{return "MaterialInstance";}
 
         MaterialInstance()=default;
-        MaterialInstance(const std::shared_ptr<Material>& material);
+        MaterialInstance(std::string filename, const std::shared_ptr<Material>& material);
         ~MaterialInstance() override= default;
         void Bind() override;
         [[nodiscard]] Shader* GetShader() const override;

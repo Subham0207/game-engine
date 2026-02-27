@@ -11,10 +11,13 @@
 #include "Helpers/Shared.hpp"
 namespace bs = boost::property_tree;
 
+std::map<std::string, std::shared_ptr<Materials::MaterialInstance>> Materials::MaterialInstance::loadedMaterialInstances;
+
 namespace Materials
 {
-    MaterialInstance::MaterialInstance(const std::shared_ptr<Material>& material)
+    MaterialInstance::MaterialInstance(std::string filename, const std::shared_ptr<Material>& material)
     {
+        mFilename = filename;
         mParentMaterial = material;
         if (mParentMaterial) {
             textureUnits = mParentMaterial->GetTextureUnits();
@@ -51,6 +54,9 @@ namespace Materials
 
     void MaterialInstance::saveContent(fs::path contentFileLocation, std::ostream& os)
     {
+        if (mParentMaterial == nullptr || mParentMaterialAssetGuid.empty())
+            return;
+
         bs::ptree root;
         // 1. Save Textures as a JSON Array
         bs::ptree textureNode;
@@ -65,6 +71,7 @@ namespace Materials
             textureNode.push_back(std::make_pair("", texEntry));
         };
 
+        //Handle when the the textureUnits are not assigned. In that case we use Default Ids setup by the engine.
         putTexturesInJson("albedo", textureUnits.albedo->name);
         putTexturesInJson("normal", textureUnits.normal->name);
         putTexturesInJson("metalness", textureUnits.metalness->name);

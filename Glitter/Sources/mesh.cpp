@@ -1,6 +1,8 @@
 #include "3DModel/mesh.hpp"
 #include <EngineState.hpp>
 #include <Camera/Camera.hpp>
+
+#include "Helpers/Shared.hpp"
 #include "Modals/3DModelType.hpp"
 
 Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Materials::IMaterial> material)
@@ -22,18 +24,20 @@ void Mesh::DrawOnlyGeometry()
 
 void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix)
 {
-    auto shaderProgramId = mMaterial->GetShader()->ID;
+    auto resolvedMaterial = mMaterial != nullptr ? mMaterial: EngineState::state->defaultMaterialInstance;
+
+    auto shaderProgramId = resolvedMaterial->GetShader()->ID;
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(lightSystem->directionalLights[0].dirLightVP));
     camera->updateMVP(shaderProgramId);
 
     auto cameraPosition = camera->getPosition();
-    mMaterial->GetShader()->setMat4("model", modelMatrix);
+    resolvedMaterial->GetShader()->setMat4("model", modelMatrix);
     glUniform3f(glGetUniformLocation(shaderProgramId, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
 
     if(modelType == ModelType::ACTUAL_MODEL)
         lightSystem->Render(shaderProgramId);
 
-    mMaterial->Bind();
+    resolvedMaterial->Bind();
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -86,6 +90,24 @@ void Mesh::setupMesh()
     glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex),(void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_Weights));   
 
     glBindVertexArray(0);
+}
+
+void Mesh::setupMaterial()
+{
+    if(materialAssetGuid.empty())
+    {
+       return;
+    }
+
+    auto file = fs::path(getEngineRegistryFilesMap()[materialAssetGuid]).string();
+    if (Shared::endsWith(file, ".material"))
+    {
+        mMaterial = Materials::Material::loadMaterial(materialAssetGuid);
+    }
+    if (Shared::endsWith(file, ".materialInstance"))
+    {
+        mMaterial = Materials::MaterialInstance::loadMaterialInstance(materialAssetGuid);
+    }
 }
 
 std::vector<ProjectModals::Vertex> Mesh::GetWorldVertices()

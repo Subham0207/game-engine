@@ -142,7 +142,7 @@ std::shared_ptr<Model> CapsuleColliderModel::createCapsuleModel(float radius, fl
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/staticShader.vert";
     auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-    auto material =  std::make_shared<Materials::Material>(vertPath.u8string().c_str(),fragPath.u8string().c_str());
+    auto material =  std::make_shared<Materials::Material>("capsule", vertPath.u8string().c_str(),fragPath.u8string().c_str());
     //TODO: how do still be able to pass
     model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices,material));
     return model;

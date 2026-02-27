@@ -11,6 +11,8 @@
 #include "Helpers/Shared.hpp"
 namespace bs = boost::property_tree;
 
+std::map<std::string, std::shared_ptr<Materials::Material>> Materials::Material::loadedMaterials;
+
 namespace Materials
 {
     Material::Material(std::string filename, const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
@@ -70,6 +72,7 @@ namespace Materials
             textureNode.push_back(std::make_pair("", texEntry));
         };
 
+        //Handle texture units being empty, In which case we use default setup by the engine.
         putTexturesInJson("albedo", textureUnits.albedo->name);
         putTexturesInJson("normal", textureUnits.normal->name);
         putTexturesInJson("metalness", textureUnits.metalness->name);

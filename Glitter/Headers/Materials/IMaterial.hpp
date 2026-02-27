@@ -4,12 +4,13 @@
 
 #ifndef GLITTER_IMATERIAL_HPP
 #define GLITTER_IMATERIAL_HPP
+#include "Serializable.hpp"
 #include "TextureUnits.hpp"
 #include "Helpers/shader.hpp"
 
 namespace Materials
 {
-    class IMaterial {
+    class IMaterial: public Serializable {
     public:
         virtual ~IMaterial() = default;
         virtual void Bind() = 0; // The Mesh calls this before drawing

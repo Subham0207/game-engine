@@ -29,6 +29,7 @@ void Model::loadModel(
     int* m_BoneCounter,
     std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 {
+    directory = path.substr(0, path.find_last_of('/'));
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
 
     std::shared_ptr<Materials::Material> material;
@@ -37,13 +38,13 @@ void Model::loadModel(
     {
         const auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
         const auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
-        material = std::make_shared<Materials::Material>(vertPath, fragPath);
+        material = std::make_shared<Materials::Material>(directory, vertPath, fragPath);
     }
     else
     {
         auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
         auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
-        material = std::make_shared<Materials::Material>(vertPath, fragPath);
+        material = std::make_shared<Materials::Material>(directory, vertPath, fragPath);
     }
     //material->Bind(); // But the texture units are not initialized yet.
     Assimp::Importer import;
@@ -54,7 +55,6 @@ void Model::loadModel(
         std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
         return;
     }
-    directory = path.substr(0, path.find_last_of('/'));
 
 
     processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter, material);
@@ -81,6 +81,12 @@ void Model::saveSerializedModel(std::string filename, Model &model)
     boost::archive::text_oarchive oa(ofs);
     oa << model;
     ofs.close();
+
+    for (auto mesh : model.meshes)
+    {
+        mesh.mMaterial->save(dir);
+    }
+
     //Texture-ids needs to  generated again
     //They will need to bound again to GPU
 }
@@ -162,7 +168,8 @@ void Model::processNode(
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         // Store the information about a mesh
         // that we can comprehend right now and push into an array
-        meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter, material));
+        auto materialInstance = std::make_shared<Materials::MaterialInstance>(directory + std::to_string(i), material);
+        meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter, materialInstance));
     }
 
     for(unsigned int i = 0; i < node->mNumChildren; i++)
@@ -176,7 +183,7 @@ Mesh Model::processMesh(
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter,
-    std::shared_ptr<Materials::Material> material)
+    std::shared_ptr<Materials::MaterialInstance> materialInstance)
 {
    std::vector<ProjectModals::Vertex> vertices;
    std::vector<unsigned int>indices;
@@ -263,7 +270,7 @@ Mesh Model::processMesh(
         Helpers::ExtractBoneWeightForVertices(vertices,mesh,scene, *m_BoneInfoMap, *m_BoneCounter);
     }
 
-    auto justMesh = Mesh(vertices, indices, std::make_shared<Materials::MaterialInstance>(material));
+    auto justMesh = Mesh(vertices, indices, materialInstance);
 
     //3. process materials
     // What if there are no textures found there is no reason to error out on that case
@@ -556,20 +563,21 @@ void Model::LoadA3DModel(
     int* m_BoneCounter
     )
 {
+    filename = fs::path(path).filename().string();
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     modeltype = ModelType::ACTUAL_MODEL;
     if(isSkinned)
     {
         auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
         auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
-        auto material = std::make_shared<Materials::Material>(vertPath, fragPath);
+        auto material = std::make_shared<Materials::Material>(filename, vertPath, fragPath);
         processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter, material);
     }
     else
     {
         auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
         auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
-        auto material = std::make_shared<Materials::Material>(vertPath, fragPath);
+        auto material = std::make_shared<Materials::Material>(filename, vertPath, fragPath);
         processNode(scene->mRootNode, scene, nullptr, nullptr, material);
     }
 
@@ -577,7 +585,6 @@ void Model::LoadA3DModel(
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
-    filename = fs::path(path).filename().string();
 }
 
 Model::Model(std::string path,
@@ -605,8 +612,7 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/staticShader.vert";
     auto fragPath = engineFSPath / "Shaders/staticShader.frag";
-    auto material = std::make_shared<Materials::Material>(
-        vertPath.string(), fragPath.string());
+    auto material = std::make_shared<Materials::Material>("Material",vertPath.string(), fragPath.string());
 
     modeltype = ModelType::ACTUAL_MODEL;
     Model::loadFromFile(contentFile.string(), *this, material);
@@ -624,53 +630,11 @@ void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& materi
     {
         //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
         model->meshes[i].setupMesh();
+        model->meshes[i].setupMaterial();
 
         //Attach correct texture to each meshes;
         //model.meshes[i].albedo.Filename = model.textureIds.findTexture(model.meshes[i].albedo.Filename)
     }
-    for (size_t i = 0; i < model->textureIds.size(); i++)
-    {
-        //Just need to generate new textureIds for the texture
-        int width, height, nrComponents;
-        unsigned char* data = stbi_load(model->textureIds[i]->name.c_str(), &width, &height, &nrComponents, 0);
-        model->textureIds[i]->id = Shared::sendTextureToGPU(data, width, height, nrComponents);
-    }
-
-   for (size_t i = 0; i < model->meshes.size(); i++) {
-        // Ensure mesh and material exist
-        if(model->meshes[i].mMaterial){
-            
-            // Helper lambda to find and assign the ID
-            auto assign_id = [&](std::shared_ptr<ProjectModals::Texture>& texturePtr) {
-                if (texturePtr) {
-                    // Find the matching texture in the global textureIds vector by name
-                    auto it = std::find_if(
-                        model->textureIds.begin(),
-                        model->textureIds.end(),
-                        [&](const std::shared_ptr<ProjectModals::Texture>& globalTexturePtr) {
-                            // Check if the global texture pointer is valid and the names match
-                            return globalTexturePtr && globalTexturePtr->name == texturePtr->name;
-                        }
-                    );
-
-                    // If a match is found, assign the ID
-                    if (it != model->textureIds.end()) {
-                        texturePtr->id = (*it)->id;
-                    }
-                    // Optional: Handle case where texture name is not found, e.g., set ID to 0 or log a warning
-                }
-            };
-
-            auto material = model->meshes[i].mMaterial;
-
-            if (material->GetTextureUnits().albedo)    assign_id(material->GetTextureUnits().albedo);
-            if (material->GetTextureUnits().ao)        assign_id(material->GetTextureUnits().ao);
-            if (material->GetTextureUnits().metalness) assign_id(material->GetTextureUnits().metalness);
-            if (material->GetTextureUnits().normal)    assign_id(material->GetTextureUnits().normal);
-            if (material->GetTextureUnits().roughness) assign_id(material->GetTextureUnits().roughness);
-        }
-    }
-    
 }
 
 bool Model::ShouldRender() {

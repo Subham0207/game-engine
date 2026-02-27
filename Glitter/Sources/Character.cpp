@@ -342,7 +342,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertShaderPath = engineFSPath / "Shaders/basic.vert";
     auto fragShaderPath = engineFSPath / "Shaders/pbr.frag";
-    auto material = std::make_shared<Materials::Material>(vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
+    auto material = std::make_shared<Materials::Material>("material", vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
     //TODO: how to use this material and still be able to assign materialInstances to meshes.
     model->load(model_location.parent_path(), model_guid);
     this->model = model;

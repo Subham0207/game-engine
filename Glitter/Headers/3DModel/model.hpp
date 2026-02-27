@@ -212,7 +212,7 @@ private:
     const aiScene* scene,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter,
-    std::shared_ptr<Materials::Material> material);
+    std::shared_ptr<Materials::MaterialInstance> materialInstance);
 
     void loadMaterialTextures(aiMaterial* mat, aiTextureType type);
 
@@ -225,7 +225,6 @@ private:
     void serialize(Archive &ar, const unsigned int version) {
         ar & meshes;
         ar & modelMatrix;
-        ar & materials;
         ar & textureIds;
         ar & directory;
         ar & physicsBodyType;

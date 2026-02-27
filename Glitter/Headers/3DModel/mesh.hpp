@@ -32,6 +32,7 @@ class Mesh {
         std::vector<ProjectModals::Vertex>       vertices;
         std::vector<unsigned int> indices;
 
+        std::string materialAssetGuid;
         std::shared_ptr<Materials::IMaterial> mMaterial;
 
         Mesh()=default;
@@ -39,6 +40,7 @@ class Mesh {
         void DrawOnlyGeometry();
         void Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix);
         void setupMesh();
+        void setupMaterial();
 
         std::vector<ProjectModals::Vertex> GetWorldVertices();
         std::vector<unsigned int> GetIndices();
@@ -53,6 +55,6 @@ class Mesh {
         void serialize(Archive &ar, const unsigned int version) {
             ar & vertices;
             ar & indices;
-            ar & mMaterial;
+            ar & materialAssetGuid;
         }
     };

@@ -4,15 +4,15 @@
 
 #ifndef GLITTER_MATERIAL_HPP
 #define GLITTER_MATERIAL_HPP
+#pragma once
 #include <map>
-
 #include "IMaterial.hpp"
 #include "Serializable.hpp"
 #include "TextureUnits.hpp"
 
 namespace Materials
 {
-    class Material: public IMaterial, public Serializable
+    class Material: public IMaterial
     {
     public:
         Material()=default;
