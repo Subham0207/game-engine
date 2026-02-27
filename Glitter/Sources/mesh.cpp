@@ -26,6 +26,7 @@ void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::m
 {
     auto resolvedMaterial = mMaterial != nullptr ? mMaterial: EngineState::state->defaultMaterialInstance;
 
+    resolvedMaterial->Bind();
     auto shaderProgramId = resolvedMaterial->GetShader()->ID;
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(lightSystem->directionalLights[0].dirLightVP));
     camera->updateMVP(shaderProgramId);
@@ -37,7 +38,6 @@ void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::m
     if(modelType == ModelType::ACTUAL_MODEL)
         lightSystem->Render(shaderProgramId);
 
-    resolvedMaterial->Bind();
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
