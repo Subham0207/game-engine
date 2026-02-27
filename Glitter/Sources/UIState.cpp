@@ -4,6 +4,8 @@
 #include <UI/PropertiesPanel.hpp>
 #include <UI/AI_UI.hpp>
 
+#include "UI/materialManager.hpp"
+
 ProjectAsset::UIState::UIState()
 {
     characterUIState = new UI::CharacterUI();
@@ -13,4 +15,5 @@ ProjectAsset::UIState::UIState()
     ai = nullptr;
     renderNavMesh = false;
     ai_ui_state = new UI::AI_UI();
+    materialManagerUI = new UI::MaterialManagerUI();
 }

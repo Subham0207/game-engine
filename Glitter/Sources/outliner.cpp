@@ -47,6 +47,7 @@ void Outliner::Render(Level &lvl) {
     ImGui::End();
 
     getUIState().characterUIState->draw();
+    getUIState().materialManagerUI->draw();
 
     if(getUIState().blendspace2DUIState->showBlendspaceUI)
     {
@@ -353,6 +354,15 @@ void Outliner::manageModels()
         getUIState().showOpenButton = false;
         getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::saveModel;
     }
+
+    if (ImGui::Button("Open material manager"))
+    {
+        getUIState().materialManagerUI->setShowUi(true);
+    }
+    if (ImGui::Button("Create new material"))
+    {
+        getUIState().materialManagerUI->setShowMaterialUI(true);
+    }
 }
 void Outliner::manageAnimationsForSelectedModel()
 {
@@ -497,8 +507,6 @@ void Outliner::ModelAndTextureSelectionWindow()
             getUIState().showOpenButton = true;
             getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::importModelFile;
         }
-
-        UI::renderMaterialManagerComponent();
 
         if(ImGui::Button("Done##1"))
         {
