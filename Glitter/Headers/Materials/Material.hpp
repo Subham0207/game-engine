@@ -7,14 +7,16 @@
 #include <map>
 
 #include "IMaterial.hpp"
+#include "Serializable.hpp"
 #include "TextureUnits.hpp"
 
 namespace Materials
 {
-    class Material: public IMaterial
+    class Material: public IMaterial, public Serializable
     {
     public:
-        Material(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath);
+        Material()=default;
+        Material(std::string filename, const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath);
 
         ~Material() override;
 
@@ -24,17 +26,26 @@ namespace Materials
 
         TextureUnits& GetTextureUnits() override;
 
+        std::string GetClassId()const override{return "Material";};
+
+        static std::shared_ptr<Material> loadMaterial(std::string guid);
+
+    protected:
+        const std::string typeName() const override {return "material"; }
+        const std::string contentName() override {return mFilename; }
+
+        void saveContent(fs::path contentFileLocation, std::ostream& os) override;
+        void loadContent(fs::path contentFileLocation, std::istream& is) override;
+
     private:
+        std::string mFilename;
         TextureUnits textureUnits;
+
+        std::string mVertexShaderPath;
+        std::string mFragmentShaderPath;
         std::unique_ptr<Shader> mShaderProgram;
 
-        static std::map<std::string, std::shared_ptr<Material>> assetIdToRefMap;
-
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive &ar, const unsigned int version) {
-            ar & textureUnits;
-        }
+        static std::map<std::string, std::shared_ptr<Material>> loadedMaterials;
     };
 }
 

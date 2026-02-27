@@ -12,27 +12,33 @@
 
 namespace Materials
 {
-    class MaterialInstance: public IMaterial
+    class MaterialInstance: public IMaterial, public Serializable
     {
     public:
+        std::string GetClassId() const override{return "MaterialInstance";}
+
+        MaterialInstance()=default;
         MaterialInstance(const std::shared_ptr<Material>& material);
         ~MaterialInstance() override= default;
         void Bind() override;
         [[nodiscard]] Shader* GetShader() const override;
         TextureUnits& GetTextureUnits() override;
 
+        static std::shared_ptr<MaterialInstance> loadMaterialInstance(std::string guid);
+    protected:
+        const std::string typeName() const override {return "materialInstance"; }
+        const std::string contentName() override {return mFilename; }
+
+        void saveContent(fs::path contentFileLocation, std::ostream& os) override;
+        void loadContent(fs::path contentFileLocation, std::istream& is) override;
     private:
+        std::string mFilename;
         TextureUnits textureUnits;
+
+        std::string mParentMaterialAssetGuid;
         std::shared_ptr<Material> mParentMaterial;
 
-        static std::map<std::string, std::shared_ptr<MaterialInstance>> assetIdToRefMap;
-
-        friend class boost::serialization::access;
-        template<class Archive>
-        void serialize(Archive &ar, const unsigned int version) {
-            ar & textureUnits;
-        }
-
+        static std::map<std::string, std::shared_ptr<MaterialInstance>> loadedMaterialInstances;
     };
 }
 
