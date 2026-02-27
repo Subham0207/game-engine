@@ -16,7 +16,18 @@ namespace Materials
     {
     public:
         Material()=default;
-        Material(std::string filename, const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath);
+        Material(
+            std::string filename,
+            const std::string& vertexShaderFilePath,
+            const std::string& fragmentShaderFilePath
+            );
+
+        Material(
+            std::string filename,
+            const std::string& vertexShaderFilePath,
+            const std::string& fragmentShaderFilePath,
+            const TextureUnits& textureUnits
+            );
 
         ~Material() override;
 
@@ -39,7 +50,7 @@ namespace Materials
 
     private:
         std::string mFilename;
-        TextureUnits textureUnits;
+        TextureUnits mTextureUnits;
 
         std::string mVertexShaderPath;
         std::string mFragmentShaderPath;

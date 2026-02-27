@@ -361,7 +361,7 @@ void Outliner::manageModels()
     }
     if (ImGui::Button("Create new material"))
     {
-        getUIState().materialManagerUI->setShowMaterialUI(true);
+        getUIState().materialManagerUI->start();
     }
 }
 void Outliner::manageAnimationsForSelectedModel()

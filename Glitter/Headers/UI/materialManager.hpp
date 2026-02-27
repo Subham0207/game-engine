@@ -12,8 +12,8 @@ namespace UI{
         std::string roughnessMapLocation;
         std::string aoMapLocation;
 
-        std::string vertexShaderLocation;
-        std::string fragmentShaderLocation;
+        int selectedVertexShaderIndex;
+        int selectedFragmentShaderIndex;
     };
     class MaterialManagerUI
     {
@@ -21,13 +21,18 @@ namespace UI{
         MaterialManagerUI();
 
         void draw();
+        void start();
         void setShowUi(bool show);
         void setShowMaterialUI(bool show);
 
     private:
         std::string* operatingOnPath;
         bool showFileExplorerForMaterialEditor;
+
         MaterialUIModel materialUIModel;
+        std::vector<std::string> vertexShadersList;
+        std::vector<std::string> fragmentShadersList;
+
         Shared::EditableText materialName;
         bool showMaterialUI;
         bool firstFrame;

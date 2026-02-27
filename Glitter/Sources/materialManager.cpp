@@ -5,6 +5,7 @@
 #include <Materials/IMaterial.hpp>
 
 #include "UI/FileExplorer.hpp"
+#include "UI/Shared/ComboUI.hpp"
 
 UI::MaterialManagerUI::MaterialManagerUI()
 {
@@ -14,6 +15,7 @@ UI::MaterialManagerUI::MaterialManagerUI()
     showMaterialUI = false;
     firstFrame = false;
     showUI =  false;
+    materialName.setText("Material");
 }
 
 void UI::MaterialManagerUI::draw()
@@ -21,7 +23,7 @@ void UI::MaterialManagerUI::draw()
     if (!showMaterialUI)
         return;
 
-    if (ImGui::Begin("Material's UI", &showMaterialUI))
+    if (ImGui::Begin(materialName.value.c_str(), &showMaterialUI))
     {
         auto DrawField = [this](const char* label, std::string& path) {
             ImGui::Text("%s:", label);
@@ -44,6 +46,7 @@ void UI::MaterialManagerUI::draw()
             ImGui::Spacing();
         };
 
+        Shared::EditableTextUI("MaterialName", materialName);
         ImGui::SeparatorText("Maps");
         DrawField("Albedo", materialUIModel.albedoMapLocation);
         DrawField("Normal", materialUIModel.normalMapLocation);
@@ -52,12 +55,44 @@ void UI::MaterialManagerUI::draw()
         DrawField("AO", materialUIModel.aoMapLocation);
 
         ImGui::SeparatorText("Shaders");
-        DrawField("Vertex", materialUIModel.vertexShaderLocation);
-        DrawField("Fragment", materialUIModel.fragmentShaderLocation);
+        UI::Shared::comboUI(
+            "Vertex",
+            materialUIModel.selectedVertexShaderIndex,
+            vertexShadersList
+        );
+        UI::Shared::comboUI(
+            "Fragment",
+            materialUIModel.selectedFragmentShaderIndex,
+            fragmentShadersList
+        );
 
         ImGui::Separator();
         if (ImGui::Button("Compile Material", ImVec2(-FLT_MIN, 0))) {
             // Reload logic
+        }
+
+        ImGui::Separator();
+        if (ImGui::Button("Save Material", ImVec2(-FLT_MIN, 0))) {
+            // Save logic
+            //create a Material object and save that...
+            const Materials::TextureUnits units;
+            units.albedo->name = materialUIModel.albedoMapLocation;
+            units.normal->name = materialUIModel.normalMapLocation;
+            units.metalness->name = materialUIModel.metallicMapLocation;
+            units.roughness->name = materialUIModel.roughnessMapLocation;
+            units.ao->name = materialUIModel.aoMapLocation;
+            auto material = std::make_unique<Materials::Material>(
+                materialName.value,
+                vertexShadersList[materialUIModel.selectedVertexShaderIndex],
+                fragmentShadersList[materialUIModel.selectedFragmentShaderIndex],
+                units
+                );
+            auto dir = EngineState::state->navIntoProjectDir("Assets");
+            material->save(dir);
+
+            //cleanup
+            vertexShadersList.clear();
+            fragmentShadersList.clear();
         }
     }
     ImGui::End();
@@ -71,7 +106,7 @@ void UI::MaterialManagerUI::draw()
 
         if (ImGui::Button("Open"))
         {
-            *operatingOnPath = getUIState().currentPath;
+            *operatingOnPath = getUIState().filePath;
             //Run some validation based on the selected filepath.
             //Then Load the texture on GPU
 
@@ -81,6 +116,32 @@ void UI::MaterialManagerUI::draw()
 
     }
     ImGui::End();
+}
+
+void UI::MaterialManagerUI::start()
+{
+    std::vector<fs::path> searchPaths = {EngineState::state->engineInstalledDirectory, EngineState::state->currentActiveProjectDirectory};
+
+    for (const auto& searchPath : searchPaths) {
+        if (!fs::exists(searchPath) || !fs::is_directory(searchPath)) continue;
+
+        for (const auto& entry : fs::recursive_directory_iterator(searchPath)) {
+            if (entry.is_regular_file()) {
+                std::string ext = entry.path().extension().string();
+
+                // Check for .vert or .frag
+                if (ext == ".vert") {
+                    vertexShadersList.push_back(entry.path().string());
+                }
+                if (ext == ".frag")
+                {
+                    fragmentShadersList.push_back(entry.path().string());
+                }
+            }
+        }
+    }
+
+    showMaterialUI = true;
 }
 
 void UI::MaterialManagerUI::setShowUi(bool show)

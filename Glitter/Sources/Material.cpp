@@ -18,10 +18,21 @@ namespace Materials
     Material::Material(std::string filename, const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
     {
         mFilename = std::move(filename);
-        textureUnits = TextureUnits();
+        mTextureUnits = TextureUnits();
         mVertexShaderPath = vertexShaderFilePath;
         mFragmentShaderPath = fragmentShaderFilePath;
         mShaderProgram = std::make_unique<Shader>(vertexShaderFilePath.c_str(), fragmentShaderFilePath.c_str());
+    }
+
+    Material::Material(std::string filename, const std::string& vertexShaderFilePath,
+        const std::string& fragmentShaderFilePath, const TextureUnits& textureUnits)
+    {
+        mFilename = std::move(filename);
+        mTextureUnits = textureUnits;
+        mVertexShaderPath = vertexShaderFilePath;
+        mFragmentShaderPath = fragmentShaderFilePath;
+        mShaderProgram = std::make_unique<Shader>(vertexShaderFilePath.c_str(), fragmentShaderFilePath.c_str());
+
     }
 
     Material::~Material()
@@ -30,7 +41,7 @@ namespace Materials
 
     void Material::Bind() {
         mShaderProgram->use();
-        TextureUnits::BindTextures(textureUnits);
+        TextureUnits::BindTextures(mTextureUnits);
     }
 
     Shader* Material::GetShader() const
@@ -40,7 +51,7 @@ namespace Materials
 
     TextureUnits& Material::GetTextureUnits()
     {
-        return textureUnits;
+        return mTextureUnits;
     }
 
     std::shared_ptr<Material> Material::loadMaterial(std::string guid)
@@ -73,11 +84,11 @@ namespace Materials
         };
 
         //Handle texture units being empty, In which case we use default setup by the engine.
-        putTexturesInJson("albedo", textureUnits.albedo->name);
-        putTexturesInJson("normal", textureUnits.normal->name);
-        putTexturesInJson("metalness", textureUnits.metalness->name);
-        putTexturesInJson("roughness", textureUnits.roughness->name);
-        putTexturesInJson("ao", textureUnits.ao->name);
+        putTexturesInJson("albedo", mTextureUnits.albedo->name);
+        putTexturesInJson("normal", mTextureUnits.normal->name);
+        putTexturesInJson("metalness", mTextureUnits.metalness->name);
+        putTexturesInJson("roughness", mTextureUnits.roughness->name);
+        putTexturesInJson("ao", mTextureUnits.ao->name);
 
 
         root.add_child("Textures", textureNode);
@@ -105,11 +116,11 @@ namespace Materials
             return Shared::sendTextureToGPU(data, width, height, nrComponents);
         };
 
-        textureUnits.albedo->id = getTextureId("Textures.albedo");
-        textureUnits.normal->id = getTextureId("Textures.normal");
-        textureUnits.metalness->id = getTextureId("Textures.metalness");
-        textureUnits.roughness->id = getTextureId("Textures.roughness");
-        textureUnits.ao->id = getTextureId("Textures.ao");
+        mTextureUnits.albedo->id = getTextureId("Textures.albedo");
+        mTextureUnits.normal->id = getTextureId("Textures.normal");
+        mTextureUnits.metalness->id = getTextureId("Textures.metalness");
+        mTextureUnits.roughness->id = getTextureId("Textures.roughness");
+        mTextureUnits.ao->id = getTextureId("Textures.ao");
 
         mVertexShaderPath = root.get<std::string>("Shader.vertexShaderPath");
         mFragmentShaderPath = root.get<std::string>("Shader.fragmentShaderPath");
