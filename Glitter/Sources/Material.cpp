@@ -108,23 +108,34 @@ namespace Materials
         bs::ptree root;
         bs::read_json(contentFileLocation.string(), root);
 
-        auto getTextureId = [&](const std::string& jsonKey)
+        // 1. Loop through the "Textures" array
+        if (auto texOpt = root.get_child_optional("Textures"))
         {
-            auto filePath = root.get<std::string>(jsonKey);
-            int width, height, nrComponents;
-            unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrComponents, 0);
-            return Shared::sendTextureToGPU(data, width, height, nrComponents);
-        };
+            for (auto& [key, info] : *texOpt)
+            {
+                std::string type = info.get<std::string>("type");
+                std::string path = info.get<std::string>("filepath");
 
-        mTextureUnits.albedo->id = getTextureId("Textures.albedo");
-        mTextureUnits.normal->id = getTextureId("Textures.normal");
-        mTextureUnits.metalness->id = getTextureId("Textures.metalness");
-        mTextureUnits.roughness->id = getTextureId("Textures.roughness");
-        mTextureUnits.ao->id = getTextureId("Textures.ao");
+                // Load the actual pixel data
+                int width, height, nrComponents;
+                unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
 
+                if (data != nullptr) {
+                    unsigned int id = Shared::sendTextureToGPU(data, width, height, nrComponents);
+
+                    // Assign to the correct pointer based on the "type" string
+                    if(type == "albedo")          mTextureUnits.albedo->id = id;
+                    else if (type == "normal")    mTextureUnits.normal->id = id;
+                    else if (type == "metalness") mTextureUnits.metalness->id = id;
+                    else if (type == "roughness") mTextureUnits.roughness->id = id;
+                    else if (type == "ao")        mTextureUnits.ao->id = id;
+                }
+            }
+        }
+
+        // 2. Load Shaders
         mVertexShaderPath = root.get<std::string>("Shader.vertexShaderPath");
         mFragmentShaderPath = root.get<std::string>("Shader.fragmentShaderPath");
-
         mShaderProgram = std::make_unique<Shader>(mVertexShaderPath.c_str(), mFragmentShaderPath.c_str());
     }
 }

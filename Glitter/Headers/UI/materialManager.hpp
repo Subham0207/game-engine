@@ -15,17 +15,37 @@ namespace UI{
         int selectedVertexShaderIndex;
         int selectedFragmentShaderIndex;
     };
+    struct MaterialsList
+    {
+        std::vector<std::string> materialGuids;
+        std::vector<std::string> materialNames;
+
+        void clear()
+        {
+            materialGuids.clear();
+            materialNames.clear();
+        }
+    };
     class MaterialManagerUI
     {
     public:
         MaterialManagerUI();
 
-        void draw();
-        void start();
+        void drawMaterialEditor();
+        void startMaterialEditor();
         void setShowUi(bool show);
         void setShowMaterialUI(bool show);
 
+        void startMaterialsList();
+        void drawMaterialsList();
+
     private:
+
+        //MaterialsLists
+        MaterialsList materialsList;
+        bool materialsListInitialized = false;
+
+        //MaterialEditorUI
         std::string* operatingOnPath;
         bool showFileExplorerForMaterialEditor;
 

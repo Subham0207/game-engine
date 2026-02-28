@@ -47,7 +47,7 @@ void Outliner::Render(Level &lvl) {
     ImGui::End();
 
     getUIState().characterUIState->draw();
-    getUIState().materialManagerUI->draw();
+    getUIState().materialManagerUI->drawMaterialEditor();
 
     if(getUIState().blendspace2DUIState->showBlendspaceUI)
     {
@@ -341,28 +341,23 @@ void Outliner::coordinateSystemSelectorComponent()
 }
 void Outliner::manageModels()
 {
+    ImGui::SeparatorText("Model");
     if(ImGui::Button("Import a Model"))
     {
         getUIState().loadModelWindow = true;
     }
-    if(ImGui::Button("Save a Model"))
-    {
-        //Get selected index of the model
-        //open UI to enter name of the model
-        //call saveModel function
-        getUIState().selectAFile = true;
-        getUIState().showOpenButton = false;
-        getUIState().fileTypeOperation = ProjectAsset::FileTypeOperation::saveModel;
-    }
-
     if (ImGui::Button("Open material manager"))
     {
         getUIState().materialManagerUI->setShowUi(true);
     }
     if (ImGui::Button("Create new material"))
     {
-        getUIState().materialManagerUI->start();
+        getUIState().materialManagerUI->startMaterialEditor();
     }
+    ImGui::SeparatorText("Materials");
+    getUIState().materialManagerUI->drawMaterialsList();
+
+    ImGui::Separator();
 }
 void Outliner::manageAnimationsForSelectedModel()
 {

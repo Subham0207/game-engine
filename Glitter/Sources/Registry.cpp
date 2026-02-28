@@ -56,6 +56,8 @@ std::map<std::string, std::string> Engine::Registry::loadMetaFiles(const fs::pat
 
 void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filepath)
 {
+    //TODO: refactor this code...
+
     auto suffix = ".statemachine";
     if(Shared::endsWith(filepath, suffix))
     {
@@ -90,5 +92,11 @@ void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filep
     if(Shared::endsWith(filepath, suffix))
     {
         characterPrefabMap[guid] = filepath;
+    }
+
+    suffix = ".material";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        materialFileMap[guid] = filepath;
     }
 }
