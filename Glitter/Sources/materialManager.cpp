@@ -83,7 +83,7 @@ void UI::MaterialManagerUI::drawMaterialEditor()
             units.metalness->name = materialUIModel.metallicMapLocation;
             units.roughness->name = materialUIModel.roughnessMapLocation;
             units.ao->name = materialUIModel.aoMapLocation;
-            auto material = std::make_unique<Materials::Material>(
+            auto material = materialRef ? materialRef : std::make_unique<Materials::Material>(
                 materialName.value,
                 vertexShadersList[Utils::toDataTypeIndex(materialUIModel.selectedVertexShaderIndex)],
                 fragmentShadersList[Utils::toDataTypeIndex(materialUIModel.selectedFragmentShaderIndex)],
@@ -120,7 +120,7 @@ void UI::MaterialManagerUI::drawMaterialEditor()
     ImGui::End();
 }
 
-void UI::MaterialManagerUI::startMaterialEditor()
+void UI::MaterialManagerUI::startMaterialEditor(std::shared_ptr<Materials::Material> material)
 {
     std::vector<fs::path> searchPaths = {EngineState::state->engineInstalledDirectory, EngineState::state->currentActiveProjectDirectory};
 
@@ -141,6 +141,28 @@ void UI::MaterialManagerUI::startMaterialEditor()
                 }
             }
         }
+    }
+
+    if (material)
+    {
+        materialRef = material;
+        auto findIndex = [](std::vector<std::string>& list, std::string item)
+        {
+            if (const auto it = std::find(list.begin(),list.end(),item); it != list.end())
+            {
+                return std::distance(list.begin(), it);
+            }
+            return -1LL;
+        };
+
+        materialUIModel.albedoMapLocation = material->GetTextureUnits().albedo->name;
+        materialUIModel.normalMapLocation = material->GetTextureUnits().normal->name;
+        materialUIModel.metallicMapLocation = material->GetTextureUnits().metalness->name;
+        materialUIModel.roughnessMapLocation = material->GetTextureUnits().roughness->name;
+        materialUIModel.aoMapLocation = material->GetTextureUnits().ao->name;
+
+        materialUIModel.selectedVertexShaderIndex = Utils::toUiIndex(findIndex(vertexShadersList, material->getVertexShaderPath()));
+        materialUIModel.selectedVertexShaderIndex = Utils::toUiIndex(findIndex(vertexShadersList, material->getFragmentShaderPath()));
     }
 
     showMaterialUI = true;

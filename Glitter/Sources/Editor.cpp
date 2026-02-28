@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "UI/outliner.hpp"
-#include "UI/AssetBrowser.hpp"
+#include "../Headers/UI/AssetBrowser/AssetBrowser.hpp"
 
 #include "Helpers/raypicking.hpp"
 #include <ImGuizmo.h>

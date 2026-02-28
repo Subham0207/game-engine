@@ -3,33 +3,15 @@
 #include<iostream>
 #include <string>
 #include <filesystem>
+
+#include "Asset.hpp"
+#include "AssetBrowserPopups.hpp"
 namespace fs = std::filesystem;
 
 //Note: These types are of files that can be used in the game engine.
 // So FBX is loaded and saved in a custom ModelType format and the game engine deals with these files.
 
 namespace ProjectAsset{
-    enum AssetType {
-        Directory,
-        CharacterType,
-        ModelType,
-        BlendSpaceType,
-        StateMachineType,
-        AnimationType,
-        AI,
-        png,
-        jpg,
-        Unknown
-    };
-
-    struct Asset{
-        AssetType assetType = AssetType::Unknown;
-        std::string filepath;
-        std::string filename;
-        bool isTextureIdAssigned = false;
-        unsigned int textureId;
-    };
-
     Asset* convertFilenameToAsset(fs::directory_entry entry, std::string extension);
 
 
@@ -38,6 +20,7 @@ namespace ProjectAsset{
     public:
         AssetBrowser();
         void RenderAssetBrowser();
+        void PopupWidgets();
 
         std::vector<Asset> assets;
 
@@ -50,6 +33,7 @@ namespace ProjectAsset{
         int itemsPerRow = 4;
         float padding = 10.0f;
         float itemSize = 64.0f;
+        AssetBrowsePopUps openPopup;
 
         Asset selectedAsset;
 

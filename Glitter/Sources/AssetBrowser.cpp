@@ -1,5 +1,5 @@
 #pragma once
-#include "UI/AssetBrowser.hpp"
+#include "../Headers/UI/AssetBrowser/AssetBrowser.hpp"
 #include <imgui.h>
 #include <EngineState.hpp>
 #include "Helpers/Shared.hpp"
@@ -10,6 +10,8 @@
 #include "Prefab.hpp"
 #include "UI/AI_UI.hpp"
 #include "UI/CharacterUI.hpp"
+#include "UI/materialManager.hpp"
+#include "UI/AssetBrowser/PopupsWidget.hpp"
 
 namespace ProjectAsset
 {
@@ -45,8 +47,9 @@ namespace ProjectAsset
 
 
                 ImVec2 availableSize = ImGui::GetContentRegionAvail();
-                bool openCharacterPopup = false;
-                bool openAIPopup = false;
+                openPopup.characterPrefab = false;
+                openPopup.AI = false;
+                openPopup.material = false;
                 int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
                 // List files and directories
                 if (ImGui::BeginChild("AssetGridScrollable", ImVec2(availableSize.x, availableSize.y), false, ImGuiWindowFlags_HorizontalScrollbar))
@@ -114,11 +117,15 @@ namespace ProjectAsset
                                 }
                                 else if (selectedAsset.assetType == AssetType::CharacterType)
                                 {
-                                    openCharacterPopup = true;
+                                    openPopup.characterPrefab = true;
                                 }
                                 else if (selectedAsset.assetType == AssetType::AI)
                                 {
-                                    openAIPopup = true;
+                                     openPopup.AI = true;
+                                }
+                                else if (selectedAsset.assetType == AssetType::Material)
+                                {
+                                    openPopup.material = true;
                                 }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
@@ -135,12 +142,24 @@ namespace ProjectAsset
                 }
             ImGui::EndChild();
 
+            PopupWidgets();
+
+            }
+            ImGui::End();
+    }
+
+    void AssetBrowser::PopupWidgets()
+    {
                 ImGuiID character_popup_id = ImGui::GetID("CharacterActionPopup");
                 ImGuiID ai_popup_id = ImGui::GetID("AiActionPopup");
-                if (openCharacterPopup)
+                ImGuiID material_popup_id = ImGui::GetID("MaterialPopup");
+
+                if (openPopup.characterPrefab)
                     ImGui::OpenPopup(character_popup_id);
-                if (openAIPopup)
+                if (openPopup.AI)
                     ImGui::OpenPopup(ai_popup_id);
+                if (openPopup.material)
+                    ImGui::OpenPopup(material_popup_id);
 
                 if (ImGui::BeginPopup("AiActionPopup"))
                 {
@@ -196,10 +215,9 @@ namespace ProjectAsset
                     ImGui::EndPopup();
                 }
 
-            }
-            ImGui::End();
+                PopupsWidget::MaterialActionPopup(selectedAsset);
     }
-    
+
     void AssetBrowser::LoadAssets(){
         assets.clear();
         auto dirIt = fs::directory_iterator(fs::path(currentPath));
@@ -331,6 +349,8 @@ namespace ProjectAsset
             asset->assetType = AssetType::StateMachineType;
             if(Shared::endsWith(filepath, std::string(toString(FileType::AnimationType))))
             asset->assetType = AssetType::AnimationType;
+            if(Shared::endsWith(filepath, std::string(toString(FileType::Material))))
+            asset->assetType = AssetType::Material;
         }
 
         return asset;

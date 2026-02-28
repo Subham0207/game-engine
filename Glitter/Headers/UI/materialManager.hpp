@@ -32,7 +32,7 @@ namespace UI{
         MaterialManagerUI();
 
         void drawMaterialEditor();
-        void startMaterialEditor();
+        void startMaterialEditor(std::shared_ptr<Materials::Material> material);
         void setShowUi(bool show);
         void setShowMaterialUI(bool show);
 
@@ -48,6 +48,7 @@ namespace UI{
         //MaterialEditorUI
         std::string* operatingOnPath;
         bool showFileExplorerForMaterialEditor;
+        std::shared_ptr<Materials::Material> materialRef;
 
         MaterialUIModel materialUIModel;
         std::vector<std::string> vertexShadersList;
