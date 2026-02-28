@@ -16,4 +16,5 @@ ProjectAsset::UIState::UIState()
     renderNavMesh = false;
     ai_ui_state = new UI::AI_UI();
     materialManagerUI = new UI::MaterialManagerUI();
+    materialInstanceEditorUI = new UI::MaterialInstanceEditor();
 }

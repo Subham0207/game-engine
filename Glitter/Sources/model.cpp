@@ -565,12 +565,14 @@ void Model::LoadA3DModel(
 {
     filename = fs::path(path).filename().string();
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto projectpath = fs::path(EngineState::navIntoEnginDir("Assets/"));
     modeltype = ModelType::ACTUAL_MODEL;
     if(isSkinned)
     {
         auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
         auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
         auto material = std::make_shared<Materials::Material>(filename, vertPath, fragPath);
+        material->save(projectpath);
         processNode(scene->mRootNode, scene, m_BoneInfoMap, m_BoneCounter, material);
     }
     else
@@ -578,6 +580,7 @@ void Model::LoadA3DModel(
         auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
         auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
         auto material = std::make_shared<Materials::Material>(filename, vertPath, fragPath);
+        material->save(projectpath);
         processNode(scene->mRootNode, scene, nullptr, nullptr, material);
     }
 

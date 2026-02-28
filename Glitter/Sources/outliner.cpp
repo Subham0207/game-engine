@@ -354,8 +354,13 @@ void Outliner::manageModels()
     {
         getUIState().materialManagerUI->startMaterialEditor(nullptr);
     }
+    if (ImGui::Button("Create new material instance"))
+    {
+        getUIState().materialInstanceEditorUI->start(nullptr);
+    }
     ImGui::SeparatorText("Materials");
     getUIState().materialManagerUI->drawMaterialsList();
+    getUIState().materialInstanceEditorUI->drawUI();
 
     ImGui::Separator();
 }

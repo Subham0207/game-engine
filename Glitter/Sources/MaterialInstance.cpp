@@ -18,10 +18,18 @@ namespace Materials
     MaterialInstance::MaterialInstance(std::string filename, const std::shared_ptr<Material>& material)
     {
         mFilename = filename;
-        mParentMaterial = material;
-        if (mParentMaterial) {
+        if (material) {
+            mParentMaterial = material;
             textureUnits = mParentMaterial->GetTextureUnits();
+            mParentMaterialAssetGuid = material->getAssetId();
         }
+    }
+
+    MaterialInstance::MaterialInstance(const std::string& filename, const std::string& parentMaterialGuid, const TextureUnits& units)
+    {
+        mFilename = filename;
+        mParentMaterialAssetGuid = parentMaterialGuid;
+        textureUnits = units;
     }
 
     void MaterialInstance::Bind() {

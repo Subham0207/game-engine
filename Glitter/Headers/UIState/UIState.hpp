@@ -6,6 +6,8 @@
 #include <Renderable/renderable.hpp>
 #include <UI/Blendspace2DUI.hpp>
 #include <Materials/IMaterial.hpp>
+
+#include "UI/MaterialInstanceEditor.hpp"
 namespace fs = std::filesystem;
 
 class Model;
@@ -23,6 +25,7 @@ namespace UI
     class AI_UI;
     class PropertiesPanel;
     class MaterialManagerUI;
+    class MaterialInstanceEditor;
 };
 
 namespace ProjectAsset {
@@ -93,6 +96,7 @@ namespace ProjectAsset {
         UI::StatemachineUI* statemachineUIState;
         UI::AI_UI* ai_ui_state;
         UI::MaterialManagerUI* materialManagerUI;
+        UI::MaterialInstanceEditor* materialInstanceEditorUI;
 
         UI::PropertiesPanel* propretiesPanel;
 

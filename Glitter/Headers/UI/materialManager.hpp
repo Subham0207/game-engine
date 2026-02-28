@@ -2,6 +2,7 @@
 #include <UIState/UIState.hpp>
 
 #include "Shared/EditableText.hpp"
+#include "Types/MaterialList.hpp"
 
 namespace UI{
     struct MaterialUIModel
@@ -14,17 +15,6 @@ namespace UI{
 
         int selectedVertexShaderIndex;
         int selectedFragmentShaderIndex;
-    };
-    struct MaterialsList
-    {
-        std::vector<std::string> materialGuids;
-        std::vector<std::string> materialNames;
-
-        void clear()
-        {
-            materialGuids.clear();
-            materialNames.clear();
-        }
     };
     class MaterialManagerUI
     {

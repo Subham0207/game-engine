@@ -19,13 +19,15 @@ namespace Materials
 
         MaterialInstance()=default;
         MaterialInstance(std::string filename, const std::shared_ptr<Material>& material);
+        MaterialInstance(const std::string& filename, const std::string& parentMaterialGuid, const TextureUnits& units);
         ~MaterialInstance() override= default;
         void Bind() override;
         [[nodiscard]] Shader* GetShader() const override;
         TextureUnits& GetTextureUnits() override;
+        const std::string& getParentMaterialGuid(){return mParentMaterialAssetGuid;};
 
         static std::shared_ptr<MaterialInstance> loadMaterialInstance(std::string guid);
-    protected:
+
         const std::string typeName() const override {return "materialInstance"; }
         const std::string contentName() override {return mFilename; }
 
