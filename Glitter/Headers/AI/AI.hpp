@@ -42,9 +42,9 @@ namespace AI
         {
             this->variables=vars;
         }
-    protected:
-        virtual const std::string typeName() const override {return "AI"; }
+        const std::string typeName() const override {return "AI"; }
 
+    protected:
         virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
         virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
     private:

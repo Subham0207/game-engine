@@ -17,13 +17,13 @@ class Serializable
         void setInstanceId(std::string id);
         void setAssetId(std::string id);
         virtual const std::string contentName() = 0;
+        virtual const std::string typeName()          const = 0;
 
         virtual std::string GetClassId() const = 0;
     protected:
         virtual void saveContent(fs::path contentFileLocation, std::ostream& os) = 0;
         virtual void loadContent(fs::path contentFileLocation, std::istream& is) = 0;
 
-        virtual const std::string typeName()          const = 0;
 
         void generate_asset_guid();// unqiue idenfier for serializable on disk.
         void generate_instance_guid();// unique identifier for serializable within a level.

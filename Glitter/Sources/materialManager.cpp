@@ -155,6 +155,7 @@ void UI::MaterialManagerUI::startMaterialEditor(std::shared_ptr<Materials::Mater
             return -1LL;
         };
 
+        materialName.setText(material->contentName());
         materialUIModel.albedoMapLocation = material->GetTextureUnits().albedo->name;
         materialUIModel.normalMapLocation = material->GetTextureUnits().normal->name;
         materialUIModel.metallicMapLocation = material->GetTextureUnits().metalness->name;
@@ -162,7 +163,7 @@ void UI::MaterialManagerUI::startMaterialEditor(std::shared_ptr<Materials::Mater
         materialUIModel.aoMapLocation = material->GetTextureUnits().ao->name;
 
         materialUIModel.selectedVertexShaderIndex = Utils::toUiIndex(findIndex(vertexShadersList, material->getVertexShaderPath()));
-        materialUIModel.selectedVertexShaderIndex = Utils::toUiIndex(findIndex(vertexShadersList, material->getFragmentShaderPath()));
+        materialUIModel.selectedFragmentShaderIndex = Utils::toUiIndex(findIndex(fragmentShadersList, material->getFragmentShaderPath()));
     }
 
     showMaterialUI = true;

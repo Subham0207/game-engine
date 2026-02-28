@@ -79,10 +79,10 @@ public:
     void setScrubberLocation(glm::vec2 loc){scrubberLocation = loc;}
     [[nodiscard]] glm::vec2 getScrubberLocation() const {return scrubberLocation;};
 
-protected:
-    virtual const std::string typeName() const override {return "blendspace"; }
-    virtual const std::string contentName() override {return blendspaceName; }
+    const std::string typeName() const override {return "blendspace"; }
+    const std::string contentName() override {return blendspaceName; }
 
+protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 

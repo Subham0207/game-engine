@@ -102,10 +102,10 @@ public:
 		}
 	}
 
-protected:
-    virtual const std::string typeName() const override {return "animation"; }
-    virtual const std::string contentName() override {return animationName; }
+    const std::string typeName() const override {return "animation"; }
+    const std::string contentName() override {return animationName; }
 
+protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 

@@ -108,6 +108,8 @@ namespace Materials
         bs::ptree root;
         bs::read_json(contentFileLocation.string(), root);
 
+        mFilename = contentFileLocation.filename().stem().string();
+
         // 1. Loop through the "Textures" array
         if (auto texOpt = root.get_child_optional("Textures"))
         {
@@ -122,13 +124,18 @@ namespace Materials
 
                 if (data != nullptr) {
                     unsigned int id = Shared::sendTextureToGPU(data, width, height, nrComponents);
+                    auto assign = [](const std::shared_ptr<ProjectModals::Texture>& texture, const unsigned int textureId, const std::string& path)
+                    {
+                        texture->id = textureId;
+                        texture->name = path;
+                    };
 
                     // Assign to the correct pointer based on the "type" string
-                    if(type == "albedo")          mTextureUnits.albedo->id = id;
-                    else if (type == "normal")    mTextureUnits.normal->id = id;
-                    else if (type == "metalness") mTextureUnits.metalness->id = id;
-                    else if (type == "roughness") mTextureUnits.roughness->id = id;
-                    else if (type == "ao")        mTextureUnits.ao->id = id;
+                    if(type == "albedo")          assign(mTextureUnits.albedo, id, path);
+                    else if (type == "normal")    assign(mTextureUnits.normal, id, path);
+                    else if (type == "metalness") assign(mTextureUnits.metalness, id, path);
+                    else if (type == "roughness") assign(mTextureUnits.roughness, id, path);
+                    else if (type == "ao")        assign(mTextureUnits.ao, id, path);
                 }
             }
         }

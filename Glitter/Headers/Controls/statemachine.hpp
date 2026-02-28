@@ -88,9 +88,9 @@ namespace Controls
 
             std::string GetClassId() const override { return "StateMachine"; }
             
+            const std::string typeName() const override {return "statemachine"; }
+
         protected:
-            virtual const std::string typeName() const override {return "statemachine"; }
-            
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
         private:

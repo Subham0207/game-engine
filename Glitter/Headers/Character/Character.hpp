@@ -181,10 +181,11 @@ public:
 
     Camera* camera;
     float smoothAngle(float current, float target, float t);
-protected:
-    virtual const std::string typeName() const override {return "character"; }
-    virtual const std::string contentName() override {return filename; }
 
+    const std::string typeName() const override {return "character"; }
+    const std::string contentName() override {return filename; }
+
+protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 

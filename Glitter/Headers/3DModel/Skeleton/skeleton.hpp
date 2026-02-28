@@ -163,10 +163,10 @@ namespace Skeleton {
         void draw(Camera* camera, glm::mat4 &modelMatrix);
         void setup(std::string filename);
 
-    protected:
-        virtual const std::string typeName() const override {return "skeleton"; }
-        virtual const std::string contentName() override {return filename; }
+        const std::string typeName() const override {return "skeleton"; }
+        const std::string contentName() override {return filename; }
 
+    protected:
         virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
         virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
 

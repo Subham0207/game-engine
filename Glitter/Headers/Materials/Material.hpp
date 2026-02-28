@@ -44,7 +44,6 @@ namespace Materials
         std::string getVertexShaderPath(){return mVertexShaderPath;}
         std::string getFragmentShaderPath(){return mFragmentShaderPath;}
 
-    protected:
         const std::string typeName() const override {return "material"; }
         const std::string contentName() override {return mFilename; }
 
