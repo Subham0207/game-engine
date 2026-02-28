@@ -11,6 +11,7 @@ namespace ProjectAsset
         bool characterPrefab = false;
         bool AI = false;
         bool material = false;
+        bool materialInstance = false;
     };
 }
 #endif //GLITTER_ASSETBROWSERPOPUPWIDGETS_HPP

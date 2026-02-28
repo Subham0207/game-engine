@@ -114,13 +114,13 @@ void UI::MaterialInstanceEditor::drawUI()
             units.metalness->name = materialInstanceUIModal.metallicMapLocation;
             units.roughness->name = materialInstanceUIModal.roughnessMapLocation;
             units.ao->name = materialInstanceUIModal.aoMapLocation;
-            auto material = materialInstanceRef ? materialInstanceRef : std::make_unique<Materials::MaterialInstance>(
+            auto materialInstance = materialInstanceRef ? materialInstanceRef : std::make_unique<Materials::MaterialInstance>(
                 materialInstanceName.value,
                 materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
                 units
                 );
             auto dir = EngineState::state->navIntoProjectDir("Assets");
-            material->save(dir);
+            materialInstance->save(dir);
 
             //cleanup
             materialsList.clear();

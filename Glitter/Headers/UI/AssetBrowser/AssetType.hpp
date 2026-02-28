@@ -16,6 +16,7 @@ namespace ProjectAsset
         AnimationType,
         AI,
         Material,
+        MaterialInstance,
         png,
         jpg,
         Unknown

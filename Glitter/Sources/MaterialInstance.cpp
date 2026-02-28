@@ -62,7 +62,7 @@ namespace Materials
 
     void MaterialInstance::saveContent(fs::path contentFileLocation, std::ostream& os)
     {
-        if (mParentMaterial == nullptr || mParentMaterialAssetGuid.empty())
+        if (mParentMaterialAssetGuid.empty())
             return;
 
         bs::ptree root;
@@ -97,21 +97,39 @@ namespace Materials
         bs::ptree root;
         bs::read_json(contentFileLocation.string(), root);
 
-        auto getTextureId = [&](const std::string& jsonKey)
+        mFilename = contentFileLocation.filename().stem().string();
+
+        if (auto texOpt = root.get_child_optional("Textures"))
         {
-            auto filePath = root.get<std::string>(jsonKey);
-            int width, height, nrComponents;
-            unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrComponents, 0);
-            return Shared::sendTextureToGPU(data, width, height, nrComponents);
-        };
+            for (auto& [key, info] : *texOpt)
+            {
+                std::string type = info.get<std::string>("type");
+                std::string path = info.get<std::string>("filepath");
 
-        textureUnits.albedo->id = getTextureId("Textures.albedo");
-        textureUnits.normal->id = getTextureId("Textures.normal");
-        textureUnits.metalness->id = getTextureId("Textures.metalness");
-        textureUnits.roughness->id = getTextureId("Textures.roughness");
-        textureUnits.ao->id = getTextureId("Textures.ao");
+                // Load the actual pixel data
+                int width, height, nrComponents;
+                unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
 
+                if (data != nullptr) {
+                    unsigned int id = Shared::sendTextureToGPU(data, width, height, nrComponents);
+                    auto assign = [](const std::shared_ptr<ProjectModals::Texture>& texture, const unsigned int textureId, const std::string& path)
+                    {
+                        texture->id = textureId;
+                        texture->name = path;
+                    };
 
+                    // Assign to the correct pointer based on the "type" string
+                    if(type == "albedo")          assign(textureUnits.albedo, id, path);
+                    else if (type == "normal")    assign(textureUnits.normal, id, path);
+                    else if (type == "metalness") assign(textureUnits.metalness, id, path);
+                    else if (type == "roughness") assign(textureUnits.roughness, id, path);
+                    else if (type == "ao")        assign(textureUnits.ao, id, path);
+                }
+            }
+
+            mParentMaterialAssetGuid = root.get<std::string>("parentMaterialAssetGuid");
+            mParentMaterial =  Material::loadMaterial(mParentMaterialAssetGuid);
+        }
 
     }
 }

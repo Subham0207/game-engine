@@ -11,6 +11,7 @@
 #include "UI/AI_UI.hpp"
 #include "UI/CharacterUI.hpp"
 #include "UI/materialManager.hpp"
+#include "UI/AssetBrowser/constants.hpp"
 #include "UI/AssetBrowser/PopupsWidget.hpp"
 
 namespace ProjectAsset
@@ -50,6 +51,7 @@ namespace ProjectAsset
                 openPopup.characterPrefab = false;
                 openPopup.AI = false;
                 openPopup.material = false;
+                openPopup.materialInstance = false;
                 int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
                 // List files and directories
                 if (ImGui::BeginChild("AssetGridScrollable", ImVec2(availableSize.x, availableSize.y), false, ImGuiWindowFlags_HorizontalScrollbar))
@@ -127,6 +129,10 @@ namespace ProjectAsset
                                 {
                                     openPopup.material = true;
                                 }
+                                else if (selectedAsset.assetType == AssetType::MaterialInstance)
+                                {
+                                    openPopup.materialInstance = true;
+                                }
 
                                 if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)){
                                     ImGui::SetDragDropPayload("ASSET_PATH", selectedAsset.filepath.c_str(),  selectedAsset.filepath.size() + 1);
@@ -153,6 +159,7 @@ namespace ProjectAsset
                 ImGuiID character_popup_id = ImGui::GetID("CharacterActionPopup");
                 ImGuiID ai_popup_id = ImGui::GetID("AiActionPopup");
                 ImGuiID material_popup_id = ImGui::GetID("MaterialPopup");
+                ImGuiID material_instance_popup_id = ImGui::GetID(UI::MATERIAL_INSTANCE_POPUP.c_str());
 
                 if (openPopup.characterPrefab)
                     ImGui::OpenPopup(character_popup_id);
@@ -160,6 +167,8 @@ namespace ProjectAsset
                     ImGui::OpenPopup(ai_popup_id);
                 if (openPopup.material)
                     ImGui::OpenPopup(material_popup_id);
+                if (openPopup.materialInstance)
+                    ImGui::OpenPopup(material_instance_popup_id);
 
                 if (ImGui::BeginPopup("AiActionPopup"))
                 {
@@ -216,6 +225,7 @@ namespace ProjectAsset
                 }
 
                 PopupsWidget::MaterialActionPopup(selectedAsset);
+                PopupsWidget::MaterialInstanceActionPopup(selectedAsset);
     }
 
     void AssetBrowser::LoadAssets(){
@@ -351,6 +361,8 @@ namespace ProjectAsset
             asset->assetType = AssetType::AnimationType;
             if(Shared::endsWith(filepath, std::string(toString(FileType::Material))))
             asset->assetType = AssetType::Material;
+            if(Shared::endsWith(filepath, std::string(toString(FileType::MaterialInstance))))
+            asset->assetType = AssetType::MaterialInstance;
         }
 
         return asset;

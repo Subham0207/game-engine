@@ -8,6 +8,7 @@ enum class FileType : uint8_t {
     AnimationType,
     AI,
     Material,
+    MaterialInstance,
     MetaJSONType,
     Unknown
 };
@@ -21,6 +22,7 @@ inline constexpr std::string_view toString(FileType type) {
         case FileType::AnimationType:    return "animation";
         case FileType::AI:               return "ai";
         case FileType::Material:         return "material";
+        case FileType::MaterialInstance: return "materialInstance";
         case FileType::MetaJSONType:     return "meta.json";
         default:                         return "unknown";
     }
