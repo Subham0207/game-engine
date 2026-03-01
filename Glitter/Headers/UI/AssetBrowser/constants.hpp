@@ -10,5 +10,6 @@
 namespace UI
 {
     static const std::string MATERIAL_INSTANCE_POPUP = "MATERIAL_INSTANCE_POPUP";
+    static const std::string MODEL_POPUP = "MODEL_POPUP";
 }
 #endif //GLITTER_CONSTANTS_HPP

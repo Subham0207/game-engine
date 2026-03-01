@@ -11,6 +11,7 @@
 #include "Materials/Material.hpp"
 #include "UI/materialManager.hpp"
 #include "UI/AssetBrowser/constants.hpp"
+#include "UI/ModelUI/ModelUI.hpp"
 
 namespace ProjectAsset
 {
@@ -37,6 +38,45 @@ namespace ProjectAsset
                 auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
                 auto materialInstance = Materials::MaterialInstance::loadMaterialInstance(guid);
                 getUIState().materialInstanceEditorUI->start(materialInstance);
+            }
+            ImGui::EndPopup();
+        }
+    }
+
+    void PopupsWidget::ModelActionPopup(Asset selectedAsset)
+    {
+        if (ImGui::BeginPopup(UI::MODEL_POPUP.c_str()))
+        {
+            if (ImGui::MenuItem("Edit in Model file Editor"))
+            {
+                auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
+                auto filesMap = getEngineRegistryFilesMap();
+                if (auto it = filesMap.find(guid); it != filesMap.end())
+                {
+                    auto model = std::make_shared<Model>();
+                    auto modelPath = fs::path(selectedAsset.filepath).parent_path();
+                    model->load(modelPath, guid);
+                    model->setModelMatrix(glm::identity<glm::mat4>());
+                    auto filename = fs::path(filesMap[guid]).filename().stem().string();
+                    model->setFileName(filename);
+                    getUIState().modelUIState->start(model);
+                }
+            }
+
+            if (ImGui::MenuItem("Add Model to current level"))
+            {
+                auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
+                auto filesMap = getEngineRegistryFilesMap();
+                if (auto it = filesMap.find(guid); it != filesMap.end())
+                {
+                    auto model = std::make_shared<Model>();
+                    auto modelPath = fs::path(selectedAsset.filepath).parent_path();
+                    model->load(modelPath, guid);
+                    model->setModelMatrix(glm::identity<glm::mat4>());
+                    auto filename = fs::path(filesMap[guid]).filename().stem().string();
+                    model->setFileName(filename);
+                    getActiveLevel().addRenderable(model);
+                }
             }
             ImGui::EndPopup();
         }

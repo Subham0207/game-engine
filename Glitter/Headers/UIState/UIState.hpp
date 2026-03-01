@@ -26,6 +26,7 @@ namespace UI
     class PropertiesPanel;
     class MaterialManagerUI;
     class MaterialInstanceEditor;
+    class ModelUI;
 };
 
 namespace ProjectAsset {
@@ -97,6 +98,7 @@ namespace ProjectAsset {
         UI::AI_UI* ai_ui_state;
         UI::MaterialManagerUI* materialManagerUI;
         UI::MaterialInstanceEditor* materialInstanceEditorUI;
+        UI::ModelUI* modelUIState;
 
         UI::PropertiesPanel* propretiesPanel;
 

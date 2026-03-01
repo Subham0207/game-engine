@@ -3,7 +3,7 @@
 #include <UI/StatemachineUI.hpp>
 #include <UI/PropertiesPanel.hpp>
 #include <UI/AI_UI.hpp>
-
+#include "UI/ModelUI/ModelUI.hpp"
 #include "UI/materialManager.hpp"
 
 ProjectAsset::UIState::UIState()
@@ -17,4 +17,5 @@ ProjectAsset::UIState::UIState()
     ai_ui_state = new UI::AI_UI();
     materialManagerUI = new UI::MaterialManagerUI();
     materialInstanceEditorUI = new UI::MaterialInstanceEditor();
+    modelUIState = new UI::ModelUI();
 }

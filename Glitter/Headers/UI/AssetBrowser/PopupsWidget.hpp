@@ -14,6 +14,7 @@ namespace ProjectAsset
         public:
             static void MaterialActionPopup(Asset selectedAsset);
             static void MaterialInstanceActionPopup(Asset selectedAsset);
+            static void ModelActionPopup(Asset selectedAsset);
     };
 }
 

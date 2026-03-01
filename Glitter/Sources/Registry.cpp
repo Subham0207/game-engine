@@ -99,4 +99,10 @@ void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filep
     {
         materialFileMap[guid] = filepath;
     }
+
+    suffix = ".materialInstance";
+    if(Shared::endsWith(filepath, suffix))
+    {
+        materialInstanceFileMap[guid] = filepath;
+    }
 }

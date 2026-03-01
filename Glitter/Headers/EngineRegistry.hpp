@@ -21,6 +21,7 @@ namespace Engine
             std::map<std::string, std::string> skeletonFileMap;
             std::map<std::string, std::string> characterPrefabMap;
             std::map<std::string, std::string> materialFileMap;
+            std::map<std::string, std::string> materialInstanceFileMap;
 
             void init();
             void update(std::string guid, std::string filepath);

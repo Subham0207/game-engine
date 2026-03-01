@@ -48,10 +48,7 @@ namespace ProjectAsset
 
 
                 ImVec2 availableSize = ImGui::GetContentRegionAvail();
-                openPopup.characterPrefab = false;
-                openPopup.AI = false;
-                openPopup.material = false;
-                openPopup.materialInstance = false;
+                openPopup.setAllPopup(false);
                 int itemsPerRow = std::max(1, (int)((availableSize.x + padding) / (itemSize + padding)));
                 // List files and directories
                 if (ImGui::BeginChild("AssetGridScrollable", ImVec2(availableSize.x, availableSize.y), false, ImGuiWindowFlags_HorizontalScrollbar))
@@ -103,19 +100,7 @@ namespace ProjectAsset
                                 }
                                 else if(selectedAsset.assetType == AssetType::ModelType)
                                 {
-                                    auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
-                                    auto filesMap = getEngineRegistryFilesMap();
-                                    if (auto it = filesMap.find(guid); it != filesMap.end())
-                                    {
-                                        auto model = std::make_shared<Model>();
-                                        auto modelPath = fs::path(selectedAsset.filepath).parent_path();
-                                        model->load(modelPath, guid);
-                                        model->setModelMatrix(glm::identity<glm::mat4>());
-                                        auto filename = fs::path(filesMap[guid]).filename().stem().string();
-                                        model->setFileName(filename);
-                                        getActiveLevel().addRenderable(model);
-                                    }
-                                    
+                                    openPopup.model = true;
                                 }
                                 else if (selectedAsset.assetType == AssetType::CharacterType)
                                 {
@@ -160,6 +145,7 @@ namespace ProjectAsset
                 ImGuiID ai_popup_id = ImGui::GetID("AiActionPopup");
                 ImGuiID material_popup_id = ImGui::GetID("MaterialPopup");
                 ImGuiID material_instance_popup_id = ImGui::GetID(UI::MATERIAL_INSTANCE_POPUP.c_str());
+                ImGuiID model_popup_id = ImGui::GetID(UI::MODEL_POPUP.c_str());
 
                 if (openPopup.characterPrefab)
                     ImGui::OpenPopup(character_popup_id);
@@ -169,6 +155,8 @@ namespace ProjectAsset
                     ImGui::OpenPopup(material_popup_id);
                 if (openPopup.materialInstance)
                     ImGui::OpenPopup(material_instance_popup_id);
+                if (openPopup.model)
+                    ImGui::OpenPopup(model_popup_id);
 
                 if (ImGui::BeginPopup("AiActionPopup"))
                 {
@@ -226,6 +214,7 @@ namespace ProjectAsset
 
                 PopupsWidget::MaterialActionPopup(selectedAsset);
                 PopupsWidget::MaterialInstanceActionPopup(selectedAsset);
+                PopupsWidget::ModelActionPopup(selectedAsset);
     }
 
     void AssetBrowser::LoadAssets(){

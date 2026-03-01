@@ -12,6 +12,16 @@ namespace ProjectAsset
         bool AI = false;
         bool material = false;
         bool materialInstance = false;
+        bool model = false;
+
+        void setAllPopup(bool popupState)
+        {
+            characterPrefab = popupState;
+            AI = popupState;
+            material = popupState;
+            materialInstance = popupState;
+            model = popupState;
+        }
     };
 }
 #endif //GLITTER_ASSETBROWSERPOPUPWIDGETS_HPP

@@ -9,6 +9,7 @@
 
 #include "RenderPipeline/PostProcess.hpp"
 #include "UI/FileExplorer.hpp"
+#include "UI/ModelUI/ModelUI.hpp"
 
 void Outliner::Render(Level &lvl) {
     if(ImGui::Begin("Outliner"))
@@ -361,6 +362,7 @@ void Outliner::manageModels()
     ImGui::SeparatorText("Materials");
     getUIState().materialManagerUI->drawMaterialsList();
     getUIState().materialInstanceEditorUI->drawUI();
+    getUIState().modelUIState->draw();
 
     ImGui::Separator();
 }
