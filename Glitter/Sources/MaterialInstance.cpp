@@ -65,26 +65,41 @@ namespace Materials
         if (mParentMaterialAssetGuid.empty())
             return;
 
+        auto map = getEngineRegistryFilesMap();
+        std::cout << "Master Material: " << mParentMaterialAssetGuid << std::endl;
+        if (map.find(mParentMaterialAssetGuid) != map.end())
+        {
+            //Means parent material is not saved so save it
+            auto path = contentFileLocation.parent_path();
+            mParentMaterial->save(path);
+        }
+
         bs::ptree root;
         // 1. Save Textures as a JSON Array
         bs::ptree textureNode;
 
-        auto putTexturesInJson = [&](const std::string& type, const std::string& filepath)
+        std::cout << "Processing MaterialInstance: " << contentFileLocation.string() << std::endl;
+        auto putTexturesInJson = [&](const std::string& type, std::shared_ptr<ProjectModals::Texture> texture)
         {
+            if (!texture || texture->name.empty())
+                return;
+
+            std::cout << "Saving MaterialInstance: " << texture->name << std::endl;
+
             bs::ptree texEntry;
             texEntry.put("type", type);
-            texEntry.put("filepath", filepath);
+            texEntry.put("filepath", texture->name);
 
             // Push_back with an empty string key creates the array structure in JSON
             textureNode.push_back(std::make_pair("", texEntry));
         };
 
-        //Handle when the the textureUnits are not assigned. In that case we use Default Ids setup by the engine.
-        putTexturesInJson("albedo", textureUnits.albedo->name);
-        putTexturesInJson("normal", textureUnits.normal->name);
-        putTexturesInJson("metalness", textureUnits.metalness->name);
-        putTexturesInJson("roughness", textureUnits.roughness->name);
-        putTexturesInJson("ao", textureUnits.ao->name);
+        //Handle when the textureUnits are not assigned. In that case we use Default Ids setup by the engine.
+        putTexturesInJson("albedo", textureUnits.albedo);
+        putTexturesInJson("normal", textureUnits.normal);
+        putTexturesInJson("metalness", textureUnits.metalness);
+        putTexturesInJson("roughness", textureUnits.roughness);
+        putTexturesInJson("ao", textureUnits.ao);
 
 
         root.add_child("Textures", textureNode);
@@ -127,6 +142,7 @@ namespace Materials
                 }
             }
 
+            std::cout << "Loading Material" << mParentMaterialAssetGuid << std::endl;
             mParentMaterialAssetGuid = root.get<std::string>("parentMaterialAssetGuid");
             mParentMaterial =  Material::loadMaterial(mParentMaterialAssetGuid);
         }

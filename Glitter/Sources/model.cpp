@@ -16,6 +16,9 @@
 #include <Physics/box.hpp>
 #include <Modals/3DModelType.hpp>
 
+#include "boost/uuid/random_generator.hpp"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_io.hpp"
 #include "Materials/MaterialInstance.hpp"
 #include "Materials/Material.hpp"
 #include "Materials/TextureUnits.hpp"
@@ -66,6 +69,18 @@ void Model::loadModel(
 void Model::saveSerializedModel(std::string filename, Model &model)
 {
     fs::path dir = fs::path(filename).parent_path();
+
+    for (auto& mesh : model.meshes)
+    {
+        std::cout << "saving materials" << std::endl;
+        if (mesh.mMaterial)
+        {
+            mesh.mMaterial->save(dir);
+            mesh.materialAssetGuid = mesh.mMaterial->getAssetId();
+            std::cout << "Mesh material guid: " << mesh.materialAssetGuid << std::endl;
+        }
+    }
+
     if (dir.empty()) {
         // Set the directory to the current working directory
         dir = fs::current_path();
@@ -82,10 +97,6 @@ void Model::saveSerializedModel(std::string filename, Model &model)
     oa << model;
     ofs.close();
 
-    for (auto mesh : model.meshes)
-    {
-        mesh.mMaterial->save(dir);
-    }
 
     //Texture-ids needs to  generated again
     //They will need to bound again to GPU
@@ -131,7 +142,7 @@ std::shared_ptr<ProjectModals::Texture> Model::loadEmbeddedTexture(const aiTextu
             if(textureIds[i]->name == texture->mFilename.C_Str())
             return textureIds[i];
         }
-        
+
     }
     
 
@@ -168,8 +179,10 @@ void Model::processNode(
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         // Store the information about a mesh
         // that we can comprehend right now and push into an array
-        auto materialInstance = std::make_shared<Materials::MaterialInstance>(directory + std::to_string(i), material);
+        auto instanceGuid = boost::uuids::to_string(boost::uuids::random_generator()());
+        auto materialInstance = material && !material->getAssetId().empty() ? std::make_shared<Materials::MaterialInstance>(material->contentName() + instanceGuid, material): nullptr;
         meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter, materialInstance));
+        auto path = fs::path(EngineState::navIntoProjectDir("Assets/"));
     }
 
     for(unsigned int i = 0; i < node->mNumChildren; i++)
@@ -290,37 +303,39 @@ Mesh Model::processMesh(
     // }
     try
     {
-        auto& textureUnits = justMesh.mMaterial->GetTextureUnits();
-        for (aiTextureType type : textureTypes) {
-            if (!justMesh.mMaterial) {
-                break; 
-            } 
-            switch (type)
-            {
-                case aiTextureType_DIFFUSE:
-                    textureUnits.albedo = processEmbeddedTexture(scene, ai_material, type);
+        if (materialInstance)
+        {
+            auto& textureUnits = justMesh.mMaterial->GetTextureUnits();
+            for (aiTextureType type : textureTypes) {
+                if (!justMesh.mMaterial) {
                     break;
-                case aiTextureType_SPECULAR:
-                    textureUnits.roughness = processEmbeddedTexture(scene, ai_material, type);
-                    break;
-                case aiTextureType_NORMALS:
-                    textureUnits.normal = processEmbeddedTexture(scene, ai_material, type);
-                    break;
-                case aiTextureType_DIFFUSE_ROUGHNESS:
-                    textureUnits.roughness = processEmbeddedTexture(scene, ai_material, type);
-                    break;
-                case aiTextureType_AMBIENT_OCCLUSION:
-                    textureUnits.ao = processEmbeddedTexture(scene, ai_material, type);
-                    break;
-                case aiTextureType_METALNESS:
-                    textureUnits.metalness = processEmbeddedTexture(scene, ai_material, type);
-                    break;
-                default:
-                    break;
+                }
+                switch (type)
+                {
+                    case aiTextureType_DIFFUSE:
+                        textureUnits.albedo = processEmbeddedTexture(scene, ai_material, type);
+                        break;
+                    case aiTextureType_SPECULAR:
+                        textureUnits.roughness = processEmbeddedTexture(scene, ai_material, type);
+                        break;
+                    case aiTextureType_NORMALS:
+                        textureUnits.normal = processEmbeddedTexture(scene, ai_material, type);
+                        break;
+                    case aiTextureType_DIFFUSE_ROUGHNESS:
+                        textureUnits.roughness = processEmbeddedTexture(scene, ai_material, type);
+                        break;
+                    case aiTextureType_AMBIENT_OCCLUSION:
+                        textureUnits.ao = processEmbeddedTexture(scene, ai_material, type);
+                        break;
+                    case aiTextureType_METALNESS:
+                        textureUnits.metalness = processEmbeddedTexture(scene, ai_material, type);
+                        break;
+                    default:
+                        break;
+                }
             }
+            materials.push_back(justMesh.mMaterial);
         }
-    
-        materials.push_back(justMesh.mMaterial);
 
     }catch(std::exception &e)
     {
@@ -526,6 +541,7 @@ void Model::loadFromFile(const std::string &filename, Model &model, std::shared_
         std::cout << "Exception while opening the model file: " << e.what();
     }
 
+    std::cout << "Starting loading mesh data" << std::endl;
     Model::initOnGPU(&model, material);
 }
 
@@ -563,9 +579,9 @@ void Model::LoadA3DModel(
     int* m_BoneCounter
     )
 {
-    filename = fs::path(path).filename().string();
+    filename = fs::path(path).filename().stem().string();
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    auto projectpath = fs::path(EngineState::navIntoEnginDir("Assets/"));
+    auto projectpath = fs::path(EngineState::navIntoProjectDir("Assets/"));
     modeltype = ModelType::ACTUAL_MODEL;
     if(isSkinned)
     {
@@ -633,6 +649,7 @@ void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& materi
     {
         //send the mesh data to GPU. Orginally we manipulated assimp object to load into memory. we now already have the mesh data
         model->meshes[i].setupMesh();
+        std::cout << "Loaded material guids" << model->meshes[i].materialAssetGuid << std::endl;
         model->meshes[i].setupMaterial();
 
         //Attach correct texture to each meshes;

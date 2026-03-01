@@ -312,6 +312,8 @@ void Level::BuildLevelNavMesh()
     NavMeshConfig cfg;
     builder = new NavMeshBuilder();
 
+    if (verts.empty() || tris.empty())
+        return;
     setupLevelVertices(verts, tris); // Here we get vertices from all models in the level and convert into 1 mesh. And that mesh is used to build th nav mesh.
     std::vector<int> i_vec(tris.begin(), tris.end());
     bool ok = builder->build(verts.data(), (int)verts.size()/3,

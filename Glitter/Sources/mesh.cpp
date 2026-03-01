@@ -12,7 +12,12 @@ Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int
 
     setupMesh();
 
-    mMaterial = material;
+    if (material)
+    {
+        materialAssetGuid = material->getAssetId();
+        std::cout << "materialAssetGuid set to = " << materialAssetGuid << std::endl;
+        mMaterial = material;
+    }
 }
 
 void Mesh::DrawOnlyGeometry()
@@ -96,9 +101,11 @@ void Mesh::setupMaterial()
 {
     if(materialAssetGuid.empty())
     {
+        std::cout << "Material Asset: " << materialAssetGuid << std::endl;
        return;
     }
 
+    std::cout << "Loading material: " << materialAssetGuid << "STARTED" << std::endl;
     auto file = fs::path(getEngineRegistryFilesMap()[materialAssetGuid]).string();
     if (Shared::endsWith(file, ".material"))
     {
@@ -107,6 +114,7 @@ void Mesh::setupMaterial()
     if (Shared::endsWith(file, ".materialInstance"))
     {
         mMaterial = Materials::MaterialInstance::loadMaterialInstance(materialAssetGuid);
+        std::cout << "Loading material: " << materialAssetGuid << "FINISHED" << std::endl;
     }
 }
 

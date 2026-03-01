@@ -13,6 +13,8 @@
 #include <Helpers/Shared.hpp>
 #include <AI/AI.hpp>
 
+#include "UI/AssetBrowser/AssetType.hpp"
+
 void write_text(const fs::path& p, const std::string& text)
 {
     fs::create_directories(p.parent_path());

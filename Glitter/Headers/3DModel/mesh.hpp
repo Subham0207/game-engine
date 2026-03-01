@@ -56,5 +56,7 @@ class Mesh {
             ar & vertices;
             ar & indices;
             ar & materialAssetGuid;
+
+            std::cout << "Serializing GUID: " << materialAssetGuid << std::endl;
         }
     };
