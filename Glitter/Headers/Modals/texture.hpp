@@ -15,7 +15,7 @@ namespace ProjectModals{
 
     Texture()
     {
-        id = 100000;
+        id = 0;
         type = aiTextureType_NONE;
         name = "";
     }

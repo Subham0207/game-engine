@@ -224,7 +224,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     auto modelParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.modelGuid]).parent_path();
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    auto vertPath = engineFSPath / "Shaders/basic.vert";
+    auto vertPath = engineFSPath / "Shaders/pbr.vert";
     auto fragPath = engineFSPath / "Shaders/pbr.frag";
     //auto material = std::make_shared<Materials::Material>("material",vertPath.string(), fragPath.string());
 

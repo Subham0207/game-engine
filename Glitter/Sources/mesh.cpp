@@ -27,7 +27,12 @@ void Mesh::DrawOnlyGeometry()
     glBindVertexArray(0);
 }
 
-void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix)
+void Mesh::setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const
+{
+    mMaterial->GetShader()->setMat4("finalBonesMatrices[" + std::to_string(boneIndex) + "]", transform);
+}
+
+void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix, const std::vector<glm::mat4>* finalBoneMatrix)
 {
     auto resolvedMaterial = mMaterial != nullptr ? mMaterial: EngineState::state->defaultMaterialInstance;
 
@@ -39,6 +44,19 @@ void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::m
     auto cameraPosition = camera->getPosition();
     resolvedMaterial->GetShader()->setMat4("model", modelMatrix);
     glUniform3f(glGetUniformLocation(shaderProgramId, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
+
+    if (finalBoneMatrix)
+    {
+        resolvedMaterial->GetShader()->setBool("isAnimated", true);
+        for (int boneIndex = 0; boneIndex < finalBoneMatrix->size(); ++boneIndex)
+        {
+            setFinalBoneMatrix(boneIndex, finalBoneMatrix->at(boneIndex));
+        }
+    }
+    else
+    {
+        resolvedMaterial->GetShader()->setBool("isAnimated", false);
+    }
 
     if(modelType == ModelType::ACTUAL_MODEL)
         lightSystem->Render(shaderProgramId);

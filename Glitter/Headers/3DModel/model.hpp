@@ -51,7 +51,7 @@ public:
         std::vector<ProjectModals::Vertex> &vertices,
         std::vector<unsigned int> &indices){};
 
-    void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
+    void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap, const std::vector<glm::mat4>* finalBoneMatrix);
     void drawGeometryOnly(float deltaTime) override;
 
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;

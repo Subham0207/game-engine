@@ -186,7 +186,15 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
 
     if(model)
     {
-        model->draw(deltaTime, camera, lights, cubeMap);
+        if (animator)
+        {
+            const auto& finalBoneMatrix = animator->GetFinalBoneMatrices();
+            model->draw(deltaTime, camera, lights, cubeMap, &finalBoneMatrix);
+        }
+        else
+        {
+            model->draw(deltaTime, camera, lights, cubeMap, nullptr);
+        }
 
         auto characterWorldPos = GetPosition();
         auto relativePosition =  glm::vec3(
@@ -269,19 +277,11 @@ void Character::uploadBoneMatricesToGPU() const
 {
     if (animator != nullptr)
     {
-        const auto transforms = animator->GetFinalBoneMatrices();
-        for (int boneIndex = 0; boneIndex < transforms.size(); ++boneIndex)
-        {
-            setFinalBoneMatrix(boneIndex, transforms[boneIndex]);
-        }
+        const auto finalBoneMatrix = animator->GetFinalBoneMatrices();
     }
     else
     {
-        for (int boneIndex = 0; boneIndex < 100; ++boneIndex)
-        {
-            auto identityMatrix = glm::mat4(1.0f);
-            setFinalBoneMatrix(boneIndex, identityMatrix);
-        }
+        bool isAnimated = false;
     }
 
 }
@@ -340,7 +340,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     auto model = new Model();
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    auto vertShaderPath = engineFSPath / "Shaders/basic.vert";
+    auto vertShaderPath = engineFSPath / "Shaders/pbr.vert";
     auto fragShaderPath = engineFSPath / "Shaders/pbr.frag";
     auto material = std::make_shared<Materials::Material>("material", vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
     //TODO: how to use this material and still be able to assign materialInstances to meshes.

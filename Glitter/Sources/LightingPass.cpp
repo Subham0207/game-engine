@@ -3,6 +3,8 @@
 //
 
 #include "../Headers/RenderPipeline/LightingPass.hpp"
+#include <3DModel/model.hpp>
+#include "Character/Character.hpp"
 
 void LightingPass::draw(
     const std::vector<std::shared_ptr<Renderable>>& renderables,
@@ -19,7 +21,10 @@ void LightingPass::draw(
             //TODO: to also attach shadowMap of other light sources. And update the shader accordingly
             glActiveTexture(GL_TEXTURE0 + 9);
             glBindTexture(GL_TEXTURE_2D, lightSystem->directionalLights[0].shadowMap);
-            renderables[i]->draw(deltaTime, activeCamera, lightSystem, cubeMap);
+            if (auto model = std::dynamic_pointer_cast<Model>(renderables.at(i)))
+                model->draw(deltaTime, activeCamera, lightSystem, cubeMap, nullptr);
+            if (auto character = std::dynamic_pointer_cast<Character>(renderables.at(i)))
+                character->draw(deltaTime, activeCamera, lightSystem, cubeMap);
         }
     }
 

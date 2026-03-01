@@ -38,13 +38,15 @@ class Mesh {
         Mesh()=default;
         Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Materials::IMaterial> material);
         void DrawOnlyGeometry();
-        void Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix);
+        void Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix, const std::vector<glm::mat4>* finalBoneMatrix);
         void setupMesh();
         void setupMaterial();
 
         std::vector<ProjectModals::Vertex> GetWorldVertices();
         std::vector<unsigned int> GetIndices();
     private:
+        void setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const;
+
         //  render data
         unsigned int VAO, VBO, EBO;
 

@@ -235,7 +235,7 @@ public:
 		else return &(*iter);
 	}
 
-	std::vector<glm::mat4> GetFinalBoneMatrices()
+	const std::vector<glm::mat4>& GetFinalBoneMatrices()
 	{
 		return m_FinalBoneMatrices;
 	}

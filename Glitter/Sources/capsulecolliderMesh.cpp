@@ -15,7 +15,7 @@ CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
 void CapsuleColliderModel::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    model->draw(deltaTime, camera, lights, cubeMap);
+    model->draw(deltaTime, camera, lights, cubeMap, nullptr);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
@@ -140,8 +140,8 @@ std::shared_ptr<Model> CapsuleColliderModel::createCapsuleModel(float radius, fl
 
     auto model = std::make_shared<Model>();
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    auto vertPath = engineFSPath / "Shaders/staticShader.vert";
-    auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+    auto vertPath = engineFSPath / "Shaders/pbr.vert";
+    auto fragPath = engineFSPath / "Shaders/pbr.frag";
     auto material =  std::make_shared<Materials::Material>("capsule", vertPath.u8string().c_str(),fragPath.u8string().c_str());
     //TODO: how do still be able to pass
     model->meshes.push_back(Mesh(capsuleVertices, capsuleIndices,material));

@@ -39,14 +39,14 @@ void Model::loadModel(
 
     if(m_BoneInfoMap && m_BoneCounter)
     {
-        const auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
+        const auto vertPath = (engineFSPath / "Shaders/pbr.vert").string();
         const auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
         material = std::make_shared<Materials::Material>(directory, vertPath, fragPath);
     }
     else
     {
-        auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
-        auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
+        auto vertPath = (engineFSPath / "Shaders/pbr.vert").string();
+        auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
         material = std::make_shared<Materials::Material>(directory, vertPath, fragPath);
     }
     //material->Bind(); // But the texture units are not initialized yet.
@@ -440,12 +440,12 @@ void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
     }
 }
 
-void Model::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
+void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap, const std::vector<glm::mat4>* finalBoneMatrix)
 {
     bindCubeMapTextures(cubeMap);
 
 	for (unsigned int i = 0; i < meshes.size(); i++)
-		meshes[i].Draw(camera, lights, modeltype, modelMatrix);
+		meshes[i].Draw(camera, lights, modeltype, modelMatrix, finalBoneMatrix);
 
     if(physicsObject)
     {
@@ -585,7 +585,7 @@ void Model::LoadA3DModel(
     modeltype = ModelType::ACTUAL_MODEL;
     if(isSkinned)
     {
-        auto vertPath = (engineFSPath / "Shaders/basic.vert").string();
+        auto vertPath = (engineFSPath / "Shaders/pbr.vert").string();
         auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
         auto material = std::make_shared<Materials::Material>(filename, vertPath, fragPath);
         material->save(projectpath);
@@ -593,8 +593,8 @@ void Model::LoadA3DModel(
     }
     else
     {
-        auto vertPath = (engineFSPath / "Shaders/staticShader.vert").string();
-        auto fragPath = (engineFSPath / "Shaders/staticShader.frag").string();
+        auto vertPath = (engineFSPath / "Shaders/pbr.vert").string();
+        auto fragPath = (engineFSPath / "Shaders/pbr.frag").string();
         auto material = std::make_shared<Materials::Material>(filename, vertPath, fragPath);
         material->save(projectpath);
         processNode(scene->mRootNode, scene, nullptr, nullptr, material);
@@ -629,8 +629,8 @@ void Model::saveContent(fs::path contentFile, std::ostream& os)
 void Model::loadContent(fs::path contentFile, std::istream& is)
 {
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    auto vertPath = engineFSPath / "Shaders/staticShader.vert";
-    auto fragPath = engineFSPath / "Shaders/staticShader.frag";
+    auto vertPath = engineFSPath / "Shaders/pbr.vert";
+    auto fragPath = engineFSPath / "Shaders/pbr.frag";
     auto material = std::make_shared<Materials::Material>("Material",vertPath.string(), fragPath.string());
 
     modeltype = ModelType::ACTUAL_MODEL;

@@ -192,6 +192,8 @@ void APIENTRY Shared::glDebugOutput(const GLenum source, const GLenum type, cons
               << "Source: " << source << "  Type: " << type << "\n"
               << "Msg: " << message << "\n"
               << "============================\n";
+
+    assert(false && "OPEN ERRORS");
 }
 
 fs::path Shared::metaFileToActualPath(const fs::path& path)

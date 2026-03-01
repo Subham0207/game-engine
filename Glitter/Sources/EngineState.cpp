@@ -42,8 +42,8 @@ EngineState* EngineState::state = nullptr;
 
 void EngineState::GenerateDefaultMaterials()
 {
-    auto vertPath = fs::path(engineInstalledDirectory) / "Shaders/staticShader.vert";
-    auto fragPath = fs::path(engineInstalledDirectory) / "Shaders/staticShader.frag";
+    auto vertPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.vert";
+    auto fragPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.frag";
     defaultMaterial = std::make_shared<Materials::Material>("DefaultMaterial", vertPath.string(), fragPath.string());
     auto& textureUnits = defaultMaterial->GetTextureUnits();
     textureUnits.albedo->id = getUIState().nonMetalicTextureID;

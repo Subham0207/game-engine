@@ -16,6 +16,7 @@ uniform mat4 projection;
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
+uniform bool isAnimated;
 
 out vec3 Normal;
 out vec3 FragPos;
@@ -23,6 +24,11 @@ out vec2 TexCoords;
 out vec4 Color;
 out vec3 Tangent;
 out vec3 Bitangent;
+out vec4 FragPosLightSpace;
+out vec4 SpotFragPosLightSpace;
+
+uniform mat4 dirLightVP;
+uniform mat4 spotLightSpaceMatrix;
 
 flat out ivec4 boneIds;
 out vec4 weights;
@@ -31,28 +37,46 @@ void main()
 {
     vec4 totalPosition = vec4(0.0f);
     vec3 totalNormal = vec3(0.0f);
-    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+
+    if(isAnimated)
     {
-        if(aboneIds[i] == -1) 
-            continue;
-        if(aboneIds[i] >=MAX_BONES) 
+        for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
-            totalPosition = vec4(apos,1.0f);
-            break;
+            if(aboneIds[i] == -1)
+                continue;
+
+            if(aboneIds[i] >= MAX_BONES)
+            {
+                // If ID is out of bounds, treat as static mesh
+                totalPosition = vec4(apos, 1.0f);
+                totalNormal = aNormal;
+                break;
+            }
+
+            float weight = aWeights[i];
+            if (weight <= 0.0f) continue;
+
+            totalPosition += (finalBonesMatrices[aboneIds[i]] * vec4(apos, 1.0f)) * weight;
+            totalNormal += (mat3(finalBonesMatrices[aboneIds[i]]) * aNormal) * weight;
         }
-        vec4 localPosition = finalBonesMatrices[aboneIds[i]] * vec4(apos,1.0f);
-        totalPosition += localPosition * aWeights[i];
-        vec3 localNormal = mat3(finalBonesMatrices[aboneIds[i]]) * aNormal;
-        totalNormal += localNormal * aWeights[i];
     }
-		
+    else
+    {
+        totalPosition = vec4(apos, 1.0f);
+        totalNormal = aNormal;
+    }
+
+
     mat4 viewModel = view * model;
     gl_Position =  projection * viewModel * totalPosition;
+
 	FragPos = vec3(model * totalPosition);
     mat3 normalMatrix = mat3(transpose(inverse(model)));
 	Normal = normalize(normalMatrix * totalNormal);
     Tangent   = normalize(normalMatrix * aTangent);
     Bitangent = normalize(normalMatrix * aBitangent);
+    FragPosLightSpace = dirLightVP * model * totalPosition;
+    SpotFragPosLightSpace = spotLightSpaceMatrix * model * totalPosition;
 
     TexCoords = aTexCoords;
 	Color = aColor;

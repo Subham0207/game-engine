@@ -53,7 +53,7 @@ public:
 
     void updateFinalBoneMatrix(float deltatime);
 
-    void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap) override;
+    void draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap);
     void drawGeometryOnly(float deltaTime) override;
 
     virtual std::vector<ProjectModals::Vertex> GetWorldVertices() override;
