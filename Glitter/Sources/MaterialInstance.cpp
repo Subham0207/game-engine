@@ -60,6 +60,14 @@ namespace Materials
         return materialInstance;
     }
 
+    void MaterialInstance::update(const std::string& filename, const std::string& parentMaterialGuid,
+        const TextureUnits& units)
+    {
+        mFilename = filename;
+        mParentMaterialAssetGuid = parentMaterialGuid;
+        textureUnits = units;
+    }
+
     void MaterialInstance::saveContent(fs::path contentFileLocation, std::ostream& os)
     {
         if (mParentMaterialAssetGuid.empty())

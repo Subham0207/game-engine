@@ -83,10 +83,19 @@ void UI::MaterialManagerUI::drawMaterialEditor()
             units.metalness->name = materialUIModel.metallicMapLocation;
             units.roughness->name = materialUIModel.roughnessMapLocation;
             units.ao->name = materialUIModel.aoMapLocation;
-            auto material = materialRef ? materialRef : std::make_unique<Materials::Material>(
+            auto vShader = vertexShadersList[Utils::toDataTypeIndex(materialUIModel.selectedVertexShaderIndex)];
+            auto fShader = fragmentShadersList[Utils::toDataTypeIndex(materialUIModel.selectedFragmentShaderIndex)];
+            auto material = materialRef ?
+                (materialRef->Update(
                 materialName.value,
-                vertexShadersList[Utils::toDataTypeIndex(materialUIModel.selectedVertexShaderIndex)],
-                fragmentShadersList[Utils::toDataTypeIndex(materialUIModel.selectedFragmentShaderIndex)],
+                vShader,
+                fShader,
+                units
+                ), std::move(materialRef))
+                : std::make_unique<Materials::Material>(
+                materialName.value,
+                vShader,
+                fShader,
                 units
                 );
             auto dir = EngineState::state->navIntoProjectDir("Assets");

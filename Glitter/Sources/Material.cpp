@@ -67,6 +67,16 @@ namespace Materials
         return material;
     }
 
+    void Material::Update(std::string filename, const std::string& vertexShaderFilePath,
+        const std::string& fragmentShaderFilePath, const TextureUnits& textureUnits)
+    {
+        mFilename = std::move(filename);
+        mTextureUnits = textureUnits;
+        mVertexShaderPath = vertexShaderFilePath;
+        mFragmentShaderPath = fragmentShaderFilePath;
+        mShaderProgram = std::make_unique<Shader>(vertexShaderFilePath.c_str(), fragmentShaderFilePath.c_str());
+    }
+
     void Material::saveContent(fs::path contentFileLocation, std::ostream& os)
     {
         bs::ptree root;

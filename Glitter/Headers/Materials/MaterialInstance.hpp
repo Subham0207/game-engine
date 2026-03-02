@@ -28,6 +28,12 @@ namespace Materials
 
         static std::shared_ptr<MaterialInstance> loadMaterialInstance(std::string guid);
 
+        void update(
+            const std::string& filename,
+            const std::string& parentMaterialGuid,
+            const TextureUnits& units
+            );
+
         const std::string typeName() const override {return "materialInstance"; }
         const std::string contentName() override {return mFilename; }
 

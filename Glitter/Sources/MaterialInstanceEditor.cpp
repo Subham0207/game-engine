@@ -24,16 +24,18 @@ void UI::MaterialInstanceEditor::setShowUI(bool show)
 
 void UI::MaterialInstanceEditor::start(std::shared_ptr<Materials::MaterialInstance> materialInstance)
 {
-    if (materialsListInitialized)
-        return;
+    showUI = true;
 
-    materialsListInitialized = true;
-    std::vector<fs::path> searchPaths = {EngineState::state->currentActiveProjectDirectory};
-    auto filesMap = EngineState::state->engineRegistry->materialFileMap;
-    for (auto &[key, value] : filesMap)
+    if (!materialsListInitialized)
     {
-        materialsList.materialGuids.push_back(key);
-        materialsList.materialNames.push_back(value);
+        materialsListInitialized = true;
+        std::vector<fs::path> searchPaths = {EngineState::state->currentActiveProjectDirectory};
+        auto filesMap = EngineState::state->engineRegistry->materialFileMap;
+        for (auto &[key, value] : filesMap)
+        {
+            materialsList.materialGuids.push_back(key);
+            materialsList.materialNames.push_back(value);
+        }
     }
 
     if (materialInstance)
@@ -58,8 +60,6 @@ void UI::MaterialInstanceEditor::start(std::shared_ptr<Materials::MaterialInstan
 
         materialInstanceUIModal.parentMaterialIndex =  Utils::toUiIndex(findIndex(materialsList.materialGuids, materialInstance->getParentMaterialGuid()));
     }
-
-    showUI = true;
 }
 
 void UI::MaterialInstanceEditor::drawUI()
@@ -114,16 +114,21 @@ void UI::MaterialInstanceEditor::drawUI()
             units.metalness->name = materialInstanceUIModal.metallicMapLocation;
             units.roughness->name = materialInstanceUIModal.roughnessMapLocation;
             units.ao->name = materialInstanceUIModal.aoMapLocation;
-            auto materialInstance = materialInstanceRef ? materialInstanceRef : std::make_unique<Materials::MaterialInstance>(
+            auto materialInstance = materialInstanceRef ? (materialInstanceRef->update(
+                materialInstanceName.value,
+                materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
+                units
+                ), std::move(materialInstanceRef)) : std::make_unique<Materials::MaterialInstance>(
                 materialInstanceName.value,
                 materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
                 units
                 );
-            auto dir = EngineState::state->navIntoProjectDir("Assets");
+            auto dir = EngineState::state->navIntoProjectDir("Assets/");
             materialInstance->save(dir);
 
             //cleanup
             materialsList.clear();
+            materialsListInitialized = false;
         }
     }
     ImGui::End();
