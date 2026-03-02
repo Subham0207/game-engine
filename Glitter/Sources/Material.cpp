@@ -83,8 +83,9 @@ namespace Materials
         // 1. Save Textures as a JSON Array
         bs::ptree textureNode;
 
-        auto putTexturesInJson = [&](const std::string& type, const std::string& filepath)
+        auto putTexturesInJson = [&](const std::string& type, std::string& filepath)
         {
+            Shared::CopyFileToProjectDirectory(filepath);
             bs::ptree texEntry;
             texEntry.put("type", type);
             texEntry.put("filepath", filepath);

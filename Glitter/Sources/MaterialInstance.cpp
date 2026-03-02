@@ -10,6 +10,7 @@
 #include "boost/property_tree/ptree.hpp"
 #include "Helpers/Shared.hpp"
 namespace bs = boost::property_tree;
+namespace fs = std::filesystem;
 
 std::map<std::string, std::shared_ptr<Materials::MaterialInstance>> Materials::MaterialInstance::loadedMaterialInstances;
 
@@ -92,7 +93,7 @@ namespace Materials
             if (!texture || texture->name.empty())
                 return;
 
-            std::cout << "Saving MaterialInstance: " << texture->name << std::endl;
+            Shared::CopyFileToProjectDirectory(texture->name);
 
             bs::ptree texEntry;
             texEntry.put("type", type);

@@ -201,3 +201,42 @@ fs::path Shared::metaFileToActualPath(const fs::path& path)
     auto justMetaGuid = path.stem().stem().string();
     return path.parent_path() / fs::path(getEngineRegistryFilesMap()[justMetaGuid]).filename();
 }
+
+void Shared::CopyFileToProjectDirectory(std::string& filelocation)
+{
+    auto projectDirectory = fs::path(EngineState::state->currentActiveProjectDirectory);
+    auto filePath = fs::path(filelocation);
+
+    // 1. Define your target destination: /projectDirectory/Assets/
+    fs::path assetsDir = projectDirectory / "Assets";
+
+    // 2. Ensure the Assets directory actually exists
+    if (!fs::exists(assetsDir)) {
+        fs::create_directories(assetsDir);
+    }
+
+    // 3. Check if the file is already inside the project directory
+    // Use absolute paths to avoid confusion with relative pathing
+    auto absoluteProject = fs::absolute(projectDirectory);
+    auto absoluteFile = fs::absolute(filePath);
+
+    // Search for the project path within the file path
+    auto rel = std::search(absoluteFile.begin(), absoluteFile.end(),
+                           absoluteProject.begin(), absoluteProject.end());
+
+    bool isInsideProject = (rel != absoluteFile.end());
+
+    if (!isInsideProject) {
+        try {
+            fs::path destination = assetsDir / filePath.filename();
+            fs::copy_file(filePath, destination, fs::copy_options::overwrite_existing);
+            filelocation = destination.string();
+
+            std::cout << "File copied to: " << destination << std::endl;
+        } catch (fs::filesystem_error& e) {
+            std::cerr << "Could not copy file: " << e.what() << std::endl;
+        }
+    } else {
+        std::cout << "File is already within the project directory." << std::endl;
+    }
+}

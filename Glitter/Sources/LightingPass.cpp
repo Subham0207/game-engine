@@ -25,6 +25,8 @@ void LightingPass::draw(
                 model->draw(deltaTime, activeCamera, lightSystem, cubeMap, nullptr);
             if (auto character = std::dynamic_pointer_cast<Character>(renderables.at(i)))
                 character->draw(deltaTime, activeCamera, lightSystem, cubeMap);
+            if (auto CapsuleColliderModel = std::dynamic_pointer_cast<Character>(renderables.at(i)))
+                CapsuleColliderModel->draw(deltaTime, activeCamera, lightSystem, cubeMap);
         }
     }
 
