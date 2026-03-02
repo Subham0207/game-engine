@@ -31,7 +31,7 @@ void UI::MaterialListComponent::startMaterialsList()
     }
 }
 
-void UI::MaterialListComponent::drawMaterialsList(std::shared_ptr<Model> selectedModel)
+void UI::MaterialListComponent::drawMaterialsList(Model* selectedModel)
 {
     if (selectedModel != nullptr)
     {

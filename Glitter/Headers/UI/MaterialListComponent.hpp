@@ -4,6 +4,7 @@
 
 #ifndef GLITTER_MATERIALLISTCOMPONENT_HPP
 #define GLITTER_MATERIALLISTCOMPONENT_HPP
+#pragma once
 #include <memory>
 #include "Types/MaterialList.hpp"
 
@@ -15,7 +16,8 @@ namespace UI
     public:
         MaterialListComponent();
         void startMaterialsList();
-        void drawMaterialsList(std::shared_ptr<Model> selectedModel);
+        void drawMaterialsList(Model* selectedModel);
+        bool isMaterialListInitialized() const {return materialsListInitialized;}
     private:
         MaterialsList materialsList;
         bool materialsListInitialized = false;

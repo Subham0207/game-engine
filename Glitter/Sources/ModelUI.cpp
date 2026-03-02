@@ -31,7 +31,7 @@ void UI::ModelUI::draw()
 
     if (ImGui::Begin(ModelName.value.c_str(), &showUI, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        materialListComponent.drawMaterialsList(selectedModel);
+        materialListComponent.drawMaterialsList(selectedModel.get());
 
         if (ImGui::Button("Save"))
         {

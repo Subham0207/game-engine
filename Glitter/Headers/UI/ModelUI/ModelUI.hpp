@@ -4,6 +4,7 @@
 
 #ifndef GLITTER_MODELUI_HPP
 #define GLITTER_MODELUI_HPP
+#pragma once
 #include "UI/MaterialListComponent.hpp"
 #include "UI/Shared/EditableText.hpp"
 

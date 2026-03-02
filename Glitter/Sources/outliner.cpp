@@ -49,6 +49,8 @@ void Outliner::Render(Level &lvl) {
 
     getUIState().characterUIState->draw();
     getUIState().materialManagerUI->drawMaterialEditor();
+    getUIState().materialInstanceEditorUI->drawUI();
+    getUIState().modelUIState->draw();
 
     if(getUIState().blendspace2DUIState->showBlendspaceUI)
     {
@@ -361,8 +363,6 @@ void Outliner::manageModels()
     }
     ImGui::SeparatorText("Materials");
     getUIState().materialManagerUI->drawMaterialsList();
-    getUIState().materialInstanceEditorUI->drawUI();
-    getUIState().modelUIState->draw();
 
     ImGui::Separator();
 }

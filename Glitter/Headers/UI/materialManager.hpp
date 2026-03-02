@@ -1,8 +1,9 @@
+#pragma once
 #include <Modals/texture.hpp>
 #include <UIState/UIState.hpp>
 
+#include "MaterialListComponent.hpp"
 #include "Shared/EditableText.hpp"
-#include "Types/MaterialList.hpp"
 
 namespace UI{
     struct MaterialUIModel
@@ -26,14 +27,12 @@ namespace UI{
         void setShowUi(bool show);
         void setShowMaterialUI(bool show);
 
-        void startMaterialsList();
         void drawMaterialsList();
 
     private:
 
         //MaterialsLists
-        MaterialsList materialsList;
-        bool materialsListInitialized = false;
+        MaterialListComponent materialListComponent;
 
         //MaterialEditorUI
         std::string* operatingOnPath;
