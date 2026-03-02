@@ -15,6 +15,10 @@ UI::MaterialListComponent::MaterialListComponent()
 
 void UI::MaterialListComponent::startMaterialsList()
 {
+    if (materialsListInitialized)
+        return;
+
+    materialsListInitialized = true;
     std::vector<fs::path> searchPaths = {EngineState::state->currentActiveProjectDirectory};
     auto materialfilesMap = EngineState::state->engineRegistry->materialFileMap;
     auto materialInstancefilesMap = EngineState::state->engineRegistry->materialInstanceFileMap;

@@ -193,7 +193,6 @@ void UI::MaterialManagerUI::drawMaterialsList()
     auto selectedRenderableIndex = getUIState().selectedRenderableIndex;
     if (selectedRenderableIndex > -1)
     {
-        if (!materialListComponent.isMaterialListInitialized())
         materialListComponent.startMaterialsList();
 
         auto renderable = getActiveLevel().renderables[selectedRenderableIndex];
