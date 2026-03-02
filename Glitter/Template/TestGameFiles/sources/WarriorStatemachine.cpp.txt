@@ -44,21 +44,31 @@ void WarriorStatemachine::onStart()
     locomotionBlendspace = new BlendSpace2D("character_blendspace");
     locomotionState->assignBlendspace(locomotionBlendspace);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), "2bd905e6-913b-480d-8e36-a4a40b486f08");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), "a277a1d6-e9b5-4fa7-9710-109a557a6df5");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), "e6890dfd-bbaa-4abd-92bc-35e00da7a274");
+    std::string walkLeft = "3a6f85f1-c3e4-46ec-a144-a22e652b51cc";
+    std::string idle = "d115c140-ab82-4e43-b7fa-2276090e86a0";
+    std::string walkRight = "205a4603-5faf-45ff-bff8-b3381c401dad";
+    std::string walkBackwards = "271f0a2a-e95d-4906-9e8c-fb889a652bf7";
+    std::string walkFront = "0a52120b-b5e4-4419-92f9-c8e73def2d1a";
+    std::string running = "c970b24a-7e4c-4fb6-97c1-392dfc02519c";
+    std::string jump = "8636c4e7-c8e2-470c-a006-12ad1f24fdc7";
+    std::string dodgeRoll = "ef99bc5a-cea5-4734-9735-edbb8116b79f";
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), "31cbc593-ba3c-4731-a294-8b27a6cbd2c9");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), "a1a1526f-04a8-45a6-9a67-efa1b5b9086e");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), "e6890dfd-bbaa-4abd-92bc-35e00da7a274");
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 0.0f), idle);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 0.0f), walkLeft);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 0.0f), walkRight);
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), "e6890dfd-bbaa-4abd-92bc-35e00da7a274");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), "a277a1d6-e9b5-4fa7-9710-109a557a6df5");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), "e6890dfd-bbaa-4abd-92bc-35e00da7a274");
 
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), "a1a1526f-04a8-45a6-9a67-efa1b5b9086e");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), "a1a1526f-04a8-45a6-9a67-efa1b5b9086e");
-    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), "a1a1526f-04a8-45a6-9a67-efa1b5b9086e");
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 1.0f), walkFront);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 1.0f), walkBackwards);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 1.0f), walkRight);
+
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, 2.0f), walkRight);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, 2.0f), running);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, 2.0f), walkRight);
+
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(-1.0f, -1.0f), walkBackwards);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(0.0f, -1.0f), walkBackwards);
+    locomotionState->blendspace->AddBlendPoint(glm::vec2(1.0f, -1.0f), walkBackwards);
 
     jumpState->assignAnimation("7f7f71ad-9714-4083-88bb-1e242b47d010", false, []{});
     dodgeRollState->assignAnimation("a403d7b9-fc28-439a-8022-f5470d864fea", true, [&]{

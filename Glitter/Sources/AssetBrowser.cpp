@@ -10,6 +10,7 @@
 #include "Prefab.hpp"
 #include "UI/AI_UI.hpp"
 #include "UI/CharacterUI.hpp"
+#include "UI/FileExplorer.hpp"
 #include "UI/materialManager.hpp"
 #include "UI/AssetBrowser/constants.hpp"
 #include "UI/AssetBrowser/PopupsWidget.hpp"
@@ -27,6 +28,13 @@ namespace ProjectAsset
     void AssetBrowser::RenderAssetBrowser(){
             if (ImGui::Begin("Asset Browser", &showAssetBrowser))
             {
+                InputText("Search", filterFile);
+                ImGui::SameLine();
+                if (ImGui::Button("Search##search-btn"))
+                {
+                    refreshAssetBrowser = true;
+                }
+
                 if(refreshAssetBrowser)
                 {
                     LoadAssets();
@@ -222,19 +230,14 @@ namespace ProjectAsset
         auto dirIt = fs::directory_iterator(fs::path(currentPath));
         for (const auto& entry : dirIt)
         {
-            std::string extension = entry.path().extension().string();
-            //We are filterig all filetypes so only meta files go through.
-            if (!extension.empty() && extension[0] == '.') extension.erase(0, 1);
-            if(
-                !(extension == toString(FileType::CharacterType) ||
-                extension == toString(FileType::ModelType)||
-                extension == toString(FileType::BlendSpaceType)||
-                extension == toString(FileType::StateMachineType)||
-                extension == toString(FileType::AnimationType))
-            )
+            auto filepath = entry.path();
+            std::string extension = filepath.extension().string();
+            if((extension == ".json" && filepath.stem().extension() == ".meta") || extension.empty())
             {
-                auto asset = convertFilenameToAsset(entry, extension);
-                assets.push_back(*asset);
+                auto asset = convertFilenameToAsset(entry);
+                if (filterFile.empty() || asset->filename.find(filterFile) != std::string::npos) {
+                    assets.push_back(*asset);
+                }
             }
         }
     }
@@ -315,7 +318,7 @@ namespace ProjectAsset
         }
     }
 
-    Asset* convertFilenameToAsset(std::filesystem::directory_entry entry, std::string extension)
+    Asset* convertFilenameToAsset(std::filesystem::directory_entry entry)
     {
         auto asset = new Asset();
         if(entry.is_directory())

@@ -240,6 +240,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         if(EngineState::state->isPlay)
         {
             // *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
+            if (!EngineState::state->playerControllers.empty())
             if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
             {
                 activeCamera = character->camera;

@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 // So FBX is loaded and saved in a custom ModelType format and the game engine deals with these files.
 
 namespace ProjectAsset{
-    Asset* convertFilenameToAsset(fs::directory_entry entry, std::string extension);
+    Asset* convertFilenameToAsset(fs::directory_entry entry);
 
 
     //Feature: Drag and drop, Able to go through Assets.
@@ -36,6 +36,7 @@ namespace ProjectAsset{
         AssetBrowsePopUps openPopup;
 
         Asset selectedAsset;
+        std::string filterFile;
 
         void LoadAssets();
         void RenderAsset(Asset* asset);
