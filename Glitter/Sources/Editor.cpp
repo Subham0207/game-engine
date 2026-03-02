@@ -87,15 +87,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     //Loading Level -- making .lvl as the extention of my levelfile
     auto level = new Level();
     EngineState::state->activeLevel = level; //Correct active level before loading a save level is important for rendererable to get to correct array.
-    auto defaultCamera = new FlyCam("defaultcamera");
-    EngineState::state->bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
-    {
-        defaultCamera->onMouseMove(e);
-    });
-
     auto lvl = EngineState::state->activeLevel;
-    // State::state->activeLevel = new level(); state already has a new level initialized
-    lvl->cameras.push_back(defaultCamera);
+    lvl->cameras.push_back(EngineState::state->editorCamera);
 
     //Init clienthandler
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];

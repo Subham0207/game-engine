@@ -128,7 +128,7 @@ void InputHandler::handleBasicMovement(float deltaTime)
         glfwSetWindowShouldClose(m_Window, true);
     }
 
-    const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
+    const float cameraSpeed = EngineState::state->editorCameraSpeed * deltaTime; // adjust accordingly
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
         m_Camera->cameraPos += cameraSpeed * m_Camera->cameraFront;
     if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)

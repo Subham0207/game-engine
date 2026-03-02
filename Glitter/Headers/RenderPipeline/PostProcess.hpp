@@ -31,7 +31,7 @@ private:
     unsigned int screenTexture;
     Shader* postProcessShader;
 
-    float exposure = 1.0f;
+    float exposure = 0.3f;
 
     void renderFullscreenTriangle();
 };

@@ -9,6 +9,7 @@ FlyCam::FlyCam(const std::string& name)
     this->cameraName = name;
     yaw = -90.0f;
     pitch = 0.0f;
+    sensitivity = 0.05f;
 }
 
 void FlyCam::onMouseMove(const MouseMoveEvent& e)
@@ -23,8 +24,6 @@ void FlyCam::onMouseMove(const MouseMoveEvent& e)
 
 void FlyCam::moveCamera(double xOffset, double yOffset)
 {
-    const float sensitivity = 0.05f;
-
     yaw += (xOffset * sensitivity);
     pitch += (yOffset * sensitivity);
 

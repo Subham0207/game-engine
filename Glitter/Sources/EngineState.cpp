@@ -2,7 +2,10 @@
 #include <cstdlib>
 #include <utility>
 
+#include "Camera/FlyCam.hpp"
+
 EngineState::EngineState(){
+    bus = EventBus();
     ais = std::vector<AI::AI*>();
     mWindow = nullptr;
 
@@ -11,6 +14,12 @@ EngineState::EngineState(){
      = value != nullptr ? value : fs::current_path().string();
 
     currentActiveProjectDirectory = "";
+
+    editorCamera = new FlyCam("editorCamera");
+    bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
+    {
+        editorCamera->onMouseMove(e);
+    });
 }
 
 void EngineState::setEngineDirectory(std::string value)

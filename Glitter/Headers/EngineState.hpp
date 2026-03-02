@@ -18,7 +18,7 @@ namespace AI
 {
     class AI;
 }
-
+class FlyCam;
 class PostProcess;
 
 class EngineState{
@@ -65,7 +65,10 @@ public:
 
     Level *activeLevel = new Level();//Init an empty level so this compiles
 
+    //TODO: Stop tracking editor camera in level object.
     int activeCameraIndex = 0;
+    FlyCam* editorCamera;
+    float editorCameraSpeed = 2.5f;
 
     bool isPlay = false;
 
@@ -80,7 +83,7 @@ public:
 
     LuaEngine* luaEngine = new LuaEngine();
 
-    EventBus bus = EventBus();
+    EventBus bus;
 
     PostProcess* postProcess = nullptr;
 

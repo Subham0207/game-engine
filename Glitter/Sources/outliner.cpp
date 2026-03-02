@@ -7,6 +7,7 @@
 #include <AI/AI.hpp>
 #include <UI/AI_UI.hpp>
 
+#include "Camera/FlyCam.hpp"
 #include "RenderPipeline/PostProcess.hpp"
 #include "UI/FileExplorer.hpp"
 #include "UI/ModelUI/ModelUI.hpp"
@@ -213,6 +214,10 @@ void Outliner::ModelMatrixComponent()
 }
 void Outliner::levelControlsComponent(Level &lvl)
 {
+    ImGui::SeparatorText("Editor Camera settings");
+    ImGui::InputFloat("Sensitivity", &EngineState::state->editorCamera->getSensitivityRef());
+    ImGui::InputFloat("MoveSpeed", &EngineState::state->editorCameraSpeed);
+
     ImGui::Text("Current Level %s", lvl.levelname.c_str());
     if(ImGui::Button("Save Level"))
     {

@@ -13,9 +13,14 @@ public:
     FlyCam(const std::string& name);
     void onMouseMove(const MouseMoveEvent& e) override;
     void moveCamera(double xOffset, double yOffset);
+    float& getSensitivityRef(){return sensitivity;}
+    float& getCameraSpeedRef(){return cameraSpeed;}
 private:
     double yaw;
     double pitch;
+
+    float sensitivity;
+    float cameraSpeed;
 };
 
 
