@@ -150,6 +150,8 @@ GLFWwindow* Shared::initAWindow()
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    glfwSwapInterval(0); //V-sync off
+
     return window;
 }
 

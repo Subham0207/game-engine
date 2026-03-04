@@ -4,6 +4,8 @@
 
 #include "../Headers/RenderPipeline/ShadowPass.hpp"
 
+#include <Profiler.hpp>
+
 ShadowPass::ShadowPass(GLFWwindow* window, Lights* lightSystem)
 {
     mWindow = window;
@@ -12,6 +14,7 @@ ShadowPass::ShadowPass(GLFWwindow* window, Lights* lightSystem)
 
 void ShadowPass::draw(const float deltaTime, unsigned int FBO) const
 {
+    ZoneScopedN("ShadowPassDraw");
     for(auto& light : mLightSystem->directionalLights)
         light.evaluateShadowMap(mWindow, deltaTime, FBO);
 

@@ -8,6 +8,7 @@
 #include <UI/StatemachineUI.hpp>
 
 #include "Prefab.hpp"
+#include <Profiler.hpp>
 #include "UI/AI_UI.hpp"
 #include "UI/CharacterUI.hpp"
 #include "UI/FileExplorer.hpp"
@@ -26,6 +27,7 @@ namespace ProjectAsset
     }
 
     void AssetBrowser::RenderAssetBrowser(){
+        ZoneScopedN("AssetBrowserDraw");
             if (ImGui::Begin("Asset Browser", &showAssetBrowser))
             {
                 InputText("Search", filterFile);

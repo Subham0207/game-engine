@@ -5,6 +5,7 @@
 #include "../Headers/RenderPipeline/LightingPass.hpp"
 #include <3DModel/model.hpp>
 #include "Character/Character.hpp"
+#include <Profiler.hpp>
 
 void LightingPass::draw(
     const std::vector<std::shared_ptr<Renderable>>& renderables,
@@ -14,6 +15,7 @@ void LightingPass::draw(
     const float deltaTime
 )
 {
+    ZoneScopedN("LightingPassDraw");
     for(int i=0;i<renderables.size();i++)
     {
         if(renderables.at(i)->ShouldRender())
@@ -25,8 +27,8 @@ void LightingPass::draw(
                 model->draw(deltaTime, activeCamera, lightSystem, cubeMap, nullptr);
             if (auto character = std::dynamic_pointer_cast<Character>(renderables.at(i)))
                 character->draw(deltaTime, activeCamera, lightSystem, cubeMap);
-            if (auto CapsuleColliderModel = std::dynamic_pointer_cast<Character>(renderables.at(i)))
-                CapsuleColliderModel->draw(deltaTime, activeCamera, lightSystem, cubeMap);
+            if (auto capsuleColliderModel = std::dynamic_pointer_cast<CapsuleColliderModel>(renderables.at(i)))
+                capsuleColliderModel->draw(deltaTime, activeCamera, lightSystem, cubeMap);
         }
     }
 

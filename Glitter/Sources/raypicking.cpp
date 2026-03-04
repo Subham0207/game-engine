@@ -4,6 +4,8 @@
 #include <EngineState.hpp>
 #include <limits>
 
+#include <Profiler.hpp>
+
 void setRay(double winX, double winY, glm::vec3& rayOrigin, glm::vec3& rayDir, glm::mat4 &glmModelView, glm::mat4 &glmProjection, glm::vec3 cameraDirection)
 {
     float mouseX = (winX / float(mWidth)) * 2.0f - 1.0f;
@@ -202,6 +204,7 @@ int handlePicking(
     glm::vec3 &rayOrigin,
     glm::vec3 &rayDir,
     glm::vec3 cameraDirection) {
+    ZoneScopedN("RayPickingDraw");
     // -2 means no mouse click; -1 means mouse click but no selection detected; >-1 means index of the selected model
     int selectedModelIndex = -2;
     if(InputHandler::currentInputHandler->leftClickPressed)

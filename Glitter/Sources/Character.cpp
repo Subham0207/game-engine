@@ -7,6 +7,7 @@
 #include <Modals/CameraType.hpp>
 
 #include "GenericFactory.hpp"
+#include <Profiler.hpp>
 namespace fs = std::filesystem;
 
 Character::Character(std::string filepath): Serializable(){
@@ -122,32 +123,28 @@ void Character::updateFinalBoneMatrix(float deltatime)
         skeleton->skeletaltreeRoot,
         skeleton->m_Bones);
 
-    if(animator != nullptr)
-    {
-        auto transforms = animator->GetFinalBoneMatrices();
-
-        // Apply finalBoneMatrix to CPU mesh as well since we use CPU based selection; TODO: Later add this to a flag so we can switch to other selection methods
-        // each vertex has info which bone is influencing it and its position
-        //Use mostly the same code in vertex shader to calculate the position of the vertex
-        //But if the vertex.pos is what we set ?
-        for ( int i = 0; i < model->getMeshes()->size(); i++)
-        {
-            auto vertices = &model->getMeshes()->at(i).vertices;
-            for(int j = 0; j < vertices->size(); j++)
-            {
-                vertices->at(j).animatedPos = glm::vec4(0.0f);
-                for (int k = 0; k < 4; k++) {
-                    int boneID = vertices->at(j).m_BoneIDs[k];
-                    float weight = vertices->at(j).m_Weights[k];
-                    
-                    if (boneID >= 0) {
-                        glm::mat4 boneTransform = transforms[boneID];
-                        vertices->at(j).animatedPos += weight * (boneTransform * glm::vec4(vertices->at(j).Position, 1.0f));
-                    }
-                }
-            }
-        }
-    }
+    //TURNING OFF updating bone matrix data on CPU vertices.
+    // if(animator != nullptr)
+    // {
+    //     auto transforms = animator->GetFinalBoneMatrices();
+    //     for ( int i = 0; i < model->getMeshes()->size(); i++)
+    //     {
+    //         auto vertices = &model->getMeshes()->at(i).vertices;
+    //         for(int j = 0; j < vertices->size(); j++)
+    //         {
+    //             vertices->at(j).animatedPos = glm::vec4(0.0f);
+    //             for (int k = 0; k < 4; k++) {
+    //                 int boneID = vertices->at(j).m_BoneIDs[k];
+    //                 float weight = vertices->at(j).m_Weights[k];
+    //
+    //                 if (boneID >= 0) {
+    //                     glm::mat4 boneTransform = transforms[boneID];
+    //                     vertices->at(j).animatedPos += weight * (boneTransform * glm::vec4(vertices->at(j).Position, 1.0f));
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     //For Debuggging
     // if(model != nullptr)
@@ -175,6 +172,7 @@ std::vector<unsigned int> Character::GetIndices()
 
 void Character::imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
 {
+    ZoneScopedN("CharacterGizmoManipulateDraw");
     ImGuizmo::Manipulate(
 glm::value_ptr(viewMatrix),
 glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::WORLD, glm::value_ptr(getModelMatrix()));
@@ -182,6 +180,7 @@ glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::W
 
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
+    ZoneScopedN("CharacterDraw");
     uploadBoneMatricesToGPU();
 
     if(model)

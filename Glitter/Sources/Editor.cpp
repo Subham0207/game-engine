@@ -52,7 +52,7 @@
 #include "RenderPipeline/PostProcess.hpp"
 #include "RenderPipeline/ShadowPass.hpp"
 
-#include "tracy/Tracy.hpp"
+#include <Profiler.hpp>
 
 
 int Editor::openEditor(std::string enginePath, std::string projectDir) {
@@ -81,6 +81,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
     Shared::initImguiBackend(mWindow);
     EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();
+
+    TracyGpuContext;
 
     unsigned int mouseState = GLFW_CURSOR_DISABLED;
     glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
@@ -237,6 +239,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, inputCtx);
         if(EngineState::state->isPlay)
         {
+            ZoneScopedN("EditorIsPlay");
             // *activeCamera = lvl->cameras[EngineState::state->activePlayerControllerId + 1];
             if (!EngineState::state->playerControllers.empty())
             if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
@@ -287,6 +290,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         for(auto &i: lights->pointLights)
         {
+            ZoneScopedN("EditorPointLightSelection");
             i.position = i.lightModel->GetPosition();
             if(i.lightModel->getIsSelected())
             {
@@ -297,6 +301,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         for(auto &i: lights->directionalLights)
         {
+            ZoneScopedN("EditorPointDirectionalLightSelection");
             // GET direction vector from light model rotation.
             if(i.lightModel->getIsSelected())
             {
@@ -307,6 +312,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         for(auto &i: lights->spotLights)
         {
+            ZoneScopedN("EditorPointSpotLightSelection");
             i.position = i.lightModel->GetPosition();
             if(i.lightModel->getIsSelected())
             {
@@ -317,6 +323,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
         if(!getActiveLevel().isNavMeshSetup)
         {
+            ZoneScopedN("EditorOneTimeLevelNavMeshSetup");
             getActiveLevel().BuildLevelNavMesh();
             std::vector<float> outPath;
 
@@ -343,6 +350,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         //Update animation before Shadow pass and Lighting pass to get correct shadows and lighting.
         for(int i=0;i<lvlrenderables.size();i++)
         {
+            ZoneScopedN("EditorUpdateBoneMatrixOnCPU");
             if(lvlrenderables.at(i)->ShouldRender())
             {
                 if (auto character = std::dynamic_pointer_cast<Character>(lvlrenderables.at(i)))
@@ -409,12 +417,30 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
         outliner->Render(*lvl);
         assetBrowser->RenderAssetBrowser();
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        {
+            ZoneScopedN("ImGuiRender");
+            ImGui::Render();
+        }
+        {
+            ZoneScopedN("ImGuiRenderDrawData");
+            {
+                TracyGpuZone("ImGui Draw");
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+        }
 
-        // Flip Buffers and Draw
-        glfwSwapBuffers(mWindow);
-        glfwPollEvents();
+        {
+            ZoneScopedN("SwapBuffers");
+            // Flip Buffers and Draw
+            glfwSwapBuffers(mWindow);
+        }
+
+        TracyGpuCollect;
+
+        {
+            ZoneScopedN("GLFWPollEvents");
+            glfwPollEvents();
+        }
     }   glfwTerminate();
     return EXIT_SUCCESS;
 }

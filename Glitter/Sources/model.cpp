@@ -22,6 +22,7 @@
 #include "Materials/MaterialInstance.hpp"
 #include "Materials/Material.hpp"
 #include "Materials/TextureUnits.hpp"
+#include <Profiler.hpp>
 
 // using namespace std;
 namespace fs = std::filesystem;
@@ -442,6 +443,7 @@ void Model::BuildFlattenedGeometry(std::vector<ProjectModals::Vertex>& outVerts,
 
 void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap, const std::vector<glm::mat4>* finalBoneMatrix)
 {
+    ZoneScopedN("ModelDraw");
     bindCubeMapTextures(cubeMap);
 
 	for (unsigned int i = 0; i < meshes.size(); i++)
@@ -523,6 +525,7 @@ std::shared_ptr<ProjectModals::Texture> Model::LoadTexture(std::string texturePa
 
 void Model::imguizmoManipulate(glm::mat4 viewMatrix, glm::mat4 projMatrix)
 {
+    ZoneScopedN("ModelGizmoManipulateDraw");
     ImGuizmo::Manipulate(
     glm::value_ptr(viewMatrix),
     glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::LOCAL, glm::value_ptr(modelMatrix));

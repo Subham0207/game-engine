@@ -7,6 +7,8 @@
 #include <EngineState.hpp>
 #include <Modals/3DModelType.hpp>
 
+#include <Profiler.hpp>
+
 CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
     // getActiveLevel().addRenderable(this);
     model = createCapsuleModel(radius, halfHeight);
@@ -14,6 +16,7 @@ CapsuleColliderModel::CapsuleColliderModel(float radius, float halfHeight){
 
 void CapsuleColliderModel::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeMap)
 {
+    ZoneScopedN("CapsuleColliderDraw");
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     model->draw(deltaTime, camera, lights, cubeMap, nullptr);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

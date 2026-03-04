@@ -9,10 +9,12 @@
 
 #include "Camera/FlyCam.hpp"
 #include "RenderPipeline/PostProcess.hpp"
+#include <Profiler.hpp>
 #include "UI/FileExplorer.hpp"
 #include "UI/ModelUI/ModelUI.hpp"
 
 void Outliner::Render(Level &lvl) {
+    ZoneScopedN("OutlinerDraw");
     if(ImGui::Begin("Outliner"))
     {
 
