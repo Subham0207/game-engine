@@ -54,6 +54,30 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
+# ---- Tracy (optional) --------------------------------------------------------
+option(ENGINE_WITH_TRACY "Enable Tracy profiling instrumentation" OFF)
+option(ENGINE_TRACY_ON_DEMAND "Use TRACY_ON_DEMAND (attach later)" ON)
+
+if (ENGINE_WITH_TRACY)
+    include(FetchContent)
+    FetchContent_Declare(
+            tracy
+            GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+            GIT_TAG        v0.13.1
+            GIT_SHALLOW    TRUE
+            GIT_PROGRESS   TRUE
+    )
+    FetchContent_MakeAvailable(tracy)
+
+    if (TARGET TracyClient)
+        target_compile_definitions(TracyClient PRIVATE
+                TRACY_NO_SYSTEM_TRACING=1
+                # TRACY_NO_CONTEXT_SWITCH=1
+                # TRACY_NO_SAMPLING=1
+        )
+    endif()
+endif()
+
 set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/Glitter/Vendor/boost_1_89_0")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
@@ -168,10 +192,22 @@ target_include_directories(GlitterLib
             $<BUILD_INTERFACE:${LUA_INCLUDE_DIR}>
             $<BUILD_INTERFACE:${RECASTNAVIGATION_INCLUDE_DIRS}>
 
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
             $<INSTALL_INTERFACE:include/Glitter>
 )
 
+if (ENGINE_WITH_TRACY)
+    # This pulls the actual .cpp file into your library build
+    set(TRACY_SRC "${tracy_SOURCE_DIR}/public/TracyClient.cpp")
+    # Add it to your library
+    target_sources(GlitterLib PRIVATE ${TRACY_SRC})
+
+    # Ensure the engine can find its own headers during build
+    target_include_directories(GlitterLib PRIVATE "${tracy_SOURCE_DIR}/public")
+endif()
+
 target_link_libraries(GlitterLib
+        PUBLIC
             assimp glfw
             ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
             Jolt::Jolt
@@ -183,6 +219,11 @@ target_link_libraries(GlitterLib
             Detour
             DetourCrowd
             DetourTileCache
+)
+
+target_compile_definitions(GlitterLib PUBLIC
+        $<$<AND:$<BOOL:${ENGINE_WITH_TRACY}>,$<CONFIG:Debug>>:TRACY_ENABLE=1>
+        $<$<AND:$<BOOL:${ENGINE_WITH_TRACY}>,$<CONFIG:Debug>>:TRACY_ON_DEMAND=1>
 )
 
 add_executable(Editor ${CMAKE_SOURCE_DIR}/Glitter/editorMain.cpp)
@@ -254,6 +295,11 @@ install(FILES "${LUA_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 install(FILES "${LUA_DLL}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 install(DIRECTORY "${BOOST_ROOT}/boost" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(DIRECTORY "${BOOST_ROOT}/stage/lib/" DESTINATION "${CMAKE_INSTALL_LIBDIR}" FILES_MATCHING PATTERN "*.lib")
+if (ENGINE_WITH_TRACY)
+    # Install the tracy headers so the App can see them
+    install(DIRECTORY "${tracy_SOURCE_DIR}/public/tracy"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
 
 # --- 8. Generate Package Config ---
 set(_glitter_config_in "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake.in")

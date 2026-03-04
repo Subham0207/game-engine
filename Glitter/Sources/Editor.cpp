@@ -52,6 +52,8 @@
 #include "RenderPipeline/PostProcess.hpp"
 #include "RenderPipeline/ShadowPass.hpp"
 
+#include "tracy/Tracy.hpp"
+
 
 int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
@@ -214,6 +216,9 @@ int Editor::openEditor(std::string enginePath, std::string projectDir) {
 
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
+
+        FrameMark;
+        ZoneScopedN("Engine Frame");
 
         queue.drain([&](const Event& e)
         {
