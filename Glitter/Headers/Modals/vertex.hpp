@@ -43,8 +43,8 @@ namespace ProjectModals{
             ar & Normal;
             ar & TexCoords;
             ar & Color;
-            ar & m_BoneIDs;
-            ar & m_Weights;
+            ar & boost::serialization::make_array(m_BoneIDs, MAX_BONE_INFLUENCE);
+            ar & boost::serialization::make_array(m_Weights, MAX_BONE_INFLUENCE);
             ar & Tangent;
             ar & Bitangent;
         }

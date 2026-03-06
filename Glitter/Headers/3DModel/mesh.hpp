@@ -55,7 +55,9 @@ class Mesh {
 
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
+            std::cout << "Starting Mesh Serialization..." << std::endl;
             ar & vertices;
+            std::cout << "Vertices loaded: " << vertices.size() << std::endl;
             ar & indices;
             ar & materialAssetGuid;
 

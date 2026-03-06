@@ -206,6 +206,9 @@ fs::path Shared::metaFileToActualPath(const fs::path& path)
 
 void Shared::CopyFileToProjectDirectory(std::string& filelocation)
 {
+    if (filelocation.empty())
+        return;
+
     auto projectDirectory = fs::path(EngineState::state->currentActiveProjectDirectory);
     auto filePath = fs::path(filelocation);
 
@@ -236,7 +239,8 @@ void Shared::CopyFileToProjectDirectory(std::string& filelocation)
 
             std::cout << "File copied to: " << destination << std::endl;
         } catch (fs::filesystem_error& e) {
-            std::cerr << "Could not copy file: " << e.what() << std::endl;
+            auto temp = !filePath.empty() ? filePath: "FILE_PATH_EMPTY. ";
+            std::cerr << "Could not copy file: " << temp << "Error: "  << e.what() << std::endl;
         }
     } else {
         std::cout << "File is already within the project directory." << std::endl;

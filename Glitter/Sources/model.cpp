@@ -93,7 +93,7 @@ void Model::saveSerializedModel(std::string filename, Model &model)
         }
     }
     model.directory = filename;
-    std::ofstream ofs(filename);
+    std::ofstream ofs(filename, std::ios::binary);
     boost::archive::text_oarchive oa(ofs);
     oa << model;
     ofs.close();
@@ -535,13 +535,26 @@ void Model::loadFromFile(const std::string &filename, Model &model, std::shared_
 
     try
     {
-        std::ifstream ifs(filename);
+        std::ifstream ifs(filename, std::ios::binary);
+        if (!ifs.is_open()) {
+            std::cout << "File could not be opened at all.";
+            return;
+        }
+        if (ifs.fail()) std::cout << "Stream Fail bit set.";
+        if (ifs.bad()) std::cout << "Stream Bad bit set (Memory corruption?).";
+
         boost::archive::text_iarchive ia(ifs);
+        unsigned int v = ia.get_library_version();
+        std::cout << "Boost Archive Version: " << v << std::endl;
         ia >> model;
+    }
+    catch(boost::archive::archive_exception &e)
+    {
+        std::cout << "Boost Archive Error: " << e.what() << " Code: " << e.code << std::endl;
     }
     catch(std::exception &e)
     {
-        std::cout << "Exception while opening the model file: " << e.what();
+        std::cout << "Exception while opening the model file: " << e.what() << std::endl;
     }
 
     std::cout << "Starting loading mesh data" << std::endl;

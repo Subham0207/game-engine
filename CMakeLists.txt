@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.26)
 project(Glitter VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
@@ -13,6 +13,9 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(Glitter/Vendor/assimp)
 
+set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
+set(TARGET_CRT_DYNAMIC ON CACHE BOOL "" FORCE)
+set(PROFILER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
 add_subdirectory(Glitter/Vendor/JoltPhysics/Build)
 
 enable_testing()
@@ -85,6 +88,9 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_DEBUG ON)
 
 find_package(Boost 1.89.0 REQUIRED COMPONENTS serialization)
+
+message(STATUS "Boost Serialization Release: ${Boost_SERIALIZATION_LIBRARY_RELEASE}")
+message(STATUS "Boost Serialization Debug: ${Boost_SERIALIZATION_LIBRARY_DEBUG}")
 
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
@@ -326,14 +332,15 @@ endif()
 include("${CMAKE_CURRENT_LIST_DIR}/GlitterTargets.cmake")
 ]=])
 
+# Since In build directory the Assets are in same directory as .exe we need to make sure they go in same place in install dir i.e. in bin folder.
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/EngineAssets/"
-        DESTINATION EngineAssets)
+        DESTINATION "${CMAKE_INSTALL_BINDIR}/EngineAssets")
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Shaders/"
-        DESTINATION Shaders)
+        DESTINATION "${CMAKE_INSTALL_BINDIR}/Shaders")
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Template/"
-        DESTINATION Template)
+        DESTINATION "${CMAKE_INSTALL_BINDIR}/Template")
 
 configure_package_config_file("${_glitter_config_in}" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" INSTALL_DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" VERSION "${PROJECT_VERSION}" COMPATIBILITY SameMajorVersion)
@@ -341,4 +348,10 @@ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersi
 install(EXPORT GlitterTargets FILE GlitterTargets.cmake NAMESPACE Glitter:: DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 
+install(TARGETS ProjectManager
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+
 set_target_properties(GlitterLib PROPERTIES EXPORT_NAME Glitter)
+
+get_target_property(LIBS_LINKED GlitterLib LINK_LIBRARIES)
+message(STATUS "GlitterLib is linking against: ${LIBS_LINKED}")

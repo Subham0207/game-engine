@@ -19,6 +19,7 @@
 
 #include "Materials/Material.hpp"
 #include "Modals/texture.hpp"
+#include "serializer.hpp"
 
 enum ModelType;
 
@@ -223,6 +224,7 @@ private:
     friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version) {
+        static_assert(sizeof(meshes) > 0, "Mesh size check");
         ar & meshes;
         ar & modelMatrix;
         ar & textureIds;

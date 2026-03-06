@@ -42,7 +42,7 @@ else()
 endif()
 
 target_compile_definitions({{PROJECT_NAME}}  PRIVATE
-    GLITTER_ENGINE=\"${ENGINE_LOC}\"
+    GLITTER_ENGINE=\"${ENGINE_LOC}/bin/\"
 )
 
 # At install time remember to not rely on this. And copy the files to root directory of game.exe.
