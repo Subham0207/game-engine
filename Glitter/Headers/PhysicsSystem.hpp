@@ -1,6 +1,5 @@
 #pragma once
 
-#define JPH_PROFILE_ENABLED
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyID.h>

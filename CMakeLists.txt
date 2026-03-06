@@ -13,9 +13,39 @@ option(ASSIMP_BUILD_SAMPLES OFF)
 option(ASSIMP_BUILD_TESTS OFF)
 add_subdirectory(Glitter/Vendor/assimp)
 
+# ---- Tracy (optional) --------------------------------------------------------
+option(ENGINE_WITH_TRACY "Enable Tracy profiling instrumentation" OFF)
+option(ENGINE_TRACY_ON_DEMAND "Use TRACY_ON_DEMAND (attach later)" ON)
+
+if (ENGINE_WITH_TRACY)
+    include(FetchContent)
+    FetchContent_Declare(
+            tracy
+            GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+            GIT_TAG        v0.13.1
+            GIT_SHALLOW    TRUE
+            GIT_PROGRESS   TRUE
+    )
+    FetchContent_MakeAvailable(tracy)
+
+    if (TARGET TracyClient)
+        target_compile_definitions(TracyClient PRIVATE
+                TRACY_NO_SYSTEM_TRACING=1
+                # TRACY_NO_CONTEXT_SWITCH=1
+                # TRACY_NO_SAMPLING=1
+        )
+    endif()
+endif()
+
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
 set(TARGET_CRT_DYNAMIC ON CACHE BOOL "" FORCE)
-set(PROFILER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+if (ENGINE_WITH_TRACY)
+    set(PROFILE_ENABLED ON CACHE BOOL "" FORCE)
+    set(PROFILER_IN_DEBUG_AND_RELEASE ON CACHE BOOL "" FORCE)
+else()
+    set(PROFILE_ENABLED OFF CACHE BOOL "" FORCE)
+    set(PROFILER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+endif()
 add_subdirectory(Glitter/Vendor/JoltPhysics/Build)
 
 enable_testing()
@@ -56,30 +86,6 @@ Glitter/Vendor/imguizmo/*.cpp
 source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
-
-# ---- Tracy (optional) --------------------------------------------------------
-option(ENGINE_WITH_TRACY "Enable Tracy profiling instrumentation" OFF)
-option(ENGINE_TRACY_ON_DEMAND "Use TRACY_ON_DEMAND (attach later)" ON)
-
-if (ENGINE_WITH_TRACY)
-    include(FetchContent)
-    FetchContent_Declare(
-            tracy
-            GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-            GIT_TAG        v0.13.1
-            GIT_SHALLOW    TRUE
-            GIT_PROGRESS   TRUE
-    )
-    FetchContent_MakeAvailable(tracy)
-
-    if (TARGET TracyClient)
-        target_compile_definitions(TracyClient PRIVATE
-                TRACY_NO_SYSTEM_TRACING=1
-                # TRACY_NO_CONTEXT_SWITCH=1
-                # TRACY_NO_SAMPLING=1
-        )
-    endif()
-endif()
 
 set(BOOST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/Glitter/Vendor/boost_1_89_0")
 set(Boost_USE_STATIC_LIBS ON)
@@ -230,6 +236,7 @@ target_link_libraries(GlitterLib
 target_compile_definitions(GlitterLib PUBLIC
         $<$<AND:$<BOOL:${ENGINE_WITH_TRACY}>,$<CONFIG:Debug>>:TRACY_ENABLE=1>
         $<$<AND:$<BOOL:${ENGINE_WITH_TRACY}>,$<CONFIG:Debug>>:TRACY_ON_DEMAND=1>
+        $<$<BOOL:${ENGINE_WITH_TRACY}>:JPH_PROFILE_ENABLED>
 )
 
 add_executable(Editor ${CMAKE_SOURCE_DIR}/Glitter/editorMain.cpp)
