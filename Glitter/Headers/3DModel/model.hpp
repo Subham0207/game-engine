@@ -227,9 +227,7 @@ private:
         static_assert(sizeof(meshes) > 0, "Mesh size check");
         ar & meshes;
         ar & modelMatrix;
-        ar & textureIds;
         ar & directory;
-        ar & physicsBodyType;
     }
     
 };

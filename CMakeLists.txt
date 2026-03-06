@@ -233,11 +233,22 @@ target_link_libraries(GlitterLib
             DetourTileCache
 )
 
-target_compile_definitions(GlitterLib PUBLIC
-        $<$<AND:$<BOOL:${ENGINE_WITH_TRACY}>,$<CONFIG:Debug>>:TRACY_ENABLE=1>
-        $<$<AND:$<BOOL:${ENGINE_WITH_TRACY}>,$<CONFIG:Debug>>:TRACY_ON_DEMAND=1>
-        $<$<BOOL:${ENGINE_WITH_TRACY}>:JPH_PROFILE_ENABLED>
-)
+if (ENGINE_WITH_TRACY)
+    target_compile_definitions(Jolt PUBLIC
+            TRACY_ENABLE=1
+            JPH_PROFILE_ENABLED
+    )
+
+    target_compile_definitions(GlitterLib PUBLIC
+            TRACY_ENABLE=1
+            JPH_PROFILE_ENABLED
+    )
+
+    if (ENGINE_TRACY_ON_DEMAND)
+        target_compile_definitions(Jolt PUBLIC TRACY_ON_DEMAND=1)
+        target_compile_definitions(GlitterLib PUBLIC TRACY_ON_DEMAND=1)
+    endif()
+endif()
 
 add_executable(Editor ${CMAKE_SOURCE_DIR}/Glitter/editorMain.cpp)
 
