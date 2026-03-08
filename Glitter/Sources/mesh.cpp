@@ -43,6 +43,7 @@ void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::m
 
     auto cameraPosition = camera->getPosition();
     resolvedMaterial->GetShader()->setMat4("model", modelMatrix);
+    resolvedMaterial->GetShader()->setBool("uHasTangents", HasTangents);
     glUniform3f(glGetUniformLocation(shaderProgramId, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
 
     if (finalBoneMatrix)
@@ -106,13 +107,25 @@ void Mesh::setupMesh()
 
     // ids
     glEnableVertexAttribArray(6);
-    glVertexAttribIPointer(6, 4, GL_INT, sizeof(ProjectModals::Vertex), (void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_BoneIDs));
+    glVertexAttribIPointer(6, MAX_BONE_INFLUENCE, GL_INT, sizeof(ProjectModals::Vertex), (void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_BoneIDs));
 
     // weights
     glEnableVertexAttribArray(7);
-    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex),(void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_Weights));   
+    glVertexAttribPointer(7, MAX_BONE_INFLUENCE, GL_FLOAT, GL_FALSE, sizeof(ProjectModals::Vertex),(void*)offsetof(ProjectModals::Vertex, ProjectModals::Vertex::m_Weights));
 
     glBindVertexArray(0);
+
+
+    //Set has tangents
+    for (auto& vertex : vertices)
+    {
+        if(vertex.Tangent == glm::vec3(0.0f) || vertex.Bitangent == glm::vec3(0.0f))
+        {
+            this->HasTangents = false;
+            return;
+        }
+    }
+    this->HasTangents = true;
 }
 
 void Mesh::setupMaterial()

@@ -4,8 +4,8 @@ out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
-in vec3 Tangent;
-in vec3 Bitangent;
+in mat3 TBN;
+flat in int HasValidTangentBasis;
 
 layout(binding = 1) uniform sampler2D albedoMap;
 layout(binding = 2) uniform sampler2D normalMap;
@@ -249,18 +249,15 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 }
 vec3 getNormalFromMap()
 {
-    vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
-
-    vec3 N = normalize(Normal);
-    vec3 T = normalize(Tangent);
-    vec3 B = normalize(Bitangent);
-
-    // Orthonormalize to be safe
-    T = normalize(T - dot(T, N) * N);
-    B = normalize(cross(N, T));
-
-    mat3 TBN = mat3(T, B, N);
-    return normalize(TBN * tangentNormal);
+    if(HasValidTangentBasis == 1)
+    {
+        vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
+        return normalize(TBN * tangentNormal);
+    }
+    else
+    {
+        return normalize(Normal);
+    }
 }
 
 vec3 EvaluatePBRLight(

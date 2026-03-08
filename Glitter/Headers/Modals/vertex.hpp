@@ -13,26 +13,23 @@ namespace ProjectModals{
 
     struct Vertex {
         // position
-        glm::vec3 Position{0.0f};
+        glm::vec3 Position;
         // normal
-        glm::vec3 Normal{0.0f};
+        glm::vec3 Normal;
         // texCoords
-        glm::vec2 TexCoords{0.0f};
+        glm::vec2 TexCoords;
         // vertex color
-        glm::vec4 Color{1.0f};
+        glm::vec4 Color;
         // tangent
-        glm::vec3 Tangent{0.0f};
+        glm::vec3 Tangent;
         // bitangent
-        glm::vec3 Bitangent{0.0f};
-        //bone indexes which will influence this vertex
-        int m_BoneIDs[MAX_BONE_INFLUENCE]{};
+        glm::vec3 Bitangent;
+        //bone indexes which will influence this vertex;
+        int m_BoneIDs[MAX_BONE_INFLUENCE];
         //weights from each bone
-        float m_Weights[MAX_BONE_INFLUENCE]{};
-        
-        //Animated vertex pos
-        //NOTE: the vertex position is of default pose/T-Pose. Animation is applying on GPU side.
-        //Here we are applying the animation and then the below is the updated vertex position which is stored on CPU for selection.
-        glm::vec3 animatedPos{0.0f};
+        float m_Weights[MAX_BONE_INFLUENCE];
+
+        Vertex();
 
     private:
         friend class boost::serialization::access;

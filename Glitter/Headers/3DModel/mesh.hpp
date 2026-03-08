@@ -32,6 +32,8 @@ class Mesh {
         std::vector<ProjectModals::Vertex>       vertices;
         std::vector<unsigned int> indices;
 
+        bool HasTangents = false;
+
         std::string materialAssetGuid;
         std::shared_ptr<Materials::IMaterial> mMaterial;
 
@@ -55,12 +57,8 @@ class Mesh {
 
         template<class Archive>
         void serialize(Archive &ar, const unsigned int version) {
-            std::cout << "Starting Mesh Serialization..." << std::endl;
             ar & vertices;
-            std::cout << "Vertices loaded: " << vertices.size() << std::endl;
             ar & indices;
             ar & materialAssetGuid;
-
-            std::cout << "Serializing GUID: " << materialAssetGuid << std::endl;
         }
     };

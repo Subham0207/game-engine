@@ -12,6 +12,7 @@ layout (location = 7) in vec4 aWeights;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform bool uHasTangents;
 
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
@@ -22,8 +23,8 @@ out vec3 Normal;
 out vec3 FragPos;
 out vec2 TexCoords;
 out vec4 Color;
-out vec3 Tangent;
-out vec3 Bitangent;
+out mat3 TBN;
+flat out int HasValidTangentBasis;
 out vec4 FragPosLightSpace;
 out vec4 SpotFragPosLightSpace;
 
@@ -37,6 +38,9 @@ void main()
 {
     vec4 totalPosition = vec4(0.0f);
     vec3 totalNormal = vec3(0.0f);
+    vec3 totalTangent = vec3(0.0f);
+
+    bool usedBone = false;
 
     if(isAnimated)
     {
@@ -50,6 +54,7 @@ void main()
                 // If ID is out of bounds, treat as static mesh
                 totalPosition = vec4(apos, 1.0f);
                 totalNormal = aNormal;
+                totalTangent = aTangent;
                 break;
             }
 
@@ -58,12 +63,22 @@ void main()
 
             totalPosition += (finalBonesMatrices[aboneIds[i]] * vec4(apos, 1.0f)) * weight;
             totalNormal += (mat3(finalBonesMatrices[aboneIds[i]]) * aNormal) * weight;
+            totalTangent += (mat3(finalBonesMatrices[aboneIds[i]]) * aTangent) * weight;
+            usedBone = true;
+        }
+
+        if(!usedBone)
+        {
+            totalPosition = vec4(apos, 1.0f);
+            totalNormal = aNormal;
+            totalTangent = aTangent;
         }
     }
     else
     {
         totalPosition = vec4(apos, 1.0f);
         totalNormal = aNormal;
+        totalTangent = aTangent;
     }
 
 
@@ -71,10 +86,25 @@ void main()
     gl_Position =  projection * viewModel * totalPosition;
 
 	FragPos = vec3(model * totalPosition);
+
     mat3 normalMatrix = mat3(transpose(inverse(model)));
-	Normal = normalize(normalMatrix * totalNormal);
-    Tangent   = normalize(normalMatrix * aTangent);
-    Bitangent = normalize(normalMatrix * aBitangent);
+
+    if(uHasTangents)
+    {
+        vec3 N = normalize(normalMatrix * totalNormal);
+        vec3 T   = normalize(normalMatrix * totalTangent);
+        T = normalize(T - dot(T, N) * N);
+        vec3 B = normalize(cross(N, T));
+        TBN = mat3(T, B, N);
+
+        HasValidTangentBasis = 1;
+    }
+    else
+    {
+        Normal = normalize(normalMatrix * totalNormal);
+        HasValidTangentBasis = 0;
+    }
+
     FragPosLightSpace = dirLightVP * model * totalPosition;
     SpotFragPosLightSpace = spotLightSpaceMatrix * model * totalPosition;
 

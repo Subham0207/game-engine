@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
 PostProcess::PostProcess()
 {
-    exposure = 1.0f;
+    exposure = 0.3f;
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vsPath = engineFSPath / "Shaders/PostProcessing/PostProcess.vert";
     auto fsPath = engineFSPath / "Shaders/PostProcessing/PostProcess.frag";
