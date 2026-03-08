@@ -228,6 +228,7 @@ private:
         ar & meshes;
         ar & modelMatrix;
         ar & directory;
+        ar & physicsBodyType;
     }
     
 };
