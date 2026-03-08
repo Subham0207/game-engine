@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.26)
 project({{PROJECT_NAME}})
 
 set(CMAKE_CXX_STANDARD 17)
@@ -52,3 +52,85 @@ target_compile_definitions({{PROJECT_NAME}}  PRIVATE
 
 get_target_property(_defs {{PROJECT_NAME}} COMPILE_DEFINITIONS)
 message(STATUS "{{PROJECT_NAME}} COMPILE_DEFINITIONS = ${_defs}")
+
+
+# ============================================================
+# INSTALL RULES
+# ============================================================
+
+include(GNUInstallDirs)
+
+install(TARGETS {{PROJECT_NAME}}
+    RUNTIME_DEPENDENCY_SET {{PROJECT_NAME}}_runtime_deps
+    RUNTIME DESTINATION .
+)
+
+install(RUNTIME_DEPENDENCY_SET {{PROJECT_NAME}}_runtime_deps
+    DESTINATION .
+    PRE_EXCLUDE_REGEXES
+        "api-ms-.*"
+        "ext-ms-.*"
+        "azureattestmanager\\.dll"
+        "azureattestnormal\\.dll"
+        "hvsifiletrust\\.dll"
+        "pdmutilities\\.dll"
+        "wpaxholder\\.dll"
+    POST_EXCLUDE_REGEXES
+        ".*/System32/.*"
+        ".*/Windows/.*"
+)
+# ============================================================
+# INSTALL GAME / ENGINE DATA
+# ============================================================
+# Adjust these folders to match what your engine actually needs at runtime.
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/Assets")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets"
+        DESTINATION .
+    )
+endif()
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/Levels")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/Levels"
+        DESTINATION .
+    )
+endif()
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/Project.manifest.json")
+    install(FILES "${CMAKE_SOURCE_DIR}/Project.manifest.json"
+        DESTINATION .
+    )
+endif()
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/Shaders")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/Shaders"
+        DESTINATION .
+    )
+endif()
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/Config")
+    install(DIRECTORY "${CMAKE_SOURCE_DIR}/Config"
+        DESTINATION .
+    )
+endif()
+
+# Engine-provided runtime folders
+if(EXISTS "${ENGINE_LOC}/bin/EngineAssets")
+    install(DIRECTORY "${ENGINE_LOC}/bin/EngineAssets"
+        DESTINATION .
+    )
+endif()
+
+if(EXISTS "${ENGINE_LOC}/bin/Shaders")
+    install(DIRECTORY "${ENGINE_LOC}/bin/Shaders"
+        DESTINATION .
+    )
+endif()
+
+# ============================================================
+# OPTIONAL: PACKAGE OUTPUT FOLDER NAME
+# ============================================================
+set(CPACK_PACKAGE_NAME "{{PROJECT_NAME}}")
+set(CPACK_PACKAGE_VENDOR "Subham")
+set(CPACK_PACKAGE_VERSION "0.01")
+include(CPack)

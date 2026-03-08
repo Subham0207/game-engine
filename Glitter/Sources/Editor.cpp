@@ -55,23 +55,19 @@
 #include <Profiler.hpp>
 
 
-int Editor::openEditor(std::string enginePath, std::string projectDir) {
+int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDevMode) {
 
     EventQueue queue;
     InputContext inputCtx;
     inputCtx.queue = &queue;
 
     EngineState::state = new EngineState();
-    EngineState::state->setEngineDirectory(std::move(enginePath));
-    EngineState::state->setCurrentActiveProjectDir(std::move(projectDir));
+    auto cwd = fs::current_path().string();
+    std::cout << "Is Development mode: " << isDevMode << std::endl;
+    std::cout << "CWD: " << cwd << std::endl;
+    EngineState::state->setEngineDirectory(isDevMode ? std::move(enginePath): cwd);
+    EngineState::state->setCurrentActiveProjectDir(isDevMode ? std::move(projectDir): cwd);
     ClientHandler::clientHandler = new ClientHandler();
-
-    char cwd[MAX_PATH];
-    if (GetCurrentDirectory(MAX_PATH, cwd)) {
-        std::cout << "Current working dir: " << cwd << std::endl;
-    } else {
-        std::cerr << "Failed to get current working directory." << std::endl;
-    }
 
     LuaRegistry::SetupLua(EngineState::state->luaEngine->state(), EngineState::state->currentActiveProjectDirectory);
 
