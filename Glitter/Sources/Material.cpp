@@ -127,11 +127,17 @@ namespace Materials
             for (auto& [key, info] : *texOpt)
             {
                 std::string type = info.get<std::string>("type");
-                std::string path = info.get<std::string>("filepath");
+                auto path = fs::path(info.get<std::string>("filepath"));
+
+                //TODO: Remove this patch...
+                auto projectDir = fs::path(EngineState::state->currentActiveProjectDirectory);
+                path = projectDir / "Assets" / path.filename();
+                auto pathString = path.string();
+                std::cout << "Loading texture: " << pathString << std::endl;
 
                 // Load the actual pixel data
                 int width, height, nrComponents;
-                unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+                unsigned char* data = stbi_load(pathString.c_str(), &width, &height, &nrComponents, 0);
 
                 if (data != nullptr) {
                     unsigned int id = Shared::sendTextureToGPU(data, width, height, nrComponents);
@@ -142,18 +148,27 @@ namespace Materials
                     };
 
                     // Assign to the correct pointer based on the "type" string
-                    if(type == "albedo")          assign(mTextureUnits.albedo, id, path);
-                    else if (type == "normal")    assign(mTextureUnits.normal, id, path);
-                    else if (type == "metalness") assign(mTextureUnits.metalness, id, path);
-                    else if (type == "roughness") assign(mTextureUnits.roughness, id, path);
-                    else if (type == "ao")        assign(mTextureUnits.ao, id, path);
+                    if(type == "albedo")          assign(mTextureUnits.albedo, id, pathString);
+                    else if (type == "normal")    assign(mTextureUnits.normal, id, pathString);
+                    else if (type == "metalness") assign(mTextureUnits.metalness, id, pathString);
+                    else if (type == "roughness") assign(mTextureUnits.roughness, id, pathString);
+                    else if (type == "ao")        assign(mTextureUnits.ao, id, pathString);
                 }
             }
         }
 
         // 2. Load Shaders
-        mVertexShaderPath = root.get<std::string>("Shader.vertexShaderPath");
-        mFragmentShaderPath = root.get<std::string>("Shader.fragmentShaderPath");
+        auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+        auto vertPath = engineFSPath / "Shaders/pbr.vert";
+        auto fragPath = engineFSPath / "Shaders/pbr.frag";
+
+        auto vertShaderPath = fs::path(root.get<std::string>("Shader.vertexShaderPath"));
+        auto fragShaderPath = fs::path(root.get<std::string>("Shader.fragmentShaderPath"));
+
+        //TODO: Remove this patch...
+        mVertexShaderPath = vertShaderPath.filename().string() == "pbr.vert" ? vertPath.string(): vertShaderPath.string();
+        mFragmentShaderPath = fragShaderPath.filename().string() == "pbr.frag" ? fragPath.string() : fragShaderPath.string();
+
         mShaderProgram = std::make_unique<Shader>(mVertexShaderPath.c_str(), mFragmentShaderPath.c_str());
     }
 }

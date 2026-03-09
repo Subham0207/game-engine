@@ -156,10 +156,10 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
     auto lights = new Lights();
 
     glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.7f,  2.0f,  2.0f),
-        glm::vec3(2.3f, 2.0f, -4.0f),
-        glm::vec3(-4.0f,  2.0f, -12.0f),
-        glm::vec3(0.0f,  2.0f, -3.0f)
+        glm::vec3(31.0f,  2.0f,  22.0f),
+        glm::vec3(19.0f, 2.0f, -19.0f),
+        glm::vec3(29.0f,  2.0f, 61.0f),
+        glm::vec3(-62.0f,  2.0f, 60.0f)
     };
 
     glm::vec3 directionLightPositions[] = {
@@ -167,7 +167,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
     };
 
     glm::vec3 spotLightPositions[] = {
-        glm::vec3(5.0f,  6.0f,  -1.0f),
+        glm::vec3(13.475f,  13.064f,  5.584f),
     };
     for (unsigned int i = 0; i < 4; i++)
     {

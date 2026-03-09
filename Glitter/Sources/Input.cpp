@@ -182,8 +182,6 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
         return;
     }
 
-    std::cout << "ImGui released Mouse control" << std::endl;
-
     // 3. If we clicked the "background" (game world), tell ImGui to drop focus
     if (action == GLFW_PRESS) {
         ImGui::SetWindowFocus(nullptr);
