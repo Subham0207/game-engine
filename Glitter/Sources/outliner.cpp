@@ -80,11 +80,6 @@ void Outliner::Render(Level &lvl) {
     }
     
     handlerForUIComponentsvisibility();
-
-    if(getUIState().isFirstFrame){
-    ImGui::SetWindowFocus(false);
-    getUIState().isFirstFrame = false;
-    }
 }
 
 void Outliner::ModelMatrixComponent()

@@ -212,6 +212,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
 
     EngineState::state->postProcess = &postProcess;
 
+    bool firstFrame = false;
+
     // Rendering Loop
     while (glfwWindowShouldClose(mWindow) == false) {
 
@@ -381,37 +383,40 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGuizmo::BeginFrame();
-        // Set the window and matrix for ImGuizmo
-        ImGuizmo::SetOrthographic(false);
-        ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+        if (isDevMode)
+        {
+            ImGuizmo::BeginFrame();
+            // Set the window and matrix for ImGuizmo
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
 
-        auto getSelectedIndex = outliner->GetSelectedIndex();
-        rayCastshader->use();
-        activeCamera->updateMVP(rayCastshader->ID);
-        auto view = InputHandler::currentInputHandler->m_Camera->viewMatrix();
-        auto proj = InputHandler::currentInputHandler->m_Camera->projectionMatrix();
-        auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
-            InputHandler::currentInputHandler->lastX,
-            InputHandler::currentInputHandler->lastY,
-            lvlrenderables,
-            view,
-            proj,
-            rayCastshader->ID,
-            rayOrigin,
-            rayDir,
-            InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
-        );
-        if(getSelectedIndexFromMouseCurrentFrame > -2)
-        outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);
+            auto getSelectedIndex = outliner->GetSelectedIndex();
+            rayCastshader->use();
+            activeCamera->updateMVP(rayCastshader->ID);
+            auto view = InputHandler::currentInputHandler->m_Camera->viewMatrix();
+            auto proj = InputHandler::currentInputHandler->m_Camera->projectionMatrix();
+            auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
+                InputHandler::currentInputHandler->lastX,
+                InputHandler::currentInputHandler->lastY,
+                lvlrenderables,
+                view,
+                proj,
+                rayCastshader->ID,
+                rayOrigin,
+                rayDir,
+                InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
+            );
+            if(getSelectedIndexFromMouseCurrentFrame > -2)
+                outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);
 
 
-        if(getSelectedIndex > -1)
-        lvlrenderables[getSelectedIndex]->imguizmoManipulate(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
+            if(getSelectedIndex > -1)
+                lvlrenderables[getSelectedIndex]->imguizmoManipulate(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
 
-        //Render the outliner
-        outliner->Render(*lvl);
-        assetBrowser->RenderAssetBrowser();
+            //Render the outliner
+            outliner->Render(*lvl);
+            assetBrowser->RenderAssetBrowser();
+        }
 
         {
             ZoneScopedN("ImGuiRender");
@@ -437,6 +442,14 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
             ZoneScopedN("GLFWPollEvents");
             glfwPollEvents();
         }
+
+        if (!firstFrame)
+        {
+            // Cannot update the camera in middle of frame since ImGui still holds the NDC of the editorCamera. So waiting for first frame to end.
+            if (!isDevMode) EngineState::state->isPlay = true;
+            firstFrame = true;
+        }
+
     }   glfwTerminate();
     return EXIT_SUCCESS;
 }

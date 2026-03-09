@@ -171,14 +171,23 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (ImGui::GetIO().WantCaptureMouse)
-    {
-        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+    ImGuiIO& io = ImGui::GetIO();
+
+    // 1. Let ImGui have first dibs
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+
+    // 2. If ImGui wants the mouse, stop here
+    if (io.WantCaptureMouse) {
         InputHandler::currentInputHandler->leftClickPressed = false;
-        return; // Optional: return here if you don't want to process clicks further when ImGui uses them
+        return;
     }
 
-    ImGui::SetWindowFocus(false);
+    std::cout << "ImGui released Mouse control" << std::endl;
+
+    // 3. If we clicked the "background" (game world), tell ImGui to drop focus
+    if (action == GLFW_PRESS) {
+        ImGui::SetWindowFocus(nullptr);
+    }
 
     // When the mouse was clicked at IMGUI released did not help so setting mouseClickPressedTo false
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
