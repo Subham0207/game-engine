@@ -71,6 +71,7 @@ public:
     float editorCameraSpeed = 2.5f;
 
     bool isPlay = false;
+    bool isVSyncOn = true;
 
     int activePlayerControllerId = 0;
     std::vector<std::shared_ptr<Controls::PlayerController>> playerControllers = std::vector<std::shared_ptr<Controls::PlayerController>>();
