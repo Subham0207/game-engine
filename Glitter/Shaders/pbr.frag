@@ -77,8 +77,8 @@ vec3 EvaluatePBRLight(
     vec3 F0,
     vec3 radiance
 );
-float ShadowCalculation();
-float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane);
+float ShadowCalculation(vec3 N);
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane, vec3 N);
 float SpotShadowCalculation(vec3 N, vec3 L);
 
 void main()
@@ -129,7 +129,8 @@ void main()
         float pointShadow = PointShadowCalculation(
                                 FragPos, pointLights[i].position, 
                                 pointLights[i].depthMap, 
-                                pointLights[i].farPlane
+                                pointLights[i].farPlane,
+                                N
                             );
 
         vec3 contribution = (kD * albedo / PI + specular) * radiance * NdotL;
@@ -192,7 +193,7 @@ void main()
 
     vec3 ambient = (kD * diffuse + specular) * ao;
 
-    float dirShadow = ShadowCalculation();
+    float dirShadow = ShadowCalculation(N);
 
     // vec3 color = ambient + (1.0 - shadow) * Lo;
     vec3 Lo = (1.0 - dirShadow) * LoDir   // sun/moon/etc, affected by dir shadow map
@@ -291,7 +292,7 @@ vec3 EvaluatePBRLight(
     return (diffuse + specular) * radiance * NdotL;
 }
 
-float ShadowCalculation()
+float ShadowCalculation(vec3 N)
 {
     float shadow = 0.0;
     // Perspective divide: convert to NDC
@@ -306,7 +307,7 @@ float ShadowCalculation()
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
     // check whether current frag pos is in shadow
-    float bias = max(0.05 * (1.0 - dot(Normal, dirLights[0].direction)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(N, dirLights[0].direction)), 0.005);
 
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
     for(int x = -1; x <= 1; ++x)
@@ -320,7 +321,7 @@ float ShadowCalculation()
     return shadow;
 }
 
-float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane)
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube, float farPlane, vec3 N)
 {
     const int NUM_SAMPLES = 20;
     const vec3 sampleOffsetDirections[NUM_SAMPLES] = vec3[](
@@ -341,7 +342,7 @@ float PointShadowCalculation(vec3 fragPos, vec3 lightPos, samplerCube shadowCube
 
     // Simple normal-based bias
     vec3 L = normalize(-lightToFrag); // direction from fragment TO light
-    float bias = max(0.05 * (1.0 - dot(normalize(Normal), L)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(normalize(N), L)), 0.005);
 
     float shadow = 0.0;
 

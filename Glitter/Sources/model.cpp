@@ -52,7 +52,7 @@ void Model::loadModel(
     }
     //material->Bind(); // But the texture units are not initialized yet.
     Assimp::Importer import;
-    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -215,15 +215,11 @@ Mesh Model::processMesh(
 
     if(mesh->HasNormals())
     {
-        std::cout << "Normal: FOUND" << std::endl;
         vertex.Normal = glm::vec3(
         static_cast<float>(mesh->mNormals[i].x),
         static_cast<float>(mesh->mNormals[i].y),
         static_cast<float>(mesh->mNormals[i].z)
         );
-    }else
-    {
-        std::cout << "Normal: NOT FOUND" << std::endl;
     }
 
     //A mesh can contain up to 8 different texture coordintes for now we are considering only the first one
@@ -240,7 +236,6 @@ Mesh Model::processMesh(
 
     if(mesh->HasTangentsAndBitangents())
     {
-        std::cout << "Tangents and BiTangents: FOUND" << std::endl;
         vertex.Tangent = glm::vec3(
             mesh->mTangents[i].x,
             mesh->mTangents[i].y,
@@ -252,8 +247,6 @@ Mesh Model::processMesh(
             mesh->mBitangents[i].y,
             mesh->mBitangents[i].z
         );
-    }else{
-       std::cout << "Tangents and BiTangents: NOT FOUND" << std::endl;
     }
 
     //How many index can exist; Assuming only first index is filled
