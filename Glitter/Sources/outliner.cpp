@@ -23,6 +23,11 @@ void Outliner::Render(Level &lvl) {
             getUIState().createANewProject = true;
         }
 
+        if (ImGui::Button("toggle navmesh debug"))
+        {
+            getUIState().renderNavMesh = !getUIState().renderNavMesh;
+        }
+
         levelControlsComponent(lvl);
 
         coordinateSystemSelectorComponent();
