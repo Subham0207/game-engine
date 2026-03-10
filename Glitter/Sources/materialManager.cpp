@@ -101,8 +101,8 @@ void UI::MaterialManagerUI::drawMaterialEditor()
             material->save(dir);
 
             //cleanup
-            vertexShadersList.clear();
-            fragmentShadersList.clear();
+            // vertexShadersList.clear();
+            // fragmentShadersList.clear();
         }
     }
     ImGui::End();

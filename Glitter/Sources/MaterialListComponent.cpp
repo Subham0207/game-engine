@@ -18,6 +18,9 @@ void UI::MaterialListComponent::startMaterialsList()
     if (materialsListInitialized)
         return;
 
+    materialsList.materialGuids.clear();
+    materialsList.materialNames.clear();
+
     materialsListInitialized = true;
     std::vector<fs::path> searchPaths = {EngineState::state->currentActiveProjectDirectory};
     auto materialfilesMap = EngineState::state->engineRegistry->materialFileMap;
@@ -58,6 +61,10 @@ void UI::MaterialListComponent::drawMaterialsList(Model* selectedModel)
                 indexOfMaterialInList,
                 materialsList.materialNames
                 );
+            if(ImGui::Button("Refresh"))
+            {
+                materialsListInitialized = false;
+            }
             ImGui::PopItemWidth();
 
             //Load the selected material on the mesh...

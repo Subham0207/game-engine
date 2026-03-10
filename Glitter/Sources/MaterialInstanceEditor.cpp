@@ -105,30 +105,36 @@ void UI::MaterialInstanceEditor::drawUI()
         );
 
         ImGui::Separator();
-        if (ImGui::Button("Save Material", ImVec2(-FLT_MIN, 0))) {
-            // Save logic
-            //create a Material object and save that...
-            const Materials::TextureUnits units;
-            units.albedo->name = materialInstanceUIModal.albedoMapLocation;
-            units.normal->name = materialInstanceUIModal.normalMapLocation;
-            units.metalness->name = materialInstanceUIModal.metallicMapLocation;
-            units.roughness->name = materialInstanceUIModal.roughnessMapLocation;
-            units.ao->name = materialInstanceUIModal.aoMapLocation;
-            auto materialInstance = materialInstanceRef ? (materialInstanceRef->update(
-                materialInstanceName.value,
-                materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
-                units
-                ), std::move(materialInstanceRef)) : std::make_unique<Materials::MaterialInstance>(
-                materialInstanceName.value,
-                materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
-                units
-                );
-            auto dir = EngineState::state->navIntoProjectDir("Assets/");
-            materialInstance->save(dir);
+        try
+        {
+            if (ImGui::Button("Save Material", ImVec2(-FLT_MIN, 0))) {
+                // Save logic
+                //create a Material object and save that...
+                const Materials::TextureUnits units;
+                units.albedo->name = materialInstanceUIModal.albedoMapLocation;
+                units.normal->name = materialInstanceUIModal.normalMapLocation;
+                units.metalness->name = materialInstanceUIModal.metallicMapLocation;
+                units.roughness->name = materialInstanceUIModal.roughnessMapLocation;
+                units.ao->name = materialInstanceUIModal.aoMapLocation;
+                auto materialInstance = materialInstanceRef ? (materialInstanceRef->update(
+                    materialInstanceName.value,
+                    materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
+                    units
+                    ), std::move(materialInstanceRef)) : std::make_unique<Materials::MaterialInstance>(
+                    materialInstanceName.value,
+                    materialsList.materialGuids[Utils::toDataTypeIndex(materialInstanceUIModal.parentMaterialIndex)],
+                    units
+                    );
+                auto dir = EngineState::state->navIntoProjectDir("Assets/");
+                materialInstance->save(dir);
 
-            //cleanup
-            materialsList.clear();
-            materialsListInitialized = false;
+                //cleanup
+                materialsList.clear();
+                materialsListInitialized = false;
+            }
+        }catch (std::exception& error)
+        {
+            std::cout << "ERROR WHILE SAVING MATERIAL INSTANCE: " << error.what() << std::endl;
         }
     }
     ImGui::End();

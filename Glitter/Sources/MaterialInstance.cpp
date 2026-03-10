@@ -76,10 +76,11 @@ namespace Materials
 
         auto map = getEngineRegistryFilesMap();
         std::cout << "Master Material: " << mParentMaterialAssetGuid << std::endl;
-        if (map.find(mParentMaterialAssetGuid) != map.end())
+        if (map.find(mParentMaterialAssetGuid) == map.end())
         {
             //Means parent material is not saved so save it
             auto path = contentFileLocation.parent_path();
+            if (mParentMaterial)
             mParentMaterial->save(path);
         }
 
