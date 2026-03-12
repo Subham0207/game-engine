@@ -10,6 +10,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "Profiler.hpp"
+
 namespace Shared{
         unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents){
         unsigned int textureID;
@@ -117,6 +119,26 @@ void Shared::readAnimation(std::string filename)
 bool Shared::endsWith(const std::string& value, const std::string& ending) {
     if (ending.size() > value.size()) return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+void  Shared::initGpuLogger()
+{
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(Shared::glDebugOutput, nullptr);
+}
+
+GLFWwindow*  Shared::InitBackEndsWithWindow()
+{
+    auto window = Shared::initAWindow();
+    Shared::initImguiBackend(window);
+    EngineState::state->engineRegistry->init();
+    getPhysicsSystem().Init();
+
+    TracyGpuContext;
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // disable mouse pointer
+
+    return window;
 }
 
 GLFWwindow* Shared::initAWindow()

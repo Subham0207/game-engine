@@ -31,7 +31,6 @@
 #include "../Headers/UI/AssetBrowser/AssetBrowser.hpp"
 
 #include "Helpers/raypicking.hpp"
-#include <ImGuizmo.h>
 
 #include <EngineState.hpp>
 #include "Lights/cubemap.hpp"
@@ -55,6 +54,7 @@
 #include <Profiler.hpp>
 
 #include "Debug/Raycast.hpp"
+#include "Lights/Skybox.hpp"
 
 
 int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDevMode) {
@@ -74,17 +74,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
     LuaRegistry::SetupLua(EngineState::state->luaEngine->state(), EngineState::state->currentActiveProjectDirectory);
 
     // Load GLFW and Create a Window
-    auto mWindow = EngineState::state->mWindow;
-    mWindow = Shared::initAWindow();
-    Shared::initImguiBackend(mWindow);
-    EngineState::state->engineRegistry->init();
-    getPhysicsSystem().Init();
-
-    TracyGpuContext;
-
-    unsigned int mouseState = GLFW_CURSOR_DISABLED;
-    glfwSetInputMode(mWindow, GLFW_CURSOR, mouseState); // disable mouse pointer
-    // stbi_set_flip_vertically_on_load(true);
+    EngineState::state->mWindow = Shared::InitBackEndsWithWindow();
+    auto& mWindow = EngineState::state->mWindow;
 
     //Loading Level -- making .lvl as the extention of my levelfile
     auto level = new Level();
@@ -98,45 +89,10 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
     InputHandler::currentInputHandler = ClientHandler::clientHandler->inputHandler;
 
     level->loadMainLevelOfCurrentProject();
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-    // if(Level::checkIfLevelFileExists("Levels/Level1.lvl"))
-    // {
-    //     Level::loadFromFile("Levels/Level1.lvl", *lvl);
-    // }
-
-    //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    auto cubeMapPath = engineFSPath / "EngineAssets/rostock_laage_airport_8k.hdr";
 
-    auto cubeMapVertShader = engineFSPath / "Shaders/cubemap.vert";
-    auto cubeMapEquiShader = engineFSPath / "Shaders/equirectanglular_to_cubemap.frag";
-
-    auto cubeMapIrrShader = engineFSPath / "Shaders/irradiance_convolution.frag";
-    auto cubeMapPreFilterShader = engineFSPath / "Shaders/prefilter.frag";
-
-    auto cubeMapBRDFVertShader = engineFSPath / "Shaders/brdf.vert";
-    auto cubeMapBRDFFragShader = engineFSPath / "Shaders/brdf.frag";
-
-    auto cubeMapBackgroundVertShader = engineFSPath / "Shaders/background.vert";
-    auto cubeMapBackgroundFragShader = engineFSPath / "Shaders/background.frag";
-
-    auto cubeMap = new CubeMap(cubeMapPath.string());
-    auto equirectangularToCubemapShader = new Shader(cubeMapVertShader.u8string().c_str(),cubeMapEquiShader.u8string().c_str());
-    auto irradianceShader = new Shader(cubeMapVertShader.u8string().c_str(),cubeMapIrrShader.u8string().c_str());
-    auto prefilterShader = new Shader(cubeMapVertShader.u8string().c_str(),cubeMapPreFilterShader.u8string().c_str());
-    auto brdfShader = new Shader(cubeMapBRDFVertShader.u8string().c_str(),cubeMapBRDFFragShader.u8string().c_str());
-    auto backgroundShader = new Shader(cubeMapBackgroundVertShader.u8string().c_str(),cubeMapBackgroundFragShader.u8string().c_str());
-
-    cubeMap->setup(mWindow,
-    *equirectangularToCubemapShader, *irradianceShader, *prefilterShader, *brdfShader);
-
-    //For RGBA to work Enable Alpha channel and Blend;
-    //NOTE: Its very important to enable alpha and blend after cubemap generation else brdfLUT will come out black
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    auto skyBox = new Lighting::Skybox(engineFSPath, mWindow);
 
     //Generate textureIds for Some Default texture
     EngineState::state->GenerateDefaultMaterials();
@@ -154,9 +110,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
 
     Controls::PlayerController::register_bindings(getLuaEngine());
 
-    //GPULogger
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(Shared::glDebugOutput, nullptr);
+    Shared::initGpuLogger();
 
     ShadowPass shadowPass(mWindow, lights);
     LightingPass lightingPass{};
@@ -231,13 +185,9 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
 
         postProcess.attachFBO();
 
-        // Background Fill Color
-        //glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         activeCamera->tick();
 
-        cubeMap->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix(), *backgroundShader);
+        skyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
 
         for(auto &i: lights->pointLights)
         {
@@ -320,7 +270,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
             lvlrenderables,
             activeCamera,
             lights,
-            cubeMap,
+            skyBox->getCubeMap(),
             deltaTime
             );
 

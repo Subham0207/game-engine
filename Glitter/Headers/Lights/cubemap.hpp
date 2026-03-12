@@ -17,7 +17,7 @@ public:
         this->hdrTexture = loadHDR(location);
     }
     void writeTextureToDisk(int width, int height, unsigned int textureId, bool isMipmapped, bool is2D, std::string name);
-    void Draw(glm::mat4 view,  glm::mat4 projection, Shader backgroundShader)
+    void Draw(glm::mat4& view,  glm::mat4& projection, Shader* backgroundShader)
     {
         // glActiveTexture(GL_TEXTURE0);
         // glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
@@ -25,9 +25,9 @@ public:
         // glActiveTexture(GL_TEXTURE0 + 6);
         // glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
-        backgroundShader.use();
-        backgroundShader.setMat4("view", view);
-        backgroundShader.setMat4("projection", projection);
+        backgroundShader->use();
+        backgroundShader->setMat4("view", view);
+        backgroundShader->setMat4("projection", projection);
         glActiveTexture(GL_TEXTURE0 + 6);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         renderCube();

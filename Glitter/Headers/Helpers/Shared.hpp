@@ -34,4 +34,8 @@ namespace Shared {
     fs::path metaFileToActualPath(const fs::path& path);
 
     void CopyFileToProjectDirectory(std::string& filelocation);
+
+    GLFWwindow* InitBackEndsWithWindow();
+
+    void initGpuLogger();
 }

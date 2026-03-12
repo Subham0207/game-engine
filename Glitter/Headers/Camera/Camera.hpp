@@ -20,11 +20,11 @@ Camera();
 	void FrameModel(const aiAABB& boundingBox);
 	void setFOV(float fov){this->fov = fov;}
 
-	glm::mat4 viewMatrix(){
+	glm::mat4& viewMatrix(){
 		return view;
 	}
 
-	glm::mat4 projectionMatrix(){
+	glm::mat4& projectionMatrix(){
 		return projection;
 	}
 	
