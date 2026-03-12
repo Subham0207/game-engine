@@ -54,6 +54,8 @@
 
 #include <Profiler.hpp>
 
+#include "Debug/Raycast.hpp"
+
 
 int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDevMode) {
 
@@ -137,68 +139,18 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //Generate textureIds for Some Default texture
-    getUIState().metalicTextureID = Shared::generateMetallicTexture();
-    getUIState().nonMetalicTextureID = Shared::generateNonMetallicTexture();
-    getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
-    getUIState().flatNormalTextureID= Shared::generateFlatNormalTexture();
     EngineState::state->GenerateDefaultMaterials();
 
-
-    //Create different shaders for the each model
-
-    auto rayVertPath = engineFSPath / "Shaders/rayCast.vert";
-    auto rayFragPath = engineFSPath / "Shaders/rayCast.frag";
-    auto rayCastshader =  new Shader(
-        rayVertPath.u8string().c_str(),
-        rayFragPath.u8string().c_str());
+    auto rayCastObjectSelector = new Debug::Raycast(engineFSPath);
 
     //Lights setup
     auto lights = new Lights();
-
-    glm::vec3 pointLightPositions[] = {
-        glm::vec3(31.0f,  2.0f,  22.0f),
-        glm::vec3(19.0f, 2.0f, -19.0f),
-        glm::vec3(29.0f,  2.0f, 61.0f),
-        glm::vec3(-62.0f,  2.0f, 60.0f)
-    };
-
-    glm::vec3 directionLightPositions[] = {
-        glm::vec3(0.7f,  2.0f,  3.0f),
-    };
-
-    glm::vec3 spotLightPositions[] = {
-        glm::vec3(13.475f,  13.064f,  5.584f),
-    };
-    for (unsigned int i = 0; i < 4; i++)
-    {
-        lights->pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
-    }
-
-    for (unsigned int i = 0; i < 1; i++)
-    {
-        lights->directionalLights.push_back(DirectionalLight(directionLightPositions[i], glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(0.0f,0.0f,1.0f)));
-    }
-
-    for (unsigned int i = 0; i < 1; i++)
-    {
-        lights->spotLights.push_back(
-            SpotLight(
-                spotLightPositions[i],
-                glm::vec3(1.0f,0.0f,0.0f),
-                glm::vec3(0.0f, -1.0f, 0.0f),
-                40.0f,
-                70.0f
-            )
-        );
-    }
-
+    lights->initDefaultLights();
 
     // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     auto outliner = new Outliner();
     auto assetBrowser = new ProjectAsset::AssetBrowser();
-
-    glm::vec3 rayOrigin, rayDir;
 
     Controls::PlayerController::register_bindings(getLuaEngine());
 
@@ -232,7 +184,8 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
         EngineState::state->deltaTime = deltaTime;
         EngineState::state->lastFrame = currentFrame;
 
-        auto& lvlrenderables = getActiveLevel().renderables;
+        auto& activeLevel = getActiveLevel();
+        auto& lvlrenderables = activeLevel.renderables;
 
         ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, inputCtx);
         if(EngineState::state->isPlay)
@@ -385,33 +338,10 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
 
         if (isDevMode)
         {
-            ImGuizmo::BeginFrame();
-            // Set the window and matrix for ImGuizmo
-            ImGuizmo::SetOrthographic(false);
-            ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
-
-            auto getSelectedIndex = outliner->GetSelectedIndex();
-            rayCastshader->use();
-            activeCamera->updateMVP(rayCastshader->ID);
-            auto view = InputHandler::currentInputHandler->m_Camera->viewMatrix();
-            auto proj = InputHandler::currentInputHandler->m_Camera->projectionMatrix();
-            auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
-                InputHandler::currentInputHandler->lastX,
-                InputHandler::currentInputHandler->lastY,
-                lvlrenderables,
-                view,
-                proj,
-                rayCastshader->ID,
-                rayOrigin,
-                rayDir,
-                InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
-            );
-            if(getSelectedIndexFromMouseCurrentFrame > -2)
-                outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);
-
-
-            if(getSelectedIndex > -1)
-                lvlrenderables[getSelectedIndex]->imguizmoManipulate(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
+            rayCastObjectSelector->HandleSelection(
+                outliner,
+                activeCamera,
+                &activeLevel);
 
             //Render the outliner
             outliner->Render(*lvl);

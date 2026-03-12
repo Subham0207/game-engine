@@ -474,6 +474,47 @@ void PointLight::setupShadowObjects()
     shadowTransforms.push_back(shadowProj * glm::lookAt(position, position + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0,-1.0, 0.0)));
 
 }
+
+void Lights::initDefaultLights()
+{
+    glm::vec3 pointLightPositions[] = {
+        glm::vec3(31.0f,  2.0f,  22.0f),
+        glm::vec3(19.0f, 2.0f, -19.0f),
+        glm::vec3(29.0f,  2.0f, 61.0f),
+        glm::vec3(-62.0f,  2.0f, 60.0f)
+    };
+
+    glm::vec3 directionLightPositions[] = {
+        glm::vec3(0.7f,  2.0f,  3.0f),
+    };
+
+    glm::vec3 spotLightPositions[] = {
+        glm::vec3(13.475f,  13.064f,  5.584f),
+    };
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
+    }
+
+    for (unsigned int i = 0; i < 1; i++)
+    {
+        directionalLights.push_back(DirectionalLight(directionLightPositions[i], glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(0.0f,0.0f,1.0f)));
+    }
+
+    for (unsigned int i = 0; i < 1; i++)
+    {
+        spotLights.push_back(
+            SpotLight(
+                spotLightPositions[i],
+                glm::vec3(1.0f,0.0f,0.0f),
+                glm::vec3(0.0f, -1.0f, 0.0f),
+                40.0f,
+                70.0f
+            )
+        );
+    }
+}
+
 void Lights::Render(GLuint shaderID)
 {
     sendDirectionalLightsDataToShader(shaderID);

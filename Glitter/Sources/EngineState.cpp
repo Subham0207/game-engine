@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "Camera/FlyCam.hpp"
+#include "Helpers/Shared.hpp"
 
 EngineState::EngineState(){
     bus = EventBus();
@@ -51,6 +52,11 @@ EngineState* EngineState::state = nullptr;
 
 void EngineState::GenerateDefaultMaterials()
 {
+    getUIState().metalicTextureID = Shared::generateMetallicTexture();
+    getUIState().nonMetalicTextureID = Shared::generateNonMetallicTexture();
+    getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
+    getUIState().flatNormalTextureID= Shared::generateFlatNormalTexture();
+
     auto vertPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.vert";
     auto fragPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.frag";
     defaultMaterial = std::make_shared<Materials::Material>("DefaultMaterial", vertPath.string(), fragPath.string());

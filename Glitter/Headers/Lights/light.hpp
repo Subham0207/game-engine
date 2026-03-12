@@ -148,6 +148,7 @@ private:
 
 class Lights {
 public:
+	void initDefaultLights();
 	std::vector<DirectionalLight> directionalLights;
 	std::vector<SpotLight> spotLights;
 	std::vector<PointLight> pointLights;
