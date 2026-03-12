@@ -189,6 +189,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
 
         skyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
 
+        //TODO: move the below light selection in Lights class.
         for(auto &i: lights->pointLights)
         {
             ZoneScopedN("EditorPointLightSelection");
@@ -222,6 +223,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
             }
         }
 
+        //TODO: move below logic in level tick.
         if(!getActiveLevel().isNavMeshSetup)
         {
             ZoneScopedN("EditorOneTimeLevelNavMeshSetup");
