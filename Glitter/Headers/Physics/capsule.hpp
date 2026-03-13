@@ -29,7 +29,8 @@ namespace Physics
         std::shared_ptr<CapsuleColliderModel> capsule;
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
-        void addCustomModel(std::string modelPath) override;
+        //TODO: Look for a better solution for engineRootPath
+        void addCustomModel(std::string modelPath, std::string engineRootPath) override;
         void moveBody(
             float deltaTime,
             glm::vec3 moveOffset,

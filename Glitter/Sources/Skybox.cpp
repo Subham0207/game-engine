@@ -16,7 +16,7 @@ Lighting::Skybox::Skybox(fs::path basePath, GLFWwindow* window)
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     //CubeMap -- Blocking 0th textureId for environment map. Models will start using from 1+ index.
-    auto cubeMapPath = basePath / "EngineAssets/rostock_laage_airport_8k.hdr";
+    auto cubeMapPath = basePath / "EngineAssets/citrus_orchard_puresky_8k.hdr";
 
     auto cubeMapVertShader = basePath / "Shaders/cubemap.vert";
     auto cubeMapEquiShader = basePath / "Shaders/equirectanglular_to_cubemap.frag";

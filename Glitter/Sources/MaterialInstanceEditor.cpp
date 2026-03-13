@@ -143,7 +143,13 @@ void UI::MaterialInstanceEditor::drawUI()
         return;
     if(ImGui::Begin("FileExplorer", &openFileExplorer))
     {
-        ProjectAsset::RenderFileExplorer(getUIState().currentPath, EngineState::state->uiState.fileNames);
+        ProjectAsset::RenderFileExplorer(
+            getUIState().currentPath,
+            EngineState::state->uiState.fileNames,
+            EngineState::state->currentActiveProjectDirectory,
+            getUIState().selectedFileIndex,
+            getUIState().filePath
+        );
 
         if (ImGui::Button("Open"))
         {

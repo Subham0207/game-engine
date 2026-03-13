@@ -27,7 +27,12 @@ Character::Character(std::string filepath): Serializable(){
         Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
     };
 
-    model = new Model(filepath, &skeleton->m_BoneInfoMap, &skeleton->m_BoneCounter, onModelComponentsLoad);
+    model = new Model(
+        filepath,
+        EngineState::state->engineInstalledDirectory,
+        &skeleton->m_BoneInfoMap,
+        &skeleton->m_BoneCounter,
+        onModelComponentsLoad);
 
     skeleton->BuildBoneHierarchy();
 

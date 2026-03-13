@@ -10,7 +10,6 @@
 #include <EngineRegistry.hpp>
 #include <LuaEngine/LuaEngine.hpp>
 #include <Controls/statemachine.hpp>
-
 #include "Event/EventBus.hpp"
 namespace fs = std::filesystem;
 
@@ -20,10 +19,11 @@ namespace AI
 }
 class FlyCam;
 class PostProcess;
-
+class ProjectManifest;
 class EngineState{
 public:
     EngineState();
+    void init();
     void setCurrentActiveProjectDir(std::string value);
     void setEngineDirectory(std::string value);
 
@@ -35,6 +35,7 @@ public:
     GLFWwindow *mWindow;
 
     static EngineState* state;
+    bool isDevMode;
     glm::vec3 v0{};
     glm::vec3 v1{};
     glm::vec3 v2{};
@@ -87,6 +88,10 @@ public:
     EventBus bus;
 
     PostProcess* postProcess = nullptr;
+
+    ProjectManifest* projectManifest;
+
+    std::vector<fs::path> recentProjects;
 
     std::shared_ptr<Materials::Material> defaultMaterial;
     std::shared_ptr<Materials::MaterialInstance> defaultMaterialInstance;

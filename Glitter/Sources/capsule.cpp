@@ -19,6 +19,7 @@ Physics::Capsule::Capsule
     glm::vec3 scale) : PhysicsObject(
         physics,
         nullptr,
+        nullptr,
         isDynamic,
         shouldAddToLevel,
         position,
@@ -29,7 +30,7 @@ Physics::Capsule::Capsule
     set = nullptr;
     this->mRadius = radius;
     this->mHalfHeight = halfHeight;
-    addCustomModel("");
+    addCustomModel("", "");
 
     JPH::Vec3 jphPosition(position.x, position.y, position.z);
     CreateCharacterVirtualPhysics(&physics->physicsSystem,
@@ -66,7 +67,7 @@ void Physics::Capsule::syncTransformation()
 
     }
 }
-void Physics::Capsule::addCustomModel(std::string modelPath)
+void Physics::Capsule::addCustomModel(std::string modelPath, std::string engineRootPath)
 {
     capsule = std::make_shared<CapsuleColliderModel>(mRadius, mHalfHeight);
     getActiveLevel().addRenderable(capsule);

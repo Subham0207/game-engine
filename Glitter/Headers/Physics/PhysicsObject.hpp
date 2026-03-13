@@ -14,6 +14,7 @@ namespace Physics
         PhysicsObject(
             PhysicsSystemWrapper* physics,
             const char* modelPath,
+            const char* projectRootPath,
             bool isDynamic = false,
             bool shouldAddToLevel = false,
             glm::vec3 position = glm::vec3(0.0f),
@@ -22,7 +23,7 @@ namespace Physics
         );
         virtual void PhysicsUpdate();
         virtual void syncTransformation();
-        virtual void addCustomModel(std::string modelPath);
+        virtual void addCustomModel(std::string modelPath, std::string engineRootPath);
         void AddToLevel();
         std::shared_ptr<Model> model;
         PhysicsSystemWrapper* physics;

@@ -29,12 +29,13 @@ namespace fs = std::filesystem;
 
 void Model::loadModel(
     std::string path,
+    std::string engineAssetsFolder,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter,
     std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 {
     directory = path.substr(0, path.find_last_of('/'));
-    auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+    auto engineFSPath = fs::path(engineAssetsFolder);
 
     std::shared_ptr<Materials::Material> material;
 
@@ -183,7 +184,6 @@ void Model::processNode(
         auto instanceGuid = boost::uuids::to_string(boost::uuids::random_generator()());
         auto materialInstance = material && !material->getAssetId().empty() ? std::make_shared<Materials::MaterialInstance>(material->contentName() + instanceGuid, material): nullptr;
         meshes.push_back(processMesh(mesh, scene, m_BoneInfoMap, m_BoneCounter, materialInstance));
-        auto path = fs::path(EngineState::navIntoProjectDir("Assets/"));
     }
 
     for(unsigned int i = 0; i < node->mNumChildren; i++)
@@ -621,13 +621,14 @@ void Model::LoadA3DModel(
 }
 
 Model::Model(std::string path,
+std::string engineAssetsFolder,
 std::map<std::string, BoneInfo>* m_BoneInfoMap,
 int* m_BoneCounter,
 std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad)
 : Serializable()
 {
     modeltype = ModelType::ACTUAL_MODEL;
-    loadModel(path, m_BoneInfoMap, m_BoneCounter, std::move(onModelComponentsLoad));
+    loadModel(path, engineAssetsFolder, m_BoneInfoMap, m_BoneCounter, std::move(onModelComponentsLoad));
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
 
@@ -652,7 +653,7 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
 
 
     if(!physicsBodyType.empty())
-        this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false, true));
+        this->attachPhysicsObject(new Physics::Box(EngineState::state->engineInstalledDirectory.c_str(),&getPhysicsSystem(), false, true));
 }
 
 void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material)

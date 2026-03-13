@@ -50,6 +50,13 @@ target_compile_definitions({{PROJECT_NAME}}  PRIVATE
     CMAKE_ROOT_DIR=\"${CMAKE_SOURCE_DIR}\"
 )
 
+#Alway copy project manifest json beside exe. When building and installing this file is populated with relative paths of where to look for assets/dependencies.
+add_custom_command(TARGET EngineTechDemo POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_SOURCE_DIR}/Project.manifest.json"
+          "$<TARGET_FILE_DIR:EngineTechDemo>/Project.manifest.json"
+)
+
 get_target_property(_defs {{PROJECT_NAME}} COMPILE_DEFINITIONS)
 message(STATUS "{{PROJECT_NAME}} COMPILE_DEFINITIONS = ${_defs}")
 
@@ -101,6 +108,24 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/Project.manifest.json")
         DESTINATION .
     )
 endif()
+
+# =======================================================================================
+# Remove Development information from manifest file, So every File path is resolved relative exe's dir.
+# =========================================================================================
+
+install(CODE "
+    execute_process(COMMAND ${CMAKE_COMMAND}
+        -DINPUT_FILE=\${CMAKE_CURRENT_SOURCE_DIR}/project.manifest.json
+        -DOUTPUT_FILE=\${CMAKE_INSTALL_PREFIX}/project.manifest.json
+        -P \"\${CMAKE_CURRENT_SOURCE_DIR}/StripManifest.cmake\"
+    )
+")
+
+file(READ "${INPUT_FILE}" RAW_JSON)
+string(JSON CLEAN_JSON REMOVE "${RAW_JSON}" "development")
+file(WRITE "${OUTPUT_FILE}" "${CLEAN_JSON}")
+
+#===================================================================================
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/Shaders")
     install(DIRECTORY "${CMAKE_SOURCE_DIR}/Shaders"

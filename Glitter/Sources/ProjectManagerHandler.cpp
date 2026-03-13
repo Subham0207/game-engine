@@ -13,8 +13,6 @@
 #include <windows.h>
 
 #include "Helpers/shader.hpp"
-#include "Lights/light.hpp"
-
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -24,21 +22,28 @@
 
 #include "UI/outliner.hpp"
 
-#include <EngineState.hpp>
 #include "Level/Level.hpp"
 #include <Helpers/Shared.hpp>
 
 #include <UI/ProjectManager.hpp>
 
 #include "Controls/ClientHandler.hpp"
+#include "Helpers/GetExecutablePath.hpp"
+
+ProjectManagerHandler::ProjectManagerHandler() : mWindow(nullptr)
+{
+    mPath = GetExecutablePath::getExecutableDir();
+    deltaTime = 0.0;
+    lastFrame = 0.0f;
+    projectManagerUI = new ProjectManagerUI::ProjectManager(mPath.string(), mPath.string());
+}
 
 int ProjectManagerHandler::startProjectManager()
 {
-    EngineState::state = new EngineState();
     ClientHandler::clientHandler = new ClientHandler();
 
-    if (fs::exists(fs::path(EngineState::state->engineInstalledDirectory) / "user_prefs.json")) {
-        std::ifstream infile(fs::path(EngineState::state->engineInstalledDirectory) / "user_prefs.json");
+    if (fs::exists(mPath / "user_prefs.json")) {
+        std::ifstream infile(mPath / "user_prefs.json");
         std::string line;
         while (std::getline(infile, line)) {
             // Check if the line is not empty before adding.
@@ -49,11 +54,11 @@ int ProjectManagerHandler::startProjectManager()
         infile.close();
     }
 
-    EngineState::state->mWindow = Shared::initAWindow();
+    mWindow = Shared::initAWindow(true);
 
-    Shared::initImguiBackend(EngineState::state->mWindow);
+    Shared::initImguiBackend(mWindow);
 
-    while (glfwWindowShouldClose(EngineState::state->mWindow) == false)
+    while (glfwWindowShouldClose(mWindow) == false)
     {
 
         glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
@@ -64,18 +69,18 @@ int ProjectManagerHandler::startProjectManager()
         ImGui::NewFrame();
 
         //////Code changes go here//////
-        UI::projectManager();
+        projectManagerUI->draw();
         ////////////////////////////////
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glfwSwapBuffers(EngineState::state->mWindow);
+        glfwSwapBuffers(mWindow);
         glfwPollEvents();
 
         // Now it's safe to leave the loop
-        if(!EngineState::state->currentActiveProjectDirectory.empty())
-            break;
+        //if(!mPath.empty())
+        //    break;
 
     }
 
@@ -85,10 +90,10 @@ int ProjectManagerHandler::startProjectManager()
     glfwTerminate();
 
 
-    if(!EngineState::state->currentActiveProjectDirectory.empty())
+    if(!mPath.empty())
     {
-        EngineState::state->deltaTime = 0.0f;
-        EngineState::state->lastFrame = 0.0f;
+        deltaTime = 0.0f;
+        lastFrame = 0.0f;
         // return openEditor();
     }
 

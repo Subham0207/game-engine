@@ -79,6 +79,7 @@ class Level: public Serializable{
 
         const std::string contentName() override { return levelname;}
         const std::string typeName() const override {return "lvl";}
+        const std::string filenameWithExt() const {return levelname + "." + typeName(); }
 
         std::string GetGuid() {
             return getAssetId();

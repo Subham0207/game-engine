@@ -1,20 +1,33 @@
 #include <EngineState.hpp>
-#include <cstdlib>
 #include <utility>
 
+#include "ProjectManifest.hpp"
 #include "Camera/FlyCam.hpp"
+#include "Helpers/GetExecutablePath.hpp"
 #include "Helpers/Shared.hpp"
 
 EngineState::EngineState(){
+    state = nullptr;
+}
+
+void EngineState::init()
+{
     bus = EventBus();
     ais = std::vector<AI::AI*>();
     mWindow = nullptr;
 
-    auto value = std::getenv("GLITTER_ENGINE");
-    engineInstalledDirectory
-     = value != nullptr ? value : fs::current_path().string();
+    auto manifestPath = GetExecutablePath::getExecutableDir().string() + "/" + "Project.manifest.json";
+    projectManifest = new ProjectManifest(manifestPath);
 
-    currentActiveProjectDirectory = "";
+    auto cwd = GetExecutablePath::getExecutableDir().string();
+    isDevMode = projectManifest->isDevelopment();
+    auto enginePath = isDevMode ? projectManifest->getEngineDir(): cwd;
+    auto projectDir = isDevMode ? projectManifest->getEngineDir(): cwd;
+    std::cout << "Is Development mode: " << isDevMode << std::endl;
+    std::cout << "CWD: " << cwd << std::endl;
+    state->setEngineDirectory(std::move(enginePath));
+    state->setCurrentActiveProjectDir(std::move(projectDir));
+
 
     editorCamera = new FlyCam("editorCamera");
     bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)

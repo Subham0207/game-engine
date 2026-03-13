@@ -33,6 +33,7 @@ public:
     Model()=default;
     Model(
         std::string path,
+        std::string engineAssetsFolder,
         std::map<std::string, BoneInfo>* m_BoneInfoMap = nullptr,
         int* m_BoneCounter = nullptr,
         std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
@@ -195,6 +196,7 @@ private:
 
 
     void loadModel(std::string path,
+    std::string engineAssetsFolder,
     std::map<std::string, BoneInfo>* m_BoneInfoMap,
     int* m_BoneCounter,
     std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);

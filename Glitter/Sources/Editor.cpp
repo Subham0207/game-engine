@@ -53,22 +53,22 @@
 
 #include <Profiler.hpp>
 
+#include "ProjectManifest.hpp"
 #include "Debug/Raycast.hpp"
+#include "Helpers/GetExecutablePath.hpp"
 #include "Lights/Skybox.hpp"
 
 
-int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDevMode) {
+int Editor::openEditor() {
 
     EventQueue queue;
     InputContext inputCtx;
     inputCtx.queue = &queue;
 
-    EngineState::state = new EngineState();
-    auto cwd = fs::current_path().string();
-    std::cout << "Is Development mode: " << isDevMode << std::endl;
-    std::cout << "CWD: " << cwd << std::endl;
-    EngineState::state->setEngineDirectory(isDevMode ? std::move(enginePath): cwd);
-    EngineState::state->setCurrentActiveProjectDir(isDevMode ? std::move(projectDir): cwd);
+    auto state = new EngineState();
+    state->init();
+    EngineState::state = state;
+
     ClientHandler::clientHandler = new ClientHandler();
 
     LuaRegistry::SetupLua(EngineState::state->luaEngine->state(), EngineState::state->currentActiveProjectDirectory);
@@ -288,7 +288,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        if (isDevMode)
+        if (EngineState::state->isDevMode)
         {
             rayCastObjectSelector->HandleSelection(
                 outliner,
@@ -328,7 +328,7 @@ int Editor::openEditor(std::string enginePath, std::string projectDir, bool isDe
         if (!firstFrame)
         {
             // Cannot update the camera in middle of frame since ImGui still holds the NDC of the editorCamera. So waiting for first frame to end.
-            if (!isDevMode) EngineState::state->isPlay = true;
+            if (!EngineState::state->isDevMode) EngineState::state->isPlay = true;
             firstFrame = true;
         }
 

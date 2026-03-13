@@ -1,15 +1,26 @@
 #include <UI/ProjectManager.hpp>
 #include <imgui.h>
-#include <EngineState.hpp>
 #include <UI/FileExplorer.hpp>
+#include <iostream>
+#include <utility>
 
-void UI::projectManager()
+ProjectManagerUI::ProjectManager::ProjectManager(std::string currentPath, std::string rootPath): mCurrentPath(std::move(currentPath)), mRootPath(std::move(rootPath))
+{
+    createANewProject = false;
+    openAProject = false;
+    newProjectName = "";
+
+    mSelectedFileIndex = 0;
+    mSelectedFilePath = "";
+}
+
+void ProjectManagerUI::ProjectManager::draw()
 {
     if(ImGui::Begin("Project Manager"))
     {
         if(ImGui::Button("Create a new project"))
         {
-            getUIState().createANewProject = true;
+            createANewProject = true;
         }
 
 
@@ -17,11 +28,11 @@ void UI::projectManager()
         ImGui::Separator();
         
         // Read the current list for display
-        for (const auto& projectDir : getUIState().recent_projects) {
+        for (const auto& projectDir : recent_projects) {
             // Using Selectable to show that the items are interactive
             if (ImGui::Selectable(projectDir.string().c_str())) {
                 // This is where you would handle opening the selected project
-                EngineState::state->currentActiveProjectDirectory = projectDir.string();
+                currentActiveProjectDirectory = projectDir.string();
                 std::cout << "Selected: " << projectDir << std::endl;
             }
         }
@@ -29,14 +40,28 @@ void UI::projectManager()
         ImGui::End();
     }
 
-    if(getUIState().createANewProject)
+    if(createANewProject)
         ProjectAsset::createANewProject(
-            getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().createANewProject 
+            mCurrentPath,
+            fileNames,
+            createANewProject,
+            newProjectName,
+            mRootPath,
+            mSelectedFileIndex,
+            mSelectedFilePath,
+            recent_projects
         );
 
-    if(getUIState().openAProject)
+    if(openAProject)
         ProjectAsset::createANewProject(
-            getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().createANewProject 
+            mCurrentPath,
+            fileNames,
+            createANewProject,
+            newProjectName,
+            mRootPath,
+            mSelectedFileIndex,
+            mSelectedFilePath,
+            recent_projects
         );
     
 }

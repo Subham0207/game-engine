@@ -11,6 +11,9 @@
 #include <imgui_impl_opengl3.h>
 
 #include "Profiler.hpp"
+#include "boost/uuid/random_generator.hpp"
+#include "boost/uuid/uuid.hpp"
+#include "boost/uuid/uuid_io.hpp"
 
 namespace Shared{
         unsigned int sendTextureToGPU(unsigned char* data, int mWidth, int mheight, int nrComponents){
@@ -129,7 +132,7 @@ void  Shared::initGpuLogger()
 
 GLFWwindow*  Shared::InitBackEndsWithWindow()
 {
-    auto window = Shared::initAWindow();
+    auto window = Shared::initAWindow(EngineState::state->isVSyncOn);
     Shared::initImguiBackend(window);
     EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();
@@ -141,7 +144,7 @@ GLFWwindow*  Shared::InitBackEndsWithWindow()
     return window;
 }
 
-GLFWwindow* Shared::initAWindow()
+GLFWwindow* Shared::initAWindow(bool isVsyncOn)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -172,7 +175,7 @@ GLFWwindow* Shared::initAWindow()
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    glfwSwapInterval(EngineState::state->isVSyncOn); //V-sync off
+    glfwSwapInterval(isVsyncOn); //V-sync off
 
     return window;
 }
@@ -267,4 +270,10 @@ void Shared::CopyFileToProjectDirectory(std::string& filelocation)
     } else {
         std::cout << "File is already within the project directory." << std::endl;
     }
+}
+
+
+std::string Shared::uuid()
+{
+    return boost::uuids::to_string(boost::uuids::random_generator()());
 }

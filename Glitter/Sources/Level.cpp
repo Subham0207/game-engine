@@ -9,6 +9,7 @@
 
 #include "GenericFactory.hpp"
 #include "Prefab.hpp"
+#include "ProjectManifest.hpp"
 #include "boost/uuid/random_generator.hpp"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_io.hpp"
@@ -23,11 +24,7 @@ Level::Level(): Serializable()
 void Level::loadMainLevelOfCurrentProject()
 {
     // read the project.manifest file and find the which level is entry point
-    auto filesMap = EngineState::state->engineRegistry->renderableSaveFileMap;
-    auto manifestDir = fs::path(EngineState::state->currentActiveProjectDirectory) / "project.manifest.json";
-    bs::ptree manifest;
-    bs::read_json(manifestDir.string(), manifest);
-    auto defaultLevelFilePath = fs::path(manifest.get<std::string>("defaultLevel"));
+    auto defaultLevelFilePath = fs::path(EngineState::state->projectManifest->getEntryLevel());
     auto parentPath = defaultLevelFilePath.parent_path();
     auto filename = defaultLevelFilePath.filename().stem().string(); // filename without extension
     //load the level

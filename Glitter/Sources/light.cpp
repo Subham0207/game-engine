@@ -15,21 +15,21 @@ BaseLight::BaseLight(LightType lightType, glm::vec3 pos)
     {
         case LightType::Directional :
         {
-            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string());
+            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string(), EngineState::state->engineInstalledDirectory);
             lightModel->setDirName("directionalLight");
             break;
         }
         case LightType::Point :
         {
             
-            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string());
+            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string(), EngineState::state->engineInstalledDirectory);
             lightModel->setDirName("pointLight");
             break;
         }
         case LightType::Spot :
         {
             
-            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string());
+            lightModel = std::make_shared<Model>((loc / "EngineAssets" / "cube.fbx").string(), EngineState::state->engineInstalledDirectory);
             lightModel->setDirName("spotLight");
             break;			
         }

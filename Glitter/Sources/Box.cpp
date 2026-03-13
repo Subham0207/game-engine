@@ -4,6 +4,7 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 
 Physics::Box::Box(
+    const char* engineRootPath,
     PhysicsSystemWrapper* physics,
     bool isDynamic,
     bool shouldAddToLevel,
@@ -13,6 +14,7 @@ Physics::Box::Box(
 ) : PhysicsObject(
         physics,
         "EngineAssets/cube.fbx",
+        engineRootPath,
         isDynamic,
         shouldAddToLevel,
         position,

@@ -46,6 +46,7 @@ void Serializable::save(fs::path &assetRoot)
     const fs::path metaFile = assetRoot / (asset_guid_ +  ".meta.json");
     write_json(metaFile.string(), meta);
 
+    if (EngineState::state != nullptr)
     EngineState::state->engineRegistry->update(asset_guid_, contentFile.string());
 }
 

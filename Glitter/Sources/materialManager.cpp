@@ -112,7 +112,13 @@ void UI::MaterialManagerUI::drawMaterialEditor()
 
     if(ImGui::Begin("FileExplorer", &showFileExplorerForMaterialEditor))
     {
-        ProjectAsset::RenderFileExplorer(getUIState().currentPath, EngineState::state->uiState.fileNames);
+        ProjectAsset::RenderFileExplorer(
+            getUIState().currentPath,
+            EngineState::state->uiState.fileNames,
+    EngineState::state->currentActiveProjectDirectory,
+    getUIState().selectedFileIndex,
+    getUIState().filePath
+            );
 
         if (ImGui::Button("Open"))
         {
@@ -294,7 +300,12 @@ void UI::MaterialManagerUI::UpdateOrDisplayTexture(
     // Now open fileExplorer and assign texture.name to whatever is selected and opened.
     if(ImGui::Begin("FileExplorer", &showFileExplorer))
     {
-        ProjectAsset::RenderFileExplorer(getUIState().currentPath, EngineState::state->uiState.fileNames);
+        ProjectAsset::RenderFileExplorer(
+        getUIState().currentPath,
+        EngineState::state->uiState.fileNames,
+        EngineState::state->currentActiveProjectDirectory,
+        getUIState().selectedFileIndex,
+        getUIState().filePath);
 
         if (ImGui::Button("Open"))
         {

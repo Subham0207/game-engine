@@ -5,12 +5,13 @@
 #include <Character/Character.hpp>
 #include <Helpers/Shared.hpp>
 #include <Helpers/createNewProject.hpp>
-#include <filesystem>
-namespace fs = std::filesystem;
 
 void ProjectAsset::RenderFileExplorer(
                 std::string& currentPath,
-                std::vector<std::string>& fileNames)
+                std::vector<std::string>& fileNames,
+                std::string& rootPath,
+                int& selectedFileIndex,
+                std::string& selectedFilePath)
 {
     if(fileNames.size() == 0)
     for (const auto& entry : fs::directory_iterator(currentPath))
@@ -24,11 +25,8 @@ void ProjectAsset::RenderFileExplorer(
     if(ImGui::Button("Go to Root of project"))
     {
         fileNames.clear();
-        currentPath = EngineState::state->currentActiveProjectDirectory;
+        currentPath = rootPath;
     }
-
-    if(EngineState::state->errorStack.size() != 0)
-    ImGui::TextColored(ImVec4(1,0,0,1), EngineState::state->errorStack.LastElement().c_str());
 
     // Up button to go to the parent directory
     if (ImGui::Button("Up"))
@@ -42,10 +40,10 @@ void ProjectAsset::RenderFileExplorer(
     {
         for (unsigned int fileIndex = 0; fileIndex < fileNames.size(); fileIndex++)
         {
-            const bool isSelected = (getUIState().selectedFileIndex == fileIndex);
+            const bool isSelected = (selectedFileIndex == fileIndex);
             if (ImGui::Selectable(fileNames[fileIndex].c_str(), isSelected))
             {
-                getUIState().selectedFileIndex = fileIndex;
+                selectedFileIndex = fileIndex;
 
                 // If a directory is selected, navigate into it else set selected file.
                 if (fs::is_directory(fileNames[fileIndex]))
@@ -53,7 +51,7 @@ void ProjectAsset::RenderFileExplorer(
                     currentPath = fileNames[fileIndex];
                     fileNames.clear();
                 }else{
-                    getUIState().filePath = fileNames[fileIndex];
+                    selectedFilePath = fileNames[fileIndex];
                 }
 
             }
@@ -64,11 +62,14 @@ void ProjectAsset::RenderFileExplorer(
 
 void ProjectAsset::saveAFile(std::string& currentPath,
                 std::vector<std::string>& fileNames,
-                bool& showUI)
+                bool& showUI,
+                std::string& rootPath,
+                int& selectedFileIndex,
+                std::string& filePath)
 {   
     if(ImGui::Begin("FileExplorer", &showUI))
     {
-        ProjectAsset::RenderFileExplorer(currentPath, fileNames);
+        ProjectAsset::RenderFileExplorer(currentPath, fileNames, rootPath, selectedFileIndex, filePath);
         switch(getUIState().fileTypeOperation)
         {
             case FileTypeOperation::saveLevelAs: {
@@ -106,10 +107,13 @@ void ProjectAsset::saveAFile(std::string& currentPath,
 void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                 std::string& currentPath,
                 std::vector<std::string>& fileNames,
-                bool& showUI){
+                bool& showUI,
+                std::string& rootPath,
+                int& selectedFileIndex,
+                std::string& filePath){
     if(ImGui::Begin("FileExplorer", &showUI))
     {
-        ProjectAsset::RenderFileExplorer(currentPath, fileNames);
+        ProjectAsset::RenderFileExplorer(currentPath, fileNames,rootPath, selectedFileIndex, filePath);
 
         ImGui::Text("Selected File: %s", getUIState().filePath.c_str());
         if (ImGui::Button("Open"))
@@ -121,7 +125,7 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
                     case FileTypeOperation::LoadLvlFile:
                         {
                             auto level = new Level();
-                            level->load(fs::path(getUIState().filePath), "main.lvl");
+                            level->load(fs::path(filePath), "main.lvl");
                             showUI = false;
                         }
                         break;
@@ -261,18 +265,25 @@ void ProjectAsset::selectOrLoadAFileFromFileExplorer(
 void ProjectAsset::createANewProject(
     std::string& currentPath,
     std::vector<std::string>& fileNames,
-    bool &showUI)
+    bool &showUI,
+    std::string& newProjectName,
+    std::string& rootPath,
+    int& selectedFileIndex,
+    std::string& filePath,
+    std::vector<fs::path>& recent_projects)
 {
     if(ImGui::Begin("FileExplorer", &showUI))
     {
-        ProjectAsset::RenderFileExplorer(currentPath, fileNames);
-        InputText("##NEW_PROJECT_NAME", getUIState().newProjectName);
+        ProjectAsset::RenderFileExplorer(currentPath, fileNames , rootPath, selectedFileIndex, filePath);
+        InputText("##NEW_PROJECT_NAME", newProjectName);
 
         if (ImGui::Button("Save"))
         {
-            create_new_project(
+            CreateNewProject::create_new_project(
                 currentPath,
-                getUIState().newProjectName);
+                newProjectName,
+                rootPath,
+                recent_projects);
             showUI = false;
         }
 
@@ -280,18 +291,24 @@ void ProjectAsset::createANewProject(
     }
 }
 
-void ProjectAsset::openAProject(std::string &currentPath, std::vector<std::string> &fileNames, bool &showUI)
+void ProjectAsset::openAProject(std::string &currentPath, std::vector<std::string> &fileNames, bool &showUI,
+    std::string& rootPath,
+    int& selectedFileIndex,
+    std::string& filePath)
 {
     if(ImGui::Begin("FileExplorer", &showUI))
     {
-        ProjectAsset::RenderFileExplorer(currentPath, fileNames);
+        ProjectAsset::RenderFileExplorer(currentPath, fileNames, rootPath, selectedFileIndex, filePath);
         InputText("##NEW_PROJECT_NAME", getUIState().newProjectName);
 
         if (ImGui::Button("Save"))
         {
-            create_new_project(
+            CreateNewProject::create_new_project(
                 currentPath,
-                getUIState().newProjectName);
+                getUIState().newProjectName,
+                EngineState::state->currentActiveProjectDirectory,
+                EngineState::state->recentProjects
+                );
             showUI = false;
         }
 

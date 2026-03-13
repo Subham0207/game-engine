@@ -7,6 +7,7 @@ namespace Physics
     class Box: public PhysicsObject {
     public:
         Box(
+            const char* engineRootPath,
             PhysicsSystemWrapper* physics,
             bool isDynamic = false,
             bool shouldAddToLevel = false,

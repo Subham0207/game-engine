@@ -80,8 +80,14 @@ void Outliner::Render(Level &lvl) {
     if(getUIState().createANewProject)
     {
         ProjectAsset::createANewProject(
-        getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().createANewProject 
-        );
+        getUIState().currentPath,
+         EngineState::state->uiState.fileNames,
+         getUIState().createANewProject,
+         getUIState().newProjectName,
+    EngineState::state->currentActiveProjectDirectory,
+    getUIState().selectedFileIndex,
+    getUIState().filePath,
+    EngineState::state->recentProjects);
     }
     
     handlerForUIComponentsvisibility();
@@ -487,10 +493,23 @@ void Outliner::handlerForUIComponentsvisibility()
 {
     if(getUIState().selectAFile)
     {
-        ProjectAsset::selectOrLoadAFileFromFileExplorer(getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().selectAFile);
+        ProjectAsset::selectOrLoadAFileFromFileExplorer(
+            getUIState().currentPath,
+            EngineState::state->uiState.fileNames,
+            getUIState().selectAFile,
+            EngineState::state->currentActiveProjectDirectory,
+        getUIState().selectedFileIndex,
+        getUIState().filePath
+            );
     }
     else if(getUIState().saveAFile){
-        ProjectAsset::saveAFile(getUIState().currentPath, EngineState::state->uiState.fileNames, getUIState().saveAFile);
+        ProjectAsset::saveAFile(
+            getUIState().currentPath,
+            EngineState::state->uiState.fileNames,
+            getUIState().saveAFile,
+    EngineState::state->currentActiveProjectDirectory,
+    getUIState().selectedFileIndex,
+    getUIState().filePath);
     }
 
     if(getUIState().loadModelWindow)

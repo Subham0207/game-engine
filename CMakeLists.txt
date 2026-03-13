@@ -92,8 +92,8 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_DEBUG ON)
-
-find_package(Boost 1.89.0 REQUIRED COMPONENTS serialization)
+add_definitions(-DBOOST_ALL_NO_LIB)
+find_package(Boost 1.89.0 REQUIRED COMPONENTS serialization json)
 
 message(STATUS "Boost Serialization Release: ${Boost_SERIALIZATION_LIBRARY_RELEASE}")
 message(STATUS "Boost Serialization Debug: ${Boost_SERIALIZATION_LIBRARY_DEBUG}")
@@ -224,6 +224,7 @@ target_link_libraries(GlitterLib
             ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
             Jolt::Jolt
             Boost::serialization
+            Boost::json
             Lua::Lua
             sol2::sol2
 
@@ -337,7 +338,7 @@ find_dependency(Threads)
 set(BOOST_ROOT "${PACKAGE_PREFIX_DIR}")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_NO_SYSTEM_PATHS ON)
-find_dependency(Boost 1.89.0 REQUIRED COMPONENTS serialization)
+find_dependency(Boost 1.89.0 REQUIRED COMPONENTS serialization json)
 
 if (NOT TARGET Lua::Lua)
     add_library(Lua::Lua SHARED IMPORTED)

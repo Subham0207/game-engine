@@ -9,6 +9,7 @@ namespace fs = std::filesystem;
 Physics::PhysicsObject::PhysicsObject(
     PhysicsSystemWrapper *physics,
     const char* modelPath,
+    const char* EngineRootPath,
     bool isDynamic,
     bool shouldAddToLevel,
     glm::vec3 position,
@@ -16,16 +17,16 @@ Physics::PhysicsObject::PhysicsObject(
     glm::vec3 scale
 )
 {
-    if(modelPath != nullptr)
+    if(modelPath != nullptr && EngineRootPath != nullptr)
     {
-        auto path = fs::path(EngineState::state->engineInstalledDirectory) / modelPath;
+        auto path = fs::path(EngineRootPath) / modelPath;
         if (fs::exists(path)) {
             std::cout << "STATUS: [FOUND]" << std::endl;
             std::cout << "Absolute: " << fs::absolute(path) << std::endl;
         } else {
             std::cout << "STATUS: [NOT FOUND]" << std::endl;
         }
-        addCustomModel(path.string());
+        addCustomModel(path.string(), EngineRootPath);
         model->setTransform(position, rotation, scale);
     }
     this->physics = physics;
@@ -73,9 +74,9 @@ void Physics::PhysicsObject::syncTransformation()
     );
 }
 
-void Physics::PhysicsObject::addCustomModel(std::string modelPath)
+void Physics::PhysicsObject::addCustomModel(std::string modelPath, std::string engineRootPath)
 {
-    model = std::make_shared<Model>(modelPath);
+    model = std::make_shared<Model>(modelPath, engineRootPath);
     model->modeltype = ModelType::COLLIDER;
 }
 

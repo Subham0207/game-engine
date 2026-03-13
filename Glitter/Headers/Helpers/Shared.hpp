@@ -25,7 +25,7 @@ namespace Shared {
 
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    GLFWwindow* initAWindow();
+    GLFWwindow* initAWindow(bool isVsyncOn);
 
     void initImguiBackend(GLFWwindow* window);
 
@@ -38,4 +38,6 @@ namespace Shared {
     GLFWwindow* InitBackEndsWithWindow();
 
     void initGpuLogger();
+
+    std::string uuid();
 }
