@@ -51,10 +51,10 @@ target_compile_definitions({{PROJECT_NAME}}  PRIVATE
 )
 
 #Alway copy project manifest json beside exe. When building and installing this file is populated with relative paths of where to look for assets/dependencies.
-add_custom_command(TARGET EngineTechDemo POST_BUILD
+add_custom_command(TARGET {{PROJECT_NAME}} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
           "${CMAKE_SOURCE_DIR}/Project.manifest.json"
-          "$<TARGET_FILE_DIR:EngineTechDemo>/Project.manifest.json"
+          "$<TARGET_FILE_DIR:{{PROJECT_NAME}}>/Project.manifest.json"
 )
 
 get_target_property(_defs {{PROJECT_NAME}} COMPILE_DEFINITIONS)
@@ -117,13 +117,9 @@ install(CODE "
     execute_process(COMMAND ${CMAKE_COMMAND}
         -DINPUT_FILE=\${CMAKE_CURRENT_SOURCE_DIR}/project.manifest.json
         -DOUTPUT_FILE=\${CMAKE_INSTALL_PREFIX}/project.manifest.json
-        -P \"\${CMAKE_CURRENT_SOURCE_DIR}/StripManifest.cmake\"
+        -P \"\${CMAKE_CURRENT_SOURCE_DIR}/CmakeScripts/StripManifest.cmake\"
     )
 ")
-
-file(READ "${INPUT_FILE}" RAW_JSON)
-string(JSON CLEAN_JSON REMOVE "${RAW_JSON}" "development")
-file(WRITE "${OUTPUT_FILE}" "${CLEAN_JSON}")
 
 #===================================================================================
 

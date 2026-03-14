@@ -201,6 +201,7 @@ namespace CreateNewProject
             fs::create_directory(root / "src");
             fs::create_directory(root / "src/headers");
             fs::create_directory(root / "src/sources");
+            fs::create_directory(root / "CmakeScripts");
 
             fs::path sourceStripCmakeScript = "./Template/CmakeScripts/StripManifest.cmake.txt";
             fs::path targetStripCmakeScript = root  / "CmakeScripts/StripManifest.cmake";
