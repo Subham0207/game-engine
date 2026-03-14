@@ -182,8 +182,9 @@ void main()
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     vec3 kS = F;
     vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;	  
-    vec3 irradiance = texture(irradianceMap, N).rgb;
+    kD *= 1.0 - metallic;
+    vec3 worldNormal = normalize(N);
+    vec3 irradiance = textureLod(irradianceMap, worldNormal, 0.0).rgb;
     vec3 diffuse      = irradiance * albedo;
 
     const float MAX_REFLECTION_LOD = 4.0;

@@ -89,9 +89,12 @@ void main()
 
     mat3 normalMatrix = mat3(transpose(inverse(model)));
 
+    vec3 N = normalize(normalMatrix * totalNormal);
+    Normal = N;
+    TBN = mat3(1.0);
+
     if(uHasTangents)
     {
-        vec3 N = normalize(normalMatrix * totalNormal);
         vec3 T   = normalize(normalMatrix * totalTangent);
         T = normalize(T - dot(T, N) * N);
         vec3 B = normalize(cross(N, T));
@@ -101,7 +104,6 @@ void main()
     }
     else
     {
-        Normal = normalize(normalMatrix * totalNormal);
         HasValidTangentBasis = 0;
     }
 

@@ -18,11 +18,11 @@ void main()
     vec3 irradiance = vec3(0.0);   
     
     // tangent space calculation from origin point
-    vec3 up    = vec3(0.0, 1.0, 0.0);
+    vec3 up = abs(N.y) > 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, N));
-    up         = normalize(cross(N, right));
-       
-    float sampleDelta = 0.025;
+    up = normalize(cross(N, right));
+
+    float sampleDelta = 0.1;
     float nrSamples = 0.0;
     for(float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
     {
@@ -33,11 +33,15 @@ void main()
             // tangent space to world
             vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N; 
 
-            irradiance += texture(environmentMap, sampleVec).rgb * cos(theta) * sin(theta);
+            vec3 color = textureLod(environmentMap, sampleVec, 0.0).rgb;
+            color = clamp(color, 0.0, 100.0); // Clamp extreme HDR peaks
+            irradiance += color * cos(theta) * sin(theta);
+
             nrSamples++;
         }
     }
-    irradiance = PI * irradiance * (1.0 / float(nrSamples));
+    if(nrSamples > 0.0)
+            irradiance = PI * irradiance * (1.0 / nrSamples);
     
     FragColor = vec4(irradiance, 1.0);
 }
