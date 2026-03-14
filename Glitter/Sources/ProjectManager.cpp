@@ -65,3 +65,8 @@ void ProjectManagerUI::ProjectManager::draw()
         );
     
 }
+
+void ProjectManagerUI::ProjectManager::addToRecentProjects(fs::path line)
+{
+    recent_projects.push_back(line);
+}

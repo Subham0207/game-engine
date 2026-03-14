@@ -25,8 +25,8 @@ void Level::loadMainLevelOfCurrentProject()
 {
     // read the project.manifest file and find the which level is entry point
     auto defaultLevelFilePath = fs::path(EngineState::state->projectManifest->getEntryLevel());
-    auto parentPath = defaultLevelFilePath.parent_path();
-    auto filename = defaultLevelFilePath.filename().stem().string(); // filename without extension
+    auto parentPath = fs::path("Levels");
+    auto filename = defaultLevelFilePath.filename().stem().stem().string(); // filename without extension
     //load the level
     this->load(parentPath, filename);
 }

@@ -18,7 +18,7 @@ namespace Debug
     {
         auto rayVertPath = basePath / "Shaders/rayCast.vert";
         auto rayFragPath = basePath / "Shaders/rayCast.frag";
-        auto rayCastshader =  new Shader(
+        rayCastshader =  new Shader(
             rayVertPath.u8string().c_str(),
             rayFragPath.u8string().c_str());
     }

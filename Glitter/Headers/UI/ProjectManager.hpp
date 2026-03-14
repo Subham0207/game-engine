@@ -10,6 +10,7 @@ namespace ProjectManagerUI{
         public:
             ProjectManager(std::string currentPath, std::string rootPath);
             void draw();
+            void addToRecentProjects(fs::path line);
         private:
             bool createANewProject;
             std::vector<fs::path> recent_projects;

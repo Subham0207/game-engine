@@ -28,3 +28,17 @@ TEST(FileExplorer, ShouldImportModelWithOrSkeletonData){
 TEST(AssetBrowser, ShouldPassCorrectAssetGuidToCharacterObjectThatGotSpawnedIntoLevel){
     auto testSerializationMacro =  new TestSerializeMacro();
 }
+
+TEST(ProjectManifest, SavedFileShouldBeInCorrectFormat)
+{
+    //Verify Lvl file is guidId.meta.json
+    //engineDir is the path of the executable
+    //projectDir is ../../
+    auto testSerializationMacro =  new TestSerializeMacro();
+}
+
+TEST(ProjectManifest, ShouldConvertProjectDirToActualPathWhenFileLoaded)
+{
+    //Check if ProjectDir is converted from ../../ to actual path. So path chains don't look confusing.
+    auto testSerializationMacro =  new TestSerializeMacro();
+}

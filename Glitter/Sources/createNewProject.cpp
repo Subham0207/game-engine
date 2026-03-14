@@ -201,9 +201,13 @@ namespace CreateNewProject
             fs::create_directory(root / "src");
             fs::create_directory(root / "src/headers");
             fs::create_directory(root / "src/sources");
+
+            fs::path sourceStripCmakeScript = "./Template/CmakeScripts/StripManifest.cmake.txt";
+            fs::path targetStripCmakeScript = root  / "CmakeScripts/StripManifest.cmake";
+            fs::copy(sourceStripCmakeScript, targetStripCmakeScript);
         }
         catch (fs::filesystem_error& e) {
-            std::cerr << "Error creating main.cpp : " << e.what() << std::endl;
+            std::cerr << "Error creating files: " << e.what() << std::endl;
         }
     }
 
@@ -254,11 +258,11 @@ namespace CreateNewProject
         // lvl->addAI(ai);
 
         lvl->save(root / "Levels");
-        auto lvlFilename = lvl->filenameWithExt();
+        auto lvlMetaFilename = lvl->getAssetId() + ".meta.json";
 
-        const auto EngineDir = TryToGetEngineDir();
-        auto manifest = new ProjectManifest(projectName, root, EngineDir, lvlFilename);
-        manifest->save(root);
+        //ProjectManagerDir is where the EngineAssets live too. That is what we need access to.
+        auto manifest = new ProjectManifest(projectName, projectManagerDir, lvlMetaFilename);
+        manifest->save(root / "project.manifest.json");
 
         GenerateLuaLSConfig(root);
 

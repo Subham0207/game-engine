@@ -46,14 +46,21 @@ ProjectManifest::ProjectManifest(fs::path path)
         auto engineDir = json::value_to<std::string>(dev_obj.at(ENGINE_DIR));
         engineDir = resolveEngineDir(engineDir);
 
+        //After project is build manifest file is copied into build directory which is two level deep.
+        //So to get to actual project directory we need to travel two levels up
+        auto parentPath = path.parent_path();
+        auto projectDir = json::value_to<std::string>(dev_obj.at(PROJECT_DIR));
+        projectDir = fs::weakly_canonical(parentPath / projectDir).string();
+
+
         development = Development{
             engineDir,
-            json::value_to<std::string>(dev_obj.at(PROJECT_DIR))
+            projectDir
         };
     }
 }
 
-ProjectManifest::ProjectManifest(std::string name, fs::path projectRoot, fs::path engineHome, std::string levelGuidFilePath)
+ProjectManifest::ProjectManifest(std::string name, fs::path projectManagerDir, std::string levelGuidFilePath)
         : name(name)
 {
     version = "0.1.0";
@@ -62,7 +69,7 @@ ProjectManifest::ProjectManifest(std::string name, fs::path projectRoot, fs::pat
     // Setup Dev Info immediately
     Development dev;
     dev.projectDir = "../../";
-    dev.engineDir = fs::absolute(engineHome).string();
+    dev.engineDir = fs::absolute(projectManagerDir).string();
     development = dev;
 
     // Setup default mounts
@@ -103,12 +110,8 @@ void ProjectManifest::save(const fs::path& destinationPath) {
 
     // 3. Serialize Mounts
     json::object mounts_obj;
-    for (auto const& [key, absPath] : mounts) {
-        // Convert "C:/Project/Assets" -> "Assets"
-        fs::path relativePath = fs::relative(absPath, manifestDir);
-
-        // Use .generic_string() to ensure forward slashes (/) in the JSON
-        mounts_obj[key] = relativePath.generic_string();
+    for (auto const& [key, relPath] : mounts) {
+        mounts_obj[key] = fs::path(relPath).generic_string();
     }
     obj[MOUNTS] = mounts_obj;
 
@@ -133,4 +136,3 @@ void ProjectManifest::save(const fs::path& destinationPath) {
         throw std::runtime_error("Failed to open manifest for writing: " + destinationPath.string());
     }
 }
-

@@ -22,12 +22,11 @@ void EngineState::init()
     auto cwd = GetExecutablePath::getExecutableDir().string();
     isDevMode = projectManifest->isDevelopment();
     auto enginePath = isDevMode ? projectManifest->getEngineDir(): cwd;
-    auto projectDir = isDevMode ? projectManifest->getEngineDir(): cwd;
+    auto projectDir = isDevMode ? projectManifest->getProjectDir(): cwd;
     std::cout << "Is Development mode: " << isDevMode << std::endl;
     std::cout << "CWD: " << cwd << std::endl;
-    state->setEngineDirectory(std::move(enginePath));
-    state->setCurrentActiveProjectDir(std::move(projectDir));
-
+    setEngineDirectory(enginePath);
+    setCurrentActiveProjectDir(projectDir);
 
     editorCamera = new FlyCam("editorCamera");
     bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)

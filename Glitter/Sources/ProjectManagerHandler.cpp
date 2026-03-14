@@ -18,17 +18,13 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <vector>
-
-#include "UI/outliner.hpp"
-
-#include "Level/Level.hpp"
 #include <Helpers/Shared.hpp>
 
 #include <UI/ProjectManager.hpp>
 
 #include "Controls/ClientHandler.hpp"
 #include "Helpers/GetExecutablePath.hpp"
+#include <fstream>
 
 ProjectManagerHandler::ProjectManagerHandler() : mWindow(nullptr)
 {
@@ -48,7 +44,7 @@ int ProjectManagerHandler::startProjectManager()
         while (std::getline(infile, line)) {
             // Check if the line is not empty before adding.
             if (!line.empty()) {
-                getUIState().recent_projects.push_back(fs::path(line));
+                projectManagerUI->addToRecentProjects(fs::path(line));
             }
         }
         infile.close();
