@@ -34,6 +34,7 @@ TEST(ProjectManifest, SavedFileShouldBeInCorrectFormat)
     //Verify Lvl file is guidId.meta.json
     //engineDir is the path of the executable
     //projectDir is ../../
+    //entryLevel is just the level name since we can figure out from mounts dict where is Levels folder.
     auto testSerializationMacro =  new TestSerializeMacro();
 }
 

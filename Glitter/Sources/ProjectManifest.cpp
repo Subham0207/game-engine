@@ -60,7 +60,7 @@ ProjectManifest::ProjectManifest(fs::path path)
     }
 }
 
-ProjectManifest::ProjectManifest(std::string name, fs::path projectManagerDir, std::string levelGuidFilePath)
+ProjectManifest::ProjectManifest(std::string name, fs::path projectManagerDir, std::string levelGuidFileName)
         : name(name)
 {
     version = "0.1.0";
@@ -75,7 +75,7 @@ ProjectManifest::ProjectManifest(std::string name, fs::path projectManagerDir, s
     // Setup default mounts
     mounts[ASSETS_KEY] = ASSETS_DIR;
     mounts[LEVELS_KEY] = LEVELS_DIR;
-    entryLevel = std::string(LEVELS_DIR) + "/" + levelGuidFilePath;
+    entryLevel = std::move(levelGuidFileName);
 }
 
 std::string ProjectManifest::resolveEngineDir(std::string engineDir)

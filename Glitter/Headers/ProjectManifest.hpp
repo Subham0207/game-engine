@@ -20,7 +20,7 @@ class ProjectManifest
 {
     public:
         explicit ProjectManifest(fs::path path);
-        ProjectManifest(std::string name, fs::path projectManagerDir, std::string levelGuidFilePath);
+        ProjectManifest(std::string name, fs::path projectManagerDir, std::string levelGuidFileName);
 
         bool isDevelopment() const { return development.has_value();}
 

@@ -23,9 +23,9 @@ Level::Level(): Serializable()
 
 void Level::loadMainLevelOfCurrentProject()
 {
-    // read the project.manifest file and find the which level is entry point
+    // read the project.manifest file and find which level is entry point.
     auto defaultLevelFilePath = fs::path(EngineState::state->projectManifest->getEntryLevel());
-    auto parentPath = fs::path("Levels");
+    auto parentPath = fs::path("Levels"); // basically reading mounts[levels] value.
     auto filename = defaultLevelFilePath.filename().stem().stem().string(); // filename without extension
     //load the level
     this->load(parentPath, filename);
