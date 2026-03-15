@@ -48,6 +48,7 @@ class NodeGraph
         bool resizingComment;
         ImVec2 dragOffset;
         int editingCommentId;
+        int selectedCommentId;
 
         void addNode(const std::string& name, float x, float y);
         void addComment(const ImVec2& posGrid);

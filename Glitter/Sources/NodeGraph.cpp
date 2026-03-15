@@ -37,7 +37,7 @@ static EditorSpaceCache g_editorSpaceCache;
 NodeGraph::NodeGraph()
     : nextNodeId(0), nextCommentId(0), showContextMenu(false), contextMenuX(0.0f), contextMenuY(0.0f),
       spawnPosScreen(0.0f, 0.0f), activeCommentId(-1), resizingComment(false), dragOffset(0.0f, 0.0f),
-      editingCommentId(-1)
+      editingCommentId(-1), selectedCommentId(-1)
 {
 }
 
@@ -89,6 +89,7 @@ void NodeGraph::drawComments()
     const ImU32 fillCol = IM_COL32(255, 255, 0, 40);
     const ImU32 borderCol = IM_COL32(255, 255, 0, 140);
     const ImU32 headerCol = IM_COL32(255, 255, 0, 80);
+    const ImU32 selBorderCol = IM_COL32(255, 255, 0, 220);
 
     const float headerH = 22.0f;
     const float handle = 12.0f;
@@ -98,23 +99,52 @@ void NodeGraph::drawComments()
     // Title text is read-only by default; double-click header to edit.
     // Evaluate hovered comment from top-most (last) to bottom.
     int hoveredIdx = -1;
-    bool hoveringImNodesElement = false;
+
+    // If the cursor is over any ImNodes element, comments must NOT capture
+    // input; nodes should be draggable even if visually "inside" a comment.
+    // IMPORTANT: hover queries alone can be insufficient depending on how
+    // selection is initiated, so also gate on "any attribute active".
+    int hoveredNode = -1;
+    int hoveredLink = -1;
+    int hoveredPin = -1;
+    (void)ImNodes::IsNodeHovered(&hoveredNode);
+    (void)ImNodes::IsLinkHovered(&hoveredLink);
+    (void)ImNodes::IsPinHovered(&hoveredPin);
+
+    int activeAttribute = -1;
+    const bool anyAttributeActive = ImNodes::IsAnyAttributeActive(&activeAttribute);
+
+    const bool hoveringImNodesElement = (hoveredNode != -1) || (hoveredLink != -1) || (hoveredPin != -1);
+    const bool leftClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+
+    const bool editorHovered = ImNodes::IsEditorHovered();
+
+    // Determining whether the click should go to ImNodes must NOT use
+    // ImGui::GetIO().WantCaptureMouse because comments themselves are ImGui
+    // widgets and would make this always true.
+    //
+    // Instead use ImNodes-specific indicators. Hover tests handle pins/links,
+    // and IsAnyAttributeActive covers attribute UI. Additionally, after the
+    // editor processes input, a click on a node body/title will typically
+    // result in a node selection even if no pin/link is hovered.
+    const bool clickOnImNodesElement = leftClicked && editorHovered && (hoveringImNodesElement || anyAttributeActive);
+
+    // If a node/link becomes selected on this click, treat it as "consumed" by
+    // ImNodes (covers node body/title bar clicks).
+    bool clickSelectedImNodesObject = false;
+    if (leftClicked && editorHovered)
     {
-        int hoveredNode = -1;
-        int hoveredLink = -1;
-        int hoveredPin = -1;
-
-        // If the cursor is over any ImNodes element, comments must NOT capture
-        // input; nodes should be draggable even if visually "inside" a comment.
-        (void)ImNodes::IsNodeHovered(&hoveredNode);
-        (void)ImNodes::IsLinkHovered(&hoveredLink);
-        (void)ImNodes::IsPinHovered(&hoveredPin);
-
-        hoveringImNodesElement = (hoveredNode != -1) || (hoveredLink != -1) || (hoveredPin != -1);
+        clickSelectedImNodesObject = (ImNodes::NumSelectedNodes() > 0) || (ImNodes::NumSelectedLinks() > 0);
     }
 
+    // Also don't let comment interaction happen if some other ImGui item is
+    // hovered/active (e.g., the comment title input while editing).
+    const bool imguiItemHoveredOrActive = ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive();
+
+    const bool allowCommentInteraction = !(clickOnImNodesElement || clickSelectedImNodesObject || imguiItemHoveredOrActive);
+
     const ImVec2 mouse = ImGui::GetMousePos();
-    if (ImNodes::IsEditorHovered() && !hoveringImNodesElement)
+    if (ImNodes::IsEditorHovered() && allowCommentInteraction)
     {
         for (int i = (int)comments.size() - 1; i >= 0; --i)
         {
@@ -148,10 +178,27 @@ void NodeGraph::drawComments()
         }
     }
 
-    // IMPORTANT: If the mouse is over a node/link, comments must not capture
-    // interactions; nodes should remain draggable even if visually "inside"
-    // a comment rectangle.
-    const bool allowCommentInteraction = !hoveringImNodesElement;
+    // If the user clicked on a node/link/pin/attribute, nodes must win: do not select comments.
+    if (editorHovered && (clickOnImNodesElement || clickSelectedImNodesObject))
+        selectedCommentId = -1;
+
+    // Single click inside a comment selects it (only if not on any ImNodes element).
+    // Also bring to front on selection.
+    if (allowCommentInteraction && hoveredIdx != -1 && leftClicked)
+    {
+        const auto& c = comments[hoveredIdx];
+        selectedCommentId = c.id;
+        // bring selected to front
+        CommentBox tmp = c;
+        comments.erase(comments.begin() + hoveredIdx);
+        comments.push_back(tmp);
+        hoveredIdx = (int)comments.size() - 1;
+    }
+    else if (editorHovered && leftClicked && hoveredIdx == -1 && allowCommentInteraction)
+    {
+        // Clicked empty editor area -> clear comment selection.
+        selectedCommentId = -1;
+    }
 
     // Double click header -> edit title
     if (allowCommentInteraction && hoveredIdx != -1 && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
@@ -172,7 +219,7 @@ void NodeGraph::drawComments()
     const bool isEditingAny = (editingCommentId != -1);
 
     // Start drag/resize (disabled while editing)
-    if (allowCommentInteraction && !isEditingAny && hoveredIdx != -1 && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    if (allowCommentInteraction && !isEditingAny && hoveredIdx != -1 && leftClicked)
     {
         auto& c = comments[hoveredIdx];
         const ImVec2 p0 = gridToScreen(c.posGrid);
@@ -259,7 +306,11 @@ void NodeGraph::drawComments()
 
         dl->AddRectFilled(p0, p1, fillCol, 4.0f);
         dl->AddRectFilled(p0, ImVec2(p1.x, p0.y + headerH), headerCol, 4.0f);
-        dl->AddRect(p0, p1, borderCol, 4.0f, 0, 2.0f);
+        // Border (stronger when selected)
+        if (selectedCommentId == c.id)
+            dl->AddRect(p0, p1, selBorderCol, 4.0f, 0, 3.0f);
+        else
+            dl->AddRect(p0, p1, borderCol, 4.0f, 0, 2.0f);
 
         // Resize handle
         dl->AddRectFilled(ImVec2(p1.x - handle, p1.y - handle), p1, borderCol, 2.0f);
@@ -331,6 +382,12 @@ void NodeGraph::handleContextMenu()
     (void)ImNodes::IsNodeHovered(&hoveredNode);
     (void)ImNodes::IsLinkHovered(&hoveredLink);
     const bool hoveringNodeOrLink = (hoveredNode != -1) || (hoveredLink != -1);
+
+    // If user clicks on any node/link, it should take precedence over comment selection.
+    if (editorHovered && hoveringNodeOrLink && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+        selectedCommentId = -1;
+    }
 
     // Open on right click (only when not clicking on a node/link)
     if (editorHovered && !hoveringNodeOrLink && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
