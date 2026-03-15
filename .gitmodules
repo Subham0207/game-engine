@@ -26,3 +26,6 @@
 [submodule "Glitter/Vendor/JoltPhysics"]
     path = Glitter/Vendor/JoltPhysics
     url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "Glitter/Vendor/imnodes"]
+	path = Glitter/Vendor/imnodes
+	url = https://github.com/Nelarius/imnodes.git

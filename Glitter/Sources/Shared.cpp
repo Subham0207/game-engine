@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imnodes.h>
 
 #include "Profiler.hpp"
 #include "boost/uuid/random_generator.hpp"
@@ -191,6 +192,7 @@ void Shared::initImguiBackend(GLFWwindow* window)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImNodes::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
@@ -199,6 +201,7 @@ void Shared::initImguiBackend(GLFWwindow* window)
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImNodes::StyleColorsDark();
 }
 
 void APIENTRY Shared::glDebugOutput(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, GLsizei length, const GLchar *message, const void *userParam)

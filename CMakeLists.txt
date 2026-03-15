@@ -154,6 +154,14 @@ set(RECASTNAVIGATION_INCLUDE_DIRS
         ${recast_SOURCE_DIR}/DetourTileCache/Include
 )
 
+# imnodes is vendored
+file(GLOB IMNODES_SOURCES ${CMAKE_SOURCE_DIR}/Glitter/Vendor/imnodes/*.cpp)
+
+# Set compile definitions for imnodes sources
+set_source_files_properties(${IMNODES_SOURCES} PROPERTIES
+    COMPILE_DEFINITIONS "IMGUI_DEFINE_MATH_OPERATORS"
+)
+
 if(NOT APPLE)
     set(CMAKE_INSTALL_RPATH $ORIGIN)
 endif ()
@@ -162,7 +170,8 @@ add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
         ${VENDORS_SOURCES}
         ${IMGUI_IMPL_SOURCES}
-        ${IMGUIZMO_IMPL_SOURCES})
+        ${IMGUIZMO_IMPL_SOURCES}
+        ${IMNODES_SOURCES})
 
 target_include_directories(GlitterLib
         PUBLIC
@@ -198,6 +207,9 @@ target_include_directories(GlitterLib
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imgui>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imgui/backends>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imguizmo>
+
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/imnodes>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imnodes>
 
             $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/Glitter/Vendor/JoltPhysics/Jolt/>
             $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
@@ -314,6 +326,7 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/contrib/utf8cpp/sou
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/stb")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imgui")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imguizmo")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imnodes/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imnodes" FILES_MATCHING PATTERN "*.h")
 
 # Install Bundled Dependencies
 install(FILES "${LUA_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")

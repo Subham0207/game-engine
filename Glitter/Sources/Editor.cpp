@@ -23,6 +23,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imnodes.h>
 
 #include <utility>
 #include <vector>
@@ -53,11 +54,9 @@
 
 #include <Profiler.hpp>
 
-#include "ProjectManifest.hpp"
 #include "Debug/Raycast.hpp"
-#include "Helpers/GetExecutablePath.hpp"
 #include "Lights/Skybox.hpp"
-
+#include "NodeGraph/NodeGraph.hpp"
 
 int Editor::openEditor() {
 
@@ -107,6 +106,7 @@ int Editor::openEditor() {
 
     auto outliner = new Outliner();
     auto assetBrowser = new ProjectAsset::AssetBrowser();
+    auto nodeGraph = new NodeGraph();
 
     Controls::PlayerController::register_bindings(getLuaEngine());
 
@@ -288,6 +288,13 @@ int Editor::openEditor() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        ImGui::CreateContext();
+        ImNodes::CreateContext();
+
+        //-----After-imnodes--initialize--------
+            nodeGraph->drawUI();
+        //-------------
+
         if (EngineState::state->isDevMode)
         {
             rayCastObjectSelector->HandleSelection(
@@ -332,6 +339,14 @@ int Editor::openEditor() {
             firstFrame = true;
         }
 
-    }   glfwTerminate();
+    }
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImNodes::DestroyContext();
+    ImGui::DestroyContext();
+    glfwTerminate();
+
     return EXIT_SUCCESS;
 }
