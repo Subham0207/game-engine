@@ -288,8 +288,6 @@ int Editor::openEditor() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::CreateContext();
-        ImNodes::CreateContext();
 
         //-----After-imnodes--initialize--------
             nodeGraph->drawUI();
