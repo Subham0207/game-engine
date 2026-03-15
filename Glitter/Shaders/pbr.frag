@@ -93,7 +93,7 @@ void main()
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(viewPos - FragPos);
-    vec3 R = reflect(-V, N); 
+    vec3 R = normalize(reflect(-V, N));
 
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
