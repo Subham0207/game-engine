@@ -16,6 +16,8 @@
 #include "NodeGraphNodesView.hpp"
 #include "NodeGraphCommentsView.hpp"
 #include "NodeGraphContextMenu.hpp"
+#include "NodeGraphRenderContext.hpp"
+#include "NodeGraphViewRegistry.hpp"
 
 class NodeGraph
 {
@@ -26,19 +28,14 @@ class NodeGraph
     private:
         std::vector<NodeGraphNode> nodes;
         std::vector<CommentBox> comments;
-        int nextNodeId;
-        int nextCommentId;
 
         // Per-frame cached editor space mapping
         NodeGraphEditorSpace editorSpace;
 
-        // Components
-        NodeGraphNodesView nodesView;
-        NodeGraphCommentsView commentsView;
-        NodeGraphContextMenu contextMenu;
+        // Layered UI system
+        NodeGraphViewRegistry views;
+        NodeGraphRenderContext renderCtx{editorSpace, nodes, comments};
 
-        void addNode(const std::string& name, float x, float y);
-        void addComment(const ImVec2& posGrid);
 };
 
 

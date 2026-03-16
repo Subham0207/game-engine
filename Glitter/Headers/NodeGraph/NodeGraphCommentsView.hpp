@@ -13,13 +13,28 @@
 #include "CommentBox.hpp"
 #include "NodeGraphEditorSpace.hpp"
 #include "NodeGraphNode.hpp"
+#include "INodeGraphView.hpp"
+#include "NodeGraphRenderContext.hpp"
 
-class NodeGraphCommentsView
+class NodeGraphCommentsView final : public INodeGraphView
 {
 public:
     explicit NodeGraphCommentsView(std::vector<CommentBox>& comments)
         : m_comments(comments)
     {
+    }
+
+    [[nodiscard]] NodeGraphLayer layer() const override { return NodeGraphLayer::Background; }
+
+    // Model mutation API
+    int nextCommentId = 0;
+
+    void addComment(std::vector<CommentBox>& comments, const ImVec2& posGrid)
+    {
+        CommentBox c;
+        c.id = nextCommentId++;
+        c.posGrid = posGrid;
+        comments.push_back(c);
     }
 
     // State previously stored in NodeGraph
@@ -29,8 +44,11 @@ public:
     int editingCommentId = -1;
     int selectedCommentId = -1;
 
-    void draw(const NodeGraphEditorSpace& cache, const std::vector<NodeGraphNode>& nodes)
+    void draw(NodeGraphRenderContext& ctx) override
     {
+        const NodeGraphEditorSpace& cache = ctx.editorSpace;
+        const std::vector<NodeGraphNode>& nodes = ctx.nodes;
+
         ImDrawList* dl = ImGui::GetWindowDrawList();
 
         const NodeGraphEditorSpace& usedCache = cache.valid ? cache : fallbackCache();
@@ -185,7 +203,11 @@ public:
 
         const bool interactingWithComment = (activeCommentId != -1) &&
                                             (resizingComment || (dragOffset.x != 0.0f || dragOffset.y != 0.0f));
-        if (allowCommentInteraction && interactingWithComment)
+
+        // While a comment is actively being dragged/resized, keep the cursor stable.
+        // If we gate SetMouseCursor on allowCommentInteraction, it can flicker because
+        // allowCommentInteraction depends on hover tests that change as things move.
+        if (interactingWithComment)
         {
             ImGui::SetActiveID(ImGui::GetID("##comment_drag"), ImGui::GetCurrentWindow());
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
@@ -272,5 +294,6 @@ private:
 };
 
 #endif //GLITTER_NODEGRAPH_COMMENTSVIEW_HPP
+
 
 

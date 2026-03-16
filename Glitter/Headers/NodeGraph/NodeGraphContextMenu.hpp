@@ -9,8 +9,10 @@
 #include <imnodes.h>
 
 #include "NodeGraphEditorSpace.hpp"
+#include "INodeGraphView.hpp"
+#include "NodeGraphRenderContext.hpp"
 
-class NodeGraphContextMenu
+class NodeGraphContextMenu final : public INodeGraphView
 {
 public:
     bool showContextMenu = false;
@@ -18,9 +20,21 @@ public:
     float contextMenuY = 0.0f;
     ImVec2 spawnPosScreen{0.0f, 0.0f};
 
-    template <typename AddNodeFn, typename AddCommentFn>
-    void draw(const NodeGraphEditorSpace& cache, AddNodeFn&& addNodeFn, AddCommentFn&& addCommentFn)
+    [[nodiscard]] NodeGraphLayer layer() const override { return NodeGraphLayer::Popup; }
+
+    using AddNodeFn = void (*)(void* user, const std::string& base, float x, float y);
+    using AddCommentFn = void (*)(void* user, const ImVec2& gridPos);
+
+    void setCallbacks(void* user, AddNodeFn addNode, AddCommentFn addComment)
     {
+        m_user = user;
+        m_addNode = addNode;
+        m_addComment = addComment;
+    }
+
+    void draw(NodeGraphRenderContext& ctx) override
+    {
+        const NodeGraphEditorSpace& cache = ctx.editorSpace;
         const bool editorHovered = ImNodes::IsEditorHovered();
 
         int hoveredNode = -1;
@@ -53,24 +67,28 @@ public:
 
             if (ImGui::MenuItem("Add Basic Node"))
             {
-                addNodeFn("Node", contextMenuX, contextMenuY);
+                if (m_addNode)
+                    m_addNode(m_user, "Node", contextMenuX, contextMenuY);
                 showContextMenu = false;
             }
             if (ImGui::MenuItem("Add Transform Node"))
             {
-                addNodeFn("Transform", contextMenuX, contextMenuY);
+                if (m_addNode)
+                    m_addNode(m_user, "Transform", contextMenuX, contextMenuY);
                 showContextMenu = false;
             }
             if (ImGui::MenuItem("Add Process Node"))
             {
-                addNodeFn("Process", contextMenuX, contextMenuY);
+                if (m_addNode)
+                    m_addNode(m_user, "Process", contextMenuX, contextMenuY);
                 showContextMenu = false;
             }
             if (ImGui::MenuItem("Add Comment"))
             {
                 const ImVec2 spawnGrid = cache.valid ? NodeGraphScreenToGrid(cache, spawnPosScreen)
                                                      : ImVec2(0.0f, 0.0f);
-                addCommentFn(spawnGrid);
+                if (m_addComment)
+                    m_addComment(m_user, spawnGrid);
                 showContextMenu = false;
             }
 
@@ -81,8 +99,14 @@ public:
             showContextMenu = false;
         }
     }
+
+private:
+    void* m_user = nullptr;
+    AddNodeFn m_addNode = nullptr;
+    AddCommentFn m_addComment = nullptr;
 };
 
 #endif //GLITTER_NODEGRAPH_CONTEXTMENU_HPP
+
 
 

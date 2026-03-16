@@ -9,23 +9,32 @@
 #include "imgui_internal.h"
 
 NodeGraph::NodeGraph()
-    : nextNodeId(0), nextCommentId(0), editorSpace(), nodesView(nodes), commentsView(comments), contextMenu()
+    : editorSpace()
 {
-}
+    // Register default views. Their layer/priority controls draw order.
+    views.emplaceView<NodeGraphCommentsView>(comments);
+    views.emplaceView<NodeGraphNodesView>();
 
-void NodeGraph::addNode(const std::string& name, float x, float y)
-{
-    NodeGraphNode n(nextNodeId++, name, x, y);
-    n.setSpawnPosScreen(ImVec2(x, y));
-    nodes.emplace_back(std::move(n));
-}
+    auto& cm = views.emplaceView<NodeGraphContextMenu>();
+    cm.setCallbacks(
+        this,
+        [](void* user, const std::string& base, float x, float y) {
+            auto* self = static_cast<NodeGraph*>(user);
+            auto* nv = self->views.findView<NodeGraphNodesView>();
+            if (!nv)
+                return;
 
-void NodeGraph::addComment(const ImVec2& posGrid)
-{
-    CommentBox c;
-    c.id = nextCommentId++;
-    c.posGrid = posGrid;
-    comments.push_back(c);
+            const std::string name = base + " " + std::to_string(nv->nextNodeId);
+            nv->addNode(self->renderCtx.nodes, name, ImVec2(x, y));
+        },
+        [](void* user, const ImVec2& gridPos) {
+            auto* self = static_cast<NodeGraph*>(user);
+            auto* cv = self->views.findView<NodeGraphCommentsView>();
+            if (!cv)
+                return;
+
+            cv->addComment(self->renderCtx.comments, gridPos);
+        });
 }
 
 void NodeGraph::drawUI()
@@ -37,23 +46,10 @@ void NodeGraph::drawUI()
     // Capture stable mapping between grid-space and screen-space for this frame.
     editorSpace = NodeGraphEditorSpace::CaptureFromCurrentEditor();
 
-    // Visual layering policy (extensible):
-    // - Background elements (comments) first
-    // - Nodes next
-    // - Foreground overlays / context menu last
-    //
-    // NOTE: Comments may still query node rects for input gating. Those queries are
-    // only safe for nodes that have already been submitted at least once.
-    commentsView.draw(editorSpace, nodes);
-    nodesView.draw();
-
-    // Context menu last (so it can use the captured editorSpace for spawn conversion).
-    contextMenu.draw(
-        editorSpace,
-        [&](const std::string& base, float x, float y) {
-            addNode(base + " " + std::to_string(nextNodeId), x, y);
-        },
-        [&](const ImVec2& gridPos) { addComment(gridPos); });
+    // Update the shared render context for this frame and let the registry
+    // handle layering order (Background -> Content -> Overlay -> Popup).
+    renderCtx.editorSpace = editorSpace;
+    views.drawAll(renderCtx);
 
     ImNodes::EndNodeEditor();
 

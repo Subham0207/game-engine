@@ -11,18 +11,30 @@
 #include <imnodes.h>
 
 #include "NodeGraphNode.hpp"
+#include "INodeGraphView.hpp"
+#include "NodeGraphRenderContext.hpp"
 
-class NodeGraphNodesView
+class NodeGraphNodesView final : public INodeGraphView
 {
 public:
-    explicit NodeGraphNodesView(std::vector<NodeGraphNode>& nodes)
-        : m_nodes(nodes)
+    [[nodiscard]] NodeGraphLayer layer() const override { return NodeGraphLayer::Content; }
+
+    // Model mutation API (called by menu/tools). Keeping it here makes it easy to
+    // add new element types with their own ID allocation logic.
+    int nextNodeId = 0;
+
+    void addNode(std::vector<NodeGraphNode>& nodes, const std::string& name, const ImVec2& spawnPosScreen)
     {
+        NodeGraphNode n(nextNodeId++, name, spawnPosScreen.x, spawnPosScreen.y);
+        n.setSpawnPosScreen(spawnPosScreen);
+        nodes.emplace_back(std::move(n));
     }
 
-    void draw()
+    void draw(NodeGraphRenderContext& ctx) override
     {
-        for (auto& node : m_nodes)
+        auto& nodes = ctx.nodes;
+
+        for (auto& node : nodes)
         {
             if (!node.positionSet())
             {
@@ -51,11 +63,9 @@ public:
             ImNodes::EndNode();
         }
     }
-
-private:
-    std::vector<NodeGraphNode>& m_nodes;
 };
 
 #endif //GLITTER_NODEGRAPH_NODESVIEW_HPP
+
 
 
