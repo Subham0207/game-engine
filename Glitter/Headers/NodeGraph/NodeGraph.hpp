@@ -12,6 +12,10 @@
 #include "NodeGraphNode.hpp"
 
 #include "CommentBox.hpp"
+#include "NodeGraphEditorSpace.hpp"
+#include "NodeGraphNodesView.hpp"
+#include "NodeGraphCommentsView.hpp"
+#include "NodeGraphContextMenu.hpp"
 
 class NodeGraph
 {
@@ -24,24 +28,17 @@ class NodeGraph
         std::vector<CommentBox> comments;
         int nextNodeId;
         int nextCommentId;
-        bool showContextMenu;
-        float contextMenuX;
-        float contextMenuY;
-        // Screen space spawn position (captured on right-click), used to place new nodes.
-        ImVec2 spawnPosScreen;
 
-        // comment interaction state
-        int activeCommentId;
-        bool resizingComment;
-        ImVec2 dragOffset;
-        int editingCommentId;
-        int selectedCommentId;
+        // Per-frame cached editor space mapping
+        NodeGraphEditorSpace editorSpace;
+
+        // Components
+        NodeGraphNodesView nodesView;
+        NodeGraphCommentsView commentsView;
+        NodeGraphContextMenu contextMenu;
 
         void addNode(const std::string& name, float x, float y);
         void addComment(const ImVec2& posGrid);
-        void drawNodes();
-        void drawComments();
-        void handleContextMenu();
 };
 
 
