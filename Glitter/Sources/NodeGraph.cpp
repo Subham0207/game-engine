@@ -43,13 +43,7 @@ NodeGraph::NodeGraph()
 
 void NodeGraph::addNode(const std::string& name, float x, float y)
 {
-    Node node;
-    node.id = nextNodeId++;
-    node.name = name;
-    node.x = x;
-    node.y = y;
-    node.positionSet = false;  // Position not yet set in ImNodes
-    nodes.push_back(node);
+    nodes.emplace_back(nextNodeId++, name, x, y);
 }
 
 void NodeGraph::addComment(const ImVec2& posGrid)
@@ -129,8 +123,8 @@ void NodeGraph::drawComments()
         const ImVec2 m = ImGui::GetMousePos();
         for (const auto& n : nodes)
         {
-            const ImVec2 np = ImNodes::GetNodeScreenSpacePos(n.id);
-            const ImVec2 nd = ImNodes::GetNodeDimensions(n.id);
+            const ImVec2 np = ImNodes::GetNodeScreenSpacePos(n.id());
+            const ImVec2 nd = ImNodes::GetNodeDimensions(n.id());
             const ImRect nr(np, ImVec2(np.x + nd.x, np.y + nd.y));
             if (nr.Contains(m))
             {
@@ -352,22 +346,22 @@ void NodeGraph::drawNodes()
     for (auto& node : nodes)
     {
         // Only set the node position once when first created
-        if (!node.positionSet)
+        if (!node.positionSet())
         {
             // Place node in screen space at the original click position.
             // This is robust and avoids the need to convert to grid space.
-            ImNodes::SetNodeScreenSpacePos(node.id, spawnPosScreen);
-            node.positionSet = true;
+            ImNodes::SetNodeScreenSpacePos(node.id(), spawnPosScreen);
+            node.markPositionSet(true);
         }
 
-        ImNodes::BeginNode(node.id);
+        ImNodes::BeginNode(node.id());
 
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted(node.name.c_str());
+        ImGui::TextUnformatted(node.name().c_str());
         ImNodes::EndNodeTitleBar();
 
         // Add input attribute
-        ImNodes::BeginInputAttribute(node.id * 1000 + 1);
+        ImNodes::BeginInputAttribute(node.id() * 1000 + 1);
         ImGui::Text("Input");
         ImNodes::EndInputAttribute();
 
@@ -375,7 +369,7 @@ void NodeGraph::drawNodes()
         ImGui::Spacing();
 
         // Add output attribute
-        ImNodes::BeginOutputAttribute(node.id * 1000 + 2);
+        ImNodes::BeginOutputAttribute(node.id() * 1000 + 2);
         ImGui::Indent(40.f);
         ImGui::Text("Output");
         ImNodes::EndOutputAttribute();
@@ -413,6 +407,8 @@ void NodeGraph::handleContextMenu()
         ImGui::OpenPopup("NodeContextMenu");
     }
 
+    // IMPORTANT: BeginPopup must be called every frame, regardless of hover,
+    // or the popup won't appear even if OpenPopup() was called.
     if (ImGui::BeginPopup("NodeContextMenu"))
     {
         // Dismiss popup if user left-clicks on empty canvas

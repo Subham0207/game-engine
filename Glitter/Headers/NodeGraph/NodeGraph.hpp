@@ -9,22 +9,9 @@
 #include <string>
 #include <imgui.h>
 
-struct Node
-{
-    int id;
-    std::string name;
-    float x, y;
-    bool positionSet;  // Track if position has been initialized
-};
+#include "NodeGraphNode.hpp"
 
-struct CommentBox
-{
-    int id;
-    ImVec2 posGrid{0.0f, 0.0f};     // top-left in grid space (pans with editor)
-    ImVec2 size{220.0f, 140.0f};    // in pixels
-    static constexpr size_t kMaxText = 1024;
-    char text[kMaxText] = "Comment";
-};
+#include "CommentBox.hpp"
 
 class NodeGraph
 {
@@ -33,7 +20,7 @@ class NodeGraph
         void drawUI();
 
     private:
-        std::vector<Node> nodes;
+        std::vector<NodeGraphNode> nodes;
         std::vector<CommentBox> comments;
         int nextNodeId;
         int nextCommentId;
