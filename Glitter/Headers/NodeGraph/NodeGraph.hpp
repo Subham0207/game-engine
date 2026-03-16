@@ -34,7 +34,9 @@ class NodeGraph
 
         // Layered UI system
         NodeGraphViewRegistry views;
-        NodeGraphRenderContext renderCtx{editorSpace, nodes, comments};
+    NodeGraphRenderContext renderCtx{editorSpace,
+      false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
+      nodes, comments};
 
 };
 

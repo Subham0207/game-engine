@@ -32,6 +32,25 @@ public:
 
     void draw(NodeGraphRenderContext& ctx) override
     {
+        // If ImNodes is hovered/active, claim interaction ownership.
+        // This keeps ImNodes-specific querying inside the nodes view.
+        if (ctx.editorHovered)
+        {
+          int hoveredNode = -1;
+          int hoveredLink = -1;
+          int hoveredPin = -1;
+          (void)ImNodes::IsNodeHovered(&hoveredNode);
+          (void)ImNodes::IsLinkHovered(&hoveredLink);
+          (void)ImNodes::IsPinHovered(&hoveredPin);
+
+          int activeAttribute = -1;
+          const bool anyAttributeActive = ImNodes::IsAnyAttributeActive(&activeAttribute);
+          const bool hoveringImNodesElement = (hoveredNode != -1) || (hoveredLink != -1) || (hoveredPin != -1);
+
+          if (hoveringImNodesElement || anyAttributeActive)
+            ctx.interaction.tryClaim(NodeGraphInteractionOwner::ImNodes, 10);
+        }
+
         auto& nodes = ctx.nodes;
 
         for (auto& node : nodes)

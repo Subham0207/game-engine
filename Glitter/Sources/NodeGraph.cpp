@@ -43,6 +43,22 @@ void NodeGraph::drawUI()
 
     ImNodes::BeginNodeEditor();
 
+  // Capture per-frame input snapshot once; views should use renderCtx instead
+  // of querying ImGui/ImNodes directly.
+  renderCtx.mouseScreen = ImGui::GetMousePos();
+  renderCtx.editorHovered = ImNodes::IsEditorHovered();
+  renderCtx.leftClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  renderCtx.leftDoubleClicked = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+  renderCtx.leftDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+  renderCtx.leftReleased = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+
+  // Interaction ownership:
+  // - Keep owner sticky while mouse is down
+  // - Release when mouse is released
+  if (renderCtx.leftReleased)
+    renderCtx.interaction.owner = NodeGraphInteractionOwner::None;
+  renderCtx.interaction.resetPerFrame();
+
     // Capture stable mapping between grid-space and screen-space for this frame.
     editorSpace = NodeGraphEditorSpace::CaptureFromCurrentEditor();
 
