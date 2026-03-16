@@ -119,29 +119,41 @@ void NodeGraph::drawComments()
 
     const bool editorHovered = ImNodes::IsEditorHovered();
 
+    // imnodes hover queries can be insufficient when we draw our own primitives
+    // (comments) behind nodes. To make sure nodes always win when overlapping a
+    // comment (including its header), also treat "mouse is over any node rect"
+    // as an ImNodes interaction.
+    bool mouseOverAnyNodeRect = false;
+    if (editorHovered)
+    {
+        const ImVec2 m = ImGui::GetMousePos();
+        for (const auto& n : nodes)
+        {
+            const ImVec2 np = ImNodes::GetNodeScreenSpacePos(n.id);
+            const ImVec2 nd = ImNodes::GetNodeDimensions(n.id);
+            const ImRect nr(np, ImVec2(np.x + nd.x, np.y + nd.y));
+            if (nr.Contains(m))
+            {
+                mouseOverAnyNodeRect = true;
+                break;
+            }
+        }
+    }
+
     // Determining whether the click should go to ImNodes must NOT use
     // ImGui::GetIO().WantCaptureMouse because comments themselves are ImGui
     // widgets and would make this always true.
     //
-    // Instead use ImNodes-specific indicators. Hover tests handle pins/links,
-    // and IsAnyAttributeActive covers attribute UI. Additionally, after the
-    // editor processes input, a click on a node body/title will typically
-    // result in a node selection even if no pin/link is hovered.
-    const bool clickOnImNodesElement = leftClicked && editorHovered && (hoveringImNodesElement || anyAttributeActive);
-
-    // If a node/link becomes selected on this click, treat it as "consumed" by
-    // ImNodes (covers node body/title bar clicks).
-    bool clickSelectedImNodesObject = false;
-    if (leftClicked && editorHovered)
-    {
-        clickSelectedImNodesObject = (ImNodes::NumSelectedNodes() > 0) || (ImNodes::NumSelectedLinks() > 0);
-    }
+    // IMPORTANT: do NOT use NumSelectedNodes/NumSelectedLinks as a click
+    // ownership heuristic (selection can already be non-zero from earlier).
+    const bool clickOnImNodesElement = leftClicked && editorHovered &&
+                                       (hoveringImNodesElement || anyAttributeActive || mouseOverAnyNodeRect);
 
     // Also don't let comment interaction happen if some other ImGui item is
     // hovered/active (e.g., the comment title input while editing).
     const bool imguiItemHoveredOrActive = ImGui::IsAnyItemHovered() || ImGui::IsAnyItemActive();
 
-    const bool allowCommentInteraction = !(clickOnImNodesElement || clickSelectedImNodesObject || imguiItemHoveredOrActive);
+    const bool allowCommentInteraction = !(clickOnImNodesElement || imguiItemHoveredOrActive);
 
     const ImVec2 mouse = ImGui::GetMousePos();
     if (ImNodes::IsEditorHovered() && allowCommentInteraction)
@@ -179,7 +191,7 @@ void NodeGraph::drawComments()
     }
 
     // If the user clicked on a node/link/pin/attribute, nodes must win: do not select comments.
-    if (editorHovered && (clickOnImNodesElement || clickSelectedImNodesObject))
+    if (editorHovered && clickOnImNodesElement)
         selectedCommentId = -1;
 
     // Single click inside a comment selects it (only if not on any ImNodes element).
