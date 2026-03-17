@@ -12,6 +12,8 @@
 #include "Components/NodeGraphNode.hpp"
 
 #include "Components/CommentBox.hpp"
+#include "Components/StateMachineNode.hpp"
+#include "Components/StateMachineTransition.hpp"
 #include "NodeGraphEditorSpace.hpp"
 #include "NodeGraphRenderContext.hpp"
 #include "NodeGraphViewRegistry.hpp"
@@ -26,14 +28,19 @@ class NodeGraph
         std::vector<NodeGraphNode> nodes;
         std::vector<CommentBox> comments;
 
+		// State-machine component models.
+		std::vector<StateMachineNode> stateNodes;
+		std::vector<StateMachineTransition> stateTransitions;
+
         // Per-frame cached editor space mapping
         NodeGraphEditorSpace editorSpace;
 
         // Layered UI system
         NodeGraphViewRegistry views;
-    NodeGraphRenderContext renderCtx{editorSpace,
-      false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
-      nodes, comments};
+  NodeGraphRenderContext renderCtx{editorSpace,
+    false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
+    nodes, comments,
+    stateNodes, stateTransitions};
 
 };
 

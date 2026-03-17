@@ -12,6 +12,8 @@
 #include "NodeGraphEditorSpace.hpp"
 #include "Components/NodeGraphNode.hpp"
 #include "Components/CommentBox.hpp"
+#include "Components/StateMachineNode.hpp"
+#include "Components/StateMachineTransition.hpp"
 
 // Shared data passed to each registered NodeGraph view for this frame.
 // Keep it small and stable so adding new view types is easy.
@@ -100,6 +102,10 @@ struct NodeGraphRenderContext
 	// Graph model containers.
 	std::vector<NodeGraphNode>& nodes;
 	std::vector<CommentBox>& comments;
+
+	// State machine component containers.
+	std::vector<StateMachineNode>& stateNodes;
+	std::vector<StateMachineTransition>& stateTransitions;
 };
 
 #endif //GLITTER_NODEGRAPH_RENDERCONTEXT_HPP

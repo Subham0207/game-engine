@@ -24,12 +24,14 @@ public:
 
     using AddNodeFn = void (*)(void* user, const std::string& base, float x, float y);
     using AddCommentFn = void (*)(void* user, const ImVec2& gridPos);
+    using AddStateNodeFn = void (*)(void* user, const ImVec2& spawnPosScreen);
 
-    void setCallbacks(void* user, AddNodeFn addNode, AddCommentFn addComment)
+    void setCallbacks(void* user, AddNodeFn addNode, AddCommentFn addComment, AddStateNodeFn addStateNode)
     {
         m_user = user;
         m_addNode = addNode;
         m_addComment = addComment;
+		m_addStateNode = addStateNode;
     }
 
     void draw(NodeGraphRenderContext& ctx) override
@@ -54,6 +56,9 @@ public:
 
         if (ImGui::BeginPopup("NodeContextMenu"))
         {
+            // While a popup is open, block other interaction so clicks don't leak.
+            ctx.interaction.tryClaim(NodeGraphInteractionOwner::ContextMenu, 100);
+
             if (editorHovered && !hoveringNodeOrLink && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
             {
                 ImGui::CloseCurrentPopup();
@@ -92,6 +97,15 @@ public:
                 showContextMenu = false;
             }
 
+			ImGui::Separator();
+			ImGui::Text("State Machine");
+			if (ImGui::MenuItem("Add State"))
+			{
+				if (m_addStateNode)
+					m_addStateNode(m_user, spawnPosScreen);
+				showContextMenu = false;
+			}
+
             ImGui::EndPopup();
         }
         else
@@ -104,6 +118,7 @@ private:
     void* m_user = nullptr;
     AddNodeFn m_addNode = nullptr;
     AddCommentFn m_addComment = nullptr;
+	AddStateNodeFn m_addStateNode = nullptr;
 };
 
 #endif //GLITTER_NODEGRAPH_CONTEXTMENU_HPP

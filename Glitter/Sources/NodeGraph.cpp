@@ -9,6 +9,7 @@
 #include "NodeGraph/NodeGraphContextMenu.hpp"
 #include "NodeGraph/Views/NodeGraphCommentsView.hpp"
 #include "NodeGraph/Views/NodeGraphNodesView.hpp"
+#include "NodeGraph/Views/StateMachineView.hpp"
 
 NodeGraph::NodeGraph()
     : editorSpace()
@@ -16,6 +17,7 @@ NodeGraph::NodeGraph()
     // Register default views. Their layer/priority controls draw order.
     views.emplaceView<NodeGraphCommentsView>(comments);
     views.emplaceView<NodeGraphNodesView>();
+	views.emplaceView<StateMachineView>();
 
     auto& cm = views.emplaceView<NodeGraphContextMenu>();
     cm.setCallbacks(
@@ -36,7 +38,18 @@ NodeGraph::NodeGraph()
                 return;
 
             cv->addComment(self->renderCtx.comments, gridPos);
-        });
+    },
+    [](void* user, const ImVec2& spawnPosScreen) {
+      auto* self = static_cast<NodeGraph*>(user);
+      auto* sv = self->views.findView<StateMachineView>();
+      if (!sv)
+        return;
+
+      sv->addState(self->renderCtx.stateNodes, "State", spawnPosScreen);
+      // If this is the first state, make it active by default.
+      if (self->renderCtx.stateNodes.size() == 1)
+        sv->setActive(self->renderCtx.stateNodes, self->renderCtx.stateNodes.front().id);
+    });
 }
 
 void NodeGraph::drawUI()
