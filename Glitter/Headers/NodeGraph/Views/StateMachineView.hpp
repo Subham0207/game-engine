@@ -353,6 +353,7 @@ private:
     bool portClickedThisFrame = false;
     PortHover clickedPort;
     bool startedPendingThisFrame = false;
+      bool portReleasedThisFrame = false;
     // If the mouse is over a port (or we are dragging a pending link), aggressively capture
     // mouse input to prevent ImNodes from starting marquee selection.
     // Note: SetNextFrameWantCaptureMouse alone is not enough for ImNodes; we need to also
@@ -376,13 +377,20 @@ private:
           portClickedThisFrame = true;
           clickedPort = hoveredPort;
         }
+        // When dragging a pending link, finish it on mouse-release over a target port.
+        // This mirrors typical node editor UX: click start, drag, release to connect.
+        if (m_pendingLinkActive && ImGui::IsItemDeactivated() && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+        {
+          portReleasedThisFrame = true;
+          clickedPort = hoveredPort;
+        }
       }
     }
     renderPortHover(dl, hoveredPort, m_pendingLinkActive);
 
     // Cancel pending start if user clicks away.
     // Do not cancel on the same frame we clicked a port hitbox; that click is handled below.
-    if (m_pendingLinkActive && ctx.leftClicked && !hoveredPort.valid && !portClickedThisFrame)
+      if (m_pendingLinkActive && ctx.leftClicked && !hoveredPort.valid && !portClickedThisFrame)
     {
       m_pendingLinkActive = false;
       m_pendingStart = PortHover{};
@@ -411,7 +419,7 @@ private:
 
     // Finish: if pending and clicking a hovered port on another node, create transition.
     // Guard against the click that started the pending link; otherwise we'd start+finish immediately.
-    if (m_pendingLinkActive && !startedPendingThisFrame && portClickedThisFrame && clickedPort.valid)
+      if (m_pendingLinkActive && !startedPendingThisFrame && (portClickedThisFrame || portReleasedThisFrame) && clickedPort.valid)
     {
       // If user clicked the same port again, treat it as cancel.
       if (clickedPort.nodeId == m_pendingStart.nodeId && clickedPort.side == m_pendingStart.side)
