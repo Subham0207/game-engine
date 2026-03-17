@@ -10,8 +10,8 @@
 #include <imgui.h>
 
 #include "NodeGraphEditorSpace.hpp"
-#include "NodeGraphNode.hpp"
-#include "CommentBox.hpp"
+#include "Components/NodeGraphNode.hpp"
+#include "Components/CommentBox.hpp"
 
 // Shared data passed to each registered NodeGraph view for this frame.
 // Keep it small and stable so adding new view types is easy.

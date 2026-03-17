@@ -10,10 +10,10 @@
 #include <imnodes.h>
 #include "imgui_internal.h"
 
-#include "CommentBox.hpp"
-#include "NodeGraphEditorSpace.hpp"
+#include "../Components/CommentBox.hpp"
+#include "../NodeGraphEditorSpace.hpp"
 #include "INodeGraphView.hpp"
-#include "NodeGraphRenderContext.hpp"
+#include "../NodeGraphRenderContext.hpp"
 
 class NodeGraphCommentsView final : public INodeGraphView
 {

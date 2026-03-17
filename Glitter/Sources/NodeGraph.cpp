@@ -6,7 +6,9 @@
 #include <imnodes.h>
 #include <imgui.h>
 
-#include "imgui_internal.h"
+#include "NodeGraph/NodeGraphContextMenu.hpp"
+#include "NodeGraph/Views/NodeGraphCommentsView.hpp"
+#include "NodeGraph/Views/NodeGraphNodesView.hpp"
 
 NodeGraph::NodeGraph()
     : editorSpace()

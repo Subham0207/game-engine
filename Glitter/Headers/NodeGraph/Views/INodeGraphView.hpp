@@ -5,7 +5,7 @@
 #ifndef GLITTER_INODEGRAPHVIEW_HPP
 #define GLITTER_INODEGRAPHVIEW_HPP
 
-#include "NodeGraphLayer.hpp"
+#include "../NodeGraphLayer.hpp"
 
 struct NodeGraphRenderContext;
 

@@ -10,9 +10,9 @@
 #include <imgui.h>
 #include <imnodes.h>
 
-#include "NodeGraphNode.hpp"
+#include "../Components/NodeGraphNode.hpp"
 #include "INodeGraphView.hpp"
-#include "NodeGraphRenderContext.hpp"
+#include "../NodeGraphRenderContext.hpp"
 
 class NodeGraphNodesView final : public INodeGraphView
 {

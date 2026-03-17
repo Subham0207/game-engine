@@ -9,7 +9,7 @@
 #include <imnodes.h>
 
 #include "NodeGraphEditorSpace.hpp"
-#include "INodeGraphView.hpp"
+#include "Views/INodeGraphView.hpp"
 #include "NodeGraphRenderContext.hpp"
 
 class NodeGraphContextMenu final : public INodeGraphView

@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-#include "INodeGraphView.hpp"
+#include "Views/INodeGraphView.hpp"
 #include "NodeGraphRenderContext.hpp"
 
 class NodeGraphViewRegistry

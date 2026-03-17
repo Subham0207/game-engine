@@ -9,13 +9,10 @@
 #include <string>
 #include <imgui.h>
 
-#include "NodeGraphNode.hpp"
+#include "Components/NodeGraphNode.hpp"
 
-#include "CommentBox.hpp"
+#include "Components/CommentBox.hpp"
 #include "NodeGraphEditorSpace.hpp"
-#include "NodeGraphNodesView.hpp"
-#include "NodeGraphCommentsView.hpp"
-#include "NodeGraphContextMenu.hpp"
 #include "NodeGraphRenderContext.hpp"
 #include "NodeGraphViewRegistry.hpp"
 
