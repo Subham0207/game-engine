@@ -19,7 +19,7 @@
 #include "../NodeGraphRenderContext.hpp"
 #include "../NodeGraphIdRanges.hpp"
 #include "../Components/StateMachineNode.hpp"
-#include "../Components/StateMachineTransition.hpp"
+#include "../Components/StateMachineLink.hpp"
 
 // View: draws and edits a prototype state-machine graph.
 // - State nodes are ImNodes nodes (we rely on ImNodes for node selection + movement).
@@ -78,7 +78,7 @@ public:
         }
 
         auto& nodes = ctx.stateNodes;
-        auto& links = ctx.stateTransitions;
+        auto& links = ctx.stateLinks;
 
         if (!ctx.editorSpace.valid)
             return;
@@ -150,11 +150,11 @@ public:
     }
 
 private:
-    struct DragState
+    struct LinkDragState
     {
         bool active = false;
-        int transitionId = -1;
-        bool draggingFrom = true; // true=dragging from-end, false=to-end
+        int linkId = -1;
+        bool draggingFromPort = true; // true=dragging from-port, false=to-port
         ImVec2 mouseScreen{0.0f, 0.0f};
     };
 
@@ -183,11 +183,11 @@ private:
     float bestLinkDist = 1e9f;
   };
 
-    // Converts a saved state-machine transition port position into screen-space.
+    // Converts a saved state-machine link port position into screen-space.
     //
     // Why this exists:
     // - We persist link attachment points as a GRID-SPACE offset relative to a state-machine node.
-    //   (See StateMachineTransition::{fromOffsetGrid,toOffsetGrid}).
+    //   (See StateMachineLink::{fromOffsetGrid,toOffsetGrid}).
     // - At render time we need the actual pixel position on screen, accounting for editor pan/zoom.
     //
     // How it works:
@@ -213,7 +213,7 @@ private:
         return ImVec2(mouseGrid.x - nodeMinGrid.x, mouseGrid.y - nodeMinGrid.y);
     }
 
-    static StateMachineTransition* findTransition(std::vector<StateMachineTransition>& links, int id)
+    static StateMachineLink* findLink(std::vector<StateMachineLink>& links, int id)
     {
         for (auto& t : links)
         {
@@ -223,9 +223,9 @@ private:
         return nullptr;
     }
 
-    static void eraseTransition(std::vector<StateMachineTransition>& links, int id)
+    static void eraseLink(std::vector<StateMachineLink>& links, int id)
     {
-        links.erase(std::remove_if(links.begin(), links.end(), [&](const StateMachineTransition& t) { return t.id == id; }), links.end());
+        links.erase(std::remove_if(links.begin(), links.end(), [&](const StateMachineLink& t) { return t.id == id; }), links.end());
     }
 
     static int findActiveNodeId(const std::vector<StateMachineNode>& nodes)
@@ -244,17 +244,17 @@ private:
     static constexpr float kBezierTangent = 80.0f;
     static constexpr float kLinkHitDist = 8.0f;
 
-    // We reuse StateMachineTransition's fromSide/toSide fields as a compact storage for
+    // We reuse StateMachineLink's fromSide/toSide fields as a compact storage for
     // the nearest-edge direction of the port (helps bezier direction). The actual
-    // port position is stored persistently in StateMachineTransition::fromOffsetGrid/toOffsetGrid.
+    // port position is stored persistently in StateMachineLink::fromOffsetGrid/toOffsetGrid.
 
     // Per-frame node rect cache in screen-space.
     std::unordered_map<int, ImRect> m_nodeRects;
 
-    DragState m_drag;
-    int m_selectedTransitionId = -1;
+  LinkDragState m_dragLink;
+    int m_selectedLinkId = -1;
 	bool m_pendingLinkActive = false;
-	PortHover m_pendingStart;
+  PortHover m_pendingStartPort;
 
     static StateMachinePortSide computeNearestSide(const ImRect& r, const ImVec2& p)
     {
@@ -335,7 +335,7 @@ private:
         return false;
     }
 
-    bool transitionPortScreenPos(const NodeGraphEditorSpace& space, const StateMachineTransition& t, bool from, ImVec2& outP) const
+    bool linkPortScreenPos(const NodeGraphEditorSpace& space, const StateMachineLink& t, bool from, ImVec2& outP) const
     {
         const int nodeId = from ? t.fromNodeId : t.toNodeId;
         auto nr = m_nodeRects.find(nodeId);
@@ -346,7 +346,7 @@ private:
         return true;
     }
 
-    void ensureTransitionPortsInitialized(const NodeGraphEditorSpace& space, std::vector<StateMachineTransition>& links)
+    void ensureLinkPortsInitialized(const NodeGraphEditorSpace& space, std::vector<StateMachineLink>& links)
     {
         for (auto& t : links)
         {
@@ -377,12 +377,12 @@ private:
         }
     }
 
-    void drawAndInteractLinks(NodeGraphRenderContext& ctx, std::vector<StateMachineNode>& nodes, std::vector<StateMachineTransition>& links)
+    void drawAndInteractLinks(NodeGraphRenderContext& ctx, std::vector<StateMachineNode>& nodes, std::vector<StateMachineLink>& links)
     {
         ImDrawList* dl = ImGui::GetWindowDrawList();
         const ImVec2 mouse = ctx.mouseScreen;
 
-        ensureTransitionPortsInitialized(ctx.editorSpace, links);
+        ensureLinkPortsInitialized(ctx.editorSpace, links);
 
         const PortInteractionFrame portFrame = updatePortHoverAndCaptureInput(ctx, dl);
         updatePendingLinkCreation(ctx, portFrame, mouse, dl, links);
@@ -391,7 +391,7 @@ private:
         updatePortDrag(ctx, links);
 
         renderAllLinks(dl, ctx, links, hit.hoveredTransition);
-        renderTransitionEditPopup(links);
+        renderLinkEditPopup(links);
     }
 
     PortInteractionFrame updatePortHoverAndCaptureInput(NodeGraphRenderContext& ctx, ImDrawList* dl)
@@ -439,7 +439,7 @@ private:
     }
 
     void updatePendingLinkCreation(NodeGraphRenderContext& ctx, const PortInteractionFrame& f, const ImVec2& mouse,
-                                   ImDrawList* dl, std::vector<StateMachineTransition>& links)
+                                   ImDrawList* dl, std::vector<StateMachineLink>& links)
     {
         bool startedPendingThisFrame = false;
 
@@ -448,7 +448,7 @@ private:
         if (m_pendingLinkActive && ctx.leftClicked && !f.hovered.valid && !f.portClickedThisFrame)
         {
             m_pendingLinkActive = false;
-            m_pendingStart = PortHover{};
+            m_pendingStartPort = PortHover{};
         }
 
         // Start a new link ONLY when clicking a hovered port.
@@ -457,7 +457,7 @@ private:
         if (!m_pendingLinkActive && f.portClickedThisFrame && f.clicked.valid && ctx.interaction.tryClaim(NodeGraphInteractionOwner::Other, 1000))
         {
             m_pendingLinkActive = true;
-            m_pendingStart = f.clicked;
+            m_pendingStartPort = f.clicked;
             startedPendingThisFrame = true;
         }
 
@@ -465,8 +465,8 @@ private:
         if (m_pendingLinkActive)
         {
             const ImU32 previewCol = IM_COL32(200, 200, 220, 200);
-            const ImVec2 p0 = m_pendingStart.pointScreen;
-            const ImVec2 d0 = sideDir(m_pendingStart.side);
+            const ImVec2 p0 = m_pendingStartPort.pointScreen;
+            const ImVec2 d0 = sideDir(m_pendingStartPort.side);
             const ImVec2 c1(p0.x + d0.x * kBezierTangent, p0.y + d0.y * kBezierTangent);
             const ImVec2 c2(mouse.x, mouse.y);
             dl->AddBezierCubic(p0, c1, c2, mouse, previewCol, 2.0f);
@@ -477,33 +477,33 @@ private:
         if (m_pendingLinkActive && !startedPendingThisFrame && (f.portClickedThisFrame || f.portReleasedThisFrame) && f.clicked.valid)
         {
             // If user clicked the same port again, treat it as cancel.
-            if (f.clicked.nodeId == m_pendingStart.nodeId && f.clicked.side == m_pendingStart.side)
+            if (f.clicked.nodeId == m_pendingStartPort.nodeId && f.clicked.side == m_pendingStartPort.side)
             {
                 m_pendingLinkActive = false;
-                m_pendingStart = PortHover{};
+                m_pendingStartPort = PortHover{};
                 ctx.interaction.release(NodeGraphInteractionOwner::Other);
             }
             else
             {
-                StateMachineTransition tr;
+                StateMachineLink tr;
                 tr.id = nextTransitionId++;
-                tr.fromNodeId = m_pendingStart.nodeId;
+                tr.fromNodeId = m_pendingStartPort.nodeId;
                 tr.toNodeId = f.clicked.nodeId;
-                tr.fromSide = m_pendingStart.side;
+                tr.fromSide = m_pendingStartPort.side;
                 tr.toSide = f.clicked.side;
-                tr.fromOffsetGrid = m_pendingStart.offsetGrid;
+                tr.fromOffsetGrid = m_pendingStartPort.offsetGrid;
                 tr.toOffsetGrid = f.clicked.offsetGrid;
                 tr.condition = "true";
 
                 links.emplace_back(std::move(tr));
                 m_pendingLinkActive = false;
-                m_pendingStart = PortHover{};
+                m_pendingStartPort = PortHover{};
                 ctx.interaction.release(NodeGraphInteractionOwner::Other);
             }
         }
     }
 
-    LinkHitResult hitTestLinksAndPorts(const NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links) const
+    LinkHitResult hitTestLinksAndPorts(const NodeGraphRenderContext& ctx, std::vector<StateMachineLink>& links) const
     {
         const ImVec2 mouse = ctx.mouseScreen;
         LinkHitResult r;
@@ -511,7 +511,7 @@ private:
         for (auto& t : links)
         {
             ImVec2 pFrom, pTo;
-            if (!transitionPortScreenPos(ctx.editorSpace, t, true, pFrom) || !transitionPortScreenPos(ctx.editorSpace, t, false, pTo))
+            if (!linkPortScreenPos(ctx.editorSpace, t, true, pFrom) || !linkPortScreenPos(ctx.editorSpace, t, false, pTo))
                 continue;
 
             const float df = sqrtf((mouse.x - pFrom.x) * (mouse.x - pFrom.x) + (mouse.y - pFrom.y) * (mouse.y - pFrom.y));
@@ -561,33 +561,33 @@ private:
             {
                 // Drag port
                 ctx.interaction.tryClaim(NodeGraphInteractionOwner::Other, 30);
-                m_drag.active = true;
-                m_drag.transitionId = hit.hoveredTransition;
-                m_drag.draggingFrom = hit.hoveredFrom;
-                m_drag.mouseScreen = ctx.mouseScreen;
+                m_dragLink.active = true;
+                m_dragLink.linkId = hit.hoveredTransition;
+                m_dragLink.draggingFromPort = hit.hoveredFrom;
+                m_dragLink.mouseScreen = ctx.mouseScreen;
             }
             else
             {
                 if (hit.hoveredTransition != -1 && hit.bestLinkDist <= kLinkHitDist)
                 {
                     // Select link
-                    m_selectedTransitionId = hit.hoveredTransition;
-                    ImGui::OpenPopup("SM_TransitionEdit");
+                    m_selectedLinkId = hit.hoveredTransition;
+                    ImGui::OpenPopup("SM_LinkEdit");
                 }
             }
         }
     }
 
-    void updatePortDrag(NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links)
+    void updatePortDrag(NodeGraphRenderContext& ctx, std::vector<StateMachineLink>& links)
     {
         const ImVec2 mouse = ctx.mouseScreen;
 
         // Update drag
-        if (m_drag.active)
+        if (m_dragLink.active)
         {
             if (ctx.interaction.isOwnedBy(NodeGraphInteractionOwner::Other))
             {
-                StateMachineTransition* tr = findTransition(links, m_drag.transitionId);
+                StateMachineLink* tr = findLink(links, m_dragLink.linkId);
                 if (tr)
                 {
                     int nodeId = -1;
@@ -595,7 +595,7 @@ private:
                     if (getNodeAt(mouse, nodeId, r))
                     {
                         const StateMachinePortSide side = computeNearestSide(r, mouse);
-                        if (m_drag.draggingFrom)
+                        if (m_dragLink.draggingFromPort)
                         {
                             tr->fromNodeId = nodeId;
                             tr->fromSide = side;
@@ -612,7 +612,7 @@ private:
                     {
                         // Not over any node: keep the moved end as "floating" visually by updating its offset
                         // relative to its current node (clamped inside rect if available).
-                        const int currentNodeId = m_drag.draggingFrom ? tr->fromNodeId : tr->toNodeId;
+                        const int currentNodeId = m_dragLink.draggingFromPort ? tr->fromNodeId : tr->toNodeId;
                         auto nr = m_nodeRects.find(currentNodeId);
                         if (nr != m_nodeRects.end())
                         {
@@ -620,7 +620,7 @@ private:
                             ImVec2 clamped = mouse;
                             clamped.x = std::max(nr->second.Min.x, std::min(nr->second.Max.x, clamped.x));
                             clamped.y = std::max(nr->second.Min.y, std::min(nr->second.Max.y, clamped.y));
-                            if (m_drag.draggingFrom)
+                            if (m_dragLink.draggingFromPort)
                             {
                                 tr->fromOffsetGrid = mouseOffsetGridOnNode(ctx.editorSpace, nr->second, clamped);
                                 tr->fromSide = computeNearestSide(nr->second, clamped);
@@ -638,30 +638,30 @@ private:
             if (ctx.leftReleased)
             {
                 // Finalize: if both ends are on valid nodes, keep; otherwise delete.
-                StateMachineTransition* tr = findTransition(links, m_drag.transitionId);
+                StateMachineLink* tr = findLink(links, m_dragLink.linkId);
                 bool ok = false;
                 if (tr)
                 {
                     ok = (m_nodeRects.find(tr->fromNodeId) != m_nodeRects.end()) && (m_nodeRects.find(tr->toNodeId) != m_nodeRects.end());
                     if (!ok)
-                        eraseTransition(links, tr->id);
+                        eraseLink(links, tr->id);
                 }
-                m_drag = DragState{};
+                m_dragLink = LinkDragState{};
                 ctx.interaction.release(NodeGraphInteractionOwner::Other);
             }
         }
     }
 
-    void renderAllLinks(ImDrawList* dl, const NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links, int hoveredTransition)
+    void renderAllLinks(ImDrawList* dl, const NodeGraphRenderContext& ctx, std::vector<StateMachineLink>& links, int hoveredTransition)
     {
         // Render links + ports (after interaction updates)
         for (auto& t : links)
         {
             ImVec2 pFrom, pTo;
-            if (!transitionPortScreenPos(ctx.editorSpace, t, true, pFrom) || !transitionPortScreenPos(ctx.editorSpace, t, false, pTo))
+            if (!linkPortScreenPos(ctx.editorSpace, t, true, pFrom) || !linkPortScreenPos(ctx.editorSpace, t, false, pTo))
                 continue;
 
-            const bool selected = (t.id == m_selectedTransitionId);
+            const bool selected = (t.id == m_selectedLinkId);
             const bool hovered = (t.id == hoveredTransition);
             const ImU32 col = selected ? IM_COL32(255, 220, 120, 255) : hovered ? IM_COL32(180, 220, 255, 255) : IM_COL32(200, 200, 200, 255);
             const float thick = selected ? 3.0f : hovered ? 2.5f : 2.0f;
@@ -686,15 +686,15 @@ private:
         }
     }
 
-    void renderTransitionEditPopup(std::vector<StateMachineTransition>& links)
+    void renderLinkEditPopup(std::vector<StateMachineLink>& links)
     {
-        // Condition edit popup
-        if (ImGui::BeginPopup("SM_TransitionEdit"))
+        // Link edit popup
+        if (ImGui::BeginPopup("SM_LinkEdit"))
         {
-            StateMachineTransition* tr = findTransition(links, m_selectedTransitionId);
+            StateMachineLink* tr = findLink(links, m_selectedLinkId);
             if (tr)
             {
-                ImGui::Text("Transition %d", tr->id);
+                ImGui::Text("Link %d", tr->id);
 
                 char buf[256];
                 buf[0] = '\0';
@@ -706,14 +706,14 @@ private:
 
                 if (ImGui::Button("Delete"))
                 {
-                    eraseTransition(links, tr->id);
-                    m_selectedTransitionId = -1;
+                    eraseLink(links, tr->id);
+                    m_selectedLinkId = -1;
                     ImGui::CloseCurrentPopup();
                 }
             }
             else
             {
-                ImGui::TextUnformatted("No transition selected.");
+                ImGui::TextUnformatted("No link selected.");
             }
             ImGui::EndPopup();
         }

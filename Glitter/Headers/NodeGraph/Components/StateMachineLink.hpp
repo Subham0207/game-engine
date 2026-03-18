@@ -2,12 +2,14 @@
 // Created by subha on 17-03-2026.
 //
 
-#ifndef GLITTER_NODEGRAPH_STATEMACHINETRANSITION_HPP
-#define GLITTER_NODEGRAPH_STATEMACHINETRANSITION_HPP
+#ifndef GLITTER_NODEGRAPH_STATEMACHINELINK_HPP
+#define GLITTER_NODEGRAPH_STATEMACHINELINK_HPP
 
 #include <string>
 
-// Which side of the state node a transition connects to.
+#include <imgui.h>
+
+// Which side of the state node a link connects to.
 // This enables "start/end from any direction" by exposing one pin per side.
 enum class StateMachinePortSide : int
 {
@@ -17,9 +19,9 @@ enum class StateMachinePortSide : int
     West
 };
 
-// Model: directed transition (link) between two state machine nodes.
+// Model: directed link between two state machine nodes.
 // Many-to-many: multiple outgoing transitions from a state and multiple incoming transitions into a state.
-struct StateMachineTransition
+struct StateMachineLink
 {
     int id = -1;
 
@@ -29,9 +31,9 @@ struct StateMachineTransition
     StateMachinePortSide fromSide = StateMachinePortSide::East;
     StateMachinePortSide toSide = StateMachinePortSide::West;
 
-    // Endpoint attachment points on the node body.
+    // Port attachment points on the node body.
     // Stored in grid-space relative to the node rect's top-left (also in grid space).
-    // This allows endpoints to be placed at any direction (including diagonals) and persisted.
+    // This allows ports to be placed at any direction (including diagonals) and persisted.
     ImVec2 fromOffsetGrid{0.0f, 0.0f};
     ImVec2 toOffsetGrid{0.0f, 0.0f};
 
@@ -39,6 +41,8 @@ struct StateMachineTransition
     std::string condition;
 };
 
-#endif // GLITTER_NODEGRAPH_STATEMACHINETRANSITION_HPP
+// Backwards compatibility: older code used "Transition" terminology.
+using StateMachineTransition = StateMachineLink;
 
+#endif // GLITTER_NODEGRAPH_STATEMACHINELINK_HPP
 

@@ -13,7 +13,7 @@
 
 #include "Components/CommentBox.hpp"
 #include "Components/StateMachineNode.hpp"
-#include "Components/StateMachineTransition.hpp"
+#include "Components/StateMachineLink.hpp"
 #include "NodeGraphEditorSpace.hpp"
 #include "NodeGraphRenderContext.hpp"
 #include "NodeGraphViewRegistry.hpp"
@@ -30,7 +30,7 @@ class NodeGraph
 
 		// State-machine component models.
 		std::vector<StateMachineNode> stateNodes;
-		std::vector<StateMachineTransition> stateTransitions;
+    std::vector<StateMachineLink> stateLinks;
 
         // Per-frame cached editor space mapping
         NodeGraphEditorSpace editorSpace;
@@ -40,7 +40,7 @@ class NodeGraph
   NodeGraphRenderContext renderCtx{editorSpace,
     false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
     nodes, comments,
-    stateNodes, stateTransitions};
+    stateNodes, stateLinks};
 
 };
 

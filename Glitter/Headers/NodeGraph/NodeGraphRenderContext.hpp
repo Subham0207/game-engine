@@ -13,7 +13,7 @@
 #include "Components/NodeGraphNode.hpp"
 #include "Components/CommentBox.hpp"
 #include "Components/StateMachineNode.hpp"
-#include "Components/StateMachineTransition.hpp"
+#include "Components/StateMachineLink.hpp"
 
 // Shared data passed to each registered NodeGraph view for this frame.
 // Keep it small and stable so adding new view types is easy.
@@ -105,7 +105,7 @@ struct NodeGraphRenderContext
 
 	// State machine component containers.
 	std::vector<StateMachineNode>& stateNodes;
-	std::vector<StateMachineTransition>& stateTransitions;
+	std::vector<StateMachineLink>& stateLinks;
 };
 
 #endif //GLITTER_NODEGRAPH_RENDERCONTEXT_HPP
