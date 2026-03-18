@@ -59,6 +59,35 @@ reworking draw ordering or input conflicts.
 - **Custom drawn background component:** `CommentBox` rendered by `NodeGraphCommentsView`
 - **Popup component:** `NodeGraphContextMenu` (not a “graph element”, but still a layered view)
 
+### StateMachine graph (how it is structured)
+
+The StateMachine editor is implemented as a *separate* NodeGraph component (model + view), but it intentionally does **not** rely on ImNodes' “static left/right pins” behavior. Instead it uses ImNodes mostly for node selection/movement and provides **custom ports + link** logic.
+
+There are **three core pieces**:
+
+1. **StateMachine node**
+   - A rectangular node (state) placed on the editor grid.
+   - Nodes can have many incoming and many outgoing connections.
+   - On runtime/evaluation, one node is considered “active” (initially the first state can be marked active).
+
+2. **StateMachine link**
+   - A directed connection from one node to another.
+   - Each link carries a *condition*; during evaluation the first outgoing link whose condition becomes true activates its target node.
+
+3. **Port**
+   - A small interactive “handle” shown **outside** the node rect when the mouse hovers near the node edges.
+   - Ports are **not fixed** to left/right; a link can start/end from any direction (left/right/top/bottom/diagonal), and multiple links may share the same port position.
+
+#### Linking UX (ports + links)
+
+- Hover near a node’s edges → a port is *previewed* just outside the node.
+- Click the port → it becomes the **pending start port** (the start is latched).
+- Move to another node, hover near its edges → a compatible target port is previewed.
+- Click on the target port (or complete the gesture per the view rules) → a **link is created**.
+- Left-clicking elsewhere cancels the pending start.
+
+All node positions and link endpoints are **saved** so users can intentionally arrange readable layouts.
+
 ---
 
 ## Creating a new Node Graph Component (recommended recipe)
