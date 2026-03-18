@@ -17,12 +17,13 @@
 
 #include "INodeGraphView.hpp"
 #include "../NodeGraphRenderContext.hpp"
+#include "../NodeGraphIdRanges.hpp"
 #include "../Components/StateMachineNode.hpp"
 #include "../Components/StateMachineTransition.hpp"
 
 // View: draws and edits a prototype state-machine graph.
 // - State nodes are ImNodes nodes (we rely on ImNodes for node selection + movement).
-// - Links are fully custom rendered & interactive, with endpoints that can attach
+// - Links are fully custom rendered & interactive, with ports that can attach
 //   anywhere on the node body (any direction, multiple links can share the same point).
 class StateMachineView final : public INodeGraphView
 {
@@ -33,7 +34,10 @@ public:
     // (Smaller number draws earlier within a layer.)
     [[nodiscard]] int priority() const override { return 5; }
 
-    int nextStateId = 0;
+    // IMPORTANT: State-machine nodes are drawn in the same ImNodes editor as regular NodeGraph nodes.
+    // ImNodes requires all node IDs to be unique across the entire editor. We allocate IDs from a
+    // dedicated reserved range to avoid collisions and to keep room for future UI element types.
+    int nextStateId = NodeGraphIdBase(NodeGraphElementIdBase::StateMachineNode);
     int nextTransitionId = 0;
 
     void addState(std::vector<StateMachineNode>& nodes, const std::string& baseName, const ImVec2& spawnPosScreen)
@@ -175,7 +179,7 @@ private:
   {
     int hoveredTransition = -1;
     bool hoveredFrom = false;
-    float bestEndpointDist = 1e9f;
+    float bestPortDist = 1e9f;
     float bestLinkDist = 1e9f;
   };
 
@@ -235,14 +239,14 @@ private:
     }
 
     // Custom link helpers
-    static constexpr float kEndpointRadius = 6.0f;
-    static constexpr float kEndpointHitRadius = 10.0f;
+    static constexpr float kPortRadius = 6.0f;
+    static constexpr float kPortHitRadius = 10.0f;
     static constexpr float kBezierTangent = 80.0f;
     static constexpr float kLinkHitDist = 8.0f;
 
     // We reuse StateMachineTransition's fromSide/toSide fields as a compact storage for
-    // the nearest-edge direction of the endpoint (helps bezier direction). The actual
-    // endpoint position is stored persistently in StateMachineTransition::fromOffsetGrid/toOffsetGrid.
+    // the nearest-edge direction of the port (helps bezier direction). The actual
+    // port position is stored persistently in StateMachineTransition::fromOffsetGrid/toOffsetGrid.
 
     // Per-frame node rect cache in screen-space.
     std::unordered_map<int, ImRect> m_nodeRects;
@@ -382,9 +386,9 @@ private:
 
         const PortInteractionFrame portFrame = updatePortHoverAndCaptureInput(ctx, dl);
         updatePendingLinkCreation(ctx, portFrame, mouse, dl, links);
-        const LinkHitResult hit = hitTestLinksAndEndpoints(ctx, links);
+        const LinkHitResult hit = hitTestLinksAndPorts(ctx, links);
         handleLinkClickInteractions(ctx, hit);
-        updateEndpointDrag(ctx, links);
+        updatePortDrag(ctx, links);
 
         renderAllLinks(dl, ctx, links, hit.hoveredTransition);
         renderTransitionEditPopup(links);
@@ -413,8 +417,8 @@ private:
             // This prevents ImNodes from starting marquee selection in the background.
             if (f.hovered.valid)
             {
-                ImGui::SetCursorScreenPos(ImVec2(f.hovered.pointScreen.x - kEndpointHitRadius, f.hovered.pointScreen.y - kEndpointHitRadius));
-                ImGui::InvisibleButton("##SM_PortHit", ImVec2(kEndpointHitRadius * 2.0f, kEndpointHitRadius * 2.0f));
+                ImGui::SetCursorScreenPos(ImVec2(f.hovered.pointScreen.x - kPortHitRadius, f.hovered.pointScreen.y - kPortHitRadius));
+                ImGui::InvisibleButton("##SM_PortHit", ImVec2(kPortHitRadius * 2.0f, kPortHitRadius * 2.0f));
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
                 {
                     f.portClickedThisFrame = true;
@@ -499,7 +503,7 @@ private:
         }
     }
 
-    LinkHitResult hitTestLinksAndEndpoints(const NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links) const
+    LinkHitResult hitTestLinksAndPorts(const NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links) const
     {
         const ImVec2 mouse = ctx.mouseScreen;
         LinkHitResult r;
@@ -512,15 +516,15 @@ private:
 
             const float df = sqrtf((mouse.x - pFrom.x) * (mouse.x - pFrom.x) + (mouse.y - pFrom.y) * (mouse.y - pFrom.y));
             const float dt = sqrtf((mouse.x - pTo.x) * (mouse.x - pTo.x) + (mouse.y - pTo.y) * (mouse.y - pTo.y));
-            if (df < r.bestEndpointDist && df <= kEndpointHitRadius)
+            if (df < r.bestPortDist && df <= kPortHitRadius)
             {
-                r.bestEndpointDist = df;
+                r.bestPortDist = df;
                 r.hoveredTransition = t.id;
                 r.hoveredFrom = true;
             }
-            if (dt < r.bestEndpointDist && dt <= kEndpointHitRadius)
+            if (dt < r.bestPortDist && dt <= kPortHitRadius)
             {
-                r.bestEndpointDist = dt;
+                r.bestPortDist = dt;
                 r.hoveredTransition = t.id;
                 r.hoveredFrom = false;
             }
@@ -534,9 +538,9 @@ private:
             if (dist < r.bestLinkDist)
             {
                 r.bestLinkDist = dist;
-                if (r.bestEndpointDist > kEndpointHitRadius)
+                if (r.bestPortDist > kPortHitRadius)
                 {
-                    // only consider link hover if not on an endpoint
+                    // only consider link hover if not on a port
                     r.hoveredTransition = (dist <= kLinkHitDist) ? t.id : r.hoveredTransition;
                 }
             }
@@ -547,15 +551,15 @@ private:
     void handleLinkClickInteractions(NodeGraphRenderContext& ctx, const LinkHitResult& hit)
     {
         // Begin interactions
-        // - Click on endpoint: drag that endpoint (reconnect)
+        // - Click on port: drag that port (reconnect)
         // - Click on link: select + open popup for condition
 
         const bool allow = ctx.interaction.canInteract(NodeGraphInteractionOwner::Other);
         if (allow && ctx.leftClicked)
         {
-            if (hit.hoveredTransition != -1 && hit.bestEndpointDist <= kEndpointHitRadius)
+            if (hit.hoveredTransition != -1 && hit.bestPortDist <= kPortHitRadius)
             {
-                // Drag endpoint
+                // Drag port
                 ctx.interaction.tryClaim(NodeGraphInteractionOwner::Other, 30);
                 m_drag.active = true;
                 m_drag.transitionId = hit.hoveredTransition;
@@ -574,7 +578,7 @@ private:
         }
     }
 
-    void updateEndpointDrag(NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links)
+    void updatePortDrag(NodeGraphRenderContext& ctx, std::vector<StateMachineTransition>& links)
     {
         const ImVec2 mouse = ctx.mouseScreen;
 
@@ -670,10 +674,10 @@ private:
             dl->AddBezierCubic(pFrom, c1, c2, pTo, col, thick);
 
             // Ports
-            dl->AddCircleFilled(pFrom, kEndpointRadius, IM_COL32(60, 60, 60, 255));
-            dl->AddCircle(pFrom, kEndpointRadius, col, 12, 2.0f);
-            dl->AddCircleFilled(pTo, kEndpointRadius, IM_COL32(60, 60, 60, 255));
-            dl->AddCircle(pTo, kEndpointRadius, col, 12, 2.0f);
+            dl->AddCircleFilled(pFrom, kPortRadius, IM_COL32(60, 60, 60, 255));
+            dl->AddCircle(pFrom, kPortRadius, col, 12, 2.0f);
+            dl->AddCircleFilled(pTo, kPortRadius, IM_COL32(60, 60, 60, 255));
+            dl->AddCircle(pTo, kPortRadius, col, 12, 2.0f);
 
             // Quick condition label near the middle.
             const ImVec2 mid((pFrom.x + pTo.x) * 0.5f, (pFrom.y + pTo.y) * 0.5f);
@@ -811,8 +815,8 @@ private:
     if (!h.valid)
       return;
     const ImU32 col = pending ? IM_COL32(255, 220, 120, 255) : IM_COL32(180, 220, 255, 255);
-    dl->AddCircleFilled(h.pointScreen, kEndpointRadius, IM_COL32(50, 50, 50, 255));
-    dl->AddCircle(h.pointScreen, kEndpointRadius, col, 12, 2.0f);
+    dl->AddCircleFilled(h.pointScreen, kPortRadius, IM_COL32(50, 50, 50, 255));
+    dl->AddCircle(h.pointScreen, kPortRadius, col, 12, 2.0f);
   }
 };
 

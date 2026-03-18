@@ -11,6 +11,7 @@
 #include <imnodes.h>
 
 #include "../Components/NodeGraphNode.hpp"
+#include "../NodeGraphIdRanges.hpp"
 #include "INodeGraphView.hpp"
 #include "../NodeGraphRenderContext.hpp"
 
@@ -21,7 +22,7 @@ public:
 
     // Model mutation API (called by menu/tools). Keeping it here makes it easy to
     // add new element types with their own ID allocation logic.
-    int nextNodeId = 0;
+    int nextNodeId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode);
 
     void addNode(std::vector<NodeGraphNode>& nodes, const std::string& name, const ImVec2& spawnPosScreen)
     {

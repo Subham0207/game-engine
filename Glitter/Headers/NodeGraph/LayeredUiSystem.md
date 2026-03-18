@@ -321,6 +321,17 @@ Why callbacks?
 - Keep `NodeGraphRenderContext` small;
   add new fields only when a new view truly needs shared state.
 
+### ImNodes ID ranges (avoid "disappearing" nodes)
+
+All nodes drawn inside the same `ImNodes::BeginNodeEditor()` share a single integer ID namespace.
+If two different UI element types reuse the same ID values, ImNodes will treat them as the same node.
+
+To avoid collisions, allocate IDs from reserved blocks defined in `NodeGraphIdRanges.hpp` (block size: 1000):
+- `NodeGraphNode` starts at `0`
+- `StateMachineNode` starts at `1000`
+
+If you add another ImNodes-backed element type later, give it a new base (`2000`, `3000`, ...).
+
 ### Interaction ownership rules (important)
 
 **Problem:** multiple views exist in the same editor (ImNodes nodes, comments, context menus,
