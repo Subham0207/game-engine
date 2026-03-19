@@ -2,6 +2,9 @@
 #include <string>
 #include <filesystem>
 
+#include <imgui.h>
+#include <imnodes.h>
+
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 namespace fs = std::filesystem;
@@ -28,6 +31,20 @@ namespace Shared {
     GLFWwindow* initAWindow(bool isVsyncOn);
 
     void initImguiBackend(GLFWwindow* window);
+
+    // --- Multi-window ImGui helpers ---
+    // These allow each GLFW window to have its own ImGui/ImNodes contexts and backend state.
+    // Use these when creating tool windows to avoid leaking Win32/GLFW backend state.
+    ImGuiContext* createImguiContext();
+    ImNodesContext* createImNodesContext();
+
+    // Initializes imgui_impl_glfw + imgui_impl_opengl3 for the *current* ImGui context,
+    // installing callbacks on the provided GLFW window.
+    void initImguiBackendForWindow(GLFWwindow* window);
+
+    // Shuts down imgui_impl_glfw + imgui_impl_opengl3 for the *current* ImGui context.
+    // Safe to call only if initImguiBackendForWindow() was called for that same context.
+    void shutdownImguiBackendForWindow();
 
     void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam);
 

@@ -24,6 +24,7 @@ public:
 
     void attachFBO();
     float& getExposure(){return exposure;}
+    [[nodiscard]] unsigned int getScreenTexture() const { return screenTexture; }
 
 private:
     unsigned int fbo;

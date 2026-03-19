@@ -204,6 +204,46 @@ void Shared::initImguiBackend(GLFWwindow* window)
     ImNodes::StyleColorsDark();
 }
 
+ImGuiContext* Shared::createImguiContext()
+{
+    IMGUI_CHECKVERSION();
+    return ImGui::CreateContext();
+}
+
+ImNodesContext* Shared::createImNodesContext()
+{
+    return ImNodes::CreateContext();
+}
+
+void Shared::initImguiBackendForWindow(GLFWwindow* window)
+{
+    // IMPORTANT:
+    // - This initializes backends for the *current* ImGui context.
+    // - Do not call this twice for the same (context, window) pair.
+    // - Do not use this on the main Editor window if it was already initialized
+    //   by Shared::InitBackEndsWithWindow()/Shared::initImguiBackend().
+    if (!window)
+        return;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
+
+    ImGui::StyleColorsDark();
+    ImNodes::StyleColorsDark();
+}
+
+void Shared::shutdownImguiBackendForWindow()
+{
+    // Shutdown the backends for the current ImGui context.
+    // Note: imgui_impl_glfw stores backend data via windows properties on Win32.
+    // Shutting down the correct backend/context pair is required to avoid crashes.
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+}
+
 void APIENTRY Shared::glDebugOutput(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
     // Only keep HIGH severity

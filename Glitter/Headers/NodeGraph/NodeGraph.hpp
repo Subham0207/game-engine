@@ -23,6 +23,9 @@ class NodeGraph
     public:
         NodeGraph();
         void drawUI();
+        // Draw inside an already-open ImGui region (e.g., child window / docked panel).
+        // Unlike drawUI(), this does NOT call ImGui::Begin/End.
+        void drawUIEmbedded();
 
     private:
         std::vector<NodeGraphNode> nodes;

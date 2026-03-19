@@ -62,7 +62,11 @@ else()
 endif()
 
 file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
-file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
+file(GLOB PROJECT_SOURCES
+        Glitter/Sources/*.cpp
+        Glitter/Sources/*/*.cpp
+        Glitter/Sources/*/*/*.cpp
+)
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
                           Glitter/Shaders/*.geom

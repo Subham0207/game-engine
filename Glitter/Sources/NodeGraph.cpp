@@ -56,6 +56,15 @@ void NodeGraph::drawUI()
 {
     ImGui::Begin("node editor");
 
+    drawUIEmbedded();
+
+    ImGui::End();
+}
+
+void NodeGraph::drawUIEmbedded()
+{
+    // NOTE: Caller is responsible for Begin/End when embedding.
+
     ImNodes::BeginNodeEditor();
 
   // Capture per-frame input snapshot once; views should use renderCtx instead
@@ -83,8 +92,6 @@ void NodeGraph::drawUI()
     views.drawAll(renderCtx);
 
     ImNodes::EndNodeEditor();
-
-    ImGui::End();
 }
 
 
