@@ -14,7 +14,8 @@ void EngineState::init()
 {
     bus = EventBus();
     ais = std::vector<AI::AI*>();
-    mWindow = nullptr;
+    mEditorWindow = nullptr;
+    mStatemachineWindow = nullptr;
 
     auto manifestPath = GetExecutablePath::getExecutableDir().string() + "/" + "Project.manifest.json";
     projectManifest = new ProjectManifest(manifestPath);

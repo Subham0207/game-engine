@@ -14,16 +14,40 @@ InputHandler* InputHandler::currentInputHandler = nullptr;
 
 namespace
 {
-    // Per-window callback payload.
-    struct WindowInputUserData
-    {
-        InputHandler* handler = nullptr;
-        InputContext* ctx = nullptr;
-    };
-
     static WindowInputUserData* GetWindowInputUserData(GLFWwindow* window)
     {
         return static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(window));
+    }
+
+    static void EnsureImguiForWindow(WindowInputUserData* ud)
+    {
+        if (!ud) return;
+        if (ud->imguiCtx) ImGui::SetCurrentContext(ud->imguiCtx);
+        if (ud->imnodesCtx) ImNodes::SetCurrentContext(ud->imnodesCtx);
+    }
+
+    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+    {
+        auto* ud = GetWindowInputUserData(window);
+        if (!ud) return;
+        EnsureImguiForWindow(ud);
+        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+    }
+
+    static void char_callback(GLFWwindow* window, unsigned int c)
+    {
+        auto* ud = GetWindowInputUserData(window);
+        if (!ud) return;
+        EnsureImguiForWindow(ud);
+        ImGui_ImplGlfw_CharCallback(window, c);
+    }
+
+    static void window_focus_callback(GLFWwindow* window, int focused)
+    {
+        auto* ud = GetWindowInputUserData(window);
+        if (!ud) return;
+        EnsureImguiForWindow(ud);
+        ImGui_ImplGlfw_WindowFocusCallback(window, focused);
     }
 }
 
@@ -72,8 +96,6 @@ void InputHandler::handleInput(float deltaTime, InputContext& inputCtx)
 
 void InputHandler::handleEditorInput(float deltaTime,InputContext& inputCtx)
 {
-    handleBasicMovement(deltaTime);
-
     // IMPORTANT: Store both the InputHandler instance and InputContext per window.
     // This avoids global/static input state when multiple GLFW windows are open.
     auto* ud = GetWindowInputUserData(m_Window);
@@ -85,9 +107,23 @@ void InputHandler::handleEditorInput(float deltaTime,InputContext& inputCtx)
     ud->handler = this;
     ud->ctx = &inputCtx;
 
+    // Do not set imguiCtx/imnodesCtx here.
+    // That is owned by the windowing layer (EditorWindow/StateMachineWindow) and should
+    // be set once those contexts are created.
+
+    // Ensure WantCaptureKeyboard/Mouse refer to the correct window's ImGui context.
+    EnsureImguiForWindow(ud);
+
+    handleBasicMovement(deltaTime);
+
     glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
+
+    // Forward keyboard/text/focus events to ImGui (install_callbacks=false)
+    glfwSetKeyCallback(m_Window, key_callback);
+    glfwSetCharCallback(m_Window, char_callback);
+    glfwSetWindowFocusCallback(m_Window, window_focus_callback);
 
 }
 
@@ -147,7 +183,7 @@ void InputHandler::handleBasicMovement(float deltaTime)
 {
     ImGuiIO& io = ImGui::GetIO();
     if (io.WantCaptureKeyboard)
-    return;
+        return;
 
     if (glfwGetKey(m_Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -171,6 +207,8 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
     if (!ud || !ud->handler)
         return;
     auto* handler = ud->handler;
+
+    EnsureImguiForWindow(ud);
 
     // First forward mouse move to ImGui (we use install_callbacks=false)
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
@@ -207,6 +245,8 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
     if (!ud || !ud->handler)
         return;
     auto* handler = ud->handler;
+
+    EnsureImguiForWindow(ud);
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -257,6 +297,8 @@ void InputHandler::scroll_callback(GLFWwindow *window, double xoffset, double yo
     if (!ud || !ud->handler)
         return;
     auto* handler = ud->handler;
+
+    EnsureImguiForWindow(ud);
 
     // Forward to ImGui first (install_callbacks=false)
     ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);

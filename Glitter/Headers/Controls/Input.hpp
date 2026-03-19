@@ -1,4 +1,6 @@
 #pragma once
+#include "imgui_internal.h"
+#include "imnodes_internal.h"
 #include "Camera/Camera.hpp"
 #include "Event/InputContext.hpp"
 
@@ -40,4 +42,15 @@ private:
 	GLFWwindow* m_Window;
 
 };
+
+		// Per-window callback payload stored as GLFW window user pointer when using InputHandler.
+		// Windowing layer may also store the ImGui/ImNodes contexts here so callbacks can set
+		// correct current context before forwarding events.
+		struct WindowInputUserData
+		{
+			InputHandler* handler = nullptr;
+			InputContext* ctx = nullptr;
+			ImGuiContext* imguiCtx = nullptr;
+			ImNodesContext* imnodesCtx = nullptr;
+		};
 

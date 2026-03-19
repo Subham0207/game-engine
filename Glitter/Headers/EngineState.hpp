@@ -32,7 +32,10 @@ public:
 
     float deltaTime = 0.0f;	// Time between current frame and last frame
     float lastFrame = 0.0f; // Time of last frame
-    GLFWwindow *mWindow;
+    // Multi-window: keep explicit pointers for each top-level window.
+    // (Legacy: mWindow)
+    GLFWwindow* mEditorWindow = nullptr;
+    GLFWwindow* mStatemachineWindow = nullptr;
 
     static EngineState* state;
     bool isDevMode;

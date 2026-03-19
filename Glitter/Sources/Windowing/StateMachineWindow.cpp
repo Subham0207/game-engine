@@ -22,10 +22,20 @@
 
 #include <EngineState.hpp>
 
+#include "Camera/Camera.hpp"
+#include "Camera/FlyCam.hpp"
+
+#include "Controls/Input.hpp"
+#include "Event/EventQueue.hpp"
+
 namespace
 {
     struct StateMachineWindowState
     {
+        EventQueue queue;
+        InputContext inputCtx;
+        InputHandler* inputHandler = nullptr;
+
         Outliner* outliner = nullptr;
         ProjectAsset::AssetBrowser* assetBrowser = nullptr;
         NodeGraph* nodeGraph = nullptr;
@@ -52,7 +62,11 @@ void StateMachineWindow::init()
     if (!mWindow)
         return;
 
+    if (EngineState::state)
+        EngineState::state->mStatemachineWindow = mWindow;
+
     makeCurrent();
+    glfwSwapInterval(1);
     // gladLoadGL() only needs to run once per process, but is harmless if loader supports it.
     // We avoid re-calling it here.
 
@@ -64,10 +78,33 @@ void StateMachineWindow::init()
     ImNodes::SetCurrentContext(mImNodesContext);
     Shared::initImguiBackendForWindow(mWindow);
 
+    // Attach ImGui contexts for per-window input routing.
+    {
+        auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
+        if (!ud)
+        {
+            ud = new WindowInputUserData();
+            glfwSetWindowUserPointer(mWindow, ud);
+        }
+        ud->imguiCtx = mImguiContext;
+        ud->imnodesCtx = mImNodesContext;
+    }
+
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
     g.outliner = new Outliner();
     g.assetBrowser = new ProjectAsset::AssetBrowser();
     g.nodeGraph = new NodeGraph();
+
+    // Input for this window (ImGui install_callbacks=false, so we must install callbacks)
+    g.inputCtx.queue = &g.queue;
+    // Reuse editor camera for now; this is just to enable basic input + callbacks.
+    FlyCam* editorCam = EngineState::state ? EngineState::state->editorCamera : nullptr;
+    Camera* cam = editorCam;
+    if (cam)
+    {
+        g.inputHandler = new InputHandler(cam, mWindow, (float)w, (float)h);
+        g.inputHandler->handleInput(0.0f, g.inputCtx);
+    }
 }
 
 void StateMachineWindow::tick()
@@ -77,6 +114,14 @@ void StateMachineWindow::tick()
     makeCurrent();
     setImguiCurrent();
     if (mImNodesContext) ImNodes::SetCurrentContext(mImNodesContext);
+
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Update callbacks + input routing for this window.
+    if (g.inputHandler)
+        g.inputHandler->handleInput(0.0f, g.inputCtx);
 
     // --- ImGui ---
     ImGui_ImplOpenGL3_NewFrame();

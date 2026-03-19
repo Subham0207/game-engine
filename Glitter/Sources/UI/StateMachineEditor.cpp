@@ -46,7 +46,7 @@ namespace UI
             return true;
 
         // Create a second GLFW window that shares the OpenGL context with the main window.
-        GLFWwindow* share = EngineState::state ? EngineState::state->mWindow : nullptr;
+        GLFWwindow* share = EngineState::state ? EngineState::state->mEditorWindow : nullptr;
         if (!share)
             return false;
 

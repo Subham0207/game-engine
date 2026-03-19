@@ -40,6 +40,8 @@
 
 #include <Profiler.hpp>
 
+#include <cstring>
+
 namespace
 {
     struct EditorWindowState
@@ -75,8 +77,8 @@ void EditorWindow::init()
     // Window + GL/ImGui backends
     // NOTE: This function previously also initialized engine registry + physics.
     // We keep that behavior for the main editor window.
-    EngineState::state->mWindow = Shared::InitBackEndsWithWindow();
-    mWindow = EngineState::state->mWindow;
+    EngineState::state->mEditorWindow = Shared::InitBackEndsWithWindow();
+    mWindow = EngineState::state->mEditorWindow;
 
     // IMPORTANT (Windows / multi-window): we want isolated backend state per GLFWwindow.
     // Shared::InitBackEndsWithWindow() currently calls Shared::initImguiBackend() which
@@ -92,6 +94,19 @@ void EditorWindow::init()
     setImguiCurrent();
     ImNodes::SetCurrentContext(mImNodesContext);
     Shared::initImguiBackendForWindow(mWindow);
+
+    // Attach ImGui contexts to this GLFWwindow for per-window input routing.
+    // InputHandler populates handler/ctx later.
+    {
+        auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
+        if (!ud)
+        {
+            ud = new WindowInputUserData();
+            glfwSetWindowUserPointer(mWindow, ud);
+        }
+        ud->imguiCtx = mImguiContext;
+        ud->imnodesCtx = mImNodesContext;
+    }
 
     // Level / scene setup
     g.level = new Level();
