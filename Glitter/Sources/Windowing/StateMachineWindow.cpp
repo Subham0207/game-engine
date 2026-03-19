@@ -28,27 +28,17 @@
 #include "Controls/Input.hpp"
 #include "Event/EventQueue.hpp"
 
-namespace
+StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
+    : mShareContext(shareContext)
 {
-    struct StateMachineWindowState
-    {
-        EventQueue queue;
-        InputContext inputCtx;
-        InputHandler* inputHandler = nullptr;
-
-        Outliner* outliner = nullptr;
-        ProjectAsset::AssetBrowser* assetBrowser = nullptr;
-        NodeGraph* nodeGraph = nullptr;
-
-        // Temporary: show a scene texture if available from EngineState::state->postProcess.
-        float splitRatio = 0.5f;
-    };
-
-    StateMachineWindowState g;
 }
 
 void StateMachineWindow::init()
 {
+    mQueue = std::make_unique<EventQueue>();
+    mInputCtx = std::make_unique<InputContext>();
+    mInputCtx->queue = mQueue.get();
+
     // Create second GLFW window (shares GL objects with the main window if provided).
     // IMPORTANT: Do NOT call glfwInit() again.
     GLFWwindow* share = mShareContext;
@@ -91,19 +81,18 @@ void StateMachineWindow::init()
     }
 
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
-    g.outliner = new Outliner();
-    g.assetBrowser = new ProjectAsset::AssetBrowser();
-    g.nodeGraph = new NodeGraph();
+    mOutliner = std::make_unique<Outliner>();
+    mAssetBrowser = std::make_unique<ProjectAsset::AssetBrowser>();
+    mNodeGraph = std::make_unique<NodeGraph>();
 
     // Input for this window (ImGui install_callbacks=false, so we must install callbacks)
-    g.inputCtx.queue = &g.queue;
     // Reuse editor camera for now; this is just to enable basic input + callbacks.
     FlyCam* editorCam = EngineState::state ? EngineState::state->editorCamera : nullptr;
     Camera* cam = editorCam;
     if (cam)
     {
-        g.inputHandler = new InputHandler(cam, mWindow, (float)w, (float)h);
-        g.inputHandler->handleInput(0.0f, g.inputCtx);
+        mInputHandler = std::make_unique<InputHandler>(cam, mWindow, (float)w, (float)h);
+        mInputHandler->handleInput(0.0f, *mInputCtx);
     }
 }
 
@@ -111,17 +100,16 @@ void StateMachineWindow::tick()
 {
     if (!mWindow) return;
 
-    makeCurrent();
-    setImguiCurrent();
-    if (mImNodesContext) ImNodes::SetCurrentContext(mImNodesContext);
+    // NOTE: GL + ImGui contexts are expected to be made current by the window manager
+    // (Editor::openEditor) when this window becomes active.
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update callbacks + input routing for this window.
-    if (g.inputHandler)
-        g.inputHandler->handleInput(0.0f, g.inputCtx);
+    if (mInputHandler)
+        mInputHandler->handleInput(0.0f, *mInputCtx);
 
     // --- ImGui ---
     ImGui_ImplOpenGL3_NewFrame();
@@ -129,10 +117,10 @@ void StateMachineWindow::tick()
     ImGui::NewFrame();
 
     ImGui::Begin("State Machine Editor");
-    ImGui::SliderFloat("Split", &g.splitRatio, 0.2f, 0.8f, "%.2f");
+    ImGui::SliderFloat("Split", &mSplitRatio, 0.2f, 0.8f, "%.2f");
 
     ImVec2 avail = ImGui::GetContentRegionAvail();
-    const float leftW = avail.x * g.splitRatio;
+    const float leftW = avail.x * mSplitRatio;
     const float rightW = avail.x - leftW;
 
     ImGui::BeginChild("##SM_Scene", ImVec2(leftW, avail.y), true, ImGuiWindowFlags_NoScrollbar);
@@ -164,7 +152,8 @@ void StateMachineWindow::tick()
     ImGui::BeginChild("##SM_NodeGraph", ImVec2(rightW, avail.y), true);
     ImGui::TextUnformatted("Node Graph");
     // Draw the node graph embedded into this window.
-    g.nodeGraph->drawUIEmbedded();
+    if (mNodeGraph)
+        mNodeGraph->drawUIEmbedded();
     ImGui::EndChild();
 
     ImGui::End();

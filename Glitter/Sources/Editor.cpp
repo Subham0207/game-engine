@@ -6,65 +6,22 @@
 #include "Helpers/glitter.hpp"
 
 // System Headers
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 // Standard Headers
 #include <cstdlib>
 #include <windows.h>
-
-#include "Helpers/shader.hpp"
 #include "Controls/Input.hpp"
-#include "Camera/Camera.hpp"
-#include "Lights/light.hpp"
-
 #include "3DModel/model.hpp"
-
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include <imnodes.h>
-
-#include <utility>
 #include <vector>
-
 #include <algorithm>
-
-#include <algorithm>
-
 #include "UI/outliner.hpp"
 #include "../Headers/UI/AssetBrowser/AssetBrowser.hpp"
-
-#include "Helpers/raypicking.hpp"
-
 #include <EngineState.hpp>
-#include "Lights/cubemap.hpp"
 #include "Level/Level.hpp"
-#include <Helpers/Shared.hpp>
-#include <Sprites/text.hpp>
-
-#include <PhysicsSystem.hpp>
-#include <UI/PropertiesPanel.hpp>
 #include <Controls/PlayerController.hpp>
-
-#include "Camera/FlyCam.hpp"
-#include "Controls/ClientHandler.hpp"
-#include "Event/EventBus.hpp"
-#include "Event/EventQueue.hpp"
-#include "Event/InputContext.hpp"
-#include "RenderPipeline/LightingPass.hpp"
-#include "RenderPipeline/PostProcess.hpp"
-#include "RenderPipeline/ShadowPass.hpp"
-
-#include <Profiler.hpp>
-
-#include "Debug/Raycast.hpp"
-#include "Lights/Skybox.hpp"
-#include "NodeGraph/NodeGraph.hpp"
-
 #include "Windowing/EditorWindow.hpp"
 #include "Windowing/StateMachineWindow.hpp"
-
 #include <memory>
 
 int Editor::openEditor() {
@@ -85,11 +42,45 @@ int Editor::openEditor() {
     windows.back()->init();
 
     // 3) Drive all windows from one loop
+    GameWindow* activeWindow = nullptr;
     while (!windows.empty())
     {
-        // Tick all windows
+        // Pick the actively focused window.
+        GameWindow* focused = nullptr;
         for (auto& w : windows)
-            w->tick();
+        {
+            if (w->window() && glfwGetWindowAttrib(w->window(), GLFW_FOCUSED))
+            {
+                focused = w.get();
+                break;
+            }
+        }
+
+        if (!focused)
+            focused = activeWindow ? activeWindow : (windows.empty() ? nullptr : windows.front().get());
+
+        // Switch GL + UI contexts ONLY when the active window changes.
+        if (focused && focused != activeWindow)
+        {
+            activeWindow = focused;
+            glfwMakeContextCurrent(activeWindow->window());
+
+            // Each window owns its own ImGui + ImNodes context.
+            // The Input callbacks use WindowInputUserData to set the correct context still.
+            if (auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(activeWindow->window())))
+            {
+                if (ud->imguiCtx) ImGui::SetCurrentContext(ud->imguiCtx);
+                if (ud->imnodesCtx) ImNodes::SetCurrentContext(ud->imnodesCtx);
+            }
+        }
+
+        // Poll events once per loop (GLFW events are process-global).
+        // We keep it here, but conceptually this belongs to `activeWindow`.
+        glfwPollEvents();
+
+        // Tick ONLY the active window.
+        if (activeWindow)
+            activeWindow->tick();
 
         // Shutdown + remove closed windows
         windows.erase(
@@ -103,8 +94,6 @@ int Editor::openEditor() {
                 return false;
             }),
             windows.end());
-
-        glfwPollEvents();
     }
 
     // Note: GLFW is initialized inside Shared::initAWindow(). We terminate it here once.

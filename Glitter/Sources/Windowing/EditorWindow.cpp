@@ -42,37 +42,13 @@
 
 #include <cstring>
 
-namespace
-{
-    struct EditorWindowState
-    {
-        EventQueue queue;
-        InputContext inputCtx;
-
-        Level* level = nullptr;
-        Lighting::Skybox* skyBox = nullptr;
-        Debug::Raycast* rayCastObjectSelector = nullptr;
-        Lights* lights = nullptr;
-
-        Outliner* outliner = nullptr;
-        ProjectAsset::AssetBrowser* assetBrowser = nullptr;
-        NodeGraph* nodeGraph = nullptr;
-
-        ShadowPass* shadowPass = nullptr;
-        LightingPass* lightingPass = nullptr;
-        PostProcess* postProcess = nullptr;
-
-        bool firstFrame = false;
-    };
-
-    // One global for now; mirrors old openEditor local vars.
-    // Later you can move this into the class if desired.
-    EditorWindowState g;
-}
+EditorWindow::~EditorWindow() = default;
 
 void EditorWindow::init()
 {
-    g.inputCtx.queue = &g.queue;
+    mQueue = std::make_unique<EventQueue>();
+    mInputCtx = std::make_unique<InputContext>();
+    mInputCtx->queue = mQueue.get();
 
     // Window + GL/ImGui backends
     // NOTE: This function previously also initialized engine registry + physics.
@@ -109,8 +85,8 @@ void EditorWindow::init()
     }
 
     // Level / scene setup
-    g.level = new Level();
-    EngineState::state->activeLevel = g.level;
+    mLevel = std::make_unique<Level>();
+    EngineState::state->activeLevel = mLevel.get();
     auto lvl = EngineState::state->activeLevel;
     lvl->cameras.push_back(EngineState::state->editorCamera);
 
@@ -122,46 +98,43 @@ void EditorWindow::init()
     lvl->loadMainLevelOfCurrentProject();
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
-    g.skyBox = new Lighting::Skybox(engineFSPath, mWindow);
+    mSkyBox = std::make_unique<Lighting::Skybox>(engineFSPath, mWindow);
 
     EngineState::state->GenerateDefaultMaterials();
 
-    g.rayCastObjectSelector = new Debug::Raycast(engineFSPath);
+    mRayCastObjectSelector = std::make_unique<Debug::Raycast>(engineFSPath);
 
-    g.lights = new Lights();
-    g.lights->initDefaultLights();
+    mLights = std::make_unique<Lights>();
+    mLights->initDefaultLights();
 
-    g.outliner = new Outliner();
-    g.assetBrowser = new ProjectAsset::AssetBrowser();
-    g.nodeGraph = new NodeGraph();
+    mOutliner = std::make_unique<Outliner>();
+    mAssetBrowser = std::make_unique<ProjectAsset::AssetBrowser>();
+    mNodeGraph = std::make_unique<NodeGraph>();
 
     Controls::PlayerController::register_bindings(getLuaEngine());
 
     Shared::initGpuLogger();
 
-    g.shadowPass = new ShadowPass(mWindow, g.lights);
-    g.lightingPass = new LightingPass{};
-    g.postProcess = new PostProcess{};
-    EngineState::state->postProcess = g.postProcess;
+    mShadowPass = std::make_unique<ShadowPass>(mWindow, mLights.get());
+    mLightingPass = std::make_unique<LightingPass>();
+    mPostProcess = std::make_unique<PostProcess>();
+    EngineState::state->postProcess = mPostProcess.get();
 }
 
 void EditorWindow::tick()
 {
     if (!mWindow) return;
 
-    makeCurrent();
-            glEnable(GL_DEPTH_TEST);
-            glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (mImguiContext)
-        ImGui::SetCurrentContext(mImguiContext);
-    if (mImNodesContext)
-        ImNodes::SetCurrentContext(mImNodesContext);
+    // NOTE: GL + ImGui contexts are expected to be made current by the window manager
+    // (Editor::openEditor) when this window becomes active.
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     FrameMark;
     ZoneScopedN("EditorWindow Frame");
 
-    g.queue.drain([&](const Event& e)
+    mQueue->drain([&](const Event& e)
     {
         EngineState::state->bus.dispatch(e);
     });
@@ -175,7 +148,7 @@ void EditorWindow::tick()
     auto& activeLevel = getActiveLevel();
     auto& lvlrenderables = activeLevel.renderables;
 
-    ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, g.inputCtx);
+    ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, *mInputCtx);
 
     if (EngineState::state->isPlay)
     {
@@ -206,13 +179,13 @@ void EditorWindow::tick()
         getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
     }
 
-    g.postProcess->attachFBO();
+    mPostProcess->attachFBO();
 
     activeCamera->tick();
 
-    g.skyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
+    mSkyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
 
-    for (auto& i : g.lights->pointLights)
+    for (auto& i : mLights->pointLights)
     {
         ZoneScopedN("EditorPointLightSelection");
         i.position = i.lightModel->GetPosition();
@@ -220,14 +193,14 @@ void EditorWindow::tick()
             getUIState().propretiesPanel->pointLight = &i;
     }
 
-    for (auto& i : g.lights->directionalLights)
+    for (auto& i : mLights->directionalLights)
     {
         ZoneScopedN("EditorPointDirectionalLightSelection");
         if (i.lightModel->getIsSelected())
             getUIState().propretiesPanel->directionalLight = &i;
     }
 
-    for (auto& i : g.lights->spotLights)
+    for (auto& i : mLights->spotLights)
     {
         ZoneScopedN("EditorPointSpotLightSelection");
         i.position = i.lightModel->GetPosition();
@@ -262,13 +235,13 @@ void EditorWindow::tick()
         }
     }
 
-    g.postProcess->draw(
-        *g.shadowPass,
-        *g.lightingPass,
+    mPostProcess->draw(
+        *mShadowPass,
+        *mLightingPass,
         lvlrenderables,
         activeCamera,
-        g.lights,
-        g.skyBox->getCubeMap(),
+        mLights.get(),
+        mSkyBox->getCubeMap(),
         deltaTime);
 
     for (int i = 0; i < getActiveLevel().textSprites.size(); i++)
@@ -281,13 +254,13 @@ void EditorWindow::tick()
 
     if (EngineState::state->isDevMode)
     {
-        g.rayCastObjectSelector->HandleSelection(
-            g.outliner,
+            mRayCastObjectSelector->HandleSelection(
+            mOutliner.get(),
             activeCamera,
             &activeLevel);
 
-        g.outliner->Render(*g.level);
-        g.assetBrowser->RenderAssetBrowser();
+        mOutliner->Render(*mLevel);
+        mAssetBrowser->RenderAssetBrowser();
     }
 
     {
@@ -306,10 +279,10 @@ void EditorWindow::tick()
 
     TracyGpuCollect;
 
-    if (!g.firstFrame)
+    if (!mFirstFrame)
     {
         if (!EngineState::state->isDevMode) EngineState::state->isPlay = true;
-        g.firstFrame = true;
+        mFirstFrame = true;
     }
 }
 
