@@ -196,7 +196,10 @@ void Shared::initImguiBackend(GLFWwindow* window)
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    // IMPORTANT: Do not let ImGui install GLFW callbacks.
+    // The engine uses its own per-window input callbacks (InputHandler::mouse_button_callback etc.)
+    // and routes events to ImGui explicitly.
+    ImGui_ImplGlfw_InitForOpenGL(window, false);
     ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your GLSL version
 
     // Setup Dear ImGui style
@@ -228,7 +231,8 @@ void Shared::initImguiBackendForWindow(GLFWwindow* window)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    // See initImguiBackend(): we keep callbacks under engine control.
+    ImGui_ImplGlfw_InitForOpenGL(window, false);
     ImGui_ImplOpenGL3_Init("#version 130");
 
     ImGui::StyleColorsDark();

@@ -12,6 +12,21 @@
 
 InputHandler* InputHandler::currentInputHandler = nullptr;
 
+namespace
+{
+    // Per-window callback payload.
+    struct WindowInputUserData
+    {
+        InputHandler* handler = nullptr;
+        InputContext* ctx = nullptr;
+    };
+
+    static WindowInputUserData* GetWindowInputUserData(GLFWwindow* window)
+    {
+        return static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(window));
+    }
+}
+
 InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth, float screenHeight)
 {
     m_Camera = camera;
@@ -58,7 +73,18 @@ void InputHandler::handleInput(float deltaTime, InputContext& inputCtx)
 void InputHandler::handleEditorInput(float deltaTime,InputContext& inputCtx)
 {
     handleBasicMovement(deltaTime);
-    glfwSetWindowUserPointer(m_Window, &inputCtx);
+
+    // IMPORTANT: Store both the InputHandler instance and InputContext per window.
+    // This avoids global/static input state when multiple GLFW windows are open.
+    auto* ud = GetWindowInputUserData(m_Window);
+    if (!ud)
+    {
+        ud = new WindowInputUserData();
+        glfwSetWindowUserPointer(m_Window, ud);
+    }
+    ud->handler = this;
+    ud->ctx = &inputCtx;
+
     glfwSetCursorPosCallback(m_Window, mouse_callback);
     glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
     glfwSetScrollCallback(m_Window, scroll_callback);
@@ -141,36 +167,47 @@ void InputHandler::handleBasicMovement(float deltaTime)
 
 void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    //First process inputs for imgui
-    if(currentInputHandler->mouseState != GLFW_CURSOR_DISABLED)
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        io.MousePos = ImVec2((float)xpos, (float)ypos);
-        if (io.WantCaptureMouse)
+    auto* ud = GetWindowInputUserData(window);
+    if (!ud || !ud->handler)
         return;
+    auto* handler = ud->handler;
+
+    // First forward mouse move to ImGui (we use install_callbacks=false)
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+
+    // If cursor is enabled, prefer UI interaction only.
+    if (handler->mouseState != GLFW_CURSOR_DISABLED)
+    {
+        if (ImGui::GetIO().WantCaptureMouse)
+            return;
     }
 
-    auto* ctx = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
-    if (!ctx || !ctx->queue)return;
+    InputContext* ctx = ud->ctx;
+    if (!ctx || !ctx->queue) return;
 
     //Once we know imgui is not processing that input; process the input.
-    if (currentInputHandler->firstMouse) // initially set to true
+    if (handler->firstMouse) // initially set to true
     {
-        currentInputHandler->lastX = xpos;
-        currentInputHandler->lastY = ypos;
-        currentInputHandler->firstMouse = false;
+        handler->lastX = xpos;
+        handler->lastY = ypos;
+        handler->firstMouse = false;
     }
 
-    currentInputHandler->xOffset = xpos - currentInputHandler->lastX;
-    currentInputHandler->yOffset = currentInputHandler->lastY - ypos; // reversed since y-coordinates range from bottom to top
-    currentInputHandler->lastX = xpos;
-    currentInputHandler->lastY = ypos;
+    handler->xOffset = xpos - handler->lastX;
+    handler->yOffset = handler->lastY - ypos; // reversed since y-coordinates range from bottom to top
+    handler->lastX = xpos;
+    handler->lastY = ypos;
 
-    ctx->queue->push<MouseMoveEvent>(currentInputHandler->getXOffset(), currentInputHandler->getYOffset(), currentInputHandler->mouseState);
+    ctx->queue->push<MouseMoveEvent>(handler->getXOffset(), handler->getYOffset(), handler->mouseState);
 }
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+    auto* ud = GetWindowInputUserData(window);
+    if (!ud || !ud->handler)
+        return;
+    auto* handler = ud->handler;
+
     ImGuiIO& io = ImGui::GetIO();
 
     // 1. Let ImGui have first dibs
@@ -178,7 +215,7 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 
     // 2. If ImGui wants the mouse, stop here
     if (io.WantCaptureMouse) {
-        InputHandler::currentInputHandler->leftClickPressed = false;
+        handler->leftClickPressed = false;
         return;
     }
 
@@ -189,14 +226,14 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 
     // When the mouse was clicked at IMGUI released did not help so setting mouseClickPressedTo false
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    InputHandler::currentInputHandler->leftClickPressed = true;
+    handler->leftClickPressed = true;
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-    InputHandler::currentInputHandler->leftClickPressed = false;
+    handler->leftClickPressed = false;
 
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    InputHandler::currentInputHandler->rightClickPressed = true;
+    handler->rightClickPressed = true;
     else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-    InputHandler::currentInputHandler->rightClickPressed = false;
+    handler->rightClickPressed = false;
 }
 
 void InputHandler::handleTransformGizmo(GLFWwindow *window)
@@ -216,14 +253,18 @@ void InputHandler::handleTransformGizmo(GLFWwindow *window)
 }
 void InputHandler::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    if(ImGui::GetIO().WantCaptureMouse)
-    {
-        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+    auto* ud = GetWindowInputUserData(window);
+    if (!ud || !ud->handler)
         return;
-    }
-    currentInputHandler->m_Camera->fov -= (float)yoffset;
-    if (currentInputHandler->m_Camera->fov < 1.0f)
-        currentInputHandler->m_Camera->fov = 1.0f;
-    if (currentInputHandler->m_Camera->fov > 90.0f)
-        currentInputHandler->m_Camera->fov = 90.0f;
+    auto* handler = ud->handler;
+
+    // Forward to ImGui first (install_callbacks=false)
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+    if(ImGui::GetIO().WantCaptureMouse)
+        return;
+    handler->m_Camera->fov -= (float)yoffset;
+    if (handler->m_Camera->fov < 1.0f)
+        handler->m_Camera->fov = 1.0f;
+    if (handler->m_Camera->fov > 90.0f)
+        handler->m_Camera->fov = 90.0f;
 }

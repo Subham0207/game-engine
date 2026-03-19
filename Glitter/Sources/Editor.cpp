@@ -80,9 +80,8 @@ int Editor::openEditor() {
     windows.emplace_back(std::make_unique<EditorWindow>());
     windows.back()->init();
 
-    // Create StateMachine window sharing GL objects with the editor window
-    GLFWwindow* share = windows[0]->window();
-    windows.emplace_back(std::make_unique<StateMachineWindow>(share));
+    // Create StateMachine window as a fully separate window (no shared GL context)
+    windows.emplace_back(std::make_unique<StateMachineWindow>(nullptr));
     windows.back()->init();
 
     // 3) Drive all windows from one loop
