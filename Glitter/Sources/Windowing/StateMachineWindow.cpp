@@ -35,9 +35,7 @@ StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
 
 void StateMachineWindow::init()
 {
-    mQueue = std::make_unique<EventQueue>();
-    mInputCtx = std::make_unique<InputContext>();
-    mInputCtx->queue = mQueue.get();
+    initCommonInput();
 
     // Create second GLFW window (shares GL objects with the main window if provided).
     // IMPORTANT: Do NOT call glfwInit() again.

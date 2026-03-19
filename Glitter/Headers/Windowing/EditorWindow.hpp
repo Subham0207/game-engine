@@ -60,9 +60,6 @@ public:
     void shutdown() override;
 
 private:
-    // Per-window state (was global `g`)
-    std::unique_ptr<EventQueue> mQueue;
-    std::unique_ptr<InputContext> mInputCtx;
 
     std::unique_ptr<Level> mLevel;
     std::unique_ptr<Lighting::Skybox> mSkyBox;

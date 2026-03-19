@@ -36,10 +36,6 @@ public:
 private:
     GLFWwindow* mShareContext = nullptr;
 
-    // Per-window state (was global `g`)
-    std::unique_ptr<EventQueue> mQueue;
-    std::unique_ptr<InputContext> mInputCtx;
-    std::unique_ptr<InputHandler> mInputHandler;
 
     std::unique_ptr<Outliner> mOutliner;
     std::unique_ptr<ProjectAsset::AssetBrowser> mAssetBrowser;

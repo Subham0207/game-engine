@@ -46,9 +46,7 @@ EditorWindow::~EditorWindow() = default;
 
 void EditorWindow::init()
 {
-    mQueue = std::make_unique<EventQueue>();
-    mInputCtx = std::make_unique<InputContext>();
-    mInputCtx->queue = mQueue.get();
+    initCommonInput();
 
     // Window + GL/ImGui backends
     // NOTE: This function previously also initialized engine registry + physics.
@@ -92,7 +90,8 @@ void EditorWindow::init()
 
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
     mClientHandler = std::make_unique<ClientHandler>();
-    mClientHandler->inputHandler = new InputHandler(camera, mWindow, 800, 600);
+    mInputHandler = std::make_unique<InputHandler>(camera, mWindow, 800.0f, 600.0f);
+    mClientHandler->inputHandler = mInputHandler.get();
 
     lvl->loadMainLevelOfCurrentProject();
 
@@ -138,7 +137,7 @@ void EditorWindow::tick()
         EngineState::state->bus.dispatch(e);
     });
 
-    auto activeCamera = (mClientHandler && mClientHandler->inputHandler) ? mClientHandler->inputHandler->m_Camera : nullptr;
+    auto activeCamera = mInputHandler ? mInputHandler->m_Camera : nullptr;
     float currentFrame = glfwGetTime();
     float deltaTime = currentFrame - EngineState::state->lastFrame;
     EngineState::state->deltaTime = deltaTime;
@@ -147,8 +146,8 @@ void EditorWindow::tick()
     auto& activeLevel = getActiveLevel();
     auto& lvlrenderables = activeLevel.renderables;
 
-    if (mClientHandler && mClientHandler->inputHandler)
-        mClientHandler->inputHandler->handleInput(EngineState::state->deltaTime, *mInputCtx);
+    if (mInputHandler)
+        mInputHandler->handleInput(EngineState::state->deltaTime, *mInputCtx);
 
     if (EngineState::state->isPlay)
     {
@@ -157,8 +156,8 @@ void EditorWindow::tick()
             if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
             {
                 activeCamera = character->camera;
-                if (mClientHandler && mClientHandler->inputHandler)
-                    mClientHandler->inputHandler->m_Camera = activeCamera;
+                if (mInputHandler)
+                    mInputHandler->m_Camera = activeCamera;
             }
 
         if (getPhysicsSystem().isFirstPhysicsEnabledFrame == true)
@@ -176,8 +175,8 @@ void EditorWindow::tick()
     }
     else
     {
-        if (mClientHandler && mClientHandler->inputHandler)
-            mClientHandler->inputHandler->m_Camera = activeLevel.cameras[0];
+        if (mInputHandler)
+            mInputHandler->m_Camera = activeLevel.cameras[0];
         getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
     }
 
@@ -263,7 +262,7 @@ void EditorWindow::tick()
             mOutliner.get(),
             activeCamera,
             &activeLevel,
-            (mClientHandler ? mClientHandler->inputHandler : nullptr));
+            mInputHandler.get());
 
         mOutliner->Render(*mLevel);
         mAssetBrowser->RenderAssetBrowser();

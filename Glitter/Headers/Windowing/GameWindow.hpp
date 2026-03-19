@@ -6,6 +6,13 @@
 #include <imgui.h>
 #include <imnodes.h>
 
+#include <memory>
+
+#include "Event/EventQueue.hpp"
+#include "Event/InputContext.hpp"
+
+class InputHandler;
+
 // Base class for any standalone GLFW + OpenGL + ImGui window.
 //
 // Design goals:
@@ -32,10 +39,28 @@ public:
 
     GLFWwindow* window() const { return mWindow; }
 
+    // Common per-window input/event plumbing
+    InputHandler* inputHandler() const { return mInputHandler.get(); }
+    InputContext* inputContext() const { return mInputCtx.get(); }
+    EventQueue* eventQueue() const { return mQueue.get(); }
+
 protected:
     GLFWwindow* mWindow = nullptr;
     ImGuiContext* mImguiContext = nullptr;
     ImNodesContext* mImNodesContext = nullptr;
+
+    // Owned per-window queue + context.
+    // InputHandler is optional; derived windows construct it when needed.
+    std::unique_ptr<EventQueue> mQueue;
+    std::unique_ptr<InputContext> mInputCtx;
+    std::unique_ptr<InputHandler> mInputHandler;
+
+    void initCommonInput()
+    {
+        mQueue = std::make_unique<EventQueue>();
+        mInputCtx = std::make_unique<InputContext>();
+        mInputCtx->queue = mQueue.get();
+    }
 
     // Convenience helpers for derived classes
     void makeCurrent() const { if (mWindow) glfwMakeContextCurrent(mWindow); }
