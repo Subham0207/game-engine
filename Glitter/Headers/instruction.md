@@ -14,14 +14,34 @@ Located at: `Glitter/Headers/Windowing/GameWindow.hpp`
 Each top-level window derives from `GameWindow` and implements:
 
 - `init()` – create GLFW window + initialize per-window contexts/backends
-- `tick()` – one frame of update/render for that window
+- `tickImpl()` – one frame of update/render for that window (implemented by the derived window)
 - `shutdown()` – destroy per-window backends/contexts and destroy the GLFW window
 
-Each `GameWindow` stores:
+`GameWindow::tick()` is a **non-virtual wrapper** that:
+
+1) Computes per-window `deltaTime` and clamps it to a max (currently `0.1f`) to avoid physics explosions when a window regains focus after being paused/unfocused.
+2) Writes `EngineState::state->deltaTime` for legacy systems that still read a global delta time.
+3) Calls the derived window’s `tickImpl()`.
+
+This removes the need for using a global `EngineState::lastFrame`.
+- `shutdown()` – destroy per-window backends/contexts and destroy the GLFW window
+
+Each `GameWindow` stores (common window “plumbing”):
 
 - `GLFWwindow* mWindow`
 - `ImGuiContext* mImguiContext`
 - `ImNodesContext* mImNodesContext`
+
+and also provides shared per-window systems:
+
+- `std::unique_ptr<EventQueue> mQueue`
+- `std::unique_ptr<InputContext> mInputCtx`
+- `std::unique_ptr<InputHandler> mInputHandler` (optional per derived window)
+- `std::unique_ptr<FlyCam> mEditorCamera` (per-window default camera)
+
+The helper `initCommonInput()` allocates `EventQueue` + `InputContext` and wires `InputContext::queue`.
+
+> Note: `GameWindow` currently creates a `FlyCam` by default so every window can construct an `InputHandler` even if `EngineState` is not initialized (ex: `ProjectManagerWindow` exe). Later we can refactor this so windows that will never have a 3D scene (like Project Manager) don’t need a camera at all.
 
 and provides simple helpers:
 
@@ -37,7 +57,7 @@ Located at: `Glitter/Sources/Editor.cpp`
 2. Create a list of `GameWindow` instances:
    - `EditorWindow`
    - `StateMachineWindow`
-3. Run a loop that calls `tick()` on each window until all are closed
+3. Run a loop that picks the **focused** window as the active window, switches GL + ImGui contexts when focus changes, and calls `tick()` only on that active window.
 4. Per closed window: call `shutdown()` (and erase from the array)
 5. Terminate GLFW once after all windows are closed
 
@@ -74,6 +94,21 @@ The StateMachine window uses a simple ImGui layout split into two vertical parts
 The split ratio is controlled by an ImGui slider.
 
 > Note: This separate ImGui UI can be refactored later. It is likely we will eventually add a real 3D scene viewport directly into the StateMachine editor window, or integrate it more cleanly with the renderer pipeline.
+
+---
+
+## Project Manager window (separate executable)
+
+The Project Manager is a separate executable (`projectMangerMain.cpp`) and now uses the same `GameWindow` approach via:
+
+- `Glitter/Headers/Windowing/ProjectManagerWindow.hpp`
+- `Glitter/Sources/Windowing/ProjectManagerWindow.cpp`
+
+Instead of duplicating window loops, `ProjectManagerWindow` provides:
+
+- `int StartWindow()` – calls `init()`, runs a `while(!shouldClose())` loop (`glfwPollEvents()` + `tick()`), then `shutdown()`.
+
+This keeps the same backend isolation and input routing model as the Editor/StateMachine windows.
 
 ---
 
@@ -148,6 +183,18 @@ This provides independent UI + input behavior between both windows.
 
 ---
 
+## Raycast selection input (no globals)
+
+`Debug::Raycast::HandleSelection` was updated to avoid relying on any global/static input pointer. It now takes an explicit `InputHandler*`:
+
+```cpp
+void HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input);
+```
+
+`EditorWindow` passes its own per-window input handler when calling selection.
+
+---
+
 ## `EngineState` window pointers
 
 Previously the engine used a single global window pointer:
@@ -182,4 +229,6 @@ The StateMachine window uses `drawUIEmbedded()` so the node graph can live insid
 - `WindowInputUserData` is currently allocated and never freed. Add cleanup in window shutdown.
 - Many includes in `Editor.cpp` are now legacy / unused after refactor.
 - Consider consolidating shared renderer assets between windows once the API is stable.
+
+- `GameWindow` currently creates a per-window `FlyCam` so even UI-only windows can install an `InputHandler` (needed because ImGui uses `install_callbacks=false`). We can later create a UI-only input layer or allow windows to opt-out of camera creation.
 
