@@ -91,6 +91,7 @@ void EditorWindow::init()
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
     mClientHandler = std::make_unique<ClientHandler>();
     mInputHandler = std::make_unique<InputHandler>(camera, mWindow, 800.0f, 600.0f);
+    mInputHandler->movementSpeed = EngineState::state->editorCameraSpeed;
     mClientHandler->inputHandler = mInputHandler.get();
 
     lvl->loadMainLevelOfCurrentProject();
@@ -119,7 +120,7 @@ void EditorWindow::init()
     EngineState::state->postProcess = mPostProcess.get();
 }
 
-void EditorWindow::tick()
+void EditorWindow::tickImpl()
 {
     if (!mWindow) return;
 
@@ -138,16 +139,13 @@ void EditorWindow::tick()
     });
 
     auto activeCamera = mInputHandler ? mInputHandler->m_Camera : nullptr;
-    float currentFrame = glfwGetTime();
-    float deltaTime = currentFrame - EngineState::state->lastFrame;
-    EngineState::state->deltaTime = deltaTime;
-    EngineState::state->lastFrame = currentFrame;
+    const float deltaTime = mDeltaTime;
 
     auto& activeLevel = getActiveLevel();
     auto& lvlrenderables = activeLevel.renderables;
 
     if (mInputHandler)
-        mInputHandler->handleInput(EngineState::state->deltaTime, *mInputCtx);
+        mInputHandler->handleInput(deltaTime, *mInputCtx, EngineState::state->isPlay);
 
     if (EngineState::state->isPlay)
     {
@@ -168,7 +166,7 @@ void EditorWindow::tick()
         }
         else
         {
-            getPhysicsSystem().Update(EngineState::state->deltaTime);
+            getPhysicsSystem().Update(deltaTime);
             for (int i = 0; i < lvlrenderables.size(); i++)
                 lvlrenderables.at(i)->physicsUpdate();
         }
@@ -224,7 +222,7 @@ void EditorWindow::tick()
             getActiveLevel().renderDebugNavMesh(activeCamera);
     }
 
-    getActiveLevel().tickAIs(EngineState::state->deltaTime);
+    getActiveLevel().tickAIs(deltaTime);
 
     for (int i = 0; i < lvlrenderables.size(); i++)
     {

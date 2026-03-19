@@ -30,8 +30,8 @@ public:
     static fs::path navIntoProjectDir(std::string path);
     static fs::path navIntoEnginDir(std::string path);
 
+    // Legacy: updated each frame by the active GameWindow (see GameWindow::tick()).
     float deltaTime = 0.0f;	// Time between current frame and last frame
-    float lastFrame = 0.0f; // Time of last frame
     // Multi-window: keep explicit pointers for each top-level window.
     // (Legacy: mWindow)
     GLFWwindow* mEditorWindow = nullptr;

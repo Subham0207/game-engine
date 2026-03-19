@@ -9,7 +9,11 @@ class InputHandler
 {
 public:
 	InputHandler(Camera* camera, GLFWwindow* m_Window,float screenWidth, float screenHeight);
-	void handleInput(float deltaTime, InputContext& inputCtx);
+	void handleInput(float deltaTime, InputContext& inputCtx, bool isPlay);
+
+	// Movement speed used by editor-style camera controls (WASD).
+	// Windowing layer should set this as needed; defaults to a reasonable value.
+	float movementSpeed = 2.5f;
 	unsigned int mouseState;
 	float lastX,lastY;
 	Camera* m_Camera;

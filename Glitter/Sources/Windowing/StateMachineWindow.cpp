@@ -90,11 +90,11 @@ void StateMachineWindow::init()
     if (cam)
     {
         mInputHandler = std::make_unique<InputHandler>(cam, mWindow, (float)w, (float)h);
-        mInputHandler->handleInput(0.0f, *mInputCtx);
+        mInputHandler->handleInput(0.0f, *mInputCtx, EngineState::state->isPlay);
     }
 }
 
-void StateMachineWindow::tick()
+void StateMachineWindow::tickImpl()
 {
     if (!mWindow) return;
 
@@ -107,7 +107,7 @@ void StateMachineWindow::tick()
 
     // Update callbacks + input routing for this window.
     if (mInputHandler)
-        mInputHandler->handleInput(0.0f, *mInputCtx);
+        mInputHandler->handleInput(0.0f, *mInputCtx, EngineState::state->isPlay);
 
     // --- ImGui ---
     ImGui_ImplOpenGL3_NewFrame();

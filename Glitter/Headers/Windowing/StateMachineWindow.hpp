@@ -30,7 +30,7 @@ public:
     StateMachineWindow& operator=(StateMachineWindow&&) noexcept = default;
 
     void init() override;
-    void tick() override;
+    void tickImpl() override;
     void shutdown() override;
 
 private:

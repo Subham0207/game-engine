@@ -56,7 +56,7 @@ public:
     EditorWindow& operator=(EditorWindow&&) noexcept = default;
 
     void init() override;
-    void tick() override;
+    void tickImpl() override;
     void shutdown() override;
 
 private:

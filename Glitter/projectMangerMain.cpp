@@ -1,10 +1,9 @@
 // Local Headers
 #include <cstdlib>
-#include "ProjectManagerHandler.hpp"
+#include "Windowing/ProjectManagerWindow.hpp"
 
 int main(int argc, char * argv[])
 {
-    auto projectmanager = new ProjectManagerHandler();
-    projectmanager->startProjectManager();
-    return EXIT_SUCCESS;
+	ProjectManagerWindow pm;
+	return pm.StartWindow();
 }

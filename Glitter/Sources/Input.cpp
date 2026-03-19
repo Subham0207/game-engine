@@ -4,9 +4,11 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_glfw.h"
-#include <EngineState.hpp>
 #include <ImGuizmo.h>
 #include "GLFW/glfw3.h"
+
+// Still needed for getUIState() used by gizmo hotkeys.
+#include <EngineState.hpp>
 
 #include "Event/InputContext.hpp"
 
@@ -59,7 +61,7 @@ InputHandler::InputHandler(Camera* camera, GLFWwindow* window, float screenWidth
     mouseState = GLFW_CURSOR_DISABLED;
 }
 
-void InputHandler::handleInput(float deltaTime, InputContext& inputCtx)
+void InputHandler::handleInput(float deltaTime, InputContext& inputCtx, bool isPlay)
 {
     if (glfwGetKey(m_Window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
@@ -83,7 +85,7 @@ void InputHandler::handleInput(float deltaTime, InputContext& inputCtx)
         controlKeyPressed = false;
     }
 
-    if(!EngineState::state->isPlay)
+    if(!isPlay)
     {
         handleEditorInput(deltaTime, inputCtx);
     }
@@ -128,49 +130,7 @@ void InputHandler::handleEditorInput(float deltaTime,InputContext& inputCtx)
 
 void InputHandler::handlePlay()
 {
-    //Get the first PlayerController or activePlayer controller
-    //A Player controller for now will just pass these button presses as boolean. This is for abstraction purpose
-    //That means the state machine would be called on every frame but based on if the player controller has a input for it it would respond
-    //We can place the state machine update in character update for now
-    auto id = EngineState::state->activePlayerControllerId;
-    std::shared_ptr<Controls::PlayerController> playerController = nullptr;
-    if(EngineState::state->playerControllers.size() > 0)
-    playerController = EngineState::state->playerControllers.at(id);
-
-    if(!playerController)
-    return;
-
-    glm::vec3 directionVector(0.0f);
-    //W to move
-    playerController->isForwardPressed = false;
-    if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        directionVector += glm::vec3(0,0,1);
-        playerController->isForwardPressed = true;
-    }
-    if (glfwGetKey(m_Window, GLFW_KEY_A) == GLFW_PRESS)
-        directionVector += glm::vec3(1,0,0);
-    if (glfwGetKey(m_Window, GLFW_KEY_D) == GLFW_PRESS)
-        directionVector += glm::vec3(-1,0,0);
-    if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
-        directionVector += glm::vec3(0,0,-1);
-    if (glfwGetKey(m_Window, GLFW_KEY_SPACE) == GLFW_PRESS && playerController->grounded)
-        playerController->isJumping = true;
-    if (glfwGetKey(m_Window, GLFW_KEY_E) == GLFW_PRESS)
-    {
-        playerController->dodgeStart = true;
-        directionVector = glm::vec3(0.0f);
-    }
-
-    playerController->isAiming = rightClickPressed;
-
-    if (glm::length(directionVector) > 0.00001f) {
-        playerController->setMovement(glm::normalize(directionVector));
-    }
-    else
-    {
-        playerController->setMovement(glm::vec3(0.0f,0.0f,0.0f));
-    }
+    //TODO: remove this after checking usages...
 }
 
 bool InputHandler::isKeyPressed(int key) const
@@ -189,7 +149,7 @@ void InputHandler::handleBasicMovement(float deltaTime)
         glfwSetWindowShouldClose(m_Window, true);
     }
 
-    const float cameraSpeed = EngineState::state->editorCameraSpeed * deltaTime; // adjust accordingly
+    const float cameraSpeed = movementSpeed * deltaTime; // per-window/per-handler
     if (glfwGetKey(m_Window, GLFW_KEY_W) == GLFW_PRESS)
         m_Camera->cameraPos += cameraSpeed * m_Camera->cameraFront;
     if (glfwGetKey(m_Window, GLFW_KEY_S) == GLFW_PRESS)
