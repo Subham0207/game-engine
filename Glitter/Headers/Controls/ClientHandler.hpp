@@ -11,7 +11,6 @@ class ClientHandler
 {
 public:
     InputHandler* inputHandler{};
-    static ClientHandler* clientHandler;
     ClientHandler();
 };
 

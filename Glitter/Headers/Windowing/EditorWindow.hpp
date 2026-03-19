@@ -20,6 +20,8 @@
 #include "UI/AssetBrowser/AssetBrowser.hpp"
 #include "NodeGraph/NodeGraph.hpp"
 
+#include "Controls/ClientHandler.hpp"
+
 // NOTE:
 // This header intentionally uses forward declarations for most engine types.
 // `EditorWindow`'s destructor is defined out-of-line in EditorWindow.cpp so
@@ -74,6 +76,8 @@ private:
     std::unique_ptr<ShadowPass> mShadowPass;
     std::unique_ptr<LightingPass> mLightingPass;
     std::unique_ptr<PostProcess> mPostProcess;
+
+    std::unique_ptr<ClientHandler> mClientHandler;
 
     bool mFirstFrame = false;
 };

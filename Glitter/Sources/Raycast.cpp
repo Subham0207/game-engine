@@ -11,6 +11,7 @@
 #include "Helpers/raypicking.hpp"
 #include "Helpers/shader.hpp"
 #include "UI/outliner.hpp"
+#include <GLFW/glfw3.h>
 
 namespace Debug
 {
@@ -35,18 +36,26 @@ namespace Debug
         auto getSelectedIndex = outliner->GetSelectedIndex();
         rayCastshader->use();
         activeCamera->updateMVP(rayCastshader->ID);
-        auto view = InputHandler::currentInputHandler->m_Camera->viewMatrix();
-        auto proj = InputHandler::currentInputHandler->m_Camera->projectionMatrix();
+
+        // Per-window input: read from the currently active GLFW context window.
+        auto* wnd = glfwGetCurrentContext();
+        auto* ud = wnd ? static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(wnd)) : nullptr;
+        InputHandler* ih = ud ? ud->handler : nullptr;
+        if (!ih || !ih->m_Camera)
+            return;
+
+        auto view = ih->m_Camera->viewMatrix();
+        auto proj = ih->m_Camera->projectionMatrix();
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
-            InputHandler::currentInputHandler->lastX,
-            InputHandler::currentInputHandler->lastY,
+            ih->lastX,
+            ih->lastY,
             renderables,
             view,
             proj,
             rayCastshader->ID,
             rayOrigin,
             rayDir,
-            InputHandler::currentInputHandler->m_Camera->getCameraLookAtDirectionVector()
+            ih->m_Camera->getCameraLookAtDirectionVector()
         );
         if(getSelectedIndexFromMouseCurrentFrame > -2)
             outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);

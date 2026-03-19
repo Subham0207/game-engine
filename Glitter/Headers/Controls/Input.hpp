@@ -10,7 +10,6 @@ class InputHandler
 public:
 	InputHandler(Camera* camera, GLFWwindow* m_Window,float screenWidth, float screenHeight);
 	void handleInput(float deltaTime, InputContext& inputCtx);
-	static InputHandler* currentInputHandler;
 	unsigned int mouseState;
 	float lastX,lastY;
 	Camera* m_Camera;

@@ -91,9 +91,8 @@ void EditorWindow::init()
     lvl->cameras.push_back(EngineState::state->editorCamera);
 
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
-    ClientHandler::clientHandler = new ClientHandler();
-    ClientHandler::clientHandler->inputHandler = new InputHandler(camera, mWindow, 800, 600);
-    InputHandler::currentInputHandler = ClientHandler::clientHandler->inputHandler;
+    mClientHandler = std::make_unique<ClientHandler>();
+    mClientHandler->inputHandler = new InputHandler(camera, mWindow, 800, 600);
 
     lvl->loadMainLevelOfCurrentProject();
 
@@ -139,7 +138,7 @@ void EditorWindow::tick()
         EngineState::state->bus.dispatch(e);
     });
 
-    auto activeCamera = InputHandler::currentInputHandler->m_Camera;
+    auto activeCamera = (mClientHandler && mClientHandler->inputHandler) ? mClientHandler->inputHandler->m_Camera : nullptr;
     float currentFrame = glfwGetTime();
     float deltaTime = currentFrame - EngineState::state->lastFrame;
     EngineState::state->deltaTime = deltaTime;
@@ -148,7 +147,8 @@ void EditorWindow::tick()
     auto& activeLevel = getActiveLevel();
     auto& lvlrenderables = activeLevel.renderables;
 
-    ClientHandler::clientHandler->inputHandler->handleInput(EngineState::state->deltaTime, *mInputCtx);
+    if (mClientHandler && mClientHandler->inputHandler)
+        mClientHandler->inputHandler->handleInput(EngineState::state->deltaTime, *mInputCtx);
 
     if (EngineState::state->isPlay)
     {
@@ -157,7 +157,8 @@ void EditorWindow::tick()
             if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
             {
                 activeCamera = character->camera;
-                ClientHandler::clientHandler->inputHandler->m_Camera = activeCamera;
+                if (mClientHandler && mClientHandler->inputHandler)
+                    mClientHandler->inputHandler->m_Camera = activeCamera;
             }
 
         if (getPhysicsSystem().isFirstPhysicsEnabledFrame == true)
@@ -175,9 +176,13 @@ void EditorWindow::tick()
     }
     else
     {
-        InputHandler::currentInputHandler->m_Camera = activeLevel.cameras[0];
+        if (mClientHandler && mClientHandler->inputHandler)
+            mClientHandler->inputHandler->m_Camera = activeLevel.cameras[0];
         getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
     }
+
+    if (!activeCamera)
+        return;
 
     mPostProcess->attachFBO();
 

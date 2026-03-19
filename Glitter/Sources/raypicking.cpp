@@ -207,7 +207,9 @@ int handlePicking(
     ZoneScopedN("RayPickingDraw");
     // -2 means no mouse click; -1 means mouse click but no selection detected; >-1 means index of the selected model
     int selectedModelIndex = -2;
-    if(InputHandler::currentInputHandler->leftClickPressed)
+    auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(glfwGetCurrentContext()));
+    InputHandler* ih = ud ? ud->handler : nullptr;
+    if(ih && ih->leftClickPressed)
     {
         setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;

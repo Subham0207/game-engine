@@ -10,7 +10,6 @@
 
 #include "Event/InputContext.hpp"
 
-InputHandler* InputHandler::currentInputHandler = nullptr;
 
 namespace
 {

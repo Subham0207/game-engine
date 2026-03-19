@@ -36,7 +36,9 @@ ProjectManagerHandler::ProjectManagerHandler() : mWindow(nullptr)
 
 int ProjectManagerHandler::startProjectManager()
 {
-    ClientHandler::clientHandler = new ClientHandler();
+    // Project manager only needs this for legacy input plumbing.
+    // Kept local to avoid global singleton state.
+    auto clientHandler = std::make_unique<ClientHandler>();
 
     if (fs::exists(mPath / "user_prefs.json")) {
         std::ifstream infile(mPath / "user_prefs.json");

@@ -3,6 +3,4 @@
 //
 
 #include "Controls/ClientHandler.hpp"
-
-ClientHandler* ClientHandler::clientHandler = nullptr;
 ClientHandler::ClientHandler()= default;
