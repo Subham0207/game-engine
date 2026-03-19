@@ -259,10 +259,11 @@ void EditorWindow::tick()
 
     if (EngineState::state->isDevMode)
     {
-            mRayCastObjectSelector->HandleSelection(
+        mRayCastObjectSelector->HandleSelection(
             mOutliner.get(),
             activeCamera,
-            &activeLevel);
+            &activeLevel,
+            (mClientHandler ? mClientHandler->inputHandler : nullptr));
 
         mOutliner->Render(*mLevel);
         mAssetBrowser->RenderAssetBrowser();

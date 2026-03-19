@@ -14,13 +14,14 @@ class Shader;
 class Outliner;
 class Camera;
 class Level;
+class InputHandler;
 namespace Debug
 {
     class Raycast
     {
     public:
         Raycast(fs::path basePath);
-        void HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level);
+        void HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input);
     private:
         Shader *rayCastshader;
         glm::vec3 rayOrigin, rayDir;

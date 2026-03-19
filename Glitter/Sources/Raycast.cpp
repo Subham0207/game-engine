@@ -11,7 +11,6 @@
 #include "Helpers/raypicking.hpp"
 #include "Helpers/shader.hpp"
 #include "UI/outliner.hpp"
-#include <GLFW/glfw3.h>
 
 namespace Debug
 {
@@ -24,7 +23,7 @@ namespace Debug
             rayFragPath.u8string().c_str());
     }
 
-    void Raycast::HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level)
+    void Raycast::HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input)
     {
         ImGuizmo::BeginFrame();
         // Set the window and matrix for ImGuizmo
@@ -37,25 +36,21 @@ namespace Debug
         rayCastshader->use();
         activeCamera->updateMVP(rayCastshader->ID);
 
-        // Per-window input: read from the currently active GLFW context window.
-        auto* wnd = glfwGetCurrentContext();
-        auto* ud = wnd ? static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(wnd)) : nullptr;
-        InputHandler* ih = ud ? ud->handler : nullptr;
-        if (!ih || !ih->m_Camera)
+        if (!input || !input->m_Camera)
             return;
 
-        auto view = ih->m_Camera->viewMatrix();
-        auto proj = ih->m_Camera->projectionMatrix();
+        auto view = input->m_Camera->viewMatrix();
+        auto proj = input->m_Camera->projectionMatrix();
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
-            ih->lastX,
-            ih->lastY,
+            input->lastX,
+            input->lastY,
             renderables,
             view,
             proj,
             rayCastshader->ID,
             rayOrigin,
             rayDir,
-            ih->m_Camera->getCameraLookAtDirectionVector()
+            input->m_Camera->getCameraLookAtDirectionVector()
         );
         if(getSelectedIndexFromMouseCurrentFrame > -2)
             outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);
