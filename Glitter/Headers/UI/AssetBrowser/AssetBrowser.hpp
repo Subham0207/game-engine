@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 
 //Note: These types are of files that can be used in the game engine.
 // So FBX is loaded and saved in a custom ModelType format and the game engine deals with these files.
-
+class Level;
 namespace ProjectAsset{
     Asset* convertFilenameToAsset(fs::directory_entry entry);
 

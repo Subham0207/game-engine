@@ -94,6 +94,12 @@ void EditorWindow::init()
     mInputHandler->movementSpeed = mEditorCameraMoveSpeed;
     mClientHandler->inputHandler = mInputHandler.get();
 
+    // Provide window-local input/event systems to the Level so any spawned Character
+    // can receive the correct InputHandler/EventQueue via Level::spawnCharacter().
+    lvl->setInputHandler(mInputHandler.get());
+    lvl->setEventQueue(mQueue.get());
+    lvl->setEventBus(&EngineState::state->bus);
+
     lvl->loadMainLevelOfCurrentProject();
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);

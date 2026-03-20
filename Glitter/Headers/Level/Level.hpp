@@ -16,6 +16,7 @@
 #include <Renderable/renderable.hpp>
 #include <Sprites/text.hpp>
 #include <Serializable.hpp>
+#include <Event/EventBus.hpp>
 namespace fs = std::filesystem;
 namespace bs = boost::property_tree;
 
@@ -103,6 +104,15 @@ class Level: public Serializable{
         //------Navigation-Mesh---------
         void renderDebugNavMesh(Camera *camera);
         //--------
+
+        // Window-local systems (non-owning). Set by the owning GameWindow / EditorWindow.
+        InputHandler* inputHandler = nullptr;
+        EventQueue* eventQueue = nullptr;
+        EventBus* eventBus = nullptr;
+
+        void setInputHandler(InputHandler* handler) { inputHandler = handler; }
+        void setEventQueue(EventQueue* q) { eventQueue = q; }
+        void setEventBus(EventBus* b) { eventBus = b; }
     protected:
         
         void saveContent(fs::path contentFile, std::ostream& os) override;

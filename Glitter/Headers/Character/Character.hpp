@@ -13,6 +13,9 @@
 #include <Physics/capsule.hpp>
 #include <Serializable.hpp>
 #include <Controls/Empty.hpp>
+#include <Controls/Input.hpp>
+#include <Event/EventBus.hpp>
+#include <Event/EventQueue.hpp>
 
 #include "CharacterPrefabConfig.hpp"
 
@@ -184,6 +187,15 @@ public:
 
     const std::string typeName() const override {return "character"; }
     const std::string contentName() override {return filename; }
+
+    // Window-local input/event access (non-owning). Injected by Level when spawning.
+    InputHandler* inputHandler = nullptr;
+    EventQueue* eventQueue = nullptr;
+    EventBus* eventBus = nullptr;
+
+    void setInputHandler(InputHandler* handler) { inputHandler = handler; }
+    void setEventQueue(EventQueue* q) { eventQueue = q; }
+    void setEventBus(EventBus* b) { eventBus = b; }
 
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;

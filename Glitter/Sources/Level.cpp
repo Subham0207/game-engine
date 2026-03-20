@@ -203,6 +203,12 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
 
     auto character = CharacterFactory::Create(characterPrefab.classId);
 
+    // Inject window-local input/event systems (non-owning) so Character gameplay code
+    // can use the correct window's input + event queue.
+    character->setInputHandler(this->inputHandler);
+    character->setEventQueue(this->eventQueue);
+    character->setEventBus(this->eventBus);
+
     character->filename = actualFilePath.filename().stem().string();
     character->setWorldTransform(transform);
     if (instanceId.empty())
