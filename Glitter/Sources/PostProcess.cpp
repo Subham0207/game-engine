@@ -23,11 +23,16 @@ PostProcess::PostProcess()
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
+    // Cache the initial framebuffer size from the current globals (updated by GLFW framebuffer callback).
+    // These must be kept in sync via PostProcess::resize().
+    mFbWidth = mWidth;
+    mFbHeight = mHeight;
+
     // 1. Create the texture (The "screenTexture")
     glGenTextures(1, &screenTexture);
     glBindTexture(GL_TEXTURE_2D, screenTexture);
     // Use GL_RGB16F for HDR (High Dynamic Range) support!
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, (float)mWidth, (float)mHeight, 0, GL_RGB, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mFbWidth, mFbHeight, 0, GL_RGB, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -38,7 +43,7 @@ PostProcess::PostProcess()
 
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, (float)mWidth, (float)mHeight);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mFbWidth, mFbHeight);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
     auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -47,6 +52,36 @@ PostProcess::PostProcess()
         std::cout << "Frame buffer error: " << fboStatus << std::endl;
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void PostProcess::resize(int fbWidth, int fbHeight)
+{
+    if (fbWidth <= 0 || fbHeight <= 0)
+        return;
+
+    if (fbWidth == mFbWidth && fbHeight == mFbHeight)
+        return;
+
+    mFbWidth = fbWidth;
+    mFbHeight = fbHeight;
+
+    // Resize color attachment
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, mFbWidth, mFbHeight, 0, GL_RGB, GL_FLOAT, nullptr);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Resize depth/stencil attachment
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, mFbWidth, mFbHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "Frame buffer error (resize): " << fboStatus << std::endl;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -69,6 +104,8 @@ void PostProcess::draw(
     // --- STEP 2: RENDER THE FBO TO THE SCREEN ---
     // Now we switch to the "Actual Monitor" (0)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Make sure we cover the whole window framebuffer after resizes / HiDPI scaling.
+    glViewport(0, 0, mWidth, mHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     postProcessShader->use();
@@ -80,6 +117,8 @@ void PostProcess::draw(
     postProcessShader->setFloat("exposure", exposure);
 
     // Draw the fullscreen triangle/quad
+    // Scissor can clip fullscreen passes and look like black bars.
+    glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
     renderFullscreenTriangle();
     glEnable(GL_DEPTH_TEST);
@@ -89,6 +128,7 @@ void PostProcess::attachFBO()
 {
     // --- STEP 1: RENDER THE SCENE TO THE FBO ---
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, mFbWidth, mFbHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

@@ -12,6 +12,8 @@ class PostProcess
 {
 public:
     PostProcess();
+    // Must be called whenever the window framebuffer size changes (GLFW framebuffer size callback).
+    void resize(int fbWidth, int fbHeight);
     void draw(
         ShadowPass shadowPass,
         LightingPass lightingPass,
@@ -27,12 +29,15 @@ public:
     [[nodiscard]] unsigned int getScreenTexture() const { return screenTexture; }
 
 private:
-    unsigned int fbo;
-    unsigned int rbo;
-    unsigned int screenTexture;
-    Shader* postProcessShader;
+    unsigned int fbo = 0;
+    unsigned int rbo = 0;
+    unsigned int screenTexture = 0;
+    Shader* postProcessShader = nullptr;
 
     float exposure = 0.3f;
+
+    int mFbWidth = 0;
+    int mFbHeight = 0;
 
     void renderFullscreenTriangle();
 };

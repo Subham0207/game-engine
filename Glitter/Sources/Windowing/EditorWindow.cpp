@@ -191,6 +191,24 @@ void EditorWindow::tickImpl()
 
     mPostProcess->attachFBO();
 
+    // Keep the camera projection aspect ratio in sync with the actual framebuffer size.
+    // Camera::tick() uses the global mWidth/mHeight from Helpers/glitter.hpp.
+    // When the window is resized, those globals should be updated by the framebuffer callback,
+    // but multi-window and timing can make that unreliable.
+    // Querying here ensures the view frustum matches the current render target.
+    {
+        int fbW = 0, fbH = 0;
+        glfwGetFramebufferSize(mWindow, &fbW, &fbH);
+        if (fbW > 0 && fbH > 0)
+        {
+            mWidth = fbW;
+            mHeight = fbH;
+            // Also keep the postprocess FBO sized correctly.
+            if (mPostProcess)
+                mPostProcess->resize(fbW, fbH);
+        }
+    }
+
     activeCamera->tick();
 
     mSkyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
