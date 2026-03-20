@@ -56,12 +56,33 @@ Located at: `Glitter/Sources/Editor.cpp`
 1. Engine init (create `EngineState`, bootstrap Lua)
 2. Create a list of `GameWindow` instances:
    - `EditorWindow`
-   - `StateMachineWindow`
+   - (Tool windows like `StateMachineWindow` are spawned on-demand)
 3. Run a loop that picks the **focused** window as the active window, switches GL + ImGui contexts when focus changes, and calls `tick()` only on that active window.
 4. Per closed window: call `shutdown()` (and erase from the array)
 5. Terminate GLFW once after all windows are closed
 
 This makes `openEditor()` behave as a **window spawner / manager** rather than owning a single monolithic render loop.
+
+#### On-demand tool window spawning (current)
+
+The `Editor` loop contains a reusable helper that can spawn/focus windows based on a request flag:
+
+```cpp
+template<typename TWindow, typename... TArgs>
+void spawnOrFocusWindowOnRequest(
+    std::vector<std::unique_ptr<GameWindow>>& windows,
+    bool& requestToOpenWindow,
+    GLFWwindow*& outGlfwHandle,
+    TArgs&&... args);
+```
+
+The helper:
+
+- Consumes `requestToOpenWindow` (sets it back to `false`)
+- If an instance already exists, focuses it
+- Otherwise creates `TWindow`, appends it to the `windows` array, and calls `init()`
+
+This is how `StateMachineWindow` is opened from the UI without creating it at editor startup.
 
 ---
 
@@ -77,6 +98,19 @@ This is the main editor window:
 - Creates the main GLFW window via `Shared::InitBackEndsWithWindow()`
 - Replaces the legacy global ImGui backend initialization with a **dedicated ImGui context** per window
 - Owns the editor scene setup (level, skybox, lights, raycast selector, postprocess, etc.)
+
+#### Window open requests (UI -> Editor)
+
+`EditorWindow` exposes a small request struct:
+
+```cpp
+struct WindowRequests
+{
+    bool openStateMachineWindow = false;
+};
+```
+
+This struct is meant to be written by UI widgets (ex: Outliner button click), and then consumed by the window manager loop in `Editor.cpp`.
 
 ### `StateMachineWindow`
 Files:
@@ -183,6 +217,17 @@ This provides independent UI + input behavior between both windows.
 
 ---
 
+## UI triggers for tool windows (StateMachineWindow)
+
+Currently, the Outliner has a "Create new statmachine" button. Instead of directly creating a GLFW window (or running another loop), it:
+
+1. Sets the injected request flag: `EditorWindow::WindowRequests::openStateMachineWindow = true`
+2. The `Editor::openEditor()` window manager sees the request and calls `spawnOrFocusWindowOnRequest<StateMachineWindow>(...)`
+
+This means the Outliner does not own the `windows` array and does not directly create/destroy `GameWindow` instances.
+
+---
+
 ## Raycast selection input (no globals)
 
 `Debug::Raycast::HandleSelection` was updated to avoid relying on any global/static input pointer. It now takes an explicit `InputHandler*`:
@@ -229,6 +274,11 @@ The StateMachine window uses `drawUIEmbedded()` so the node graph can live insid
 - `WindowInputUserData` is currently allocated and never freed. Add cleanup in window shutdown.
 - Many includes in `Editor.cpp` are now legacy / unused after refactor.
 - Consider consolidating shared renderer assets between windows once the API is stable.
+
+- **Important refactor (decoupling)**: opening tool windows should move to the existing **`EventQueue`** in `GameWindow`.
+  - Right now, Outliner is still coupled to `EditorWindow` via an injected pointer to a request flag.
+  - A better design is: Outliner publishes an event (ex: `OpenWindow(StateMachine)`), and the Editor/window-manager (or a central dispatcher) consumes it and spawns windows.
+  - This will remove the last direct coupling between UI widgets and window-management objects.
 
 - `GameWindow` currently creates a per-window `FlyCam` so even UI-only windows can install an `InputHandler` (needed because ImGui uses `install_callbacks=false`). We can later create a UI-only input layer or allow windows to opt-out of camera creation.
 
