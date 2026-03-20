@@ -59,7 +59,21 @@ public:
     void tickImpl() override;
     void shutdown() override;
 
+    // Editor-level UI requests that need to be handled by the window manager (Editor.cpp).
+    struct WindowRequests
+    {
+        bool openStateMachineWindow = false;
+    };
+
+    [[nodiscard]] WindowRequests& windowRequests() { return mWindowRequests; }
+    [[nodiscard]] const WindowRequests& windowRequests() const { return mWindowRequests; }
+
 private:
+
+    WindowRequests mWindowRequests;
+
+    // Per-window editor camera movement speed (WASD). Edited from Outliner UI.
+    float mEditorCameraMoveSpeed = 2.5f;
 
     std::unique_ptr<Level> mLevel;
     std::unique_ptr<Lighting::Skybox> mSkyBox;

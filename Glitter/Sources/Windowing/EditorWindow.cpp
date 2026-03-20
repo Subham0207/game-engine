@@ -91,7 +91,7 @@ void EditorWindow::init()
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
     mClientHandler = std::make_unique<ClientHandler>();
     mInputHandler = std::make_unique<InputHandler>(camera, mWindow, 800.0f, 600.0f);
-    mInputHandler->movementSpeed = EngineState::state->editorCameraSpeed;
+    mInputHandler->movementSpeed = mEditorCameraMoveSpeed;
     mClientHandler->inputHandler = mInputHandler.get();
 
     lvl->loadMainLevelOfCurrentProject();
@@ -107,6 +107,8 @@ void EditorWindow::init()
     mLights->initDefaultLights();
 
     mOutliner = std::make_unique<Outliner>();
+    // Allow Outliner to request opening tool windows (handled by Editor.cpp window manager).
+    mOutliner->windowRequests.openStateMachineWindow = &mWindowRequests.openStateMachineWindow;
     mAssetBrowser = std::make_unique<ProjectAsset::AssetBrowser>();
     mNodeGraph = std::make_unique<NodeGraph>();
 
@@ -256,13 +258,16 @@ void EditorWindow::tickImpl()
 
     if (EngineState::state->isDevMode)
     {
+        // Keep handler in sync with UI-edited speed.
+        mInputHandler->movementSpeed = mEditorCameraMoveSpeed;
+
         mRayCastObjectSelector->HandleSelection(
             mOutliner.get(),
             activeCamera,
             &activeLevel,
             mInputHandler.get());
 
-        mOutliner->Render(*mLevel);
+        mOutliner->Render(*mLevel, mEditorCameraMoveSpeed);
         mAssetBrowser->RenderAssetBrowser();
     }
 

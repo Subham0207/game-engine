@@ -17,8 +17,18 @@ public:
         getUIState().selectedRenderableIndex = -1;
     }
 
-    // Render the radio buttons
-    void Render(Level &lvl);
+    // Render the outliner. The editor camera move speed is provided by the owning window
+    // (e.g. EditorWindow) so Outliner doesn't need to reach into EngineState for per-window settings.
+    void Render(Level &lvl, float& editorCameraMoveSpeed);
+
+    // Optional: allow the owning editor window to provide a request sink for opening tool windows.
+    // This is intentionally a raw pointer: Outliner doesn't own it; EditorWindow does.
+    struct WindowRequests
+    {
+        bool* openStateMachineWindow = nullptr;
+    };
+
+    WindowRequests windowRequests;
 
     // Get the index of the currently selected radio button
     int GetSelectedIndex() const {
@@ -33,7 +43,7 @@ private:
 
     void ModelAndTextureSelectionWindow();
     void ModelMatrixComponent();
-    void levelControlsComponent(Level &lvl);
+    void levelControlsComponent(Level &lvl, float& editorCameraMoveSpeed);
     void modelSelectorComponent();
     void coordinateSystemSelectorComponent();
     void manageModels();

@@ -13,7 +13,7 @@
 #include "UI/FileExplorer.hpp"
 #include "UI/ModelUI/ModelUI.hpp"
 
-void Outliner::Render(Level &lvl) {
+void Outliner::Render(Level &lvl, float& editorCameraMoveSpeed) {
     ZoneScopedN("OutlinerDraw");
     if(ImGui::Begin("Outliner"))
     {
@@ -28,7 +28,7 @@ void Outliner::Render(Level &lvl) {
             getUIState().renderNavMesh = !getUIState().renderNavMesh;
         }
 
-        levelControlsComponent(lvl);
+        levelControlsComponent(lvl, editorCameraMoveSpeed);
 
         coordinateSystemSelectorComponent();
 
@@ -220,11 +220,11 @@ void Outliner::ModelMatrixComponent()
             }
         }
 }
-void Outliner::levelControlsComponent(Level &lvl)
+void Outliner::levelControlsComponent(Level &lvl, float& editorCameraMoveSpeed)
 {
     ImGui::SeparatorText("Editor Camera settings");
     ImGui::InputFloat("Sensitivity", &EngineState::state->editorCamera->getSensitivityRef());
-    ImGui::InputFloat("MoveSpeed", &EngineState::state->editorCameraSpeed);
+    ImGui::InputFloat("MoveSpeed", &editorCameraMoveSpeed);
 
     ImGui::Text("Current Level %s", lvl.levelname.c_str());
     if(ImGui::Button("Save Level"))
@@ -265,7 +265,17 @@ void Outliner::levelControlsComponent(Level &lvl)
 
     if(ImGui::Button("Create new statmachine"))
     {
-        UI::StatemachineUI::start();
+        // Request opening a dedicated StateMachineWindow.
+        // The owning EditorWindow injects a request flag; the Editor window manager spawns the window.
+        if (windowRequests.openStateMachineWindow)
+            *windowRequests.openStateMachineWindow = true;
+
+        // If already spawned, we can focus it immediately.
+        if (EngineState::state && EngineState::state->mStatemachineWindow)
+        {
+            glfwShowWindow(EngineState::state->mStatemachineWindow);
+            glfwFocusWindow(EngineState::state->mStatemachineWindow);
+        }
     }
 
     if(ImGui::Button("Create new AI"))

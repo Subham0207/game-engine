@@ -24,6 +24,40 @@
 #include "Windowing/StateMachineWindow.hpp"
 #include <memory>
 
+namespace
+{
+    template<typename TWindow, typename... TArgs>
+    void spawnOrFocusWindowOnRequest(
+        std::vector<std::unique_ptr<GameWindow>>& windows,
+        bool& requestToOpenWindow,
+        GLFWwindow*& outGlfwHandle,
+        TArgs&&... args)
+    {
+        if (!requestToOpenWindow)
+            return;
+        requestToOpenWindow = false;
+
+        // If an instance is already alive, just show/focus it.
+        if (outGlfwHandle && !glfwWindowShouldClose(outGlfwHandle))
+        {
+            glfwShowWindow(outGlfwHandle);
+            glfwFocusWindow(outGlfwHandle);
+            return;
+        }
+
+        windows.emplace_back(std::make_unique<TWindow>(std::forward<TArgs>(args)...));
+        windows.back()->init();
+
+        // `init()` implementations are expected to assign their GLFWwindow* into EngineState
+        // (e.g. EngineState::state->mStatemachineWindow).
+        if (outGlfwHandle)
+        {
+            glfwShowWindow(outGlfwHandle);
+            glfwFocusWindow(outGlfwHandle);
+        }
+    }
+}
+
 int Editor::openEditor() {
     // 1) Engine init (once)
     auto state = new EngineState();
@@ -37,14 +71,25 @@ int Editor::openEditor() {
     windows.emplace_back(std::make_unique<EditorWindow>());
     windows.back()->init();
 
-    // Create StateMachine window as a fully separate window (no shared GL context)
-    windows.emplace_back(std::make_unique<StateMachineWindow>(nullptr));
-    windows.back()->init();
+    // Keep a typed pointer for request handling (we only create one EditorWindow).
+    auto* editorWindow = static_cast<EditorWindow*>(windows.front().get());
+
+    // Windows are spawned on-demand (e.g. StateMachineWindow is created when requested from the UI).
 
     // 3) Drive all windows from one loop
     GameWindow* activeWindow = nullptr;
     while (!windows.empty())
     {
+        // Spawn on-demand tool windows requested from UI (handled by Editor.cpp, not EngineState).
+        if (EngineState::state && editorWindow)
+        {
+            spawnOrFocusWindowOnRequest<StateMachineWindow>(
+                windows,
+                editorWindow->windowRequests().openStateMachineWindow,
+                EngineState::state->mStatemachineWindow,
+                nullptr);
+        }
+
         // Pick the actively focused window.
         GameWindow* focused = nullptr;
         for (auto& w : windows)
