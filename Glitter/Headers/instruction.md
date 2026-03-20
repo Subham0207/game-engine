@@ -240,6 +240,39 @@ void HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* leve
 
 ---
 
+## Passing Input/Event systems into `Level` + `Character`
+
+To reduce reliance on hidden globals (and to make multi-window input more deterministic), `Level` and `Character` now hold **non-owning pointers** to the window-local input/event systems.
+
+### `Level` owns pointers to:
+
+- `InputHandler*` (the InputHandler created by the owning `GameWindow`)
+- `EventQueue*` (the per-window queue from `GameWindow::mQueue`)
+- `EventBus*` (currently the global engine bus: `&EngineState::state->bus`)
+
+These are set by `EditorWindow` after it creates the input handler:
+
+- `lvl->setInputHandler(mInputHandler.get());`
+- `lvl->setEventQueue(mQueue.get());`
+- `lvl->setEventBus(&EngineState::state->bus);`
+
+### Character injection during spawn
+
+`Level::spawnCharacter(...)` injects these same pointers into every newly created character:
+
+- `character->setInputHandler(level->inputHandler);`
+- `character->setEventQueue(level->eventQueue);`
+- `character->setEventBus(level->eventBus);`
+
+This enables character/controller code to:
+
+- read input from the **correct window** (via the injected `InputHandler*`)
+- publish or consume events via the injected `EventQueue*` and `EventBus*`
+
+> Note: right now `EventBus` is still sourced from `EngineState::state->bus`, but passing it explicitly makes dependencies visible and will allow replacing it later with a per-window bus or a world/scene bus if needed.
+
+---
+
 ## `EngineState` window pointers
 
 Previously the engine used a single global window pointer:
