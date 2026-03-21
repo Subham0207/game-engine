@@ -68,7 +68,7 @@ void EngineState::GenerateDefaultMaterials()
     getUIState().metalicTextureID = Shared::generateMetallicTexture();
     getUIState().nonMetalicTextureID = Shared::generateNonMetallicTexture();
     getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
-    // Reasonable default that avoids fully-rough (overly blurred/blocky) reflections.
+    // Default roughness texture used when a mesh has no material assigned.
     unsigned int defaultRoughnessTextureID = Shared::generateDefaultRoughnessTexture();
     getUIState().flatNormalTextureID= Shared::generateFlatNormalTexture();
 
