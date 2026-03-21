@@ -315,3 +315,117 @@ The StateMachine window uses `drawUIEmbedded()` so the node graph can live insid
 
 - `GameWindow` currently creates a per-window `FlyCam` so even UI-only windows can install an `InputHandler` (needed because ImGui uses `install_callbacks=false`). We can later create a UI-only input layer or allow windows to opt-out of camera creation.
 
+---
+
+# PostProcess FBO + fullscreen pass (resize-safe)
+
+This section documents the design for the **offscreen framebuffer (FBO) + postprocess fullscreen triangle** pipeline.
+
+## The symptom we fixed
+
+When rendering the 3D scene into an FBO texture and then drawing that texture to the screen with a fullscreen triangle + postprocess shader, we observed:
+
+- **Black strips/bars** at the top/right when switching to fullscreen.
+- Black strips when snapping/resizing the window (e.g. docking to one side of a monitor).
+
+These artifacts are almost always caused by a mismatch between:
+
+1) The **default framebuffer size** (GLFW *framebuffer* size in pixels)
+2) The **FBO attachment sizes** (screen color texture + depth/stencil RBO)
+3) The **current OpenGL viewport** when rendering into each target
+
+OpenGL does *not* automatically update viewport state when switching framebuffers, and an FBO’s attachments do *not* automatically resize when the window changes size.
+
+## Current implementation
+
+Files:
+- `Glitter/Headers/RenderPipeline/PostProcess.hpp`
+- `Glitter/Sources/PostProcess.cpp`
+
+### Key rules
+
+**Rule A: Always set viewport for the target you are rendering into**
+
+- When rendering the scene into the postprocess FBO: `glViewport(0,0,fboW,fboH)`
+- When rendering the fullscreen triangle to the default framebuffer: `glViewport(0,0,winFbW,winFbH)`
+
+**Rule B: Resize the FBO attachments when the window framebuffer size changes**
+
+`PostProcess` stores cached attachment dimensions:
+
+- `mFbWidth`, `mFbHeight`
+
+and exposes:
+
+- `PostProcess::resize(int fbWidth, int fbHeight)`
+
+Internally, resize reallocates:
+
+- the HDR color attachment (`screenTexture`) via `glTexImage2D`
+- the depth/stencil attachment (`rbo`) via `glRenderbufferStorage`
+
+and re-validates completeness with `glCheckFramebufferStatus`.
+
+**Rule C: Protect fullscreen passes from leftover state**
+
+At minimum, the postprocess fullscreen draw disables scissor:
+
+- `glDisable(GL_SCISSOR_TEST)`
+
+because scissor can clip the fullscreen triangle and look like “black bars”.
+
+## Camera aspect ratio: second-order issue
+
+After making the FBO + viewport resize-safe, we also saw a frustum/aspect mismatch that *looked like clipping* when the window got smaller.
+
+Root cause:
+
+- `Camera::tick()` computes perspective aspect ratio from global `mWidth/mHeight`.
+- In a multi-window engine, relying on global width/height is fragile.
+
+Current mitigation (EditorWindow):
+
+- In `EditorWindow::tickImpl()` we query the real per-window framebuffer size using `glfwGetFramebufferSize(mWindow, &fbW, &fbH)` and update:
+  - `mWidth = fbW; mHeight = fbH;`
+  - `mPostProcess->resize(fbW, fbH)`
+  - then call `activeCamera->tick()`
+
+This keeps the camera projection matrix consistent with the current render target.
+
+---
+
+# Upcoming refactor: reusable 3D scene rendering for any window
+
+We plan to render a real 3D scene inside `StateMachineWindow` (and potentially other tool windows). To avoid duplicating a large amount of custom rendering code per window, we should refactor the rendering pipeline around a reusable “scene view” concept.
+
+## Problem
+
+Today, the scene rendering logic is effectively embedded in `EditorWindow` (level tick, lighting, shadow, postprocess, skybox, etc.). Tool windows will need the same features (or a subset) without copying editor-specific behavior.
+
+## Direction
+
+Introduce a reusable component (names TBD):
+
+- `SceneView` / `SceneRenderer` / `ViewportRenderer`
+
+Responsibilities:
+
+1) Own a resizeable render target (FBO + color texture + depth/stencil)
+2) Expose a texture ID for ImGui embedding (or direct blit to window)
+3) Provide explicit `resize(fbW, fbH)` and enforce viewport correctness
+4) Render a set of `Renderable`s with a provided `Camera*` and `Lights*`
+
+Then each window does only:
+
+- Determine its desired viewport region size (full window framebuffer, or an ImGui child region)
+- Call `sceneView.resize(w,h)`
+- Call `sceneView.render(...)`
+- Display the resulting texture (either postprocess-to-screen OR ImGui::Image)
+
+## Notes
+
+- The “authoritative size” should be the **framebuffer pixel size** (GLFW framebuffer size).
+- If we render into an ImGui panel, we must compute the panel size in pixels and resize the scene view accordingly.
+- Avoid global `mWidth/mHeight` for camera projection. Prefer per-camera or per-scene-view dimensions.
+
+
