@@ -76,16 +76,31 @@ void CubeMap::setupEnvMap(Shader equirectangularToCubemapShader)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // Define mip range up-front; ensures a well-defined mip chain after glGenerateMipmap.
+    // 512 -> 256 -> ... -> 1  == 10 levels total (0..9)
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 9);
+
     // pbr: convert HDR equirectangular environment map to cubemap equivalent
     // ----------------------------------------------------------------------
     equirectangularToCubemapShader.use();
     // equirectangularToCubemapShader.setInt("equirectangularMap", 0); //being set in the shader.
     equirectangularToCubemapShader.setMat4("projection", captureProjection);
+
+    // Debug/tuning: clamp extreme HDR radiance to avoid NaNs/Infs poisoning mipmap generation.
+    // Increase this if your HDRI legitimately contains higher values and your pipeline remains stable.
+    equirectangularToCubemapShader.setFloat("u_HDRClampMax", 65000.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
     glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
+    // Ensure stable state during capture (avoid any previously enabled blending affecting results)
+    GLboolean wasBlendEnabled = glIsEnabled(GL_BLEND);
+    if (wasBlendEnabled) glDisable(GL_BLEND);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
     for (unsigned int i = 0; i < 6; ++i)
     {
         equirectangularToCubemapShader.setMat4("view", captureViews[i]);
@@ -96,8 +111,14 @@ void CubeMap::setupEnvMap(Shader equirectangularToCubemapShader)
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    if (wasBlendEnabled) glEnable(GL_BLEND);
+
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    // Debug: write the generated env cubemap + mips to disk.
+    // If mip > 0 already contains black squares here, the issue is in mipmap generation/source data.
+    writeTextureToDisk(512, 512, envCubemap, true, false, "env");
 
 }
 

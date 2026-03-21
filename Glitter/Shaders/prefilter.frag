@@ -5,6 +5,11 @@ in vec3 localPos;
 layout(binding = 0) uniform samplerCube environmentMap;
 uniform float roughness;
 
+// Must match the envCubemap resolution created in CubeMap::setupEnvMap (512x512)
+const float ENV_CUBEMAP_RESOLUTION = 512.0;
+// Must match maxMipLevels in CubeMap::setupPrefilterMap (5 mips: 0..4)
+const float MAX_PREFILTER_MIP = 4.0;
+
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -87,25 +92,31 @@ void main()
             float D   = DistributionGGX(N, H, roughness);
             float NdotH = max(dot(N, H), 0.0);
             float HdotV = max(dot(H, V), 0.0);
-            float pdf = D * NdotH / (4.0 * HdotV) + 0.0001;
+            // Avoid division by 0 / denormals that can produce NaNs on some drivers.
+            float pdf = D * NdotH / max(4.0 * HdotV, 1e-4) + 1e-4;
 
-            float resolution = 512.0; // resolution of source cubemap (per face)
-            float saTexel  = 4.0 * PI / (6.0 * resolution * resolution);
+            float saTexel  = 4.0 * PI / (6.0 * ENV_CUBEMAP_RESOLUTION * ENV_CUBEMAP_RESOLUTION);
             float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
 
             float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
-            mipLevel = clamp(mipLevel, 0.0, 5.0);
+
+            // GLSL 420: textureQueryLevels is not available.
+            // Clamp to what we *know* exists for the source env cubemap (512 -> ... -> 1 == 10 levels).
+            // Only need a few mips for the prefilter pass anyway.
+            mipLevel = clamp(mipLevel, 0.0, MAX_PREFILTER_MIP);
 
             vec3 sampleColor = textureLod(environmentMap, L, mipLevel).rgb;
-
-            if (any(isnan(sampleColor)) || any(isinf(sampleColor))){continue;}
 
             prefilteredColor += sampleColor * NdotL;
             totalWeight += NdotL;
         }
     }
 
-    prefilteredColor = prefilteredColor / totalWeight;
+    // Avoid NaN when totalWeight becomes 0 (can happen for edge cases / numerical issues)
+    if (totalWeight > 0.0)
+        prefilteredColor = prefilteredColor / totalWeight;
+    else
+        prefilteredColor = vec3(0.0);
 
     FragColor = vec4(prefilteredColor, 1.0);
     // FragColor = vec4(1.0, 0.0, 0.0, 1.0);
