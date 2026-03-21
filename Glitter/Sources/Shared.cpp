@@ -77,6 +77,16 @@ unsigned int Shared::generateWhiteAOTexture()
     unsigned char pixel[4] = {255, 255, 255, 255};
     return Shared::generateTexture(pixel);
 }
+
+namespace Shared {
+    unsigned int generateDefaultRoughnessTexture()
+    {
+        // Mid roughness provides a reasonable default reflection sharpness.
+        // Roughness is sampled from the red channel in the PBR shader.
+        unsigned char pixel[4] = {128, 128, 128, 255};
+        return Shared::generateTexture(pixel);
+    }
+}
 unsigned int Shared::generateFlatNormalTexture()
 {
     unsigned char pixel[4] = {128, 128, 255, 255};

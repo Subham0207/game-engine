@@ -6,6 +6,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <Helpers/shader.hpp>
 
+#include <algorithm>
+#include <cmath>
+
 class CubeMap{
 public:
 
@@ -146,8 +149,16 @@ private:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
             //Setup Mipmaps: How image renders at distance. GL_LINEAR is avg of four neighboring pixels.
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            // Generate mipmaps so downsampling is stable when the HDR is sampled at varying frequencies.
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // Ensure the full mip chain is accessible.
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+            // Max level will be derived from the full chain (floor(log2(max(w,h))))
+            int maxLevel = (int)std::floor(std::log2((float)std::max(width, height)));
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, maxLevel);
 
             stbi_image_free(data);
         }

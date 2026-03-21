@@ -5,6 +5,10 @@ in vec3 localPos;
 layout(binding = 0) uniform samplerCube environmentMap;
 uniform float roughness;
 
+// Prevent extremely bright texels (e.g., sun) from blowing out low-res prefilter mips.
+// This is similar to the safety clamp used during env capture; tune as needed.
+uniform float u_PrefilterEnvClampMax;
+
 // Must match the envCubemap resolution created in CubeMap::setupEnvMap (512x512)
 const float ENV_CUBEMAP_RESOLUTION = 512.0;
 // Must match maxMipLevels in CubeMap::setupPrefilterMap (5 mips: 0..4)
@@ -106,6 +110,9 @@ void main()
             mipLevel = clamp(mipLevel, 0.0, MAX_PREFILTER_MIP);
 
             vec3 sampleColor = textureLod(environmentMap, L, mipLevel).rgb;
+            // Stabilize convolution for very bright HDR texels.
+            float clampMax = (u_PrefilterEnvClampMax > 0.0) ? u_PrefilterEnvClampMax : 10000.0;
+            sampleColor = clamp(sampleColor, vec3(0.0), vec3(clampMax));
 
             prefilteredColor += sampleColor * NdotL;
             totalWeight += NdotL;

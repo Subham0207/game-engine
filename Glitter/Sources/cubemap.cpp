@@ -89,7 +89,7 @@ void CubeMap::setupEnvMap(Shader equirectangularToCubemapShader)
 
     // Debug/tuning: clamp extreme HDR radiance to avoid NaNs/Infs poisoning mipmap generation.
     // Increase this if your HDRI legitimately contains higher values and your pipeline remains stable.
-    equirectangularToCubemapShader.setFloat("u_HDRClampMax", 65000.0f);
+    equirectangularToCubemapShader.setFloat("u_HDRClampMax", 10000.0f);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
@@ -101,6 +101,7 @@ void CubeMap::setupEnvMap(Shader equirectangularToCubemapShader)
     if (wasBlendEnabled) glDisable(GL_BLEND);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    // Cubemap capture renders from inside the cube; culling can drop some faces depending on winding.
     for (unsigned int i = 0; i < 6; ++i)
     {
         equirectangularToCubemapShader.setMat4("view", captureViews[i]);
@@ -149,6 +150,7 @@ void CubeMap::setupIrradianceMap(Shader irradianceShader)
 
     glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
     for (unsigned int i = 0; i < 6; ++i)
     {
         irradianceShader.setMat4("view", captureViews[i]);
@@ -198,10 +200,13 @@ void CubeMap::setupPrefilterMap(Shader prefilterShader)
 
         prefilterShader.use();
         prefilterShader.setMat4("projection", captureProjection);
+        // Clamp extremely bright env values during convolution to avoid low-mip blowout.
+        prefilterShader.setFloat("u_PrefilterEnvClampMax", 500.0f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
         glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
         for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
         {
             // resize framebuffer according to mip-level size. So we have res: 128(shiny) -> 64 -> 32 -> 16 -> 8 (rough).

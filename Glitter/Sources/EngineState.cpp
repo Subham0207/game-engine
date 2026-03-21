@@ -68,6 +68,8 @@ void EngineState::GenerateDefaultMaterials()
     getUIState().metalicTextureID = Shared::generateMetallicTexture();
     getUIState().nonMetalicTextureID = Shared::generateNonMetallicTexture();
     getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
+    // Reasonable default that avoids fully-rough (overly blurred/blocky) reflections.
+    unsigned int defaultRoughnessTextureID = Shared::generateDefaultRoughnessTexture();
     getUIState().flatNormalTextureID= Shared::generateFlatNormalTexture();
 
     auto vertPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.vert";
@@ -77,7 +79,7 @@ void EngineState::GenerateDefaultMaterials()
     textureUnits.albedo->id = getUIState().nonMetalicTextureID;
     textureUnits.normal->id = getUIState().flatNormalTextureID;
     textureUnits.metalness->id = getUIState().nonMetalicTextureID;
-    textureUnits.roughness->id = getUIState().whiteAOTextureID;
+    textureUnits.roughness->id = defaultRoughnessTextureID;
     textureUnits.ao->id = getUIState().whiteAOTextureID;
     defaultMaterialInstance = std::make_shared<Materials::MaterialInstance>("defaultMaterialInstance", defaultMaterial) ;
 }
