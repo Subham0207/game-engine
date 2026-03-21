@@ -1,7 +1,5 @@
 #include "Windowing/EditorWindow.hpp"
 
-#include "Helpers/glitter.hpp"
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -191,24 +189,13 @@ void EditorWindow::tickImpl()
 
     mPostProcess->attachFBO();
 
-    // Keep the camera projection aspect ratio in sync with the actual framebuffer size.
-    // Camera::tick() uses the global mWidth/mHeight from Helpers/glitter.hpp.
-    // When the window is resized, those globals should be updated by the framebuffer callback,
-    // but multi-window and timing can make that unreliable.
-    // Querying here ensures the view frustum matches the current render target.
-    {
-        int fbW = 0, fbH = 0;
-        glfwGetFramebufferSize(mWindow, &fbW, &fbH);
-        if (fbW > 0 && fbH > 0)
-        {
-            mWidth = fbW;
-            mHeight = fbH;
-            // Also keep the postprocess FBO sized correctly.
-            if (mPostProcess)
-                mPostProcess->resize(fbW, fbH);
-        }
-    }
+    // Keep per-window render targets in sync with the actual window size.
+    // (In this engine, window == framebuffer.)
+    if (mPostProcess)
+        mPostProcess->resize(screenWidth(), screenHeight());
 
+    // Provide per-frame window sizing info to the camera without changing Camera::tick().
+    activeCamera->setFrameContext(frameContext());
     activeCamera->tick();
 
     mSkyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
@@ -286,6 +273,7 @@ void EditorWindow::tickImpl()
         mInputHandler->movementSpeed = mEditorCameraMoveSpeed;
 
         mRayCastObjectSelector->HandleSelection(
+            frameContext(),
             mOutliner.get(),
             activeCamera,
             &activeLevel,

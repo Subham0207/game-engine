@@ -23,6 +23,9 @@ void GameWindow::tick()
     if (EngineState::state)
         EngineState::state->deltaTime = mDeltaTime;
 
+    // Update cached screen size (pixels) for this window.
+    updateScreenSize();
+
     onBeginFrame();
     tickImpl();
 }

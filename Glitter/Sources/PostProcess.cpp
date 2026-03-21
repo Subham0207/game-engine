@@ -7,7 +7,6 @@
 #include <filesystem>
 
 #include "glad/glad.h"
-#include <Helpers/glitter.hpp>
 
 #include "EngineState.hpp"
 namespace fs = std::filesystem;
@@ -23,10 +22,10 @@ PostProcess::PostProcess()
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    // Cache the initial framebuffer size from the current globals (updated by GLFW framebuffer callback).
-    // These must be kept in sync via PostProcess::resize().
-    mFbWidth = mWidth;
-    mFbHeight = mHeight;
+    // Initialize to a safe default. The owning GameWindow is responsible for calling
+    // PostProcess::resize(screenWidth, screenHeight) every frame (or on resize).
+    mFbWidth = 1;
+    mFbHeight = 1;
 
     // 1. Create the texture (The "screenTexture")
     glGenTextures(1, &screenTexture);
@@ -105,7 +104,7 @@ void PostProcess::draw(
     // Now we switch to the "Actual Monitor" (0)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // Make sure we cover the whole window framebuffer after resizes / HiDPI scaling.
-    glViewport(0, 0, mWidth, mHeight);
+    glViewport(0, 0, mFbWidth, mFbHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     postProcessShader->use();

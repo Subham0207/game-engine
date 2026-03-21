@@ -3,7 +3,6 @@
 //
 
 #include "Editor.hpp"
-#include "Helpers/glitter.hpp"
 
 // System Headers
 #include <GLFW/glfw3.h>

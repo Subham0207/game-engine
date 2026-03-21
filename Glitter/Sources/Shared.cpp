@@ -5,7 +5,6 @@
 #include <glad/glad.h>
 #include <3DModel/Animation/Animation.hpp>
 #include <EngineState.hpp>
-#include "Helpers/glitter.hpp"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -170,9 +169,9 @@ GLFWwindow* Shared::initAWindow(bool isVsyncOn)
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-    mWidth = mode->width;
-    mHeight = mode->height;
-    GLFWwindow* window = glfwCreateWindow(mWidth, mHeight, "OpenGL", nullptr, nullptr);
+    const int initialWidth = mode->width;
+    const int initialHeight = mode->height;
+    GLFWwindow* window = glfwCreateWindow(initialWidth, initialHeight, "OpenGL", nullptr, nullptr);
 
     // Check for Valid Context
     if (window == nullptr) {
@@ -195,8 +194,6 @@ GLFWwindow* Shared::initAWindow(bool isVsyncOn)
 
 void Shared::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // Adjust viewport when the window is resized
-    mWidth = width;
-    mHeight = height;
     glViewport(0, 0, width, height);
 }
 

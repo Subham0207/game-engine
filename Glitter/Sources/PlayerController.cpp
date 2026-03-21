@@ -68,7 +68,12 @@ glm::quat Controls::PlayerController::faceMouseOnXZ(
 )
 {
     glm::vec3 O, D;
-    setRay(mouseX, mouseY, O, D, view, proj, glm::vec3(0.0f));
+    FrameContext frameCtx;
+    frameCtx.screenWidth = static_cast<int>(ImGui::GetIO().DisplaySize.x);
+    frameCtx.screenHeight = static_cast<int>(ImGui::GetIO().DisplaySize.y);
+    frameCtx.aspect = (frameCtx.screenHeight > 0) ? (static_cast<float>(frameCtx.screenWidth) / static_cast<float>(frameCtx.screenHeight)) : 1.0f;
+
+    setRay(mouseX, mouseY, frameCtx, O, D, view, proj, glm::vec3(0.0f));
 
     // Camera forward in world space
     glm::mat4 invView = glm::inverse(view);

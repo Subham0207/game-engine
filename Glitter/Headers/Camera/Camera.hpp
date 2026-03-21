@@ -6,6 +6,8 @@
 #include <serializeAClass.hpp>
 #include "Event/Event.hpp"
 
+#include "Windowing/FrameContext.hpp"
+
 class Camera
 {
 friend class InputHandler;
@@ -34,6 +36,9 @@ Camera();
 
 	virtual void onMouseMove(const MouseMoveEvent& e);
 
+	// Provide per-frame window sizing info (aspect ratio, etc.) without changing tick() signature.
+	void setFrameContext(const FrameContext& ctx) { mFrameContext = ctx; }
+
 	void tick();
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
@@ -54,6 +59,8 @@ private:
 
 	glm::mat4 view;
 	glm::mat4 projection = glm::mat4(1.0f);
+
+	FrameContext mFrameContext{};
 
 	friend class boost::serialization::access;
     template<class Archive>

@@ -11,6 +11,8 @@
 #include "Event/EventQueue.hpp"
 #include "Event/InputContext.hpp"
 
+#include "Windowing/FrameContext.hpp"
+
 // Needed because GameWindow owns and constructs std::unique_ptr<FlyCam>
 #include "Camera/FlyCam.hpp"
 
@@ -42,6 +44,25 @@ public:
 
     GLFWwindow* window() const { return mWindow; }
 
+    // Screen size tracked per window (window == framebuffer in this engine).
+    int screenWidth() const { return mScreenWidth; }
+    int screenHeight() const { return mScreenHeight; }
+    float aspectRatio() const
+    {
+        return (mScreenHeight > 0)
+            ? (static_cast<float>(mScreenWidth) / static_cast<float>(mScreenHeight))
+            : 1.0f;
+    }
+
+    FrameContext frameContext() const
+    {
+        FrameContext ctx;
+        ctx.screenWidth = mScreenWidth;
+        ctx.screenHeight = mScreenHeight;
+        ctx.aspect = aspectRatio();
+        return ctx;
+    }
+
     // Common per-window input/event plumbing
     InputHandler* inputHandler() const { return mInputHandler.get(); }
     InputContext* inputContext() const { return mInputCtx.get(); }
@@ -67,11 +88,29 @@ protected:
     float mDeltaTime = 0.0f;
     float mMaxDeltaTime = 0.1f;
 
+    // Per-window screen size (pixels). In this engine, window == framebuffer.
+    int mScreenWidth = 0;
+    int mScreenHeight = 0;
+
     // Derived windows implement their frame here.
     virtual void tickImpl() = 0;
 
     // Called by tick() before tickImpl(). You can override if needed.
     virtual void onBeginFrame() {}
+
+    // Refresh cached screen size from GLFW.
+    // Call at least once during init (after mWindow is created) and once per frame.
+    void updateScreenSize()
+    {
+        if (!mWindow) return;
+        int w = 0, h = 0;
+        glfwGetWindowSize(mWindow, &w, &h);
+        if (w > 0 && h > 0)
+        {
+            mScreenWidth = w;
+            mScreenHeight = h;
+        }
+    }
 
     void initCommonInput()
     {

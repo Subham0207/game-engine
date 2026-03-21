@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <Controls/Input.hpp>
 #include <Modals/CameraType.hpp>
-#include <Helpers/glitter.hpp>
+
 
 Camera::Camera()
 {
@@ -91,6 +91,6 @@ void Camera::onMouseMove(const MouseMoveEvent& e)
 void Camera::tick()
 {
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-    float aspect = (float)mWidth / (float)mHeight;
-    projection = glm::perspective(glm::radians(fov),  aspect, 0.1f, 1000.0f);
+    const float aspect = (mFrameContext.aspect > 0.0f) ? mFrameContext.aspect : 1.0f;
+    projection = glm::perspective(glm::radians(fov), aspect, 0.1f, 1000.0f);
 }

@@ -1,15 +1,18 @@
 #include <Helpers/raypicking.hpp>
-#include <Helpers/glitter.hpp>
 #include <Controls/Input.hpp>
 #include <EngineState.hpp>
 #include <limits>
 
 #include <Profiler.hpp>
 
-void setRay(double winX, double winY, glm::vec3& rayOrigin, glm::vec3& rayDir, glm::mat4 &glmModelView, glm::mat4 &glmProjection, glm::vec3 cameraDirection)
+void setRay(double winX, double winY, const FrameContext& frameCtx, glm::vec3& rayOrigin, glm::vec3& rayDir, glm::mat4 &glmModelView, glm::mat4 &glmProjection, glm::vec3 cameraDirection)
 {
-    float mouseX = (winX / float(mWidth)) * 2.0f - 1.0f;
-    float mouseY = (winY / float(mHeight)) * 2.0f - 1.0f;
+    // Avoid any GLFW size queries here (GameWindow provides screen size via FrameContext).
+    if (frameCtx.screenWidth <= 0 || frameCtx.screenHeight <= 0)
+        return;
+
+    float mouseX = (winX / float(frameCtx.screenWidth)) * 2.0f - 1.0f;
+    float mouseY = (winY / float(frameCtx.screenHeight)) * 2.0f - 1.0f;
     mouseY = -mouseY;  // Invert Y coordinate because OpenGL's origin is at the bottom left
 
     // Assuming glmProjection is your projection matrix and glmModelView is your model-view matrix
@@ -197,6 +200,7 @@ glm::vec3 getNormalizedCoordinateForDepth(double winX, double winY, double scree
 int handlePicking(
     double mouseX,
     double mouseY,
+    const FrameContext& frameCtx,
     const std::vector<std::shared_ptr<Renderable>>& renderables,
     glm::mat4 &view,
     glm::mat4 &projection,
@@ -211,7 +215,7 @@ int handlePicking(
     InputHandler* ih = ud ? ud->handler : nullptr;
     if(ih && ih->leftClickPressed)
     {
-        setRay(mouseX, mouseY, rayOrigin, rayDir, view, projection, cameraDirection);
+        setRay(mouseX, mouseY, frameCtx, rayOrigin, rayDir, view, projection, cameraDirection);
         // std::cout << "Ray direction " << rayDir.x << " " << rayDir.y << " " << rayDir.z << std::endl;
         // std::cout << "Ray origin " << rayOrigin.x << " " << rayOrigin.y << " " << rayOrigin.z << std::endl;
         selectedModelIndex = selectModel(rayOrigin, rayDir, EngineState::state->rayEnd, renderables);

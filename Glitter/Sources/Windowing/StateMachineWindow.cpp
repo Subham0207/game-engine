@@ -1,6 +1,5 @@
 #include "Windowing/StateMachineWindow.hpp"
 
-#include "Helpers/glitter.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

@@ -8,6 +8,7 @@
 #include <filesystem>
 
 #include "glm/glm.hpp"
+#include "Windowing/FrameContext.hpp"
 namespace fs = std::filesystem;
 
 class Shader;
@@ -21,7 +22,7 @@ namespace Debug
     {
     public:
         Raycast(fs::path basePath);
-        void HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input);
+        void HandleSelection(const FrameContext& frameCtx, Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input);
     private:
         Shader *rayCastshader;
         glm::vec3 rayOrigin, rayDir;

@@ -23,12 +23,12 @@ namespace Debug
             rayFragPath.u8string().c_str());
     }
 
-    void Raycast::HandleSelection(Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input)
+    void Raycast::HandleSelection(const FrameContext& frameCtx, Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input)
     {
         ImGuizmo::BeginFrame();
         // Set the window and matrix for ImGuizmo
         ImGuizmo::SetOrthographic(false);
-        ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+        ImGuizmo::SetRect(0, 0, static_cast<float>(frameCtx.screenWidth), static_cast<float>(frameCtx.screenHeight));
 
         const auto& renderables = level->renderables;
 
@@ -41,9 +41,11 @@ namespace Debug
 
         auto view = input->m_Camera->viewMatrix();
         auto proj = input->m_Camera->projectionMatrix();
+
         auto getSelectedIndexFromMouseCurrentFrame = handlePicking(
             input->lastX,
             input->lastY,
+            frameCtx,
             renderables,
             view,
             proj,
