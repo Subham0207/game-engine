@@ -200,8 +200,9 @@ void CubeMap::setupPrefilterMap(Shader prefilterShader)
 
         prefilterShader.use();
         prefilterShader.setMat4("projection", captureProjection);
-        // Clamp extremely bright env values during convolution to avoid low-mip blowout.
-        prefilterShader.setFloat("u_PrefilterEnvClampMax", 500.0f);
+        // Softly compress HDR values during convolution to avoid low-mip blowout.
+        // Higher values compress more aggressively. Try 0.5..4.0.
+        prefilterShader.setFloat("u_PrefilterExposure", 0.1f);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 

@@ -198,6 +198,111 @@ Each input callback:
 
 1. Reads `WindowInputUserData` from the GLFW window that fired the callback
 2. Sets the correct ImGui context (`ImGui::SetCurrentContext(ud->imguiCtx)`) so IO is window-correct
+
+---
+
+# IBL / Cubemap generation notes (HDR -> envCubemap -> prefilter)
+
+This section captures the fixes and debugging steps for issues encountered while generating IBL textures:
+
+- HDR equirectangular map (`hdrTexture`, 2D)
+- Environment cubemap (`envCubemap`)
+- Prefiltered specular cubemap (`prefilterMap`)
+- Irradiance cubemap (`irradianceMap`)
+
+## 1) Symptom: black squares / black spots in prefiltered reflections
+
+**Observed:** lighting/reflections showed black squares. Debugging showed the black values originated from:
+
+```glsl
+vec3 sampleColor = textureLod(environmentMap, L, mipLevel).rgb;
+```
+
+and further inspection found that **`envCubemap` mip levels > 0** contained a corrupted/black region on one face.
+
+### Root cause
+Some HDRIs contain extremely bright highlights (e.g. the sun). During capture + automatic mipmap generation,
+very large values (or NaN/Inf on some drivers) can poison the mip chain and show up as black blocks/spots.
+
+### Fix: sanitize / clamp during equirectangular->cubemap capture
+File: `Glitter/Shaders/equirectanglular_to_cubemap.frag`
+
+- The shader now clamps sampled radiance to a finite range and forces non-negative values.
+- The clamp maximum is exposed as a uniform for tuning:
+
+  - `uniform float u_HDRClampMax;`
+
+This stabilized mipmap generation and removed black spots from `envCubemap` mips.
+
+### Fix: stable capture GL state
+File: `Glitter/Sources/cubemap.cpp` (`CubeMap::setupEnvMap`)
+
+- Temporarily disable blending during capture (restore previous blending state afterward).
+- Set an explicit `glClearColor` before rendering faces.
+
+### Fix: define envCubemap mip range before generating mipmaps
+File: `Glitter/Sources/cubemap.cpp` (`CubeMap::setupEnvMap`)
+
+- Set `GL_TEXTURE_BASE_LEVEL` and `GL_TEXTURE_MAX_LEVEL`.
+- Then call `glGenerateMipmap(GL_TEXTURE_CUBE_MAP)`.
+
+This ensures a well-defined mip chain layout (for 512x512: levels 0..9).
+
+## 2) Symptom: mip 0 looks fine, mip 1+ looks "blown out"/washed (very bright face)
+
+Even after fixing black spots, very bright highlights can dominate the convolution for low-resolution prefilter mips
+and cause a face to look overly bright at mip1+.
+
+### Mitigation: soft exposure compression during prefilter convolution
+File: `Glitter/Shaders/prefilter.frag`
+
+- Added soft compression (Reinhard-style) during sampling to reduce highlight dominance without hard clipping:
+
+  - `uniform float u_PrefilterExposure;` (<= 0 disables)
+
+File: `Glitter/Sources/cubemap.cpp` (`CubeMap::setupPrefilterMap`)
+
+- `u_PrefilterExposure` is set from C++ when generating the prefilter map (tunable).
+
+## 3) Debugging technique: dump cubemap faces/mips to disk
+File: `Glitter/Sources/cubemap.cpp`
+
+`CubeMap::writeTextureToDisk(...)` can dump cubemap faces per mip level as `.hdr` files.
+
+Used for isolating where corruption starts:
+
+- Dump `envCubemap` right after `glGenerateMipmap(GL_TEXTURE_CUBE_MAP)` to verify mip chain integrity.
+- Dump `prefilterMap` after generation to verify each mip/face looks consistent.
+
+This is the fastest way to tell whether the issue is:
+
+- in the source HDR sampling/capture,
+- in mipmap generation,
+- or in the prefilter convolution.
+
+## 4) Future work: "Scene" object + runtime-tunable IBL generation
+
+In the future we should introduce a dedicated **`Scene`** object that owns everything required to render a fully lit 3D scene
+(skybox/IBL resources, lights, environment settings, postprocess, etc.).
+
+As part of that refactor we should:
+
+1. **Expose IBL tuning uniforms as user-adjustable settings** (UI or config), including the ones added during this debugging:
+   - `u_HDRClampMax` (equirectangular -> env cubemap capture)
+   - `u_PrefilterExposure` (prefilter convolution compression)
+
+2. **Regenerate IBL maps when these settings change.**
+   Updating these uniforms is only meaningful if the env cubemap/prefilter maps are rebuilt with the new values.
+
+3. **Move IBL setup into the game loop / runtime system** (or a "dirty flag" system) so we can rebuild on demand.
+   Today IBL is created during startup (`Skybox::Skybox` / `CubeMap::setup`). For interactive tuning we need the setup
+   callable at runtime, e.g.:
+
+   - keep the input HDR texture available
+   - re-run env capture -> mipmap -> irradiance -> prefilter -> brdfLUT when a setting changes
+   - avoid leaking GL objects (delete/recreate textures or reuse immutable storage)
+
+This will allow interactive iteration without recompiling shaders or restarting, and makes IBL parameters part of the scene state.
 3. Forwards the event to ImGui backend functions (`ImGui_ImplGlfw_*Callback`) because `install_callbacks=false`
 
 Forwarded events include:
