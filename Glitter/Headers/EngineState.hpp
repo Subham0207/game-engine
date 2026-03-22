@@ -11,6 +11,7 @@
 #include <LuaEngine/LuaEngine.hpp>
 #include <Controls/statemachine.hpp>
 #include "Event/EventBus.hpp"
+#include <unordered_map>
 namespace fs = std::filesystem;
 
 namespace AI
@@ -98,6 +99,14 @@ public:
 
     std::shared_ptr<Materials::Material> defaultMaterial;
     std::shared_ptr<Materials::MaterialInstance> defaultMaterialInstance;
+
+    // Multi-window: OpenGL program/texture IDs are context-bound unless contexts are shared.
+    // Keep a per-window default material instance so tool windows can render safely.
+    std::unordered_map<GLFWwindow*, std::shared_ptr<Materials::MaterialInstance>> defaultMaterialInstancePerWindow;
+
+    // Returns a default material instance valid for the provided window's GL context.
+    // IMPORTANT: call this when that window's GL context is current.
+    std::shared_ptr<Materials::MaterialInstance> getDefaultMaterialInstanceForWindow(GLFWwindow* window);
 };
 
 ProjectAsset::UIState& getUIState();

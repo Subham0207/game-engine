@@ -63,6 +63,17 @@ public:
         return ctx;
     }
 
+    FrameContext frameContext(int targetWidth, int targetHeight) const
+    {
+        FrameContext ctx;
+        ctx.screenWidth = targetWidth;
+        ctx.screenHeight = targetHeight;
+        ctx.aspect = (targetHeight > 0)
+            ? (static_cast<float>(targetWidth) / static_cast<float>(targetHeight))
+            : 1.0f;
+        return ctx;
+    }
+
     // Common per-window input/event plumbing
     InputHandler* inputHandler() const { return mInputHandler.get(); }
     InputContext* inputContext() const { return mInputCtx.get(); }

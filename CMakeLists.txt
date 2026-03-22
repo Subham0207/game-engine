@@ -271,6 +271,10 @@ add_executable(Editor ${CMAKE_SOURCE_DIR}/Glitter/editorMain.cpp)
 
 target_link_libraries(Editor PRIVATE GlitterLib)
 
+add_executable(StateMachineTool ${CMAKE_SOURCE_DIR}/Glitter/stateMachineMain.cpp)
+
+target_link_libraries(StateMachineTool PRIVATE GlitterLib)
+
 add_executable(ProjectManager ${CMAKE_SOURCE_DIR}/Glitter/projectMangerMain.cpp)
 
 target_link_libraries(ProjectManager PRIVATE GlitterLib)
@@ -384,7 +388,7 @@ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersi
 install(EXPORT GlitterTargets FILE GlitterTargets.cmake NAMESPACE Glitter:: DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 
-install(TARGETS ProjectManager
+install(TARGETS ProjectManager StateMachineTool
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 set_target_properties(GlitterLib PROPERTIES EXPORT_NAME Glitter)

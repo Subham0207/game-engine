@@ -9,6 +9,13 @@
 // Required because this header owns std::unique_ptr<NodeGraph>
 #include "NodeGraph/NodeGraph.hpp"
 
+#include "RenderPipeline/SceneViewport.hpp"
+
+#include "Lights/Skybox.hpp"
+#include "Lights/light.hpp"
+
+#include "Level/Level.hpp"
+
 class EventQueue;
 struct InputContext;
 class InputHandler;
@@ -37,10 +44,15 @@ private:
     GLFWwindow* mShareContext = nullptr;
 
 
-    std::unique_ptr<Outliner> mOutliner;
-    std::unique_ptr<ProjectAsset::AssetBrowser> mAssetBrowser;
-    std::unique_ptr<NodeGraph> mNodeGraph;
+    std::unique_ptr<SceneViewport> mSceneViewport;
 
-    float mSplitRatio = 0.5f;
+    // Inline scene resources for this tool window (kept local for now).
+    // This matches EditorWindow's pattern so we can render immediately without depending
+    // on EditorWindow ownership.
+    std::unique_ptr<Level> mPreviewLevel;
+    std::unique_ptr<Lights> mLights;
+    std::unique_ptr<Lighting::Skybox> mSkyBox;
+
+    std::unique_ptr<NodeGraph> mNodeGraph;
 };
 

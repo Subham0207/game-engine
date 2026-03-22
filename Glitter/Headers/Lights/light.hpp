@@ -10,12 +10,17 @@ class Model;
 class Shader;
 class CubeMap;
 class Lights;
+class Level;
 
 class BaseLight
 {
 public:
-	BaseLight(LightType lightType, glm::vec3 pos);
+	BaseLight(Level* level, LightType lightType, glm::vec3 pos);
 	std::shared_ptr<Model> lightModel;
+
+protected:
+	// Non-owning. Tool windows supply their own Level so lights don't rely on EngineState::activeLevel.
+	Level* mLevel = nullptr;
 };
 
 class DirectionalLight: public BaseLight {
@@ -38,6 +43,7 @@ public:
 	glm::mat4 dirLightVP;
 
 	DirectionalLight(
+		Level* level,
 		glm::vec3 position, // Note we take position to update the light 3d model but for directional light position does not matter.
 		glm::vec3 direction,
 		glm::vec3 lightColor,
@@ -79,6 +85,7 @@ public:
 	Shader* spotShadowShader;
 
 	SpotLight(
+		Level* level,
 		glm::vec3 position,
 		glm::vec3 lightColor,
 		glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f),
@@ -129,6 +136,7 @@ public:
 	Shader* shadowMapShader;
 
 	PointLight(
+		Level* level,
 		glm::vec3 position,
 		glm::vec3 lightColor,
 		glm::vec3 diffuseColor = glm::vec3(0.5f),
@@ -148,7 +156,7 @@ private:
 
 class Lights {
 public:
-	void initDefaultLights();
+	void initDefaultLights(Level* level = nullptr);
 	std::vector<DirectionalLight> directionalLights;
 	std::vector<SpotLight> spotLights;
 	std::vector<PointLight> pointLights;

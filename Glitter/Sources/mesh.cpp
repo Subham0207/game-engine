@@ -22,8 +22,14 @@ Mesh::Mesh(std::vector<ProjectModals::Vertex> vertices, std::vector<unsigned int
 
 void Mesh::DrawOnlyGeometry()
 {
+    // Defensive: in multi-window / multi-context scenarios a mesh may not have
+    // been initialized in the *current* context (or VAO creation failed).
+    // Some drivers can crash if you issue VAO calls against invalid state.
+    if (VAO == 0)
+        return;
+
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 
@@ -34,21 +40,32 @@ void Mesh::setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const
 
 void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix, const std::vector<glm::mat4>* finalBoneMatrix)
 {
-    auto resolvedMaterial = mMaterial != nullptr ? mMaterial: EngineState::state->defaultMaterialInstance;
+    std::shared_ptr<Materials::IMaterial> resolvedMaterial = mMaterial;
+    if (!resolvedMaterial)
+    {
+        // Multi-window: pick a default material instance that matches the current window/context.
+        // Editor uses EngineState::defaultMaterialInstance; tool windows get their own if needed.
+        GLFWwindow* currentWindow = (EngineState::state ? glfwGetCurrentContext() : nullptr);
+        resolvedMaterial = EngineState::state->getDefaultMaterialInstanceForWindow(currentWindow);
+    }
 
     resolvedMaterial->Bind();
-    auto shaderProgramId = resolvedMaterial->GetShader()->ID;
+    auto* shader = resolvedMaterial->GetShader();
+    if (!shader)
+        throw std::runtime_error("Mesh::Draw: No valid shader bound (material missing parent shader)");
+
+    auto shaderProgramId = shader->ID;
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramId, "dirLightVP"), 1, GL_FALSE, glm::value_ptr(lightSystem->directionalLights[0].dirLightVP));
     camera->updateMVP(shaderProgramId);
 
     auto cameraPosition = camera->getPosition();
-    resolvedMaterial->GetShader()->setMat4("model", modelMatrix);
-    resolvedMaterial->GetShader()->setBool("uHasTangents", HasTangents);
+    shader->setMat4("model", modelMatrix);
+    shader->setBool("uHasTangents", HasTangents);
     glUniform3f(glGetUniformLocation(shaderProgramId, "viewPos"), cameraPosition.r, cameraPosition.g, cameraPosition.b);
 
     if (finalBoneMatrix)
     {
-        resolvedMaterial->GetShader()->setBool("isAnimated", true);
+        shader->setBool("isAnimated", true);
         for (int boneIndex = 0; boneIndex < finalBoneMatrix->size(); ++boneIndex)
         {
             setFinalBoneMatrix(boneIndex, finalBoneMatrix->at(boneIndex));
@@ -56,7 +73,7 @@ void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::m
     }
     else
     {
-        resolvedMaterial->GetShader()->setBool("isAnimated", false);
+        shader->setBool("isAnimated", false);
     }
 
     if(modelType == ModelType::ACTUAL_MODEL)

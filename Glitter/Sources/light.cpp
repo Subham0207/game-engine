@@ -7,8 +7,9 @@
 #include <EngineState.hpp>
 #include <Lights/cubemap.hpp>
 
-BaseLight::BaseLight(LightType lightType, glm::vec3 pos)
+BaseLight::BaseLight(Level* level, LightType lightType, glm::vec3 pos)
 {
+    mLevel = level;
     auto loc = std::filesystem::path(EngineState::state->engineInstalledDirectory);
 
     switch (lightType)
@@ -40,16 +41,23 @@ BaseLight::BaseLight(LightType lightType, glm::vec3 pos)
 
     lightModel->modeltype = ModelType::LIGHT;
     lightModel->setTransform(pos,glm::quat(),glm::vec3(0.03f));
-    getActiveLevel().addRenderable(lightModel);
+
+    // Tool windows can supply their own preview Level.
+    // If no level is supplied, fall back to the global active level for legacy behavior.
+    if (mLevel)
+        mLevel->addRenderable(lightModel);
+    else
+        getActiveLevel().addRenderable(lightModel);
 }
 
 DirectionalLight::DirectionalLight(
+    Level* level,
     glm::vec3 position, // Note we take position to update the light 3d model but for directional light position does not matter.
     glm::vec3 direction,
     glm::vec3 lightColor,
     glm::vec3 diffuseColor,
     glm::vec3 ambientColor,
-    glm::vec3 specularColo): BaseLight(LightType::Directional, position)
+    glm::vec3 specularColo): BaseLight(level, LightType::Directional, position)
 {
     this->direction = direction;
     this->diffuseColor = lightColor * diffuseColor;
@@ -74,7 +82,7 @@ void DirectionalLight::attachShaderUniforms(
 void DirectionalLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO)
 {
     glCullFace(GL_FRONT);
-    auto lvlrenderables = getActiveLevel().renderables;
+    auto& lvlrenderables = mLevel ? mLevel->renderables : getActiveLevel().renderables;
 
 	glm::mat4 orthgonalProjection = glm::ortho(-extent, extent, -extent, extent, nearPlane, farPlane);
     auto lightPos = 20.0f * lightModel->GetPosition();
@@ -173,6 +181,7 @@ void DirectionalLight::setupShadowObjects()
 }
 
 SpotLight::SpotLight(
+    Level* level,
     glm::vec3 position,
     glm::vec3 lightColor,
     glm::vec3 direction,
@@ -180,7 +189,7 @@ SpotLight::SpotLight(
     float outerCutOffRadius,
     glm::vec3 diffuseColor,
     glm::vec3 ambientColor,
-    glm::vec3 specularColor): BaseLight(LightType::Spot, position)
+    glm::vec3 specularColor): BaseLight(level, LightType::Spot, position)
 {
     this->position = position;
     this->direction = direction;
@@ -260,7 +269,7 @@ void SpotLight::setupShadowObjects()
 void SpotLight::evaluateShadowMap(GLFWwindow *window, float deltaTime, unsigned int FBO)
 {
     glCullFace(GL_FRONT);
-    auto lvlrenderables = getActiveLevel().renderables;
+    auto& lvlrenderables = mLevel ? mLevel->renderables : getActiveLevel().renderables;
 
     // 1. Build light-space matrix (perspective)
     float fov = glm::radians(outerCutOffRadius * 2.0f); // or just some cone angle
@@ -323,11 +332,12 @@ void SpotLight::evaluateShadowMap(GLFWwindow *window, float deltaTime, unsigned 
 }
 
 PointLight::PointLight(
+    Level* level,
     glm::vec3 position,
     glm::vec3 lightColor,
     glm::vec3 diffuseColor,
     glm::vec3 ambientColor,
-    glm::vec3 specularColor) : BaseLight(LightType::Point, position)
+    glm::vec3 specularColor): BaseLight(level, LightType::Point, position)
 {
     this->position = position;
     this->diffuseColor = lightColor * diffuseColor;
@@ -351,7 +361,7 @@ void PointLight::attachShaderUniforms(
 void PointLight::evaluateShadowMap(GLFWwindow* window, float deltaTime, unsigned int FBO)
 {
     glCullFace(GL_FRONT);
-    auto lvlrenderables = getActiveLevel().renderables;
+    auto& lvlrenderables = mLevel ? mLevel->renderables : getActiveLevel().renderables;
 
     glEnable(GL_DEPTH_TEST);
 
@@ -475,7 +485,7 @@ void PointLight::setupShadowObjects()
 
 }
 
-void Lights::initDefaultLights()
+void Lights::initDefaultLights(Level* level)
 {
     glm::vec3 pointLightPositions[] = {
         glm::vec3(31.0f,  2.0f,  22.0f),
@@ -493,18 +503,19 @@ void Lights::initDefaultLights()
     };
     for (unsigned int i = 0; i < 4; i++)
     {
-        pointLights.push_back(PointLight(pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
+        pointLights.push_back(PointLight(level, pointLightPositions[i], glm::vec3(0.0f,1.0f,0.0f)));
     }
 
     for (unsigned int i = 0; i < 1; i++)
     {
-        directionalLights.push_back(DirectionalLight(directionLightPositions[i], glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(0.0f,0.0f,1.0f)));
+        directionalLights.push_back(DirectionalLight(level, directionLightPositions[i], glm::vec3(0.0f,-1.0f,0.0f), glm::vec3(0.0f,0.0f,1.0f)));
     }
 
     for (unsigned int i = 0; i < 1; i++)
     {
         spotLights.push_back(
             SpotLight(
+                level,
                 spotLightPositions[i],
                 glm::vec3(1.0f,0.0f,0.0f),
                 glm::vec3(0.0f, -1.0f, 0.0f),

@@ -40,7 +40,13 @@ namespace Materials
 
     Shader* MaterialInstance::GetShader() const
     {
-        return mParentMaterial ? mParentMaterial->GetShader() : nullptr;
+        if (mParentMaterial && mParentMaterial->GetShader())
+            return mParentMaterial->GetShader();
+
+        if (EngineState::state && EngineState::state->defaultMaterialInstance)
+            return EngineState::state->defaultMaterialInstance->GetShader();
+
+        return nullptr;
     }
 
     TextureUnits& MaterialInstance::GetTextureUnits()

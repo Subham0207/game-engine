@@ -34,7 +34,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
         vertexCode = vShaderStream.str();
         fragmentCode = fShaderStream.str();
     }
-    catch (std::ifstream::failure e)
+    catch (const std::ifstream::failure& e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
     }
@@ -81,12 +81,11 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
             gShaderStream << gShaderFile.rdbuf();
             gShaderFile.close();
             geometryCode = gShaderStream.str();
-        }catch(std::ifstream::failure e)
+        }catch(const std::ifstream::failure& e)
         {
             std::cout << "ERROR::SHADER::GEOMETRY::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
         }
         const char* gShaderCode = geometryCode.c_str();
-        unsigned int ;
         // similiar for Fragment Shader
         geometry = glCreateShader(GL_GEOMETRY_SHADER);
         glShaderSource(geometry, 1, &gShaderCode, NULL);
@@ -128,38 +127,42 @@ void Shader::use()
     glUseProgram(ID);
 }
 
-void Shader::setBool(const std::string& name, bool value) const
-{
-    glUniform1i(getUniformLocation(name), (int)value);
-}
-
-void Shader::setInt(const std::string& name, int value) const
-{
-    glUniform1i(getUniformLocation(name), value);
-}
-
-void Shader::setFloat(const std::string& name, float value) const
-{
-    glUniform1f(getUniformLocation(name), value);
-}
-
-void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
-{
-    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, &mat[0][0]);
-}
-
-void Shader::setVec3(const std::string& name, const glm::vec3& v) const
-{
-    glUniform3fv(getUniformLocation(name), 1, &v[0]);
-}
-
 GLint Shader::getUniformLocation(const std::string& name) const
 {
-    int loc = glGetUniformLocation(ID, name.c_str());
+    const GLint loc = glGetUniformLocation(ID, name.c_str());
     if (loc == -1)
     {
         std::string errorMsg = "SHADER ERROR: Uniform '" + name + "' not found or inactive in shader ID: " + std::to_string(ID);
         throw std::runtime_error(errorMsg);
     }
     return loc;
+}
+void Shader::setBool(const std::string& name, bool value) const
+{
+    const GLint loc = getUniformLocation(name);
+    glUniform1i(loc, (int)value);
+}
+
+void Shader::setInt(const std::string& name, int value) const
+{
+    const GLint loc = getUniformLocation(name);
+    glUniform1i(loc, value);
+}
+
+void Shader::setFloat(const std::string& name, float value) const
+{
+    const GLint loc = getUniformLocation(name);
+    glUniform1f(loc, value);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
+{
+    const GLint loc = getUniformLocation(name);
+    glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
+}
+
+void Shader::setVec3(const std::string& name, const glm::vec3& v) const
+{
+    const GLint loc = getUniformLocation(name);
+    glUniform3fv(loc, 1, &v[0]);
 }

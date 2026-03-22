@@ -86,7 +86,7 @@ int Editor::openEditor() {
                 windows,
                 editorWindow->windowRequests().openStateMachineWindow,
                 EngineState::state->mStatemachineWindow,
-                nullptr);
+                EngineState::state->mEditorWindow);
         }
 
         // Pick the actively focused window.

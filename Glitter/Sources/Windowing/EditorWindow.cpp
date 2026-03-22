@@ -108,7 +108,7 @@ void EditorWindow::init()
     mRayCastObjectSelector = std::make_unique<Debug::Raycast>(engineFSPath);
 
     mLights = std::make_unique<Lights>();
-    mLights->initDefaultLights();
+    mLights->initDefaultLights(mLevel.get());
 
     mOutliner = std::make_unique<Outliner>();
     // Allow Outliner to request opening tool windows (handled by Editor.cpp window manager).
