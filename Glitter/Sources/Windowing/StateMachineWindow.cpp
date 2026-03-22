@@ -12,11 +12,6 @@
 #include "Helpers/Shared.hpp"
 
 #include "UI/outliner.hpp"
-
-#include "RenderPipeline/ShadowPass.hpp"
-#include "RenderPipeline/LightingPass.hpp"
-#include "RenderPipeline/PostProcess.hpp"
-
 #include "RenderPipeline/SceneViewport.hpp"
 
 #include <EngineState.hpp>
@@ -27,6 +22,8 @@
 #include "Controls/Input.hpp"
 #include "Event/EventQueue.hpp"
 
+#include "Event/EventBus.hpp"
+
 #include "Lights/Skybox.hpp"
 #include "Lights/light.hpp"
 
@@ -35,6 +32,23 @@
 #include <filesystem>
 
 #include <cstdio>
+
+namespace
+{
+    // Each StateMachineWindow instance should rotate its own camera.
+    // The global EngineState bus is wired to EngineState::editorCamera, which
+    // is not the camera used by this tool window.
+    static void SubscribeMouseLookForCamera(EventBus& bus, Camera* cam)
+    {
+        if (!cam)
+            return;
+
+        bus.subscribe<MouseMoveEvent>([cam](const MouseMoveEvent& e)
+        {
+            cam->onMouseMove(e);
+        });
+    }
+}
 
 StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
     : mShareContext(shareContext)
@@ -90,6 +104,9 @@ void StateMachineWindow::init()
 
     makeCurrent();
     glfwSwapInterval(1);
+
+    // Match Editor-style controls: start with mouse captured for look.
+    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // In the standalone StateMachine app this may be the first window/context created,
     // so we must ensure GL function pointers are loaded before any GL calls
     // (e.g. Shader::Shader -> glCreateShader).
@@ -129,6 +146,17 @@ void StateMachineWindow::init()
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
     mNodeGraph = std::make_unique<NodeGraph>();
 
+    // Input for this window (ImGui install_callbacks=false, so we must install callbacks)
+    // Use this window's own camera (created by GameWindow).
+    Camera* cam = mEditorCamera.get();
+    if (cam)
+    {
+        mInputHandler = std::make_unique<InputHandler>(cam, mWindow, (float)w, (float)h);
+        // Prime callbacks + per-window userdata bindings.
+        // Use a tiny dt so movement doesn't jump on first frame.
+        mInputHandler->handleInput(1.0f / 60.0f, *mInputCtx, EngineState::state ? EngineState::state->isPlay : false);
+    }
+
     // Inline scene setup (mirrors EditorWindow)
     if (EngineState::state)
     {
@@ -143,18 +171,28 @@ void StateMachineWindow::init()
 		if (mEditorCamera)
     {
       // Place camera so it can see the origin-spawned preview cube.
-      mEditorCamera->cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+      mEditorCamera->cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
       mEditorCamera->cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 			mPreviewLevel->cameras.push_back(mEditorCamera.get());
+
+            // Route MouseMoveEvent to this window's own camera.
+            // (EngineState::init wires the global bus to EngineState::editorCamera.)
+            SubscribeMouseLookForCamera(mWindowBus, mEditorCamera.get());
     }
 
         // NOTE: StateMachine tool window should not load the project's entry level.
         // Instead, create a simple preview scene (cube) so the render pipeline is validated.
         {
-            auto engineRoot = EngineState::state->engineInstalledDirectory;
-            auto cube = std::make_shared<Model>("./EngineAssets/cube.fbx", engineRoot);
-            cube->setTransform(glm::vec3(0.0f, 0.0f, 0.0f), glm::quat(), glm::vec3(1.0f));
+            auto engineRoot = fs::path(EngineState::state->engineInstalledDirectory);
+            auto cube = std::make_shared<Model>((engineRoot / "EngineAssets" / "cube.fbx").string(), engineRoot.string());
+            // Large "ground" cube.
+            cube->setTransform(glm::vec3(0.0f, -0.5f, 0.0f), glm::quat(), glm::vec3(100.0f, 1.0f, 100.0f));
             mPreviewLevel->addRenderable(cube);
+
+            // Small reference cube near origin to confirm rendering even when standing on the ground.
+            auto refCube = std::make_shared<Model>("./EngineAssets/cube.fbx", engineRoot.string());
+            refCube->setTransform(glm::vec3(0.0f, 0.5f, 0.0f), glm::quat(), glm::vec3(1.0f, 1.0f, 1.0f));
+            mPreviewLevel->addRenderable(refCube);
         }
 
         auto engineFSPath = std::filesystem::path(EngineState::state->engineInstalledDirectory);
@@ -183,14 +221,6 @@ void StateMachineWindow::init()
         mSceneViewport->init(mWindow, mLights.get());
     }
 
-    // Input for this window (ImGui install_callbacks=false, so we must install callbacks)
-    // Use this window's own camera (created by GameWindow).
-    Camera* cam = mEditorCamera.get();
-    if (cam)
-    {
-        mInputHandler = std::make_unique<InputHandler>(cam, mWindow, (float)w, (float)h);
-        mInputHandler->handleInput(0.0f, *mInputCtx, EngineState::state->isPlay);
-    }
 }
 
 void StateMachineWindow::tickImpl()
@@ -209,6 +239,16 @@ void StateMachineWindow::tickImpl()
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Pump per-window input events into this window's local bus.
+    // This ensures mouse-look rotates the camera actually used for rendering.
+    if (mQueue)
+    {
+        mQueue->drain([&](const Event& e)
+        {
+            mWindowBus.dispatch(e);
+        });
+    }
 
     // --- 3D Scene (render directly to this window's backbuffer) ---
     if (mSceneViewport && mPreviewLevel)
@@ -229,15 +269,11 @@ void StateMachineWindow::tickImpl()
             {
                 activeCamera->setFrameContext(frameContext(fbW, fbH));
                 activeCamera->tick();
-
-                if (mSkyBox)
-                    mSkyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
-
                 mSceneViewport->render(
                     mPreviewLevel->renderables,
                     activeCamera,
                     mLights.get(),
-                    mSkyBox ? mSkyBox->getCubeMap() : nullptr,
+                    mSkyBox.get(),
                     mDeltaTime);
             }
         }

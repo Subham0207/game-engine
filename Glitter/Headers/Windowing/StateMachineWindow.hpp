@@ -16,6 +16,8 @@
 
 #include "Level/Level.hpp"
 
+#include "Event/EventBus.hpp"
+
 class EventQueue;
 struct InputContext;
 class InputHandler;
@@ -33,8 +35,9 @@ public:
 
     StateMachineWindow(const StateMachineWindow&) = delete;
     StateMachineWindow& operator=(const StateMachineWindow&) = delete;
-    StateMachineWindow(StateMachineWindow&&) noexcept = default;
-    StateMachineWindow& operator=(StateMachineWindow&&) noexcept = default;
+    // This type owns unique_ptrs and also stores an EventBus; disable moves for simplicity.
+    StateMachineWindow(StateMachineWindow&&) noexcept = delete;
+    StateMachineWindow& operator=(StateMachineWindow&&) noexcept = delete;
 
     void init() override;
     void tickImpl() override;
@@ -42,6 +45,9 @@ public:
 
 private:
     GLFWwindow* mShareContext = nullptr;
+
+    // Local bus for this window so mouse-look can drive its own camera.
+    EventBus mWindowBus;
 
 
     std::unique_ptr<SceneViewport> mSceneViewport;

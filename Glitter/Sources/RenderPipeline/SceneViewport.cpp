@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "Lights/Skybox.hpp"
 #include "Renderable/renderable.hpp"
 
 SceneViewport::~SceneViewport() = default;
@@ -38,7 +39,7 @@ void SceneViewport::render(
     const std::vector<std::shared_ptr<Renderable>>& renderables,
     Camera* camera,
     Lights* lights,
-    CubeMap* cubeMap,
+    Lighting::Skybox* skybox,
     float deltaTime)
 {
     if (!mPostProcess || !mShadowPass || !mLightingPass || !camera)
@@ -46,13 +47,19 @@ void SceneViewport::render(
 
     mPostProcess->attachFBO();
 
+    skybox->Draw(camera->viewMatrix(), camera->projectionMatrix());
+
+    // IMPORTANT: The postprocess FBO must be bound *before* any scene draw calls.
+    // PostProcess::draw() itself runs shadow + lighting passes (which draw geometry)
+    // and then blits the HDR texture to the default framebuffer.
+    // Therefore, don't bind the FBO here; let PostProcess::draw() control targets.
     mPostProcess->draw(
         *mShadowPass,
         *mLightingPass,
         renderables,
         camera,
         lights,
-        cubeMap,
+        skybox->getCubeMap(),
         deltaTime);
 }
 

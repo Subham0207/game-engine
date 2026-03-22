@@ -5,12 +5,16 @@
 #include <memory>
 #include <vector>
 
+// Required: SceneViewport owns std::unique_ptr<PostProcess> and may be destroyed
+// in translation units that only include this header.
+#include "RenderPipeline/PostProcess.hpp"
+
 class Camera;
 class CubeMap;
 class Lights;
 class LightingPass;
-class PostProcess;
 class ShadowPass;
+namespace Lighting { class Skybox; }
 
 namespace std { template <class T> class shared_ptr; }
 class Renderable;
@@ -39,7 +43,7 @@ public:
         const std::vector<std::shared_ptr<Renderable>>& renderables,
         Camera* camera,
         Lights* lights,
-        CubeMap* cubeMap,
+        Lighting::Skybox* skybox,
         float deltaTime);
 
     [[nodiscard]] unsigned int textureId() const;
