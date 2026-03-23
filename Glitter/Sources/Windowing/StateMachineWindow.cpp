@@ -33,23 +33,6 @@
 
 #include <cstdio>
 
-namespace
-{
-    // Each StateMachineWindow instance should rotate its own camera.
-    // The global EngineState bus is wired to EngineState::editorCamera, which
-    // is not the camera used by this tool window.
-    static void SubscribeMouseLookForCamera(EventBus& bus, Camera* cam)
-    {
-        if (!cam)
-            return;
-
-        bus.subscribe<MouseMoveEvent>([cam](const MouseMoveEvent& e)
-        {
-            cam->onMouseMove(e);
-        });
-    }
-}
-
 StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
     : mShareContext(shareContext)
 {
@@ -57,7 +40,7 @@ StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
 
 void StateMachineWindow::init()
 {
-    initCommonInput(true, false, "StateMachine Editor", false);
+    initWindowAndBackends(true, false, "StateMachine Editor", false);
 
     if (EngineState::state)
         EngineState::state->mStatemachineWindow = mWindow;
@@ -71,7 +54,7 @@ void StateMachineWindow::init()
         mPreviewLevel = std::make_unique<Level>();
         mPreviewLevel->setInputHandler(mInputHandler.get());
         mPreviewLevel->setEventQueue(mQueue.get());
-        mPreviewLevel->setEventBus(&EngineState::state->bus);
+        mPreviewLevel->setEventBus(mBus.get());
 
 		if (mCamera)
         {
@@ -81,8 +64,6 @@ void StateMachineWindow::init()
             mCamera->cameraPos = glm::vec3(0.0f, 10.0f, 0.0f);
             mCamera->cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
             mPreviewLevel->cameras.push_back(mCamera.get());
-
-            SubscribeMouseLookForCamera(mWindowBus, mCamera.get());
         }
 
         setupLevelObjs();
@@ -110,32 +91,13 @@ void StateMachineWindow::tickImpl()
     if (mImNodesContext)
         ImNodes::SetCurrentContext(mImNodesContext);
 
-    // NOTE: GL + ImGui contexts are expected to be made current by the window manager
-    // (Editor::openEditor) when this window becomes active.
-
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Pump per-window input events into this window's local bus.
-    // This ensures mouse-look rotates the camera actually used for rendering.
-    if (mQueue)
-    {
-        mQueue->drain([&](const Event& e)
-        {
-            mWindowBus.dispatch(e);
-        });
-    }
-
     // --- 3D Scene (render directly to this window's backbuffer) ---
     if (mSceneViewport && mPreviewLevel)
     {
-        int fbW = 0, fbH = 0;
-        glfwGetFramebufferSize(mWindow, &fbW, &fbH);
-        if (fbW > 0 && fbH > 0)
+        if (mScreenWidth > 0 && mScreenHeight > 0)
         {
             // Keep render targets in sync with the actual window size.
-            mSceneViewport->resize(fbW, fbH);
+            mSceneViewport->resize(mScreenWidth, mScreenHeight);
 
             // Use this window's own camera.
             Camera* activeCamera = (!mPreviewLevel->cameras.empty())
@@ -144,7 +106,7 @@ void StateMachineWindow::tickImpl()
 
             if (activeCamera)
             {
-                activeCamera->setFrameContext(frameContext(fbW, fbH));
+                activeCamera->setFrameContext(frameContext(mScreenWidth, mScreenHeight));
                 activeCamera->tick();
                 mSceneViewport->render(
                     mPreviewLevel->renderables,

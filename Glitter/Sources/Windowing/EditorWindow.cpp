@@ -1,50 +1,31 @@
 #include "Windowing/EditorWindow.hpp"
-
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
-#include <cstdlib>
-
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imnodes.h>
-
 #include "Controls/Input.hpp"
 #include "Controls/ClientHandler.hpp"
 #include "Controls/PlayerController.hpp"
-#include "Event/EventQueue.hpp"
-#include "Event/InputContext.hpp"
-
 #include <EngineState.hpp>
 #include "Helpers/Shared.hpp"
-
 #include "Level/Level.hpp"
 #include "Lights/Skybox.hpp"
 #include "Lights/light.hpp"
-
 #include "Debug/Raycast.hpp"
-
 #include "UI/outliner.hpp"
 #include "UI/AssetBrowser/AssetBrowser.hpp"
 #include "NodeGraph/NodeGraph.hpp"
-
-#include "RenderPipeline/ShadowPass.hpp"
-#include "RenderPipeline/LightingPass.hpp"
 #include "RenderPipeline/PostProcess.hpp"
-
 #include "Camera/FlyCam.hpp"
 #include <UI/PropertiesPanel.hpp>
-
 #include <Profiler.hpp>
-
-#include <cstring>
 
 EditorWindow::~EditorWindow() = default;
 
 void EditorWindow::init()
 {
-    initCommonInput(false, true, "Editor", true);
+    initWindowAndBackends(false, true, "Editor", true);
 
     EngineState::state->mEditorWindow = mWindow;
 
@@ -67,7 +48,7 @@ void EditorWindow::init()
     // can receive the correct InputHandler/EventQueue via Level::spawnCharacter().
     lvl->setInputHandler(mInputHandler.get());
     lvl->setEventQueue(mQueue.get());
-    lvl->setEventBus(&EngineState::state->bus);
+    lvl->setEventBus(mBus.get());
 
     lvl->loadMainLevelOfCurrentProject();
 
@@ -96,19 +77,8 @@ void EditorWindow::tickImpl()
 {
     if (!mWindow) return;
 
-    // NOTE: GL + ImGui contexts are expected to be made current by the window manager
-    // (Editor::openEditor) when this window becomes active.
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     FrameMark;
     ZoneScopedN("EditorWindow Frame");
-
-    mQueue->drain([&](const Event& e)
-    {
-        EngineState::state->bus.dispatch(e);
-    });
 
     auto activeCamera = mInputHandler ? mInputHandler->m_Camera : nullptr;
     const float deltaTime = mDeltaTime;
@@ -204,17 +174,15 @@ void EditorWindow::tickImpl()
 
     if (mSceneViewport && mLevel)
     {
-        int fbW = 0, fbH = 0;
-        glfwGetFramebufferSize(mWindow, &fbW, &fbH);
-        if (fbW > 0 && fbH > 0)
+        if (mScreenWidth > 0 && mScreenHeight > 0)
         {
             // Keep render targets in sync with the actual window size.
-            mSceneViewport->resize(fbW, fbH);
+            mSceneViewport->resize(mScreenWidth, mScreenHeight);
 
             //Camera selecting logic based on Play has already occurred before so we have an activeCamera.
             if (activeCamera)
             {
-                activeCamera->setFrameContext(frameContext(fbW, fbH));
+                activeCamera->setFrameContext(frameContext(mScreenWidth, mScreenHeight));
                 activeCamera->tick();
                 mSceneViewport->render(
                     mLevel->renderables,

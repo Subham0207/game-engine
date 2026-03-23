@@ -29,11 +29,6 @@ void EngineState::init()
     setEngineDirectory(enginePath);
     setCurrentActiveProjectDir(projectDir);
 
-    bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
-    {
-        editorCamera->onMouseMove(e);
-    });
-
     engineRegistry->init(fs::path(currentActiveProjectDirectory));
 }
 

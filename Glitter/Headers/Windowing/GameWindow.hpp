@@ -15,11 +15,12 @@
 
 // Needed because GameWindow owns and constructs std::unique_ptr<FlyCam>
 #include "Camera/FlyCam.hpp"
+#include "Event/EventBus.hpp"
 
 class InputHandler;
 
 // Base class for any standalone GLFW + OpenGL + ImGui window.
-//
+// Creates Camera, Window specific EventQueue, and InputHandler. Currently, How a SceneViewport is set up is left to derived class since Level ( which is the only way to have multiple 3D models and characters on screen) is quite complex class for now.
 // Design goals:
 // - Each GameWindow owns one GLFWwindow* and its own ImGui/ImNodes contexts.
 // - Each GameWindow will have its own executable which will help us not deal with errors due to state sharing which happens when two windows are part of same process.
@@ -91,6 +92,7 @@ protected:
     // Owned per-window queue + context.
     // InputHandler is optional; derived windows construct it when needed.
     std::unique_ptr<EventQueue> mQueue;
+    std::unique_ptr<EventBus> mBus;
     std::unique_ptr<InputContext> mInputCtx;
     std::unique_ptr<InputHandler> mInputHandler;
 
@@ -127,7 +129,7 @@ protected:
         }
     }
 
-    void initCommonInput(
+    void initWindowAndBackends(
         bool isToolWindow,
         bool isMouseDisabled,
         const std::string& windowTitle,

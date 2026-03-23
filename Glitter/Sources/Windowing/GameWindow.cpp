@@ -28,11 +28,24 @@ void GameWindow::tick()
     // Update cached screen size (pixels) for this window.
     updateScreenSize();
 
+    //Clear the screen and dispatch all events...
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (mQueue)
+    {
+        mQueue->drain([&](const Event& e)
+        {
+            mBus->dispatch(e);
+        });
+    }
+
     onBeginFrame();
     tickImpl();
 }
 
-void GameWindow::initCommonInput(
+void GameWindow::initWindowAndBackends(
     const bool isToolWindow,
     const bool isMouseDisabled,
     const std::string& windowTitle,
@@ -40,6 +53,7 @@ void GameWindow::initCommonInput(
     )
 {
     mQueue = std::make_unique<EventQueue>();
+    mBus = std::make_unique<EventBus>();
     mInputCtx = std::make_unique<InputContext>();
     mInputCtx->queue = mQueue.get();
 
@@ -63,6 +77,14 @@ void GameWindow::initCommonInput(
 
     if (initPhysics)
         getPhysicsSystem().Init();
+
+    //Note the engine only registers mouse movment for default FlyCam used by Editor.
+    //Any other camera created by user can have different movement logic to drive it.
+    //For Example spring arm moves the camera. So user can subscribe to MouseMovement and build any custom logic.
+    mBus->subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
+    {
+        mCamera->onMouseMove(e);
+    });
 }
 
 void GameWindow::initUIBackends()

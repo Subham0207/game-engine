@@ -27,7 +27,7 @@ ProjectManagerWindow::~ProjectManagerWindow() = default;
 
 void ProjectManagerWindow::init()
 {
-	initCommonInput(true, false, "Project Manager", false);
+	initWindowAndBackends(true, false, "Project Manager", false);
 
 	if (!mWindow)
 		return;
