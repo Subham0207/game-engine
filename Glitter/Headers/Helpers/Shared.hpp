@@ -32,7 +32,8 @@ namespace Shared {
     GLFWwindow* initAWindow(
         bool& isVsyncOn,
         bool& isToolWindow,
-        std::string title);
+        std::string title,
+        bool& isMouseDisabled);
 
     void initImguiBackend(GLFWwindow* window);
 
@@ -59,7 +60,8 @@ namespace Shared {
     GLFWwindow* InitBackEndsWithWindow(
         bool& isVsyncOn,
         bool& isToolWindow,
-        std::string title);
+        std::string title,
+        bool& isMouseDisabled);
 
     void initGpuLogger();
 

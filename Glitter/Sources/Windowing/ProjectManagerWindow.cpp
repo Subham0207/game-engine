@@ -27,15 +27,8 @@ ProjectManagerWindow::~ProjectManagerWindow() = default;
 
 void ProjectManagerWindow::init()
 {
-	initCommonInput();
+	initCommonInput(true, false, "Project Manager");
 
-	bool isVsyncOn = true;
-	bool isToolsWindow = true;
-	mWindow = Shared::initAWindow(
-		isVsyncOn,
-		isToolsWindow,
-		"Project Manager"
-		);
 	if (!mWindow)
 		return;
 
@@ -58,6 +51,8 @@ void ProjectManagerWindow::init()
 		ud->imnodesCtx = mImNodesContext;
 	}
 
+
+	//TODO: Below can be moved to using mScreenWidth, mScreenHeight.
 	// IMPORTANT:
 	// ImGui backend was initialized with install_callbacks=false.
 	// Therefore the engine must install GLFW callbacks and forward events to ImGui.

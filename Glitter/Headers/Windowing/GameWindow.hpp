@@ -80,6 +80,11 @@ public:
     EventQueue* eventQueue() const { return mQueue.get(); }
 
 protected:
+
+    bool mIsVsyncOn = true;
+    bool mIsToolWindow = false;
+    bool mIsMouseDisabled = false;
+
     GLFWwindow* mWindow = nullptr;
     ImGuiContext* mImguiContext = nullptr;
     ImNodesContext* mImNodesContext = nullptr;
@@ -123,19 +128,11 @@ protected:
         }
     }
 
-    void initCommonInput()
-    {
-        mQueue = std::make_unique<EventQueue>();
-        mInputCtx = std::make_unique<InputContext>();
-        mInputCtx->queue = mQueue.get();
-
-        // Create a default camera for this window.
-        // Windows that want to use EngineState's editorCamera can overwrite this pointer.
-        if (!mCamera)
-            mCamera = std::make_unique<FlyCam>("WindowCamera");
-    }
-
-    void WindowCreation();
+    void initCommonInput(
+        bool isToolWindow,
+        bool isMouseDisabled,
+        const std::string& windowTitle
+    );
 
     // Convenience helpers for derived classes
     void makeCurrent() const { if (mWindow) glfwMakeContextCurrent(mWindow); }

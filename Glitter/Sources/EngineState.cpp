@@ -34,6 +34,8 @@ void EngineState::init()
     {
         editorCamera->onMouseMove(e);
     });
+
+    engineRegistry->init(fs::path(currentActiveProjectDirectory));
 }
 
 void EngineState::setEngineDirectory(std::string value)

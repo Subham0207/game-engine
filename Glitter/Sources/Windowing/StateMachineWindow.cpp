@@ -57,22 +57,10 @@ StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
 
 void StateMachineWindow::init()
 {
-    initCommonInput();
+    initCommonInput(true, false, "StateMachine Editor");
 
-    // If this window is launched standalone (without EditorWindow/ProjectManagerWindow),
-    // GLFW may not be initialized yet.
-    // glfwInit() is reference-count-less but is safe to call multiple times; it will
-    // simply return GLFW_TRUE after the first successful init.
-    bool isVsyncOn = true;
-    bool isToolWindow = true;
-    mWindow = Shared::initAWindow(
-        isVsyncOn,
-        isToolWindow,
-        "StateMachine Editor"
-        );
     if (EngineState::state)
         EngineState::state->mStatemachineWindow = mWindow;
-    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Create isolated ImGui contexts for this window
     mImguiContext = Shared::createImguiContext();

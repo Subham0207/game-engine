@@ -145,19 +145,18 @@ void  Shared::initGpuLogger()
 GLFWwindow*  Shared::InitBackEndsWithWindow(
     bool& isVsyncOn,
     bool& isToolWindow,
-    std::string title
+    std::string title,
+    bool& isMouseDisabled
     )
 {
     auto window = Shared::initAWindow(
         isVsyncOn,
         isToolWindow,
-        title
+        title,
+        isMouseDisabled
         );
     Shared::initImguiBackend(window);
-    EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // disable mouse pointer
 
     return window;
 }
@@ -165,7 +164,8 @@ GLFWwindow*  Shared::InitBackEndsWithWindow(
 GLFWwindow* Shared::initAWindow(
     bool& isVsyncOn,
     bool& isToolWindow,
-    std::string title
+    std::string title,
+    bool& isMouseDisabled
     )
 {
     if (glfwInit() == GLFW_FALSE)
@@ -212,6 +212,11 @@ GLFWwindow* Shared::initAWindow(
     glfwSwapInterval(isVsyncOn);
 
     TracyGpuContext;
+
+    glfwSetInputMode(
+        window,
+        GLFW_CURSOR,
+        isMouseDisabled ? GLFW_CURSOR_DISABLED: GLFW_CURSOR_NORMAL);
 
     return window;
 }

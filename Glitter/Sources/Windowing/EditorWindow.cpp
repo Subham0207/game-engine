@@ -44,17 +44,9 @@ EditorWindow::~EditorWindow() = default;
 
 void EditorWindow::init()
 {
-    initCommonInput();
+    initCommonInput(false, true, "Editor");
 
-    bool isVsyncOn = true;
-    bool isToolWindow = false;
-    mWindow = Shared::initAWindow(
-        isVsyncOn,
-        isToolWindow,
-        "Editor"
-        );
     EngineState::state->mEditorWindow = mWindow;
-    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     mImguiContext = Shared::createImguiContext();
     mImNodesContext = Shared::createImNodesContext();
@@ -62,8 +54,6 @@ void EditorWindow::init()
     ImNodes::SetCurrentContext(mImNodesContext);
     Shared::initImguiBackendForWindow(mWindow);
 
-    //TODO: Below can be moved to EngineState init...
-    EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();
 
     // Attach ImGui contexts to this GLFWwindow for per-window input routing.
@@ -114,10 +104,6 @@ void EditorWindow::init()
     mOutliner->windowRequests.openStateMachineWindow = &mWindowRequests.openStateMachineWindow;
     mAssetBrowser = std::make_unique<ProjectAsset::AssetBrowser>();
     mNodeGraph = std::make_unique<NodeGraph>();
-
-    Controls::PlayerController::register_bindings(getLuaEngine());
-
-    Shared::initGpuLogger();
 
     mShadowPass = std::make_unique<ShadowPass>(mWindow, mLights.get());
     mLightingPass = std::make_unique<LightingPass>();

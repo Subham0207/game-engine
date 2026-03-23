@@ -23,7 +23,7 @@ namespace Engine
             std::map<std::string, std::string> materialFileMap;
             std::map<std::string, std::string> materialInstanceFileMap;
 
-            void init();
+            void init(fs::path currentProjectDirectory);
             void update(std::string guid, std::string filepath);
 
         private:

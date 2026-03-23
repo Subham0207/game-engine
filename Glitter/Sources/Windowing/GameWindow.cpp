@@ -4,6 +4,7 @@
 
 #include "Camera/FlyCam.hpp"
 #include "glad/glad.h"
+#include "Helpers/Shared.hpp"
 
 void GameWindow::tick()
 {
@@ -31,23 +32,30 @@ void GameWindow::tick()
     tickImpl();
 }
 
-void GameWindow::WindowCreation()
+void GameWindow::initCommonInput(
+    const bool isToolWindow,
+    const bool isMouseDisabled,
+    const std::string& windowTitle
+    )
 {
-    if (glfwInit() == GLFW_FALSE)
-    {
-        const char* desc = nullptr;
-        const int err = glfwGetError(&desc);
-        std::fprintf(stderr, "[StateMachineWindow] glfwInit failed (%d): %s\n", err, desc ? desc : "(no description)");
-        return;
-    }
+    mQueue = std::make_unique<EventQueue>();
+    mInputCtx = std::make_unique<InputContext>();
+    mInputCtx->queue = mQueue.get();
 
-    glfwDefaultWindowHints();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    // Create a default camera for this window.
+    // Windows that want to use EngineState's editorCamera can overwrite this pointer.
+    if (!mCamera)
+        mCamera = std::make_unique<FlyCam>("WindowCamera");
+
+    mIsToolWindow = isToolWindow;
+    mIsMouseDisabled = isMouseDisabled;
+    mWindow = Shared::initAWindow(
+        mIsVsyncOn,
+        mIsToolWindow,
+        windowTitle,
+        mIsMouseDisabled
+        );
+
+    Shared::initGpuLogger();
 }
-
-
 

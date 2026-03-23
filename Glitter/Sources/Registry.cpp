@@ -7,10 +7,8 @@
 #include <boost/property_tree/json_parser.hpp>
 namespace bs = boost::property_tree;
 
-void Engine::Registry::init()
+void Engine::Registry::init(fs::path currentProjectDirectory)
 {
-    //scan the current active project directory for .meta files, create a fs::path files[] of allowed types.
-    auto currentProjectDirectory = fs::path(EngineState::state->currentActiveProjectDirectory);
     renderableSaveFileMap = loadMetaFiles(currentProjectDirectory);
 
     //load subsets
