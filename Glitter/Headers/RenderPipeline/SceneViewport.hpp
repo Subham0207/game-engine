@@ -48,6 +48,8 @@ public:
 
     [[nodiscard]] unsigned int textureId() const;
 
+    PostProcess*  getPostProcess() const { return mPostProcess.get(); }
+
 private:
     GLFWwindow* mWindow = nullptr; // non-owning
 

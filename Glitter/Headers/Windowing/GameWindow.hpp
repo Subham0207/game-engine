@@ -22,8 +22,7 @@ class InputHandler;
 //
 // Design goals:
 // - Each GameWindow owns one GLFWwindow* and its own ImGui/ImNodes contexts.
-// - Editor::openEditor() drives all GameWindows from a single loop, switching
-//   GL context + ImGui context between windows.
+// - Each GameWindow will have its own executable which will help us not deal with errors due to state sharing which happens when two windows are part of same process.
 class GameWindow {
 public:
     virtual ~GameWindow() = default;

@@ -87,10 +87,9 @@ void EditorWindow::init()
     mAssetBrowser = std::make_unique<ProjectAsset::AssetBrowser>();
     mNodeGraph = std::make_unique<NodeGraph>();
 
-    mShadowPass = std::make_unique<ShadowPass>(mWindow, mLights.get());
-    mLightingPass = std::make_unique<LightingPass>();
-    mPostProcess = std::make_unique<PostProcess>();
-    EngineState::state->postProcess = mPostProcess.get();
+    mSceneViewport = std::make_unique<SceneViewport>();
+    mSceneViewport->init(mWindow, mLights.get());
+    EngineState::state->postProcess = mSceneViewport->getPostProcess();
 }
 
 void EditorWindow::tickImpl()
@@ -124,6 +123,7 @@ void EditorWindow::tickImpl()
     {
         ZoneScopedN("EditorIsPlay");
         if (!EngineState::state->playerControllers.empty())
+            //Change Camera when a Character is Possessed.
             if (auto character = EngineState::state->playerControllers[EngineState::state->activePlayerControllerId]->getCharacter())
             {
                 activeCamera = character->camera;
@@ -147,25 +147,10 @@ void EditorWindow::tickImpl()
     else
     {
         if (mInputHandler)
+            //When play is stopped make the EditorCamera active.
             mInputHandler->m_Camera = activeLevel.cameras[0];
         getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
     }
-
-    if (!activeCamera)
-        return;
-
-    mPostProcess->attachFBO();
-
-    // Keep per-window render targets in sync with the actual window size.
-    // (In this engine, window == framebuffer.)
-    if (mPostProcess)
-        mPostProcess->resize(screenWidth(), screenHeight());
-
-    // Provide per-frame window sizing info to the camera without changing Camera::tick().
-    activeCamera->setFrameContext(frameContext());
-    activeCamera->tick();
-
-    mSkyBox->Draw(activeCamera->viewMatrix(), activeCamera->projectionMatrix());
 
     for (auto& i : mLights->pointLights)
     {
@@ -217,14 +202,29 @@ void EditorWindow::tickImpl()
         }
     }
 
-    mPostProcess->draw(
-        *mShadowPass,
-        *mLightingPass,
-        lvlrenderables,
-        activeCamera,
-        mLights.get(),
-        mSkyBox->getCubeMap(),
-        deltaTime);
+    if (mSceneViewport && mLevel)
+    {
+        int fbW = 0, fbH = 0;
+        glfwGetFramebufferSize(mWindow, &fbW, &fbH);
+        if (fbW > 0 && fbH > 0)
+        {
+            // Keep render targets in sync with the actual window size.
+            mSceneViewport->resize(fbW, fbH);
+
+            //Camera selecting logic based on Play has already occurred before so we have an activeCamera.
+            if (activeCamera)
+            {
+                activeCamera->setFrameContext(frameContext(fbW, fbH));
+                activeCamera->tick();
+                mSceneViewport->render(
+                    mLevel->renderables,
+                    activeCamera,
+                    mLights.get(),
+                    mSkyBox.get(),
+                    mDeltaTime);
+            }
+        }
+    }
 
     for (int i = 0; i < getActiveLevel().textSprites.size(); i++)
         getActiveLevel().textSprites.at(i)->RenderText3D(activeCamera->viewMatrix(), activeCamera->projectionMatrix());

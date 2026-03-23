@@ -21,6 +21,7 @@
 #include "NodeGraph/NodeGraph.hpp"
 
 #include "Controls/ClientHandler.hpp"
+#include "RenderPipeline/SceneViewport.hpp"
 
 // NOTE:
 // This header intentionally uses forward declarations for most engine types.
@@ -69,6 +70,8 @@ public:
     [[nodiscard]] const WindowRequests& windowRequests() const { return mWindowRequests; }
 
 private:
+
+    std::unique_ptr<SceneViewport> mSceneViewport;
 
     WindowRequests mWindowRequests;
 
