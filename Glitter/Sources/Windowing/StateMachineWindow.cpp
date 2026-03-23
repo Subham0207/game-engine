@@ -57,30 +57,10 @@ StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
 
 void StateMachineWindow::init()
 {
-    initCommonInput(true, false, "StateMachine Editor");
+    initCommonInput(true, false, "StateMachine Editor", false);
 
     if (EngineState::state)
         EngineState::state->mStatemachineWindow = mWindow;
-
-    // Create isolated ImGui contexts for this window
-    mImguiContext = Shared::createImguiContext();
-    mImNodesContext = ImNodes::CreateContext();
-
-    setImguiCurrent();
-    ImNodes::SetCurrentContext(mImNodesContext);
-    Shared::initImguiBackendForWindow(mWindow);
-
-    // Attach ImGui contexts for per-window input routing.
-    {
-        auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
-        if (!ud)
-        {
-            ud = new WindowInputUserData();
-            glfwSetWindowUserPointer(mWindow, ud);
-        }
-        ud->imguiCtx = mImguiContext;
-        ud->imnodesCtx = mImNodesContext;
-    }
 
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
     mNodeGraph = std::make_unique<NodeGraph>();

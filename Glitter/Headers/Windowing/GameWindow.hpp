@@ -131,8 +131,11 @@ protected:
     void initCommonInput(
         bool isToolWindow,
         bool isMouseDisabled,
-        const std::string& windowTitle
+        const std::string& windowTitle,
+        bool initPhysics
     );
+
+    void initUIBackends();
 
     // Convenience helpers for derived classes
     void makeCurrent() const { if (mWindow) glfwMakeContextCurrent(mWindow); }

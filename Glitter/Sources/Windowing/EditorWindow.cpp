@@ -44,36 +44,18 @@ EditorWindow::~EditorWindow() = default;
 
 void EditorWindow::init()
 {
-    initCommonInput(false, true, "Editor");
+    initCommonInput(false, true, "Editor", true);
 
     EngineState::state->mEditorWindow = mWindow;
-
-    mImguiContext = Shared::createImguiContext();
-    mImNodesContext = Shared::createImNodesContext();
-    setImguiCurrent();
-    ImNodes::SetCurrentContext(mImNodesContext);
-    Shared::initImguiBackendForWindow(mWindow);
-
-    getPhysicsSystem().Init();
-
-    // Attach ImGui contexts to this GLFWwindow for per-window input routing.
-    // InputHandler populates handler/ctx later.
-    {
-        auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
-        if (!ud)
-        {
-            ud = new WindowInputUserData();
-            glfwSetWindowUserPointer(mWindow, ud);
-        }
-        ud->imguiCtx = mImguiContext;
-        ud->imnodesCtx = mImNodesContext;
-    }
 
     // Level / scene setup
     mLevel = std::make_unique<Level>();
     EngineState::state->activeLevel = mLevel.get();
     auto lvl = EngineState::state->activeLevel;
-    lvl->cameras.push_back(EngineState::state->editorCamera);
+    auto cameraRef = mCamera.get();
+    cameraRef->cameraPos = glm::vec3(0.0f, 10.0f, 0.0f);
+    EngineState::state->editorCamera = cameraRef;
+    lvl->cameras.push_back(cameraRef);
 
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
     mClientHandler = std::make_unique<ClientHandler>();

@@ -35,7 +35,8 @@ void GameWindow::tick()
 void GameWindow::initCommonInput(
     const bool isToolWindow,
     const bool isMouseDisabled,
-    const std::string& windowTitle
+    const std::string& windowTitle,
+    const bool initPhysics
     )
 {
     mQueue = std::make_unique<EventQueue>();
@@ -57,5 +58,32 @@ void GameWindow::initCommonInput(
         );
 
     Shared::initGpuLogger();
+
+    initUIBackends();
+
+    if (initPhysics)
+        getPhysicsSystem().Init();
+}
+
+void GameWindow::initUIBackends()
+{
+    mImguiContext = Shared::createImguiContext();
+    mImNodesContext = ImNodes::CreateContext();
+
+    setImguiCurrent();
+    ImNodes::SetCurrentContext(mImNodesContext);
+    Shared::initImguiBackendForWindow(mWindow);
+
+    // Attach ImGui contexts for per-window input routing.
+    {
+        auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
+        if (!ud)
+        {
+            ud = new WindowInputUserData();
+            glfwSetWindowUserPointer(mWindow, ud);
+        }
+        ud->imguiCtx = mImguiContext;
+        ud->imnodesCtx = mImNodesContext;
+    }
 }
 

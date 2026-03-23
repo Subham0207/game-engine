@@ -29,7 +29,6 @@ void EngineState::init()
     setEngineDirectory(enginePath);
     setCurrentActiveProjectDir(projectDir);
 
-    editorCamera = new FlyCam("editorCamera");
     bus.subscribe<MouseMoveEvent>([&](const MouseMoveEvent& e)
     {
         editorCamera->onMouseMove(e);
