@@ -40,14 +40,8 @@ void Mesh::setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const
 
 void Mesh::Draw(Camera* camera, Lights* lightSystem, ModelType modelType, glm::mat4 modelMatrix, const std::vector<glm::mat4>* finalBoneMatrix)
 {
-    std::shared_ptr<Materials::IMaterial> resolvedMaterial = mMaterial;
-    if (!resolvedMaterial)
-    {
-        // Multi-window: pick a default material instance that matches the current window/context.
-        // Editor uses EngineState::defaultMaterialInstance; tool windows get their own if needed.
-        GLFWwindow* currentWindow = (EngineState::state ? glfwGetCurrentContext() : nullptr);
-        resolvedMaterial = EngineState::state->getDefaultMaterialInstanceForWindow(currentWindow);
-    }
+    //TODO: going into global objects to retrieve variable is not good. This limits Model class from getting used in multiple projects.
+    std::shared_ptr<Materials::IMaterial> resolvedMaterial = mMaterial ? mMaterial: EngineState::state->defaultMaterialInstance;
 
     resolvedMaterial->Bind();
     auto* shader = resolvedMaterial->GetShader();

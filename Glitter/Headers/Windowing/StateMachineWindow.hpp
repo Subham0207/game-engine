@@ -44,6 +44,9 @@ public:
     void shutdown() override;
 
 private:
+
+    void setupLevelObjs();
+
     GLFWwindow* mShareContext = nullptr;
 
     // Local bus for this window so mouse-look can drive its own camera.

@@ -142,23 +142,40 @@ void  Shared::initGpuLogger()
     glDebugMessageCallback(Shared::glDebugOutput, nullptr);
 }
 
-GLFWwindow*  Shared::InitBackEndsWithWindow()
+GLFWwindow*  Shared::InitBackEndsWithWindow(
+    bool& isVsyncOn,
+    bool& isToolWindow,
+    std::string title
+    )
 {
-    auto window = Shared::initAWindow(EngineState::state->isVSyncOn);
+    auto window = Shared::initAWindow(
+        isVsyncOn,
+        isToolWindow,
+        title
+        );
     Shared::initImguiBackend(window);
     EngineState::state->engineRegistry->init();
     getPhysicsSystem().Init();
-
-    TracyGpuContext;
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // disable mouse pointer
 
     return window;
 }
 
-GLFWwindow* Shared::initAWindow(bool isVsyncOn)
+GLFWwindow* Shared::initAWindow(
+    bool& isVsyncOn,
+    bool& isToolWindow,
+    std::string title
+    )
 {
-    glfwInit();
+    if (glfwInit() == GLFW_FALSE)
+    {
+        const char* desc = nullptr;
+        const int err = glfwGetError(&desc);
+        std::fprintf(stderr, "[StateMachineWindow] glfwInit failed (%d): %s\n", err, desc ? desc : "(no description)");
+        return nullptr;
+    }
+    glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -167,11 +184,16 @@ GLFWwindow* Shared::initAWindow(bool isVsyncOn)
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    const GLFWvidmode* mode = monitor ? glfwGetVideoMode(monitor) : nullptr;
 
-    const int initialWidth = mode->width;
-    const int initialHeight = mode->height;
-    GLFWwindow* window = glfwCreateWindow(initialWidth, initialHeight, "OpenGL", nullptr, nullptr);
+    const int initialWidth = (mode && mode->width > 0) ?
+                            (isToolWindow ? mode->width / 2: mode->width)
+                            : 1280;
+    const int initialHeight = (mode && mode->height > 0) ?
+                                (isToolWindow ? mode->height / 2: mode->height)
+                            : 720;
+
+    GLFWwindow* window = glfwCreateWindow(initialWidth, initialHeight, title.c_str(), nullptr, nullptr);
 
     // Check for Valid Context
     if (window == nullptr) {
@@ -187,7 +209,9 @@ GLFWwindow* Shared::initAWindow(bool isVsyncOn)
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    glfwSwapInterval(isVsyncOn); //V-sync off
+    glfwSwapInterval(isVsyncOn);
+
+    TracyGpuContext;
 
     return window;
 }
@@ -197,7 +221,9 @@ void Shared::framebuffer_size_callback(GLFWwindow* window, int width, int height
     glViewport(0, 0, width, height);
 }
 
-void Shared::initImguiBackend(GLFWwindow* window)
+void Shared::initImguiBackend(
+    GLFWwindow* window
+    )
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

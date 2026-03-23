@@ -29,7 +29,10 @@ namespace Shared {
 
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    GLFWwindow* initAWindow(bool isVsyncOn);
+    GLFWwindow* initAWindow(
+        bool& isVsyncOn,
+        bool& isToolWindow,
+        std::string title);
 
     void initImguiBackend(GLFWwindow* window);
 
@@ -53,7 +56,10 @@ namespace Shared {
 
     void CopyFileToProjectDirectory(std::string& filelocation);
 
-    GLFWwindow* InitBackEndsWithWindow();
+    GLFWwindow* InitBackEndsWithWindow(
+        bool& isVsyncOn,
+        bool& isToolWindow,
+        std::string title);
 
     void initGpuLogger();
 

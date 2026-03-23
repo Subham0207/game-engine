@@ -29,7 +29,13 @@ void ProjectManagerWindow::init()
 {
 	initCommonInput();
 
-	mWindow = Shared::initAWindow(true);
+	bool isVsyncOn = true;
+	bool isToolsWindow = true;
+	mWindow = Shared::initAWindow(
+		isVsyncOn,
+		isToolsWindow,
+		"Project Manager"
+		);
 	if (!mWindow)
 		return;
 
@@ -63,7 +69,7 @@ void ProjectManagerWindow::init()
 
 	// Use the per-window default camera from GameWindow.
 	// This avoids requiring EngineState for ProjectManager exe.
-	mInputHandler = std::make_unique<InputHandler>(mEditorCamera.get(), mWindow, (float)fbW, (float)fbH);
+	mInputHandler = std::make_unique<InputHandler>(mCamera.get(), mWindow, (float)fbW, (float)fbH);
 	mInputHandler->movementSpeed = 0.0f;
 	mInputHandler->handleInput(0.0f, *mInputCtx, false);
 }

@@ -13,7 +13,7 @@ public:
 
 	// Movement speed used by editor-style camera controls (WASD).
 	// Windowing layer should set this as needed; defaults to a reasonable value.
-	float movementSpeed = 2.5f;
+	float movementSpeed = 30.f;
 	unsigned int mouseState;
 	float lastX,lastY;
 	Camera* m_Camera;
@@ -46,14 +46,14 @@ private:
 
 };
 
-		// Per-window callback payload stored as GLFW window user pointer when using InputHandler.
-		// Windowing layer may also store the ImGui/ImNodes contexts here so callbacks can set
-		// correct current context before forwarding events.
-		struct WindowInputUserData
-		{
-			InputHandler* handler = nullptr;
-			InputContext* ctx = nullptr;
-			ImGuiContext* imguiCtx = nullptr;
-			ImNodesContext* imnodesCtx = nullptr;
-		};
+// Per-window callback payload stored as GLFW window user pointer when using InputHandler.
+// Windowing layer may also store the ImGui/ImNodes contexts here so callbacks can set
+// correct current context before forwarding events.
+struct WindowInputUserData
+{
+	InputHandler* handler = nullptr;
+	InputContext* ctx = nullptr;
+	ImGuiContext* imguiCtx = nullptr;
+	ImNodesContext* imnodesCtx = nullptr;
+};
 

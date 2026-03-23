@@ -92,7 +92,7 @@ protected:
 
     // Per-window default camera for input systems. This avoids relying on EngineState
     // (which may be null for standalone executables like ProjectManager).
-    std::unique_ptr<FlyCam> mEditorCamera;
+    std::unique_ptr<FlyCam> mCamera;
 
     // Per-window timing (avoids using EngineState::lastFrame globally)
     float mLastFrame = 0.0f;
@@ -131,9 +131,11 @@ protected:
 
         // Create a default camera for this window.
         // Windows that want to use EngineState's editorCamera can overwrite this pointer.
-        if (!mEditorCamera)
-            mEditorCamera = std::make_unique<FlyCam>("WindowCamera");
+        if (!mCamera)
+            mCamera = std::make_unique<FlyCam>("WindowCamera");
     }
+
+    void WindowCreation();
 
     // Convenience helpers for derived classes
     void makeCurrent() const { if (mWindow) glfwMakeContextCurrent(mWindow); }

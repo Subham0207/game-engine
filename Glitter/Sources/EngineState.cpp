@@ -83,37 +83,3 @@ void EngineState::GenerateDefaultMaterials()
     textureUnits.ao->id = getUIState().whiteAOTextureID;
     defaultMaterialInstance = std::make_shared<Materials::MaterialInstance>("defaultMaterialInstance", defaultMaterial) ;
 }
-std::shared_ptr<Materials::MaterialInstance> EngineState::getDefaultMaterialInstanceForWindow(GLFWwindow* window)
-{
-    if (!window)
-        return defaultMaterialInstance;
-
-    auto it = defaultMaterialInstancePerWindow.find(window);
-    if (it != defaultMaterialInstancePerWindow.end() && it->second)
-        return it->second;
-
-    // Ensure base textures exist. These are GL objects too, but they are generated via Shared helpers.
-    // If contexts are shared, IDs are reusable; if not, caller must ensure this is executed per window.
-    getUIState().metalicTextureID = Shared::generateMetallicTexture();
-    getUIState().nonMetalicTextureID = Shared::generateNonMetallicTexture();
-    getUIState().whiteAOTextureID = Shared::generateWhiteAOTexture();
-    unsigned int defaultRoughnessTextureID = Shared::generateDefaultRoughnessTexture();
-    getUIState().flatNormalTextureID = Shared::generateFlatNormalTexture();
-
-    auto vertPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.vert";
-    auto fragPath = fs::path(engineInstalledDirectory) / "Shaders/pbr.frag";
-
-    // Create a separate material instance for this window/context.
-    auto mat = std::make_shared<Materials::Material>("DefaultMaterial", vertPath.string(), fragPath.string());
-    auto& textureUnits = mat->GetTextureUnits();
-    textureUnits.albedo->id = getUIState().nonMetalicTextureID;
-    textureUnits.normal->id = getUIState().flatNormalTextureID;
-    textureUnits.metalness->id = getUIState().nonMetalicTextureID;
-    textureUnits.roughness->id = defaultRoughnessTextureID;
-    textureUnits.ao->id = getUIState().whiteAOTextureID;
-
-    auto inst = std::make_shared<Materials::MaterialInstance>("defaultMaterialInstance", mat);
-    defaultMaterialInstancePerWindow[window] = inst;
-    return inst;
-}
-

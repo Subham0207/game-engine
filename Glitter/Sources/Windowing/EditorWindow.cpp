@@ -46,26 +46,25 @@ void EditorWindow::init()
 {
     initCommonInput();
 
-    // Window + GL/ImGui backends
-    // NOTE: This function previously also initialized engine registry + physics.
-    // We keep that behavior for the main editor window.
-    EngineState::state->mEditorWindow = Shared::InitBackEndsWithWindow();
-    mWindow = EngineState::state->mEditorWindow;
-
-    // IMPORTANT (Windows / multi-window): we want isolated backend state per GLFWwindow.
-    // Shared::InitBackEndsWithWindow() currently calls Shared::initImguiBackend() which
-    // creates a global context + initializes imgui_impl_glfw/opengl3 for this window.
-    // We immediately shutdown those backends and recreate a dedicated context for this window.
-    // This prevents state leakage between multiple windows and avoids WndProc recursion.
-    Shared::shutdownImguiBackendForWindow();
-    ImNodes::DestroyContext();
-    ImGui::DestroyContext();
+    bool isVsyncOn = true;
+    bool isToolWindow = false;
+    mWindow = Shared::initAWindow(
+        isVsyncOn,
+        isToolWindow,
+        "Editor"
+        );
+    EngineState::state->mEditorWindow = mWindow;
+    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     mImguiContext = Shared::createImguiContext();
     mImNodesContext = Shared::createImNodesContext();
     setImguiCurrent();
     ImNodes::SetCurrentContext(mImNodesContext);
     Shared::initImguiBackendForWindow(mWindow);
+
+    //TODO: Below can be moved to EngineState init...
+    EngineState::state->engineRegistry->init();
+    getPhysicsSystem().Init();
 
     // Attach ImGui contexts to this GLFWwindow for per-window input routing.
     // InputHandler populates handler/ctx later.
@@ -88,7 +87,7 @@ void EditorWindow::init()
 
     auto camera = lvl->cameras[EngineState::state->activeCameraIndex];
     mClientHandler = std::make_unique<ClientHandler>();
-    mInputHandler = std::make_unique<InputHandler>(camera, mWindow, 800.0f, 600.0f);
+    mInputHandler = std::make_unique<InputHandler>(camera, mWindow, mScreenWidth, mScreenHeight);
     mInputHandler->movementSpeed = mEditorCameraMoveSpeed;
     mClientHandler->inputHandler = mInputHandler.get();
 

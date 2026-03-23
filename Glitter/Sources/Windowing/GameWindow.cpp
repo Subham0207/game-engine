@@ -3,6 +3,7 @@
 #include <EngineState.hpp>
 
 #include "Camera/FlyCam.hpp"
+#include "glad/glad.h"
 
 void GameWindow::tick()
 {
@@ -29,5 +30,24 @@ void GameWindow::tick()
     onBeginFrame();
     tickImpl();
 }
+
+void GameWindow::WindowCreation()
+{
+    if (glfwInit() == GLFW_FALSE)
+    {
+        const char* desc = nullptr;
+        const int err = glfwGetError(&desc);
+        std::fprintf(stderr, "[StateMachineWindow] glfwInit failed (%d): %s\n", err, desc ? desc : "(no description)");
+        return;
+    }
+
+    glfwDefaultWindowHints();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+}
+
 
 
