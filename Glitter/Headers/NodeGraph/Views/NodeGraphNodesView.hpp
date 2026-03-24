@@ -10,6 +10,7 @@
 #include <imgui.h>
 #include <imnodes.h>
 #include "../Components/NodeGraphNode.hpp"
+#include "../Components/NodeGraphNodeLink.hpp"
 #include "../NodeGraphIdRanges.hpp"
 #include "INodeGraphView.hpp"
 #include "../NodeGraphRenderContext.hpp"
@@ -22,6 +23,7 @@ public:
     // Model mutation API (called by menu/tools). Keeping it here makes it easy to
     // add new element types with their own ID allocation logic.
     int nextNodeId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode);
+	int nextLinkId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeLink);
 
     void addNode(std::vector<NodeGraphNode>& nodes, const std::string& name, const ImVec2& spawnPosScreen)
     {
@@ -29,6 +31,17 @@ public:
         n.setSpawnPosScreen(spawnPosScreen);
         nodes.emplace_back(std::move(n));
     }
+
+	void addLink(std::vector<NodeGraphNodeLink>& links, int startAttr, int endAttr)
+	{
+    // Prevent duplicates (common when IsLinkCreated may fire on multiple frames depending on backend)
+    for (const auto& l : links)
+    {
+      if (l.startAttr() == startAttr && l.endAttr() == endAttr)
+        return;
+    }
+		links.emplace_back(nextLinkId++, startAttr, endAttr);
+	}
 
     void draw(NodeGraphRenderContext& ctx) override
     {
@@ -52,6 +65,7 @@ public:
         }
 
         auto& nodes = ctx.nodes;
+    	auto& links = ctx.nodeGraphLinks;
 
         for (auto& node : nodes)
         {
@@ -68,19 +82,35 @@ public:
             ImGui::TextUnformatted(node.name().c_str());
             ImNodes::EndNodeTitleBar();
 
-            ImNodes::BeginInputAttribute(node.id() * 1000 + 1);
+            ImNodes::BeginInputAttribute(node.id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + 1);
             ImGui::Text("Input");
             ImNodes::EndInputAttribute();
 
             ImGui::Spacing();
 
-            ImNodes::BeginOutputAttribute(node.id() * 1000 + 2);
+            ImNodes::BeginOutputAttribute(node.id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + 2);
             ImGui::Indent(40.f);
             ImGui::Text("Output");
             ImNodes::EndOutputAttribute();
 
             ImNodes::EndNode();
         }
+
+    // Draw links after nodes so ImNodes can route them correctly.
+    for (const auto& link : links)
+    {
+      ImNodes::Link(link.id(), link.startAttr(), link.endAttr());
+    }
+
+    // Allow users to create new links by dragging between attributes.
+    // NOTE: This project uses a vendored imnodes version; in this build the
+    // available overload is IsLinkCreated(int* start_attr, int* end_attr).
+    // int startAttr = -1;
+    // int endAttr = -1;
+    // if (ImNodes::IsLinkCreated(&startAttr, &endAttr))
+    // {
+    //   addLink(links, startAttr, endAttr);
+    // }
     }
 };
 

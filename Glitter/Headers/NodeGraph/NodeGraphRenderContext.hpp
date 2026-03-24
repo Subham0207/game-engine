@@ -11,6 +11,7 @@
 
 #include "NodeGraphEditorSpace.hpp"
 #include "Components/NodeGraphNode.hpp"
+#include "Components/NodeGraphNodeLink.hpp"
 #include "Components/CommentBox.hpp"
 #include "Components/StateMachineNode.hpp"
 #include "Components/StateMachineLink.hpp"
@@ -101,6 +102,7 @@ struct NodeGraphRenderContext
 
 	// Graph model containers.
 	std::vector<NodeGraphNode>& nodes;
+	std::vector<NodeGraphNodeLink>& nodeGraphLinks;
 	std::vector<CommentBox>& comments;
 
 	// State machine component containers.

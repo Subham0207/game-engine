@@ -11,6 +11,7 @@
 #include <imnodes.h>
 
 #include "Components/NodeGraphNode.hpp"
+#include "Components/NodeGraphNodeLink.hpp"
 
 #include "Components/CommentBox.hpp"
 #include "Components/StateMachineNode.hpp"
@@ -48,6 +49,7 @@ class NodeGraph
 
     protected:
         std::vector<NodeGraphNode> nodes;
+		std::vector<NodeGraphNodeLink> nodeGraphLinks;
         std::vector<CommentBox> comments;
 
 		// State-machine component models.
@@ -66,7 +68,7 @@ class NodeGraph
         NodeGraphViewRegistry views;
   NodeGraphRenderContext renderCtx{editorSpace,
     false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
-    nodes, comments,
+    nodes, nodeGraphLinks, comments,
     stateNodes, stateLinks};
 
         ScreenSpaceUiFn screenSpaceUiFn = nullptr;

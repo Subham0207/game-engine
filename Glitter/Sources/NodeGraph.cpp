@@ -128,6 +128,14 @@ void NodeGraph::drawUIEmbedded()
 
     ImNodes::EndNodeEditor();
 
+    int startAttr = -1;
+    int endAttr = -1;
+    if (ImNodes::IsLinkCreated(&startAttr, &endAttr))
+    {
+        auto nodeView = views.findView<NodeGraphNodesView>();
+        nodeView->addLink(nodeGraphLinks, startAttr, endAttr);
+    }
+
     // Restore previous context (important when multiple graphs are drawn in one frame).
     ImNodes::EditorContextSet(prevCtx);
     g_lastImNodesEditorCtx = prevCtx;

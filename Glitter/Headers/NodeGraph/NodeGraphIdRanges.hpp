@@ -20,8 +20,9 @@ enum class NodeGraphElementIdBase : int
 {
 	NodeGraphNode = 0,
 	StateMachineNode = 1000,
+	NodeGraphNodeLink = 2000,
 	// Future:
-	// SomethingElse = 2000,
+	// SomethingElse = 3000,
 };
 
 // Helper: returns the base integer for an element kind.
