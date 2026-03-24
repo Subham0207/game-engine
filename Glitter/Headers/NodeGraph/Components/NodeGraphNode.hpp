@@ -19,20 +19,12 @@ class NodeGraphNode
 public:
     NodeGraphNode() = default;
     NodeGraphNode(int id, std::string name, float x = 0.0f, float y = 0.0f)
-        : m_id(id), m_name(std::move(name)), m_x(x), m_y(y)
+        : m_id(id), m_name(std::move(name)), m_spawnPosScreen(x,y)
     {
     }
 
     [[nodiscard]] int id() const { return m_id; }
     [[nodiscard]] const std::string& name() const { return m_name; }
-
-    [[nodiscard]] float x() const { return m_x; }
-    [[nodiscard]] float y() const { return m_y; }
-    void setXY(float x, float y)
-    {
-        m_x = x;
-        m_y = y;
-    }
 
     [[nodiscard]] bool positionSet() const { return m_positionSet; }
     void markPositionSet(bool set = true) { m_positionSet = set; }
@@ -50,8 +42,7 @@ public:
 private:
     int m_id = -1;
     std::string m_name;
-    float m_x = 0.0f;
-    float m_y = 0.0f;
+
     bool m_positionSet = false;
 
     bool m_hasSpawnPos = false;

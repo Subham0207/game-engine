@@ -66,5 +66,6 @@ private:
     std::unique_ptr<Lighting::Skybox> mSkyBox;
 
     std::unique_ptr<StateMachineGraph> mStateMachineGraph;
+    std::unique_ptr<StateMachineGraph> mStateMachineGraph2;
 };
 

@@ -9,7 +9,6 @@
 #include <string>
 #include <imgui.h>
 #include <imnodes.h>
-
 #include "../Components/NodeGraphNode.hpp"
 #include "../NodeGraphIdRanges.hpp"
 #include "INodeGraphView.hpp"
