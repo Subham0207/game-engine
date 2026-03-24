@@ -11,9 +11,16 @@
 #include "NodeGraph/Views/NodeGraphNodesView.hpp"
 #include "NodeGraph/Views/StateMachineView.hpp"
 
+// imnodes doesn't expose a public EditorContextGet() API in this vendored version.
+// To allow multiple NodeGraph instances to be drawn per-frame without leaking the
+// current editor context across graphs, we track the last context we set.
+static ImNodesEditorContext* g_lastImNodesEditorCtx = nullptr;
+
 NodeGraph::NodeGraph()
     : editorSpace()
 {
+    editorCtx = ImNodes::EditorContextCreate();
+
     // Register default views. Their layer/priority controls draw order.
     views.emplaceView<NodeGraphCommentsView>(comments);
     views.emplaceView<NodeGraphNodesView>();
@@ -52,6 +59,21 @@ NodeGraph::NodeGraph()
     });
 }
 
+NodeGraph::~NodeGraph()
+{
+    if (editorCtx)
+    {
+        // Ensure we don't leave this context as "current" when destroying.
+        if (g_lastImNodesEditorCtx == editorCtx)
+        {
+            ImNodes::EditorContextSet(nullptr);
+            g_lastImNodesEditorCtx = nullptr;
+        }
+        ImNodes::EditorContextFree(editorCtx);
+        editorCtx = nullptr;
+    }
+}
+
 void NodeGraph::drawUI()
 {
     ImGui::Begin("node editor");
@@ -64,6 +86,14 @@ void NodeGraph::drawUI()
 void NodeGraph::drawUIEmbedded()
 {
     // NOTE: Caller is responsible for Begin/End when embedding.
+
+    // Isolation:
+    // - Push a unique ImGui ID scope so any internal widgets/popups don't collide across graphs.
+    // - Set this graph's ImNodes editor context so panning/selection/etc. are per-graph.
+    ImGui::PushID(this);
+    ImNodesEditorContext* prevCtx = g_lastImNodesEditorCtx;
+    ImNodes::EditorContextSet(editorCtx);
+    g_lastImNodesEditorCtx = editorCtx;
 
     ImNodes::BeginNodeEditor();
 
@@ -97,6 +127,11 @@ void NodeGraph::drawUIEmbedded()
         screenSpaceUiFn(renderCtx, screenSpaceUiUser);
 
     ImNodes::EndNodeEditor();
+
+    // Restore previous context (important when multiple graphs are drawn in one frame).
+    ImNodes::EditorContextSet(prevCtx);
+    g_lastImNodesEditorCtx = prevCtx;
+    ImGui::PopID();
 }
 
 

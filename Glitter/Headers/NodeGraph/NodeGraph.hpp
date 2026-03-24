@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <imgui.h>
+#include <imnodes.h>
 
 #include "Components/NodeGraphNode.hpp"
 
@@ -22,7 +23,7 @@ class NodeGraph
 {
     public:
         NodeGraph();
-        virtual ~NodeGraph() = default;
+        virtual ~NodeGraph();
         void drawUI();
         // Draw inside an already-open ImGui region (e.g., child window / docked panel).
         // Unlike drawUI(), this does NOT call ImGui::Begin/End.
@@ -55,6 +56,11 @@ class NodeGraph
 
         // Per-frame cached editor space mapping
         NodeGraphEditorSpace editorSpace;
+
+        // Each NodeGraph needs its own ImNodes editor context.
+        // If multiple graphs share the same ImNodes editor context, interactions such as
+        // panning/zooming/selection will be shared and graphs will appear to move together.
+        ImNodesEditorContext* editorCtx = nullptr;
 
         // Layered UI system
         NodeGraphViewRegistry views;
