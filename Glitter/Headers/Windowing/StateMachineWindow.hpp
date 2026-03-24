@@ -8,7 +8,6 @@
 
 // Required because this header owns std::unique_ptr<NodeGraph>
 #include <Debug/Raycast.hpp>
-#include "NodeGraph/NodeGraph.hpp"
 
 #include "RenderPipeline/SceneViewport.hpp"
 
@@ -18,6 +17,7 @@
 #include "Level/Level.hpp"
 
 #include "Event/EventBus.hpp"
+#include "NodeGraph/StateMachineGraph.hpp"
 
 class EventQueue;
 struct InputContext;
@@ -65,6 +65,6 @@ private:
     std::unique_ptr<Lights> mLights;
     std::unique_ptr<Lighting::Skybox> mSkyBox;
 
-    std::unique_ptr<NodeGraph> mNodeGraph;
+    std::unique_ptr<StateMachineGraph> mStateMachineGraph;
 };
 

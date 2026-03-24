@@ -22,12 +22,30 @@ class NodeGraph
 {
     public:
         NodeGraph();
+        virtual ~NodeGraph() = default;
         void drawUI();
         // Draw inside an already-open ImGui region (e.g., child window / docked panel).
         // Unlike drawUI(), this does NOT call ImGui::Begin/End.
         void drawUIEmbedded();
 
-    private:
+        // Allow callers (or derived graphs) to inject additional UI elements in SCREEN space.
+        // This is called once per frame inside the NodeGraph ImGui window, after the editor has drawn.
+        // Keep it simple: just provide a callback that gets access to the current render context.
+        using ScreenSpaceUiFn = void(*)(NodeGraphRenderContext& ctx, void* user);
+        void setScreenSpaceUi(ScreenSpaceUiFn fn, void* user = nullptr)
+        {
+            screenSpaceUiFn = fn;
+            screenSpaceUiUser = user;
+        }
+
+        // Minimal accessors for state-machine tooling.
+        [[nodiscard]] const std::vector<StateMachineNode>& getStateNodes() const { return stateNodes; }
+        [[nodiscard]] const std::vector<StateMachineLink>& getStateLinks() const { return stateLinks; }
+        [[nodiscard]] std::vector<StateMachineNode>& getStateNodes() { return stateNodes; }
+        [[nodiscard]] std::vector<StateMachineLink>& getStateLinks() { return stateLinks; }
+        [[nodiscard]] NodeGraphRenderContext& getRenderContext() { return renderCtx; }
+
+    protected:
         std::vector<NodeGraphNode> nodes;
         std::vector<CommentBox> comments;
 
@@ -44,6 +62,9 @@ class NodeGraph
     false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
     nodes, comments,
     stateNodes, stateLinks};
+
+        ScreenSpaceUiFn screenSpaceUiFn = nullptr;
+        void* screenSpaceUiUser = nullptr;
 
 };
 

@@ -46,7 +46,7 @@ void StateMachineWindow::init()
         EngineState::state->mStatemachineWindow = mWindow;
 
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
-    mNodeGraph = std::make_unique<NodeGraph>();
+    mStateMachineGraph = std::make_unique<StateMachineGraph>();
 
     // Inline scene setup (mirrors EditorWindow)
     if (EngineState::state)
@@ -133,8 +133,8 @@ void StateMachineWindow::tickImpl()
 
     ImGui::TextUnformatted("Node Graph");
     // Draw the node graph embedded into this window.
-    if (mNodeGraph)
-        mNodeGraph->drawUIEmbedded();
+    if (mStateMachineGraph)
+        mStateMachineGraph->drawUIEmbedded();
 
     ImGui::End();
 

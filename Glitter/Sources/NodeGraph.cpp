@@ -91,6 +91,11 @@ void NodeGraph::drawUIEmbedded()
     renderCtx.editorSpace = editorSpace;
     views.drawAll(renderCtx);
 
+    // Optional caller/derived-class screen-space overlay UI.
+    // This runs after all views have drawn and while the NodeGraph window is active.
+    if (screenSpaceUiFn)
+        screenSpaceUiFn(renderCtx, screenSpaceUiUser);
+
     ImNodes::EndNodeEditor();
 }
 
