@@ -23,40 +23,6 @@
 #include "Windowing/StateMachineWindow.hpp"
 #include <memory>
 
-namespace
-{
-    template<typename TWindow, typename... TArgs>
-    void spawnOrFocusWindowOnRequest(
-        std::vector<std::unique_ptr<GameWindow>>& windows,
-        bool& requestToOpenWindow,
-        GLFWwindow*& outGlfwHandle,
-        TArgs&&... args)
-    {
-        if (!requestToOpenWindow)
-            return;
-        requestToOpenWindow = false;
-
-        // If an instance is already alive, just show/focus it.
-        if (outGlfwHandle && !glfwWindowShouldClose(outGlfwHandle))
-        {
-            glfwShowWindow(outGlfwHandle);
-            glfwFocusWindow(outGlfwHandle);
-            return;
-        }
-
-        windows.emplace_back(std::make_unique<TWindow>(std::forward<TArgs>(args)...));
-        windows.back()->init();
-
-        // `init()` implementations are expected to assign their GLFWwindow* into EngineState
-        // (e.g. EngineState::state->mStatemachineWindow).
-        if (outGlfwHandle)
-        {
-            glfwShowWindow(outGlfwHandle);
-            glfwFocusWindow(outGlfwHandle);
-        }
-    }
-}
-
 int Editor::openEditor() {
     // 1) Engine init (once)
     auto state = new EngineState();
@@ -79,16 +45,6 @@ int Editor::openEditor() {
     GameWindow* activeWindow = nullptr;
     while (!windows.empty())
     {
-        // Spawn on-demand tool windows requested from UI (handled by Editor.cpp, not EngineState).
-        if (EngineState::state && editorWindow)
-        {
-            spawnOrFocusWindowOnRequest<StateMachineWindow>(
-                windows,
-                editorWindow->windowRequests().openStateMachineWindow,
-                EngineState::state->mStatemachineWindow,
-                EngineState::state->mEditorWindow);
-        }
-
         // Pick the actively focused window.
         GameWindow* focused = nullptr;
         for (auto& w : windows)

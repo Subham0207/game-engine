@@ -5,11 +5,13 @@
 #ifndef GLITTER_EDITORSTATEMACHINE_HPP
 #define GLITTER_EDITORSTATEMACHINE_HPP
 
+#pragma once
+#include <string>
 
 class EditorStateMachine
 {
 public:
-    int openEditor();
+    int openEditor(std::string characterFilepath);
 };
 
 

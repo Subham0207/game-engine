@@ -33,14 +33,14 @@
 
 #include <cstdio>
 
-StateMachineWindow::StateMachineWindow(GLFWwindow* shareContext)
-    : mShareContext(shareContext)
+StateMachineWindow::StateMachineWindow(std::string characterFilePath)
+    : mCharacterFilePath(characterFilePath)
 {
 }
 
 void StateMachineWindow::init()
 {
-    initWindowAndBackends(true, false, "StateMachine Editor", false);
+    initWindowAndBackends(true, false, "StateMachine Editor", true);
 
     if (EngineState::state)
         EngineState::state->mStatemachineWindow = mWindow;
@@ -52,7 +52,6 @@ void StateMachineWindow::init()
     if (EngineState::state)
     {
         mPreviewLevel = std::make_unique<Level>();
-        mPreviewLevel->setInputHandler(mInputHandler.get());
         mPreviewLevel->setEventQueue(mQueue.get());
         mPreviewLevel->setEventBus(mBus.get());
 
@@ -60,6 +59,7 @@ void StateMachineWindow::init()
         {
             Camera* cam = mCamera.get();
             mInputHandler = std::make_unique<InputHandler>(cam, mWindow, mScreenWidth, mScreenHeight);
+            mPreviewLevel->setInputHandler(mInputHandler.get());
 
             mCamera->cameraPos = glm::vec3(0.0f, 10.0f, 0.0f);
             mCamera->cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -177,6 +177,8 @@ void StateMachineWindow::setupLevelObjs()
     // Large "ground" cube.
     cube->setTransform(glm::vec3(0.0f, -0.5f, 0.0f), glm::quat(), glm::vec3(100.0f, 1.0f, 100.0f));
     mPreviewLevel->addRenderable(cube);
+
+    mPreviewLevel->spawnCharacter(mCharacterFilePath);
 }
 
 

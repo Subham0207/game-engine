@@ -30,8 +30,7 @@ namespace ProjectAsset { class AssetBrowser; }
 // Initially a copy of EditorWindow; later you can strip renderer/game tick.
 class StateMachineWindow final : public GameWindow {
 public:
-    // Provide a shared-context parent (optional) to share GL resources.
-    explicit StateMachineWindow(GLFWwindow* shareContext);
+    explicit StateMachineWindow(std::string characterFilePath);
 
     StateMachineWindow(const StateMachineWindow&) = delete;
     StateMachineWindow& operator=(const StateMachineWindow&) = delete;
@@ -47,10 +46,7 @@ private:
 
     void setupLevelObjs();
 
-    GLFWwindow* mShareContext = nullptr;
-
-    // Local bus for this window so mouse-look can drive its own camera.
-    EventBus mWindowBus;
+    std::string mCharacterFilePath;
 
 
     std::unique_ptr<SceneViewport> mSceneViewport;

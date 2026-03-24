@@ -13,7 +13,7 @@
 
 #include <GLFW/glfw3.h>
 
-int EditorStateMachine::openEditor()
+int EditorStateMachine::openEditor(std::string characterFilepath)
 {
     // Engine init (once for this process)
     auto* state = new EngineState();
@@ -25,7 +25,7 @@ int EditorStateMachine::openEditor()
         EngineState::state->currentActiveProjectDirectory);
 
     // Create and drive the tool window. No share context (separate process).
-    auto window = std::make_unique<StateMachineWindow>(nullptr);
+    auto window = std::make_unique<StateMachineWindow>(characterFilepath);
     window->init();
 
     while (window && !window->shouldClose())
