@@ -11,6 +11,7 @@
 #include "Helpers/raypicking.hpp"
 #include "Helpers/shader.hpp"
 #include "UI/outliner.hpp"
+#include <functional>
 
 namespace Debug
 {
@@ -23,7 +24,7 @@ namespace Debug
             rayFragPath.u8string().c_str());
     }
 
-    void Raycast::HandleSelection(const FrameContext& frameCtx, Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input)
+    void Raycast::HandleSelection(const FrameContext& frameCtx, const std::function<int()>& getSelectedIndexFunc, const std::function<void(int)>& setSelectedIndexFunc, Camera* activeCamera, const Level* level, InputHandler* input)
     {
         ImGuizmo::BeginFrame();
         // Set the window and matrix for ImGuizmo
@@ -32,7 +33,7 @@ namespace Debug
 
         const auto& renderables = level->renderables;
 
-        auto getSelectedIndex = outliner->GetSelectedIndex();
+        auto getSelectedIndex = getSelectedIndexFunc();
         rayCastshader->use();
         activeCamera->updateMVP(rayCastshader->ID);
 
@@ -55,7 +56,7 @@ namespace Debug
             input->m_Camera->getCameraLookAtDirectionVector()
         );
         if(getSelectedIndexFromMouseCurrentFrame > -2)
-            outliner->setSelectedIndex(getSelectedIndexFromMouseCurrentFrame);
+            setSelectedIndexFunc(getSelectedIndexFromMouseCurrentFrame);
 
 
         if(getSelectedIndex > -1)

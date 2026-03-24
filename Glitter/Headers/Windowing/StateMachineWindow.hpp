@@ -7,6 +7,7 @@
 #include <memory>
 
 // Required because this header owns std::unique_ptr<NodeGraph>
+#include <Debug/Raycast.hpp>
 #include "NodeGraph/NodeGraph.hpp"
 
 #include "RenderPipeline/SceneViewport.hpp"
@@ -42,11 +43,17 @@ public:
     void tickImpl() override;
     void shutdown() override;
 
+    void setSelectedModelIndex(const int idx){ selectedModelIndex = idx; }
+    int getSelectedModelIndex() const { return selectedModelIndex; }
+
 private:
 
     void setupLevelObjs();
 
     std::string mCharacterFilePath;
+
+    int selectedModelIndex = 0;
+    std::unique_ptr<Debug::Raycast> mRayCastObjectSelector;
 
 
     std::unique_ptr<SceneViewport> mSceneViewport;

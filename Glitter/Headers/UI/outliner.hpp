@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    bool scaleUniformly = true;
+    bool scaleUniformly = false;
 
     void ModelAndTextureSelectionWindow();
     void ModelMatrixComponent();

@@ -117,6 +117,11 @@ void Outliner::ModelMatrixComponent()
                 ImGui::DragFloat("Z##translation", &translation.z, 0.005f);
 
                 // ImGui interface for scale
+                bool areScalesEqual = scale.x == scale.y && scale.z == scale.x;
+                if (!areScalesEqual)
+                {
+                    scaleUniformly = false;
+                }
                 ImGui::Text("Scale");
                 ImGui::DragFloat("X##scale", &scale.x, 0.005f, 0.1f, 100.0f);  // Clamped to reasonable values
                 ImGui::SameLine();
@@ -130,7 +135,9 @@ void Outliner::ModelMatrixComponent()
                     ImGui::DragFloat("Z##scale", &scale.z, 0.005f, 0.1f, 100.0f);
                     ImGui::SameLine();
                 }
-                ImGui::Checkbox("Scale uniformly", &scaleUniformly);
+
+                if (areScalesEqual)
+                    ImGui::Checkbox("Scale uniformly", &scaleUniformly);
 
                 // // // ImGui interface for rotation
                 ImGui::Text("Rotation");

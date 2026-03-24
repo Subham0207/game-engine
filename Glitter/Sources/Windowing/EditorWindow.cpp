@@ -209,7 +209,8 @@ void EditorWindow::tickImpl()
 
         mRayCastObjectSelector->HandleSelection(
             frameContext(),
-            mOutliner.get(),
+            [ptr = mOutliner.get()]() { return ptr->GetSelectedIndex(); },
+            [ptr = mOutliner.get()](int val) { ptr->setSelectedIndex(val); },
             activeCamera,
             &activeLevel,
             mInputHandler.get());

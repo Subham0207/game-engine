@@ -22,7 +22,7 @@ namespace Debug
     {
     public:
         Raycast(fs::path basePath);
-        void HandleSelection(const FrameContext& frameCtx, Outliner* outliner, Camera* activeCamera, const Level* level, InputHandler* input);
+        void HandleSelection(const FrameContext& frameCtx, const std::function<int()>& getSelectedIndexFunc, const std::function<void(int)>& setSelectedIndexFunc, Camera* activeCamera, const Level* level, InputHandler* input);
     private:
         Shader *rayCastshader;
         glm::vec3 rayOrigin, rayDir;

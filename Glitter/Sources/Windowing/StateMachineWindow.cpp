@@ -76,6 +76,8 @@ void StateMachineWindow::init()
 
         EngineState::state->GenerateDefaultMaterials();
 
+        mRayCastObjectSelector = std::make_unique<Debug::Raycast>(engineFSPath);
+
         mSceneViewport = std::make_unique<SceneViewport>();
         mSceneViewport->init(mWindow, mLights.get());
     }
@@ -92,6 +94,9 @@ void StateMachineWindow::tickImpl()
         ImNodes::SetCurrentContext(mImNodesContext);
 
     // --- 3D Scene (render directly to this window's backbuffer) ---
+    Camera* activeCamera = (!mPreviewLevel->cameras.empty())
+	    ? mPreviewLevel->cameras[0]
+	    : static_cast<Camera*>(mCamera.get());
     if (mSceneViewport && mPreviewLevel)
     {
         if (mScreenWidth > 0 && mScreenHeight > 0)
@@ -100,9 +105,6 @@ void StateMachineWindow::tickImpl()
             mSceneViewport->resize(mScreenWidth, mScreenHeight);
 
             // Use this window's own camera.
-            Camera* activeCamera = (!mPreviewLevel->cameras.empty())
-				? mPreviewLevel->cameras[0]
-				: static_cast<Camera*>(mCamera.get());
 
             if (activeCamera)
             {
@@ -135,6 +137,14 @@ void StateMachineWindow::tickImpl()
         mNodeGraph->drawUIEmbedded();
 
     ImGui::End();
+
+    mRayCastObjectSelector->HandleSelection(
+        frameContext(),
+        [ptr = this]() { return ptr->getSelectedModelIndex(); },
+        [ptr = this](int val) { ptr->setSelectedModelIndex(val); },
+        activeCamera,
+        mPreviewLevel.get(),
+        mInputHandler.get());
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
