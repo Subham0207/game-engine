@@ -106,7 +106,40 @@ public:
 
             ImNodes::BeginNode(n.id);
             ImNodes::BeginNodeTitleBar();
-            ImGui::TextUnformatted(n.name.c_str());
+
+            // Rename UX: double-click the name to start editing.
+            // Commit on Enter or when the input loses focus.
+            if (m_renamingNodeId == n.id)
+            {
+                ImGui::SetNextItemWidth(180.0f);
+                const std::string label = std::string("##SM_Rename_") + std::to_string(n.id);
+                const bool enter = ImGui::InputText(label.c_str(), m_renameBuf, sizeof(m_renameBuf), ImGuiInputTextFlags_EnterReturnsTrue);
+                const bool deactivated = ImGui::IsItemDeactivatedAfterEdit();
+
+                if (enter || deactivated)
+                {
+                    if (m_renameBuf[0] != '\0')
+                        n.name = m_renameBuf;
+                    m_renamingNodeId = -1;
+                    m_renameBuf[0] = '\0';
+                }
+                else
+                {
+                    // Keep keyboard focus while renaming.
+                    if (!ImGui::IsItemActive())
+                        ImGui::SetKeyboardFocusHere(-1);
+                }
+            }
+            else
+            {
+                ImGui::TextUnformatted(n.name.c_str());
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    m_renamingNodeId = n.id;
+                    strncpy_s(m_renameBuf, sizeof(m_renameBuf), n.name.c_str(), sizeof(m_renameBuf) - 1);
+                }
+            }
+
             ImNodes::EndNodeTitleBar();
 
             // Context-ish controls inside node.
@@ -255,6 +288,10 @@ private:
     int m_selectedLinkId = -1;
 	bool m_pendingLinkActive = false;
   PortHover m_pendingStartPort;
+
+    // Rename UI state.
+    int m_renamingNodeId = -1;
+    char m_renameBuf[128] = {0};
 
     static StateMachinePortSide computeNearestSide(const ImRect& r, const ImVec2& p)
     {
@@ -672,6 +709,40 @@ private:
             const ImVec2 c2(pTo.x + d1.x * kBezierTangent, pTo.y + d1.y * kBezierTangent);
 
             dl->AddBezierCubic(pFrom, c1, c2, pTo, col, thick);
+
+            // Direction arrow (from -> to) near the middle.
+            // Use the actual cubic bezier tangent at a fixed parameter so the arrow
+            // doesn't flip as nodes move.
+            {
+                constexpr float tMid = 0.5f;
+                const float u = 1.0f - tMid;
+
+                // Bezier point B(t)
+                const ImVec2 mid(
+                    (u * u * u) * pFrom.x + (3.0f * u * u * tMid) * c1.x + (3.0f * u * tMid * tMid) * c2.x + (tMid * tMid * tMid) * pTo.x,
+                    (u * u * u) * pFrom.y + (3.0f * u * u * tMid) * c1.y + (3.0f * u * tMid * tMid) * c2.y + (tMid * tMid * tMid) * pTo.y);
+
+                // Bezier derivative B'(t)
+                ImVec2 dir(
+                    (3.0f * u * u) * (c1.x - pFrom.x) + (6.0f * u * tMid) * (c2.x - c1.x) + (3.0f * tMid * tMid) * (pTo.x - c2.x),
+                    (3.0f * u * u) * (c1.y - pFrom.y) + (6.0f * u * tMid) * (c2.y - c1.y) + (3.0f * tMid * tMid) * (pTo.y - c2.y));
+
+                const float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+                if (len > 0.0001f)
+                {
+                    dir.x /= len;
+                    dir.y /= len;
+                    const ImVec2 nrm(-dir.y, dir.x);
+
+                    const float arrowLen = 12.0f;
+                    const float arrowWidth = 6.0f;
+                    const ImVec2 tip(mid.x + dir.x * (arrowLen * 0.5f), mid.y + dir.y * (arrowLen * 0.5f));
+                    const ImVec2 base(mid.x - dir.x * (arrowLen * 0.5f), mid.y - dir.y * (arrowLen * 0.5f));
+                    const ImVec2 left(base.x + nrm.x * arrowWidth, base.y + nrm.y * arrowWidth);
+                    const ImVec2 right(base.x - nrm.x * arrowWidth, base.y - nrm.y * arrowWidth);
+                    dl->AddTriangleFilled(tip, left, right, col);
+                }
+            }
 
             // Ports
             dl->AddCircleFilled(pFrom, kPortRadius, IM_COL32(60, 60, 60, 255));
