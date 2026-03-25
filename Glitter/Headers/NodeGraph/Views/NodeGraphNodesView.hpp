@@ -29,18 +29,20 @@ public:
     // add new element types with their own ID allocation logic.
     int nextNodeId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode);
 	int nextLinkId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeLink);
+    int nextInputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeInputAttribute);
+    int nextOutputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeOutputAttribute);
 
     void addNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes, NodeTypes type, const ImVec2& spawnPosScreen)
     {
         std::unique_ptr<NodeGraphNode> n;
         if (type == NodeTypes::Add)
         {
-            n = std::make_unique<AddNode>(nextNodeId++, "Add", spawnPosScreen.x, spawnPosScreen.y);
+            n = std::make_unique<AddNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Add", spawnPosScreen.x, spawnPosScreen.y);
             n->setSpawnPosScreen(spawnPosScreen);
         }
         if (type == NodeTypes::Integer)
         {
-            n = std::make_unique<IntegerNode>(nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
+            n = std::make_unique<IntegerNode>(nextOutputPinId, nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
             n->setSpawnPosScreen(spawnPosScreen);
         }
 
@@ -100,8 +102,8 @@ public:
 
             for (int i = 0; i < node->inputs().size(); ++i)
             {
-                const int attributeId = node->id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + i;
                 auto inputAttribute = node->inputs()[i];
+                const int attributeId = inputAttribute.getId();
 
                 ImNodes::BeginInputAttribute(attributeId);
                 ImGui::Text(inputAttribute.getName().c_str());
@@ -113,15 +115,16 @@ public:
 
             for (int i = 0; i < node->outputs().size(); ++i)
             {
-                const int attributeId = node->id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + i;
-                auto outputAttribute = node->outputs()[i];
+                auto& outputAttribute = node->outputs()[i];
+                const int attributeId = node->outputs()[i].getId();
 
                 ImNodes::BeginOutputAttribute(attributeId);
                 ImGui::Text(outputAttribute.getName().c_str());
                 if (outputAttribute.getType() == NodeAttributeType::FIELD)
                 {
                     const auto fieldId = ("##NodeGraphNode" + std::to_string(i)).c_str();
-                    ImGui::InputText(fieldId, nullptr, 0, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::SetNextItemWidth(50.0f);
+                    ImGui::InputText(fieldId ,outputAttribute.getValueBuff(), NodeGraphComponents::Node::Attribute::getValueSize());
                 }
                 ImNodes::EndOutputAttribute();
                 ImGui::Spacing();
@@ -136,19 +139,7 @@ public:
       ImNodes::Link(link.id(), link.startAttr(), link.endAttr());
     }
 
-    // Allow users to create new links by dragging between attributes.
-    // NOTE: This project uses a vendored imnodes version; in this build the
-    // available overload is IsLinkCreated(int* start_attr, int* end_attr).
-    // int startAttr = -1;
-    // int endAttr = -1;
-    // if (ImNodes::IsLinkCreated(&startAttr, &endAttr))
-    // {
-    //   addLink(links, startAttr, endAttr);
-    // }
     }
 };
 
 #endif //GLITTER_NODEGRAPH_NODESVIEW_HPP
-
-
-

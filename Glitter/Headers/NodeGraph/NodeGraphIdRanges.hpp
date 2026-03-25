@@ -21,8 +21,10 @@ enum class NodeGraphElementIdBase : int
 	NodeGraphNode = 0,
 	StateMachineNode = 1000,
 	NodeGraphNodeLink = 2000,
+	NodeGraphNodeInputAttribute = 3000, // aka imnodes input pins.
+	NodeGraphNodeOutputAttribute = 4000, // aka imnodes output pins.
 	// Future:
-	// SomethingElse = 3000,
+	// SomethingElse = 5000,
 };
 
 // Helper: returns the base integer for an element kind.

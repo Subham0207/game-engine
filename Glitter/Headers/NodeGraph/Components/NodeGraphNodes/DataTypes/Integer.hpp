@@ -12,8 +12,8 @@ namespace NodeGraphComponents::Node
     {
     public:
         template<typename... Args>
-        explicit Integer(Args&&... args) : NodeGraphNode(std::forward<Args>(args)...),
-                                           value("Value", TYPE::FIELD)
+        explicit Integer(int& nextOutputPinId, Args&&... args) : NodeGraphNode(std::forward<Args>(args)...),
+                                           value(nextOutputPinId++, "Value", TYPE::FIELD)
         {
             outputs().push_back(value);
         }

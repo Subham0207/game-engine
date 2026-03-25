@@ -129,7 +129,7 @@ void NodeGraph::drawUIEmbedded()
     if (screenSpaceUiFn)
         screenSpaceUiFn(renderCtx, screenSpaceUiUser);
 
-    ImNodes::MiniMap();
+    ImNodes::MiniMap(0.2f, ImNodesMiniMapLocation_BottomRight);
     ImNodes::EndNodeEditor();
 
     int startAttr = -1;

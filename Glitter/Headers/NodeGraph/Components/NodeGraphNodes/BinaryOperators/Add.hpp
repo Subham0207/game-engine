@@ -14,9 +14,11 @@ namespace NodeGraphComponents::Node
     {
     public:
         template<typename... Args>
-        explicit Add(Args&&... args) :
-            NodeGraphNode(std::forward<Args>(args)...), A("A", TYPE::PIN), B("B", TYPE::PIN),
-            result("Result", TYPE::PIN)
+        explicit Add(int& nextInputPinId, int& nextOutputPinId, Args&&... args) :
+            NodeGraphNode(std::forward<Args>(args)...),
+            A(nextInputPinId++,"A", TYPE::PIN),
+            B(nextInputPinId++,"B", TYPE::PIN),
+            result(nextOutputPinId++,"Result", TYPE::PIN)
         {
             inputs().push_back(A);
             inputs().push_back(B);
