@@ -12,6 +12,11 @@
 
 #include <imgui.h>
 
+#include "Attribute.hpp"
+
+using NodeAttribute = NodeGraphComponents::Node::Attribute;
+using NodeAttributeType = NodeGraphComponents::Node::TYPE;
+
 // Node type used by the NodeGraph editor.
 // NOTE: named NodeGraphNode to avoid collisions with any other "Node" types.
 class NodeGraphNode
@@ -39,6 +44,9 @@ public:
     [[nodiscard]] bool hasSpawnPosScreen() const { return m_hasSpawnPos; }
     [[nodiscard]] ImVec2 spawnPosScreen() const { return m_spawnPosScreen; }
 
+    std::vector<NodeAttribute>& inputs() { return inputAttributes; }
+    std::vector<NodeAttribute>& outputs() { return outputAttributes; }
+
 private:
     int m_id = -1;
     std::string m_name;
@@ -47,6 +55,9 @@ private:
 
     bool m_hasSpawnPos = false;
     ImVec2 m_spawnPosScreen{0.0f, 0.0f};
+
+    std::vector<NodeAttribute> inputAttributes;
+    std::vector<NodeAttribute> outputAttributes;
 };
 
 

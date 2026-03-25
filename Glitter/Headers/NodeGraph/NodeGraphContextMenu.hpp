@@ -11,6 +11,10 @@
 #include "NodeGraphEditorSpace.hpp"
 #include "Views/INodeGraphView.hpp"
 #include "NodeGraphRenderContext.hpp"
+#include "Components/NodeGraphNodes/NodeTypes.hpp"
+#include "Components/NodeGraphNodes/BinaryOperators/Add.hpp"
+
+using AddNode = NodeGraphComponents::Node::Add;
 
 class NodeGraphContextMenu final : public INodeGraphView
 {
@@ -22,7 +26,7 @@ public:
 
     [[nodiscard]] NodeGraphLayer layer() const override { return NodeGraphLayer::Popup; }
 
-    using AddNodeFn = void (*)(void* user, const std::string& base, float x, float y);
+    using AddNodeFn = void (*)(void* user, NodeTypes type, float x, float y);
     using AddCommentFn = void (*)(void* user, const ImVec2& gridPos);
     using AddStateNodeFn = void (*)(void* user, const ImVec2& spawnPosScreen);
 
@@ -70,23 +74,17 @@ public:
             ImGui::Text("Add Node");
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Add Basic Node"))
+            if (ImGui::MenuItem("Add"))
             {
                 if (m_addNode)
-                    m_addNode(m_user, "Node", contextMenuX, contextMenuY);
-                showContextMenu = false;
+                    m_addNode(m_user, NodeTypes::Add, contextMenuX, contextMenuY);
+
             }
-            if (ImGui::MenuItem("Add Transform Node"))
+            if (ImGui::MenuItem("Integer"))
             {
                 if (m_addNode)
-                    m_addNode(m_user, "Transform", contextMenuX, contextMenuY);
-                showContextMenu = false;
-            }
-            if (ImGui::MenuItem("Add Process Node"))
-            {
-                if (m_addNode)
-                    m_addNode(m_user, "Process", contextMenuX, contextMenuY);
-                showContextMenu = false;
+                    m_addNode(m_user, NodeTypes::Integer, contextMenuX, contextMenuY);
+
             }
             if (ImGui::MenuItem("Add Comment"))
             {

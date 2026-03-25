@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 #include <imgui.h>
 #include <imnodes.h>
 
@@ -48,7 +49,7 @@ class NodeGraph
         [[nodiscard]] NodeGraphRenderContext& getRenderContext() { return renderCtx; }
 
     protected:
-        std::vector<NodeGraphNode> nodes;
+        std::vector<std::unique_ptr<NodeGraphNode>> nodes;
 		std::vector<NodeGraphNodeLink> nodeGraphLinks;
         std::vector<CommentBox> comments;
 
@@ -66,10 +67,7 @@ class NodeGraph
 
         // Layered UI system
         NodeGraphViewRegistry views;
-  NodeGraphRenderContext renderCtx{editorSpace,
-    false, false, false, false, false, ImVec2(0.0f, 0.0f), NodeGraphInteractionState{},
-    nodes, nodeGraphLinks, comments,
-    stateNodes, stateLinks};
+      NodeGraphRenderContext renderCtx;
 
         ScreenSpaceUiFn screenSpaceUiFn = nullptr;
         void* screenSpaceUiUser = nullptr;

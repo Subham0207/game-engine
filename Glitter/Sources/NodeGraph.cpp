@@ -17,46 +17,49 @@
 static ImNodesEditorContext* g_lastImNodesEditorCtx = nullptr;
 
 NodeGraph::NodeGraph()
-    : editorSpace()
+: editorSpace(),
+renderCtx(editorSpace, nodes, nodeGraphLinks, comments, stateNodes, stateLinks)
 {
     editorCtx = ImNodes::EditorContextCreate();
 
     // Register default views. Their layer/priority controls draw order.
     views.emplaceView<NodeGraphCommentsView>(comments);
     views.emplaceView<NodeGraphNodesView>();
-	views.emplaceView<StateMachineView>();
+    views.emplaceView<StateMachineView>();
 
     auto& cm = views.emplaceView<NodeGraphContextMenu>();
     cm.setCallbacks(
         this,
-        [](void* user, const std::string& base, float x, float y) {
+        [](void* user, NodeTypes type, float x, float y)
+        {
             auto* self = static_cast<NodeGraph*>(user);
             auto* nv = self->views.findView<NodeGraphNodesView>();
             if (!nv)
                 return;
 
-            const std::string name = base + " " + std::to_string(nv->nextNodeId);
-            nv->addNode(self->renderCtx.nodes, name, ImVec2(x, y));
+            nv->addNode(self->renderCtx.nodes, type, ImVec2(x, y));
         },
-        [](void* user, const ImVec2& gridPos) {
+        [](void* user, const ImVec2& gridPos)
+        {
             auto* self = static_cast<NodeGraph*>(user);
             auto* cv = self->views.findView<NodeGraphCommentsView>();
             if (!cv)
                 return;
 
             cv->addComment(self->renderCtx.comments, gridPos);
-    },
-    [](void* user, const ImVec2& spawnPosScreen) {
-      auto* self = static_cast<NodeGraph*>(user);
-      auto* sv = self->views.findView<StateMachineView>();
-      if (!sv)
-        return;
+        },
+        [](void* user, const ImVec2& spawnPosScreen)
+        {
+            auto* self = static_cast<NodeGraph*>(user);
+            auto* sv = self->views.findView<StateMachineView>();
+            if (!sv)
+                return;
 
-      sv->addState(self->renderCtx.stateNodes, "State", spawnPosScreen);
-      // If this is the first state, make it active by default.
-      if (self->renderCtx.stateNodes.size() == 1)
-        sv->setActive(self->renderCtx.stateNodes, self->renderCtx.stateNodes.front().id);
-    });
+            sv->addState(self->renderCtx.stateNodes, "State", spawnPosScreen);
+            // If this is the first state, make it active by default.
+            if (self->renderCtx.stateNodes.size() == 1)
+                sv->setActive(self->renderCtx.stateNodes, self->renderCtx.stateNodes.front().id);
+        });
 }
 
 NodeGraph::~NodeGraph()
@@ -126,6 +129,7 @@ void NodeGraph::drawUIEmbedded()
     if (screenSpaceUiFn)
         screenSpaceUiFn(renderCtx, screenSpaceUiUser);
 
+    ImNodes::MiniMap();
     ImNodes::EndNodeEditor();
 
     int startAttr = -1;
@@ -141,11 +145,3 @@ void NodeGraph::drawUIEmbedded()
     g_lastImNodesEditorCtx = prevCtx;
     ImGui::PopID();
 }
-
-
-
-
-
-
-
-

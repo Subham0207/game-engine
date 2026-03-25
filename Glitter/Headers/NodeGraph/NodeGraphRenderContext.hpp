@@ -6,6 +6,7 @@
 #define GLITTER_NODEGRAPH_RENDERCONTEXT_HPP
 
 #include <vector>
+#include <memory>
 
 #include <imgui.h>
 
@@ -101,13 +102,29 @@ struct NodeGraphRenderContext
 	NodeGraphInteractionState interaction;
 
 	// Graph model containers.
-	std::vector<NodeGraphNode>& nodes;
+	std::vector<std::unique_ptr<NodeGraphNode>>& nodes;
 	std::vector<NodeGraphNodeLink>& nodeGraphLinks;
 	std::vector<CommentBox>& comments;
 
 	// State machine component containers.
 	std::vector<StateMachineNode>& stateNodes;
 	std::vector<StateMachineLink>& stateLinks;
+
+
+	NodeGraphRenderContext(
+	NodeGraphEditorSpace editorSpace_,
+	std::vector<std::unique_ptr<NodeGraphNode>>& nodes_,
+	std::vector<NodeGraphNodeLink>& nodeGraphLinks_,
+	std::vector<CommentBox>& comments_,
+	std::vector<StateMachineNode>& stateNodes_,
+	std::vector<StateMachineLink>& stateLinks_)
+  : editorSpace(editorSpace_)
+  , nodes(nodes_)
+  , nodeGraphLinks(nodeGraphLinks_)
+  , comments(comments_)
+  , stateNodes(stateNodes_)
+  , stateLinks(stateLinks_)
+	{}
 };
 
 #endif //GLITTER_NODEGRAPH_RENDERCONTEXT_HPP

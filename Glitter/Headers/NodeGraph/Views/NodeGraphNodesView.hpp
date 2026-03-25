@@ -4,7 +4,7 @@
 
 #ifndef GLITTER_NODEGRAPH_NODESVIEW_HPP
 #define GLITTER_NODEGRAPH_NODESVIEW_HPP
-
+#pragma once
 #include <vector>
 #include <string>
 #include <imgui.h>
@@ -14,6 +14,11 @@
 #include "../NodeGraphIdRanges.hpp"
 #include "INodeGraphView.hpp"
 #include "../NodeGraphRenderContext.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/NodeTypes.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
+using AddNode = NodeGraphComponents::Node::Add;
+using IntegerNode = NodeGraphComponents::Node::Integer;
 
 class NodeGraphNodesView final : public INodeGraphView
 {
@@ -25,11 +30,22 @@ public:
     int nextNodeId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode);
 	int nextLinkId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeLink);
 
-    void addNode(std::vector<NodeGraphNode>& nodes, const std::string& name, const ImVec2& spawnPosScreen)
+    void addNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes, NodeTypes type, const ImVec2& spawnPosScreen)
     {
-        NodeGraphNode n(nextNodeId++, name, spawnPosScreen.x, spawnPosScreen.y);
-        n.setSpawnPosScreen(spawnPosScreen);
-        nodes.emplace_back(std::move(n));
+        std::unique_ptr<NodeGraphNode> n;
+        if (type == NodeTypes::Add)
+        {
+            n = std::make_unique<AddNode>(nextNodeId++, "Add", spawnPosScreen.x, spawnPosScreen.y);
+            n->setSpawnPosScreen(spawnPosScreen);
+        }
+        if (type == NodeTypes::Integer)
+        {
+            n = std::make_unique<IntegerNode>(nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
+            n->setSpawnPosScreen(spawnPosScreen);
+        }
+
+        if (n)
+            nodes.push_back(std::move(n));
     }
 
 	void addLink(std::vector<NodeGraphNodeLink>& links, int startAttr, int endAttr)
@@ -69,29 +85,47 @@ public:
 
         for (auto& node : nodes)
         {
-            if (!node.positionSet())
+            if (!node->positionSet())
             {
-                const ImVec2 initial = node.hasSpawnPosScreen() ? node.spawnPosScreen() : ImGui::GetMousePos();
-                ImNodes::SetNodeScreenSpacePos(node.id(), initial);
-                node.markPositionSet(true);
+                const ImVec2 initial = node->hasSpawnPosScreen() ? node->spawnPosScreen() : ImGui::GetMousePos();
+                ImNodes::SetNodeScreenSpacePos(node->id(), initial);
+                node->markPositionSet(true);
             }
 
-            ImNodes::BeginNode(node.id());
+            ImNodes::BeginNode(node->id());
 
             ImNodes::BeginNodeTitleBar();
-            ImGui::TextUnformatted(node.name().c_str());
+            ImGui::TextUnformatted(node->name().c_str());
             ImNodes::EndNodeTitleBar();
 
-            ImNodes::BeginInputAttribute(node.id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + 1);
-            ImGui::Text("Input");
-            ImNodes::EndInputAttribute();
+            for (int i = 0; i < node->inputs().size(); ++i)
+            {
+                const int attributeId = node->id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + i;
+                auto inputAttribute = node->inputs()[i];
 
-            ImGui::Spacing();
+                ImNodes::BeginInputAttribute(attributeId);
+                ImGui::Text(inputAttribute.getName().c_str());
+                //Input Attribute cannot have field.
+                ImNodes::EndInputAttribute();
+                ImGui::Spacing();
 
-            ImNodes::BeginOutputAttribute(node.id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + 2);
-            ImGui::Indent(40.f);
-            ImGui::Text("Output");
-            ImNodes::EndOutputAttribute();
+            }
+
+            for (int i = 0; i < node->outputs().size(); ++i)
+            {
+                const int attributeId = node->id() * static_cast<int>(NodeGraphElementIdBase::NodeGraphNodeLink) + i;
+                auto outputAttribute = node->outputs()[i];
+
+                ImNodes::BeginOutputAttribute(attributeId);
+                ImGui::Text(outputAttribute.getName().c_str());
+                if (outputAttribute.getType() == NodeAttributeType::FIELD)
+                {
+                    const auto fieldId = ("##NodeGraphNode" + std::to_string(i)).c_str();
+                    ImGui::InputText(fieldId, nullptr, 0, ImGuiInputTextFlags_ReadOnly);
+                }
+                ImNodes::EndOutputAttribute();
+                ImGui::Spacing();
+            }
 
             ImNodes::EndNode();
         }
