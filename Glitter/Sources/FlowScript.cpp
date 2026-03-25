@@ -88,7 +88,7 @@ const std::string& FlowScript::compile()
     std::unordered_map<NodeGraphNode*, std::unordered_set<NodeGraphNode*>> deps;
     std::unordered_map<NodeGraphNode*, std::vector<NodeGraphNode*>> outgoing;
     std::unordered_map<NodeGraphNode*, int> indegree;
-    std::vector<NodeGraphNode*> nodeList;
+    std::vector<NodeGraphNode*> nodeList; // we already have this type of object available here. It's called nodes.
     nodeList.reserve(nodes.size());
 
     for (auto& nodePtr : nodes)
@@ -114,7 +114,7 @@ const std::string& FlowScript::compile()
         auto endIt = attrInfo.find(link.endAttr());
         if (startIt == attrInfo.end() || endIt == attrInfo.end())
             continue;
-        if (!endIt->second.isInput)
+        if (!endIt->second.isInput) // In addition, also check startIt is Input.
             continue;
 
         inputToOutput[link.endAttr()] = link.startAttr();
@@ -223,6 +223,18 @@ const std::string& FlowScript::compile()
                 expr = resolveInputExpr(node->inputs()[0]);
                 for (size_t i = 1; i < node->inputs().size(); ++i)
                     expr += " + " + resolveInputExpr(node->inputs()[i]);
+                expr = "(" + expr + ")";
+            }
+            out << "local " << varName << " = " << expr << "\n";
+        }
+        else if (nodeName == "Subtract")
+        {
+            std::string expr = "0";
+            if (!node->inputs().empty())
+            {
+                expr = resolveInputExpr(node->inputs()[0]);
+                for (size_t i = 1; i < node->inputs().size(); ++i)
+                    expr += " - " + resolveInputExpr(node->inputs()[i]);
                 expr = "(" + expr + ")";
             }
             out << "local " << varName << " = " << expr << "\n";

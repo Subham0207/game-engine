@@ -38,16 +38,21 @@ public:
         if (type == NodeTypes::Add)
         {
             n = std::make_unique<AddNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Add", spawnPosScreen.x, spawnPosScreen.y);
-            n->setSpawnPosScreen(spawnPosScreen);
+        }
+        if (type == NodeTypes::Subtract)
+        {
+            n = std::make_unique<AddNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Subtract", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Integer)
         {
             n = std::make_unique<IntegerNode>(nextOutputPinId, nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
-            n->setSpawnPosScreen(spawnPosScreen);
         }
 
         if (n)
+        {
+            n->setSpawnPosScreen(spawnPosScreen);
             nodes.push_back(std::move(n));
+        }
     }
 
 	void addLink(std::vector<NodeGraphNodeLink>& links, int startAttr, int endAttr)
