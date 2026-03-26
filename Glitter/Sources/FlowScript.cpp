@@ -12,6 +12,10 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cctype>
+#include <stdexcept>
+#include <cstring>
+
+#include "NodeGraph/Views/NodeGraphNodesView.hpp"
 
 namespace
 {
@@ -53,6 +57,41 @@ namespace
         if (trimmed == "1" || trimmed == "true" || trimmed == "yes" || trimmed == "on")
             return "true";
         return "false";
+    }
+
+    bool startsWith(const std::string& value, const char* prefix)
+    {
+        if (!prefix)
+            return false;
+        const size_t prefixLen = std::strlen(prefix);
+        if (value.size() < prefixLen)
+            return false;
+        return std::equal(prefix, prefix + prefixLen, value.begin());
+    }
+
+    bool isNumberLiteral(const std::string& value)
+    {
+        if (value.empty())
+            return false;
+        char* end = nullptr;
+        std::strtod(value.c_str(), &end);
+        return end != value.c_str() && *end == '\0';
+    }
+
+    bool isBooleanLiteral(const std::string& value)
+    {
+        return value == "true" || value == "false";
+    }
+
+    std::pair<std::string, std::string> splitOnce(const std::string& value, const std::string& token)
+    {
+        const size_t pos = value.find(token);
+        if (pos == std::string::npos)
+            return { value, "" };
+        const size_t nextPos = value.find(token, pos + token.size());
+        if (nextPos != std::string::npos)
+            throw std::runtime_error("Unsupported expression: multiple operators");
+        return { value.substr(0, pos), value.substr(pos + token.size()) };
     }
 }
 
@@ -549,4 +588,279 @@ void FlowScript::appendLuaLog(const std::string& line)
         luaConsoleLines.erase(luaConsoleLines.begin());
     luaConsoleLines.push_back(line);
     luaConsoleScrollToBottom = true;
+}
+
+void FlowScript::deCompile(const std::string& luaCode)
+{
+    auto* nodeView = views.findView<NodeGraphNodesView>();
+    if (!nodeView)
+        throw std::runtime_error("NodeGraphNodesView not available");
+
+    struct NodeOutputRef
+    {
+        NodeGraphNode* node = nullptr;
+        int outputAttr = -1;
+    };
+
+    std::unordered_map<std::string, NodeOutputRef> vars;
+    std::vector<NodeGraphNode*> topLevelExec;
+
+    int layoutX = 0;
+    int layoutY = 0;
+    const float stepX = 220.0f;
+    const float stepY = 140.0f;
+    auto nextPos = [&]() {
+        ImVec2 pos(120.0f + stepX * static_cast<float>(layoutX), 120.0f + stepY * static_cast<float>(layoutY));
+        layoutX++;
+        if (layoutX >= 4)
+        {
+            layoutX = 0;
+            layoutY++;
+        }
+        return pos;
+    };
+
+    auto addNode = [&](NodeTypes type) -> NodeGraphNode* {
+        const size_t before = nodes.size();
+        nodeView->addNode(nodes, type, nextPos());
+        if (nodes.size() <= before)
+            throw std::runtime_error("Failed to create node");
+        return nodes.back().get();
+    };
+
+    auto setFieldValue = [&](NodeGraphNode* node, const std::string& value) {
+        if (!node || node->outputs().empty())
+            throw std::runtime_error("Node has no outputs to set");
+        char* buff = node->outputs()[0].getValueBuff();
+        std::snprintf(buff, NodeGraphComponents::Node::Attribute::getValueSize(), "%s", value.c_str());
+    };
+
+    auto getOutputAttr = [&](NodeGraphNode* node) -> int {
+        if (!node || node->outputs().empty())
+            throw std::runtime_error("Node has no output attribute");
+        return node->outputs()[0].getId();
+    };
+
+    auto resolveValue = [&](const std::string& raw) -> NodeOutputRef {
+        const std::string value = trimCopy(raw);
+        if (startsWith(value, "node_"))
+        {
+            const auto it = vars.find(value);
+            if (it == vars.end() || !it->second.node || it->second.outputAttr < 0)
+                throw std::runtime_error("Unknown variable reference: " + value);
+            return it->second;
+        }
+        if (isBooleanLiteral(value))
+        {
+            auto* node = addNode(NodeTypes::Boolean);
+            setFieldValue(node, value);
+            return { node, getOutputAttr(node) };
+        }
+        if (isNumberLiteral(value))
+        {
+            auto* node = addNode(NodeTypes::Integer);
+            setFieldValue(node, value);
+            return { node, getOutputAttr(node) };
+        }
+        throw std::runtime_error("Unsupported literal: " + value);
+    };
+
+    auto linkDataInputs = [&](NodeGraphNode* node, const std::vector<std::string>& inputs) {
+        if (!node)
+            return;
+        auto& nodeInputs = node->inputs();
+        if (nodeInputs.size() < inputs.size())
+            throw std::runtime_error("Node input arity mismatch");
+        for (size_t i = 0; i < inputs.size(); ++i)
+        {
+            const auto ref = resolveValue(inputs[i]);
+            nodeView->addLink(nodeGraphLinks, ref.outputAttr, nodeInputs[i].getId());
+        }
+    };
+
+    auto linkExecChain = [&](const std::vector<NodeGraphNode*>& chain) {
+        NodeGraphNode* prev = nullptr;
+        for (auto* node : chain)
+        {
+            if (!node)
+                continue;
+            NodeAttribute* in = node->getExecInput();
+            NodeAttribute* out = node->getExecOutput();
+            if (prev && in && prev->getExecOutput())
+                nodeView->addLink(nodeGraphLinks, prev->getExecOutput()->getId(), in->getId());
+            if (out)
+                prev = node;
+            else
+                prev = nullptr;
+        }
+    };
+
+    struct FunctionScope
+    {
+        NodeGraphNode* functionNode = nullptr;
+        std::vector<NodeGraphNode*> execChain;
+    };
+
+    std::vector<FunctionScope> functionStack;
+    std::istringstream stream(luaCode);
+    std::string rawLine;
+
+    while (std::getline(stream, rawLine))
+    {
+        if (!rawLine.empty() && rawLine.back() == '\r')
+            rawLine.pop_back();
+        std::string line = trimCopy(rawLine);
+        if (line.empty())
+            continue;
+        if (startsWith(line, "--"))
+            continue;
+
+        const bool inFunction = !functionStack.empty();
+
+        if (startsWith(line, "local "))
+        {
+            std::string rest = trimCopy(line.substr(6));
+            const size_t eqPos = rest.find("=");
+            if (eqPos == std::string::npos)
+                throw std::runtime_error("Invalid assignment: " + line);
+            std::string varName = trimCopy(rest.substr(0, eqPos));
+            std::string expr = trimCopy(rest.substr(eqPos + 1));
+
+            if (expr == "function()")
+            {
+                auto* funcNode = addNode(NodeTypes::Function);
+                vars[varName] = { funcNode, -1 };
+                functionStack.push_back({ funcNode, {} });
+                continue;
+            }
+
+            if (expr.size() >= 2 && expr.front() == '(' && expr.back() == ')')
+            {
+                std::string inner = trimCopy(expr.substr(1, expr.size() - 2));
+                if (inner.find(" + ") != std::string::npos)
+                {
+                    auto parts = splitOnce(inner, " + ");
+                    auto* node = addNode(NodeTypes::Add);
+                    vars[varName] = { node, getOutputAttr(node) };
+                    linkDataInputs(node, { parts.first, parts.second });
+                    if (inFunction)
+                        functionStack.back().execChain.push_back(node);
+                    else
+                        topLevelExec.push_back(node);
+                    continue;
+                }
+                if (inner.find(" - ") != std::string::npos)
+                {
+                    auto parts = splitOnce(inner, " - ");
+                    auto* node = addNode(NodeTypes::Subtract);
+                    vars[varName] = { node, getOutputAttr(node) };
+                    linkDataInputs(node, { parts.first, parts.second });
+                    if (inFunction)
+                        functionStack.back().execChain.push_back(node);
+                    else
+                        topLevelExec.push_back(node);
+                    continue;
+                }
+                if (inner.find(" > ") != std::string::npos)
+                {
+                    auto parts = splitOnce(inner, " > ");
+                    auto* node = addNode(NodeTypes::GreaterThan);
+                    vars[varName] = { node, getOutputAttr(node) };
+                    linkDataInputs(node, { parts.first, parts.second });
+                    if (inFunction)
+                        functionStack.back().execChain.push_back(node);
+                    else
+                        topLevelExec.push_back(node);
+                    continue;
+                }
+                if (inner.find(" == ") != std::string::npos)
+                {
+                    auto parts = splitOnce(inner, " == ");
+                    auto* node = addNode(NodeTypes::EqualsTo);
+                    vars[varName] = { node, getOutputAttr(node) };
+                    linkDataInputs(node, { parts.first, parts.second });
+                    continue;
+                }
+                if (inner.find(" ~= ") != std::string::npos)
+                {
+                    auto parts = splitOnce(inner, " ~= ");
+                    auto* node = addNode(NodeTypes::NotEqualsTo);
+                    vars[varName] = { node, getOutputAttr(node) };
+                    linkDataInputs(node, { parts.first, parts.second });
+                    continue;
+                }
+                throw std::runtime_error("Unsupported expression: " + expr);
+            }
+
+            if (isBooleanLiteral(expr))
+            {
+                auto* node = addNode(NodeTypes::Boolean);
+                setFieldValue(node, expr);
+                vars[varName] = { node, getOutputAttr(node) };
+                continue;
+            }
+            if (isNumberLiteral(expr))
+            {
+                auto* node = addNode(NodeTypes::Integer);
+                setFieldValue(node, expr);
+                vars[varName] = { node, getOutputAttr(node) };
+                continue;
+            }
+            throw std::runtime_error("Unsupported assignment: " + line);
+        }
+
+        if (startsWith(line, "print("))
+        {
+            const size_t commaPos = line.find(",");
+            const size_t closePos = line.rfind(")");
+            if (commaPos == std::string::npos || closePos == std::string::npos || closePos <= commaPos)
+                throw std::runtime_error("Unsupported print format: " + line);
+            std::string expr = trimCopy(line.substr(commaPos + 1, closePos - commaPos - 1));
+            auto* node = addNode(NodeTypes::Print);
+            linkDataInputs(node, { expr });
+            if (inFunction)
+                functionStack.back().execChain.push_back(node);
+            else
+                topLevelExec.push_back(node);
+            continue;
+        }
+
+        if (startsWith(line, "return "))
+        {
+            std::string expr = trimCopy(line.substr(7));
+            if (!expr.empty() && expr.front() == '{')
+                throw std::runtime_error("Return of table not supported");
+            auto* node = addNode(NodeTypes::Return);
+            linkDataInputs(node, { expr });
+            if (inFunction)
+                functionStack.back().execChain.push_back(node);
+            else
+                topLevelExec.push_back(node);
+            continue;
+        }
+
+        if (line == "end")
+        {
+            if (functionStack.empty())
+                throw std::runtime_error("Unexpected 'end' without function");
+            auto scope = functionStack.back();
+            functionStack.pop_back();
+            if (!scope.execChain.empty())
+            {
+                auto* first = scope.execChain.front();
+                if (scope.functionNode && scope.functionNode->getExecOutput() && first->getExecInput())
+                    nodeView->addLink(nodeGraphLinks, scope.functionNode->getExecOutput()->getId(), first->getExecInput()->getId());
+                linkExecChain(scope.execChain);
+            }
+            continue;
+        }
+
+        throw std::runtime_error("Unsupported Lua statement: " + line);
+    }
+
+    if (!functionStack.empty())
+        throw std::runtime_error("Unclosed function block in Lua");
+
+    if (!topLevelExec.empty())
+        linkExecChain(topLevelExec);
 }

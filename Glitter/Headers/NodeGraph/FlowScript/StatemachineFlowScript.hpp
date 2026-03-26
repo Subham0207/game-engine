@@ -21,7 +21,10 @@ public:
         showUI = true;
 
         if (selectedLink && !selectedLink->condition.empty())
+        {
             setCompiledLua(selectedLink->condition);
+            deCompile(selectedLink->condition);
+        }
     }
 
     void close()

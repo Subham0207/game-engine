@@ -21,6 +21,7 @@ public:
     [[nodiscard]] const std::string& getCompiledLua() const { return compiledLua; }
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
     void clearScript();
+    void deCompile(const std::string& luaCode);
 
 private:
     void appendLuaLog(const std::string& line);
