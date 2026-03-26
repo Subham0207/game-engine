@@ -8,8 +8,11 @@
 #include "NodeGraph.hpp"
 #include "StateMachineJsonExporter.hpp"
 #include "Views/StateMachineView.hpp"
+#include "UI/Shared/EditableText.hpp"
+#include "Helpers/Shared.hpp"
+#include "EngineState.hpp"
+#include <filesystem>
 
-class StatemachineFlowScript;
 // A specialized NodeGraph focused on state-machine authoring.
 //
 // Today NodeGraph registers multiple views (generic nodes/comments + state-machine).
@@ -22,10 +25,14 @@ public:
     {
         auto view = views.findView<StateMachineView>();
         view->setFlowScriptRef(ref);
-        
+
+        filename.setText("statemachine");
+
         // Add state-machine specific UI via the generic NodeGraph screen-space hook.
         setScreenSpaceUi(
-            [](NodeGraphRenderContext& ctx, void*) {
+            [](NodeGraphRenderContext& ctx, void* user) {
+                auto* self = static_cast<StateMachineGraph*>(user);
+
                 // Find active node (if any)
                 int activeId = -1;
                 for (const auto& n : ctx.stateNodes)
@@ -41,27 +48,67 @@ public:
                 ImGui::SetCursorPos(ImVec2(8.0f, 8.0f));
                 ImGui::BeginGroup();
 
+                UI::Shared::EditableTextUI("Filename", self->filename);
+
                 const bool hasActive = (activeId != -1);
                 if (!hasActive)
                     ImGui::BeginDisabled();
 
                 if (ImGui::SmallButton("Copy SM JSON"))
                 {
-                    const std::string json = StateMachineJsonExporter::ExportChainJson(
+                    self->json = StateMachineJsonExporter::ExportChainJson(
                         ctx.stateNodes, ctx.stateLinks, activeId);
-                    ImGui::SetClipboardText(json.c_str());
+                    ImGui::SetClipboardText(self->json.c_str());
                 }
                 if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
                     ImGui::SetTooltip("Copies JSON for the chain reachable from the active state");
+
+                if (ImGui::SmallButton("Save"))
+                {
+                    self->json = StateMachineJsonExporter::ExportChainJson(
+                        ctx.stateNodes, ctx.stateLinks, activeId);
+                    self->save();
+                }
 
                 if (!hasActive)
                     ImGui::EndDisabled();
 
                 ImGui::EndGroup();
             },
-            nullptr);
+            this);
     }
     ~StateMachineGraph() override = default;
+
+private:
+    void save()
+    {
+        if (EngineState::state == nullptr || filename.value.empty())
+            return;
+
+        const auto projectDir = std::filesystem::path(EngineState::state->currentActiveProjectDirectory);
+        const auto assetsDir = projectDir / "Assets";
+        const auto smFileName = filename.value + ".sm";
+        const auto smPath = assetsDir / smFileName;
+
+        Shared::WriteTextFile(smPath, json);
+
+        const std::string guid = Shared::uuid();
+        const auto metaPath = assetsDir / (guid + ".meta.json");
+        const std::string metaJson =
+            "{\n"
+            "    \"guid\": \"" + guid + "\",\n"
+            "    \"type\": \"statemachine\",\n"
+            "    \"version\": \"0.1\",\n"
+            "    \"content\": {\n"
+            "        \"relative_path\": \"" + smFileName + "\"\n"
+            "    }\n"
+            "}\n";
+
+        Shared::WriteTextFile(metaPath, metaJson);
+    }
+
+    UI::Shared::EditableText filename{};
+    std::string json;
 };
 
 #endif // GLITTER_STATEMACHINEGRAPH_HPP
