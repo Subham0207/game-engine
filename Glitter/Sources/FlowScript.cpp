@@ -3,6 +3,7 @@
 //
 
 #include "../Headers/NodeGraph/FlowScript/FlowScript.hpp"
+#include <EngineState.hpp>
 #include <imgui.h>
 #include <unordered_map>
 #include <unordered_set>
@@ -65,6 +66,14 @@ FlowScript::FlowScript()
             }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
                 ImGui::SetTooltip("Copies the compiled Lua to the clipboard");
+
+            if (ImGui::SmallButton("Execute"))
+            {
+                if (!self->compiledLua.empty())
+                    getLuaEngine().runChunk(self->compiledLua, "FlowScript");
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+                ImGui::SetTooltip("Executes the compiled Lua in the Lua runtime");
 
             if (!hasCompiled)
                 ImGui::EndDisabled();
