@@ -9,7 +9,7 @@
 #include <vector>
 
 // A specialized NodeGraph for authoring flow scripts and compiling them to Lua.
-class FlowScript final : public NodeGraph
+class FlowScript : public NodeGraph
 {
 public:
     FlowScript();
@@ -17,7 +17,7 @@ public:
 
     // Compile the current visual script into a Lua script string.
     // The result is stored internally and also returned for convenience.
-    const std::string& compile();
+    virtual const std::string& compile();
     [[nodiscard]] const std::string& getCompiledLua() const { return compiledLua; }
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
 

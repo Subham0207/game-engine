@@ -19,6 +19,7 @@
 #include "Event/EventBus.hpp"
 #include "NodeGraph/StateMachineGraph.hpp"
 #include "NodeGraph/FlowScript/FlowScript.hpp"
+#include "NodeGraph/FlowScript/StatemachineFlowScript.hpp"
 
 class EventQueue;
 struct InputContext;
@@ -67,6 +68,6 @@ private:
     std::unique_ptr<Lighting::Skybox> mSkyBox;
 
     std::unique_ptr<StateMachineGraph> mStateMachineGraph;
-    std::unique_ptr<FlowScript> mFlowScript;
+    std::unique_ptr<StatemachineFlowScript> mSmFlowScript;
 };
 

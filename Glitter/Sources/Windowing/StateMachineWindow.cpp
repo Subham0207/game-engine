@@ -30,6 +30,7 @@
 #include "3DModel/model.hpp"
 
 #include <filesystem>
+#include <NodeGraph/FlowScript/StatemachineFlowScript.hpp>
 
 #include <cstdio>
 
@@ -46,8 +47,8 @@ void StateMachineWindow::init()
         EngineState::state->mStatemachineWindow = mWindow;
 
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
-    mFlowScript = std::make_unique<FlowScript>();
-    mStateMachineGraph = std::make_unique<StateMachineGraph>(mFlowScript.get());
+    mSmFlowScript = std::make_unique<StatemachineFlowScript>();
+    mStateMachineGraph = std::make_unique<StateMachineGraph>(mSmFlowScript.get());
 
     // Inline scene setup (mirrors EditorWindow)
     if (EngineState::state)
@@ -139,14 +140,7 @@ void StateMachineWindow::tickImpl()
 
     ImGui::End();
 
-    ImGui::Begin("State Machine Editor2");
-
-    ImGui::TextUnformatted("Node Graph2");
-    // Draw the node graph embedded into this window.
-    if (mFlowScript)
-        mFlowScript->drawUIEmbedded();
-
-    ImGui::End();
+    mSmFlowScript->draw();
 
     mRayCastObjectSelector->HandleSelection(
         frameContext(),

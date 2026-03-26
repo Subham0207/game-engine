@@ -21,7 +21,7 @@
 #include "../Components/StateMachineNode.hpp"
 #include "../Components/StateMachineLink.hpp"
 
-class FlowScript;
+class StatemachineFlowScript;
 // View: draws and edits a prototype state-machine graph.
 // - State nodes are ImNodes nodes (we rely on ImNodes for node selection + movement).
 // - Links are fully custom rendered & interactive, with ports that can attach
@@ -183,11 +183,11 @@ public:
         }
     }
 
-    void setFlowScriptRef(FlowScript* ref){flowscriptRef = ref;}
+    void setFlowScriptRef(StatemachineFlowScript* ref){mSmflowscriptRef = ref;}
 
 private:
 
-    FlowScript* flowscriptRef = nullptr;
+    StatemachineFlowScript* mSmflowscriptRef = nullptr;
 
     struct LinkDragState
     {
@@ -763,7 +763,7 @@ private:
         }
     }
 
-    void EditCondition(const StateMachineLink* selectedLink) const;
+    void EditCondition(StateMachineLink* selectedLink) const;
 
     void renderLinkEditPopup(std::vector<StateMachineLink>& links)
     {

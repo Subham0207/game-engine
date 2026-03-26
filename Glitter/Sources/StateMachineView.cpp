@@ -3,13 +3,15 @@
 //
 
 #include <NodeGraph/Views/StateMachineView.hpp>
-#include <NodeGraph/FlowScript/FlowScript.hpp>
+#include <NodeGraph/FlowScript/StatemachineFlowScript.hpp>
 
-void StateMachineView::EditCondition(const StateMachineLink* selectedLink) const
+void StateMachineView::EditCondition(StateMachineLink* selectedLink) const
 {
     if (ImGui::Button("Edit Condition"))
     {
-        if (flowscriptRef && !selectedLink->condition.empty())
-            flowscriptRef->setCompiledLua(selectedLink->condition);
+        if (mSmflowscriptRef)
+        {
+            mSmflowscriptRef->setSelectedLink(selectedLink);
+        }
     }
 }
