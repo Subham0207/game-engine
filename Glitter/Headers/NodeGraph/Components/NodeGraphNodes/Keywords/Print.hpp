@@ -12,13 +12,14 @@ namespace NodeGraphComponents::Node::Keywords
     {
     public:
         template<typename... Args>
-        explicit Print(int& nextInputPinId, Args&&... args):
+        explicit Print(int& nextInputPinId, int& nextOutputPinId, Args&&... args):
         NodeGraphNode(std::forward<Args>(args)...),
         PrintInputPin(nextInputPinId++,"PrintInputPin", TYPE::PIN)
         {
             inputs().push_back(PrintInputPin);
 
             setupExecInput(nextInputPinId);
+            setupExecOutput(nextOutputPinId);
         }
     private:
         Attribute PrintInputPin;

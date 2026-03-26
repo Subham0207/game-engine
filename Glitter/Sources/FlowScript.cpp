@@ -70,7 +70,19 @@ FlowScript::FlowScript()
             if (ImGui::SmallButton("Execute"))
             {
                 if (!self->compiledLua.empty())
-                    getLuaEngine().runChunk(self->compiledLua, "FlowScript");
+                {
+                    getLuaEngine().setPrintHandler([self](const std::string& line) {
+                        self->appendLuaLog(line);
+                    });
+                    try
+                    {
+                        getLuaEngine().runChunk(self->compiledLua, "FlowScript");
+                    }
+                    catch (const std::exception& ex)
+                    {
+                        self->appendLuaLog(std::string("[LUA] ") + ex.what());
+                    }
+                }
             }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
                 ImGui::SetTooltip("Executes the compiled Lua in the Lua runtime");
@@ -78,7 +90,26 @@ FlowScript::FlowScript()
             if (!hasCompiled)
                 ImGui::EndDisabled();
 
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Clear Log"))
+            {
+                self->luaConsoleLines.clear();
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+                ImGui::SetTooltip("Clears the Lua console output");
+
             ImGui::EndGroup();
+
+            ImGui::SetCursorPos(ImVec2(8.0f, 72.0f));
+            ImGui::BeginChild("LuaConsole", ImVec2(360.0f, 140.0f), true);
+            for (const auto& line : self->luaConsoleLines)
+                ImGui::TextUnformatted(line.c_str());
+            if (self->luaConsoleScrollToBottom)
+            {
+                ImGui::SetScrollHereY(1.0f);
+                self->luaConsoleScrollToBottom = false;
+            }
+            ImGui::EndChild();
         },
         this);
 }
@@ -90,10 +121,12 @@ const std::string& FlowScript::compile()
         NodeGraphNode* node = nullptr;
         int index = -1;
         bool isInput = false;
+        NodeAttributeType type = NodeAttributeType::PIN;
     };
 
     std::unordered_map<int, AttrInfo> attrInfo;
-    std::unordered_map<int, int> inputToOutput;
+    std::unordered_map<int, int> dataInputToOutput;
+    std::unordered_map<int, int> execInputToOutput;
     std::unordered_map<NodeGraphNode*, std::unordered_set<NodeGraphNode*>> deps;
     std::unordered_map<NodeGraphNode*, std::vector<NodeGraphNode*>> outgoing;
     std::unordered_map<NodeGraphNode*, int> indegree;
@@ -108,13 +141,24 @@ const std::string& FlowScript::compile()
         deps[node];
         outgoing[node];
 
+        if (node->hasExecInput())
+        {
+            auto* execInput = node->getExecInput();
+            attrInfo[execInput->getId()] = { node, -1, true, execInput->getType() };
+        }
+        if (node->hasExecOutput())
+        {
+            auto* execOutput = node->getExecOutput();
+            attrInfo[execOutput->getId()] = { node, -1, false, execOutput->getType() };
+        }
+
         auto& inputs = node->inputs();
         for (int i = 0; i < static_cast<int>(inputs.size()); ++i)
-            attrInfo[inputs[i].getId()] = { node, i, true };
+            attrInfo[inputs[i].getId()] = { node, i, true, inputs[i].getType() };
 
         auto& outputs = node->outputs();
         for (int i = 0; i < static_cast<int>(outputs.size()); ++i)
-            attrInfo[outputs[i].getId()] = { node, i, false };
+            attrInfo[outputs[i].getId()] = { node, i, false, outputs[i].getType() };
     }
 
     for (const auto& link : nodeGraphLinks)
@@ -126,15 +170,29 @@ const std::string& FlowScript::compile()
         if (!endIt->second.isInput) // In addition, also check startIt is Input.
             continue;
 
-        inputToOutput[link.endAttr()] = link.startAttr();
+        if (startIt->second.type == NodeAttributeType::ExecutionFlowOutPin
+            && endIt->second.type == NodeAttributeType::ExecutionFlowInPin)
+        {
+            execInputToOutput[link.endAttr()] = link.startAttr();
+            continue;
+        }
+
+        if (endIt->second.type == NodeAttributeType::PIN
+            && (startIt->second.type == NodeAttributeType::PIN || startIt->second.type == NodeAttributeType::FIELD))
+        {
+            dataInputToOutput[link.endAttr()] = link.startAttr();
+        }
     }
 
     for (auto* node : nodeList)
     {
         for (const auto& inputAttr : node->inputs())
         {
-            auto inputIt = inputToOutput.find(inputAttr.getId());
-            if (inputIt == inputToOutput.end())
+            if (inputAttr.getType() != NodeAttributeType::PIN)
+                continue;
+
+            auto inputIt = dataInputToOutput.find(inputAttr.getId());
+            if (inputIt == dataInputToOutput.end())
                 continue;
 
             auto outputIt = attrInfo.find(inputIt->second);
@@ -189,19 +247,31 @@ const std::string& FlowScript::compile()
     for (auto* node : nodeList)
         nodeVar[node] = "node_" + std::to_string(node->id());
 
+    bool hasExplicitReturn = false;
+    for (auto* node : nodeList)
+    {
+        if (node->name() == "Return")
+        {
+            hasExplicitReturn = true;
+            break;
+        }
+    }
+
     std::unordered_set<NodeGraphNode*> referencedOutputs;
     for (const auto& link : nodeGraphLinks)
     {
         auto startIt = attrInfo.find(link.startAttr());
         if (startIt == attrInfo.end())
             continue;
+        if (startIt->second.type == NodeAttributeType::ExecutionFlowOutPin)
+            continue;
         referencedOutputs.insert(startIt->second.node);
     }
 
     auto resolveInputExpr = [&](const NodeGraphComponents::Node::Attribute& inputAttr)
     {
-        auto inputIt = inputToOutput.find(inputAttr.getId());
-        if (inputIt == inputToOutput.end())
+        auto inputIt = dataInputToOutput.find(inputAttr.getId());
+        if (inputIt == dataInputToOutput.end())
             return std::string("0");
         auto outputIt = attrInfo.find(inputIt->second);
         if (outputIt == attrInfo.end() || !outputIt->second.node)
@@ -209,24 +279,46 @@ const std::string& FlowScript::compile()
         return nodeVar[outputIt->second.node];
     };
 
-    std::ostringstream out;
-    out << "-- Generated by FlowScript::compile()\n";
+    std::unordered_map<NodeGraphNode*, std::vector<NodeGraphNode*>> execOutgoing;
+    std::unordered_map<NodeGraphNode*, int> execIndegree;
+    std::unordered_set<NodeGraphNode*> execNodes;
+    for (auto* node : nodeList)
+    {
+        if (node->hasExecInput() || node->hasExecOutput())
+        {
+            execNodes.insert(node);
+            execIndegree[node] = 0;
+            execOutgoing[node];
+        }
+    }
 
-    std::vector<std::string> returnExprs;
+    for (const auto& link : execInputToOutput)
+    {
+        auto outputIt = attrInfo.find(link.second);
+        auto inputIt = attrInfo.find(link.first);
+        if (outputIt == attrInfo.end() || inputIt == attrInfo.end())
+            continue;
+        NodeGraphNode* srcNode = outputIt->second.node;
+        NodeGraphNode* dstNode = inputIt->second.node;
+        if (!srcNode || !dstNode || srcNode == dstNode)
+            continue;
+        execOutgoing[srcNode].push_back(dstNode);
+        execIndegree[dstNode]++;
+    }
 
-    for (auto* node : ordered)
+    auto emitIndent = [](int depth)
+    {
+        return std::string(static_cast<size_t>(depth) * 4u, ' ');
+    };
+
+    std::unordered_set<NodeGraphNode*> visitedExec;
+    auto emitStatement = [&](std::ostringstream& stream, NodeGraphNode* node, int indent)
     {
         const std::string& nodeName = node->name();
         const std::string& varName = nodeVar[node];
+        const std::string pad = emitIndent(indent);
 
-        if (nodeName == "Integer")
-        {
-            std::string value = "0";
-            if (!node->outputs().empty())
-                value = parseNumberOrDefault(node->outputs()[0].getValueBuff());
-            out << "local " << varName << " = " << value << "\n";
-        }
-        else if (nodeName == "Add")
+        if (nodeName == "Add")
         {
             std::string expr = "0";
             if (!node->inputs().empty())
@@ -236,7 +328,7 @@ const std::string& FlowScript::compile()
                     expr += " + " + resolveInputExpr(node->inputs()[i]);
                 expr = "(" + expr + ")";
             }
-            out << "local " << varName << " = " << expr << "\n";
+            stream << pad << "local " << varName << " = " << expr << "\n";
         }
         else if (nodeName == "Subtract")
         {
@@ -248,7 +340,7 @@ const std::string& FlowScript::compile()
                     expr += " - " + resolveInputExpr(node->inputs()[i]);
                 expr = "(" + expr + ")";
             }
-            out << "local " << varName << " = " << expr << "\n";
+            stream << pad << "local " << varName << " = " << expr << "\n";
         }
         else if (nodeName == "GreaterThan")
         {
@@ -259,30 +351,92 @@ const std::string& FlowScript::compile()
                 const std::string right = resolveInputExpr(node->inputs()[1]);
                 expr = "(" + left + " > " + right + ")";
             }
-            out << "local " << varName << " = " << expr << "\n";
+            stream << pad << "local " << varName << " = " << expr << "\n";
         }
         else if (nodeName == "Function")
         {
-            out << "local " << varName << " = function()\nend\n";
+            stream << pad << "local " << varName << " = function()\n";
         }
         else if (nodeName == "Print")
         {
             std::string expr = "0";
             if (!node->inputs().empty())
                 expr = resolveInputExpr(node->inputs()[0]);
-            out << "print(\"[LUA]\", " << expr << ")\n";
+            stream << pad << "print(\"[LUA]\", " << expr << ")\n";
         }
         else if (nodeName == "Return")
         {
             std::string expr = "0";
             if (!node->inputs().empty())
                 expr = resolveInputExpr(node->inputs()[0]);
-            returnExprs.push_back(expr);
+            stream << pad << "return " << expr << "\n";
+        }
+        else
+        {
+            stream << pad << "local " << varName << " = 0 -- unsupported node: " << nodeName << "\n";
+        }
+    };
+
+    std::function<void(std::ostringstream&, NodeGraphNode*, int)> emitExecChain;
+    emitExecChain = [&](std::ostringstream& stream, NodeGraphNode* node, int indent)
+    {
+        if (!node || visitedExec.count(node) != 0)
+            return;
+        visitedExec.insert(node);
+
+        const bool isFunction = node->name() == "Function";
+        if (isFunction)
+        {
+            emitStatement(stream, node, indent);
+            for (auto* next : execOutgoing[node])
+                emitExecChain(stream, next, indent + 1);
+            stream << emitIndent(indent) << "end\n";
+            return;
+        }
+
+        emitStatement(stream, node, indent);
+
+        if (node->name() == "Return")
+            return;
+
+        for (auto* next : execOutgoing[node])
+            emitExecChain(stream, next, indent);
+    };
+
+    std::ostringstream out;
+    out << "-- Generated by FlowScript::compile()\n";
+
+    for (auto* node : ordered)
+    {
+        if (node->hasExecInput() || node->hasExecOutput())
+            continue;
+
+        const std::string& nodeName = node->name();
+        const std::string& varName = nodeVar[node];
+
+        if (nodeName == "Integer")
+        {
+            std::string value = "0";
+            if (!node->outputs().empty())
+                value = parseNumberOrDefault(node->outputs()[0].getValueBuff());
+            out << "local " << varName << " = " << value << "\n";
         }
         else
         {
             out << "local " << varName << " = 0 -- unsupported node: " << nodeName << "\n";
         }
+    }
+
+    for (auto* node : nodeList)
+    {
+        if ((node->hasExecInput() || node->hasExecOutput()) && execIndegree[node] == 0)
+            emitExecChain(out, node, 0);
+    }
+
+    for (auto* node : nodeList)
+    {
+        if (execNodes.count(node) && visitedExec.count(node) == 0)
+            emitExecChain(out, node, 0);
     }
 
     std::vector<std::string> terminalVars;
@@ -292,34 +446,34 @@ const std::string& FlowScript::compile()
             terminalVars.push_back(nodeVar[node]);
     }
 
-    if (!returnExprs.empty())
+    if (!terminalVars.empty() && !hasExplicitReturn)
     {
         out << "return ";
-        for (size_t i = 0; i < returnExprs.size(); ++i)
+        if (terminalVars.size() == 1)
         {
-            if (i > 0)
-                out << ", ";
-            out << returnExprs[i];
+            out << terminalVars.front() << "\n";
         }
-        out << "\n";
-    }
-    else if (terminalVars.size() == 1)
-    {
-        out << "return " << terminalVars.front() << "\n";
-    }
-    else if (!terminalVars.empty())
-    {
-        out << "return { ";
-        for (size_t i = 0; i < terminalVars.size(); ++i)
+        else
         {
-            if (i > 0)
-                out << ", ";
-            out << terminalVars[i];
+            out << "{ ";
+            for (size_t i = 0; i < terminalVars.size(); ++i)
+            {
+                if (i > 0)
+                    out << ", ";
+                out << terminalVars[i];
+            }
+            out << " }\n";
         }
-        out << " }\n";
     }
 
     compiledLua = out.str();
     return compiledLua;
 }
 
+void FlowScript::appendLuaLog(const std::string& line)
+{
+    if (luaConsoleLines.size() >= kLuaConsoleMaxLines)
+        luaConsoleLines.erase(luaConsoleLines.begin());
+    luaConsoleLines.push_back(line);
+    luaConsoleScrollToBottom = true;
+}

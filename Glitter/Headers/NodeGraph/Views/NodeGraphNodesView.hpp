@@ -67,7 +67,7 @@ public:
         }
         if (type == NodeTypes::Print)
         {
-            n = std::make_unique<PrintNode>(nextInputPinId, nextNodeId++, "Print", spawnPosScreen.x, spawnPosScreen.y);
+            n = std::make_unique<PrintNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Print", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Return)
         {

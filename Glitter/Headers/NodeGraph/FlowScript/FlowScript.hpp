@@ -6,6 +6,7 @@
 #define GLITTER_FLOWSCRIPT_HPP
 
 #include <NodeGraph/NodeGraph.hpp>
+#include <vector>
 
 // A specialized NodeGraph for authoring flow scripts and compiling them to Lua.
 class FlowScript final : public NodeGraph
@@ -20,7 +21,13 @@ public:
     [[nodiscard]] const std::string& getCompiledLua() const { return compiledLua; }
 
 private:
+    void appendLuaLog(const std::string& line);
+
     std::string compiledLua;
+
+    std::vector<std::string> luaConsoleLines;
+    bool luaConsoleScrollToBottom = false;
+    static constexpr size_t kLuaConsoleMaxLines = 200;
 };
 
 #endif // GLITTER_FLOWSCRIPT_HPP

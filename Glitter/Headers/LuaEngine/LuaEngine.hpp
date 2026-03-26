@@ -5,6 +5,9 @@
 #include <functional>
 #include <sstream>
 #include <iostream>
+#if defined(_WIN32)
+extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* lpOutputString);
+#endif
 
 class LuaEngine {
 public:
@@ -78,6 +81,10 @@ private:
         defaultPrint_ = lua_["print"];
         setPrintHandler([](const std::string& line) {
             std::cout << "[LUA] " << line << std::endl;
+#if defined(_WIN32)
+            const std::string msg = std::string("[LUA] ") + line + "\n";
+            OutputDebugStringA(msg.c_str());
+#endif
         });
     }
 };
