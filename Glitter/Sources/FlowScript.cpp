@@ -39,6 +39,21 @@ namespace
             return "0";
         return trimmed;
     }
+
+    std::string parseBooleanOrDefault(const char* value)
+    {
+        if (!value)
+            return "false";
+        std::string trimmed = trimCopy(value);
+        if (trimmed.empty())
+            return "false";
+        std::transform(trimmed.begin(), trimmed.end(), trimmed.begin(), [](unsigned char c) {
+            return static_cast<char>(std::tolower(c));
+        });
+        if (trimmed == "1" || trimmed == "true" || trimmed == "yes" || trimmed == "on")
+            return "true";
+        return "false";
+    }
 }
 
 FlowScript::FlowScript()
@@ -419,6 +434,13 @@ const std::string& FlowScript::compile()
             std::string value = "0";
             if (!node->outputs().empty())
                 value = parseNumberOrDefault(node->outputs()[0].getValueBuff());
+            out << "local " << varName << " = " << value << "\n";
+        }
+        else if (nodeName == "Boolean")
+        {
+            std::string value = "false";
+            if (!node->outputs().empty())
+                value = parseBooleanOrDefault(node->outputs()[0].getValueBuff());
             out << "local " << varName << " = " << value << "\n";
         }
         else

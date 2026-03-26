@@ -18,6 +18,7 @@
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/GreaterThan.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/DataTypes/Boolean.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
@@ -26,6 +27,7 @@ using AddNode = NodeGraphComponents::Node::Add;
 using SubtractNode = NodeGraphComponents::Node::Subtract;
 using GreaterThanNode = NodeGraphComponents::Node::GreaterThan;
 using IntegerNode = NodeGraphComponents::Node::Integer;
+using BooleanNode = NodeGraphComponents::Node::Boolean;
 using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
 using PrintNode = NodeGraphComponents::Node::Keywords::Print;
 using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
@@ -60,6 +62,10 @@ public:
         if (type == NodeTypes::Integer)
         {
             n = std::make_unique<IntegerNode>(nextOutputPinId, nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Boolean)
+        {
+            n = std::make_unique<BooleanNode>(nextOutputPinId, nextNodeId++, "Boolean", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Function)
         {

@@ -11,6 +11,7 @@ enum class NodeTypes
     GreaterThan,
 
     Integer,
+    Boolean,
 
     Function,
     Print,
