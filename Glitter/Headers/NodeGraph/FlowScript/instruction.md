@@ -12,6 +12,7 @@ This file documents the recent FlowScript changes and how the compile step works
   - `Return` (emits `return <expr>` and ends the exec flow chain).
 - Added execution flow pins to relevant nodes and updated compilation to respect exec flow order.
 - Disabled auto-return when a `Return` node is present (explicit return only).
+- Added `FlowScript::deCompile` to rebuild a node graph from supported Lua.
 
 ## How compilation works (FlowScript::compile)
 
@@ -60,9 +61,40 @@ Below is a high-level, start-to-finish explanation of the compile pipeline.
 9) Store result
 - The final Lua source is stored in `compiledLua` and returned.
 
+## How de-compilation works (FlowScript::deCompile)
+
+`deCompile` parses a limited Lua subset (the same patterns emitted by `compile`) and rebuilds nodes/links.
+If it encounters unsupported Lua, it throws a runtime error.
+
+Supported statements and mappings:
+- `local node_x = <number>` -> `Integer` node with field set.
+- `local node_x = <true|false>` -> `Boolean` node with field set.
+- `local node_x = (<a> + <b>)` -> `Add` node with inputs linked.
+- `local node_x = (<a> - <b>)` -> `Subtract` node with inputs linked.
+- `local node_x = (<a> > <b>)` -> `GreaterThan` node with inputs linked.
+- `local node_x = (<a> == <b>)` -> `EqualsTo` node with inputs linked.
+- `local node_x = (<a> ~= <b>)` -> `NotEqualsTo` node with inputs linked.
+- `print("[LUA]", <expr>)` -> `Print` node in exec flow.
+- `return <expr>` -> `Return` node in exec flow (single input only).
+- `local node_x = function()` ... `end` -> `Function` node and exec chain.
+
+Execution flow reconstruction:
+- `Function` blocks create a `Function` node and link its exec output to the first
+  exec statement inside the block.
+- Inside a function, `Print` and `Return` are appended to the exec chain in
+  source order and linked through exec pins.
+- At top level (outside functions), exec statements are linked in source order.
+
+Data value resolution:
+- `<expr>` can be a literal number/boolean or a previously defined `node_<id>` variable.
+- Unsupported literals (strings, tables, etc.) cause a throw.
+
+Limitations:
+- `return { ... }` is not supported.
+- No attempt is made to parse arbitrary Lua; only the supported subset is accepted.
+
 ## Notes
 
 - `Print` is part of the execution flow, so its exec output can chain to the next node.
 - The FlowScript UI console shows `print(...)` output using `setPrintHandler`.
 - If you want a single, global log, move the handler setup out of the Execute button.
-
