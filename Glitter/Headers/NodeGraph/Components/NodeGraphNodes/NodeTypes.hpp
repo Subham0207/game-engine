@@ -9,6 +9,8 @@ enum class NodeTypes
     Add,
     Subtract,
     GreaterThan,
+    EqualsTo,
+    NotEqualsTo,
 
     Integer,
     Boolean,

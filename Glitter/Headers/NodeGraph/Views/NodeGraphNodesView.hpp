@@ -16,7 +16,9 @@
 #include "../NodeGraphRenderContext.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/NodeTypes.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/EqualsTo.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/GreaterThan.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/NotEqualsTo.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Boolean.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
@@ -26,6 +28,8 @@
 using AddNode = NodeGraphComponents::Node::Add;
 using SubtractNode = NodeGraphComponents::Node::Subtract;
 using GreaterThanNode = NodeGraphComponents::Node::GreaterThan;
+using EqualsToNode = NodeGraphComponents::Node::EqualsTo;
+using NotEqualsToNode = NodeGraphComponents::Node::NotEqualsTo;
 using IntegerNode = NodeGraphComponents::Node::Integer;
 using BooleanNode = NodeGraphComponents::Node::Boolean;
 using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
@@ -58,6 +62,14 @@ public:
         if (type == NodeTypes::GreaterThan)
         {
             n = std::make_unique<GreaterThanNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "GreaterThan", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::EqualsTo)
+        {
+            n = std::make_unique<EqualsToNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "EqualsTo", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::NotEqualsTo)
+        {
+            n = std::make_unique<NotEqualsToNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "NotEqualsTo", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Integer)
         {

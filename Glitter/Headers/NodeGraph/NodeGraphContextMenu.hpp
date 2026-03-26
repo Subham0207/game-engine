@@ -92,6 +92,18 @@ public:
                     m_addNode(m_user, NodeTypes::GreaterThan, contextMenuX, contextMenuY);
 
             }
+            if (ImGui::MenuItem("EqualsTo"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::EqualsTo, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("NotEqualsTo"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::NotEqualsTo, contextMenuX, contextMenuY);
+
+            }
 
             ImGui::Separator();
             ImGui::Text("Data Types");
