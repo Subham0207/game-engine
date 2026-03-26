@@ -239,6 +239,17 @@ const std::string& FlowScript::compile()
             }
             out << "local " << varName << " = " << expr << "\n";
         }
+        else if (nodeName == "GreaterThan")
+        {
+            std::string expr = "0";
+            if (node->inputs().size() >= 2)
+            {
+                const std::string left = resolveInputExpr(node->inputs()[0]);
+                const std::string right = resolveInputExpr(node->inputs()[1]);
+                expr = "(" + left + " > " + right + ")";
+            }
+            out << "local " << varName << " = " << expr << "\n";
+        }
         else
         {
             out << "local " << varName << " = 0 -- unsupported node: " << nodeName << "\n";

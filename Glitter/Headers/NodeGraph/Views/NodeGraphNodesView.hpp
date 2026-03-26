@@ -16,8 +16,12 @@
 #include "../NodeGraphRenderContext.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/NodeTypes.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/GreaterThan.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
 using AddNode = NodeGraphComponents::Node::Add;
+using SubtractNode = NodeGraphComponents::Node::Subtract;
+using GreaterThanNode = NodeGraphComponents::Node::GreaterThan;
 using IntegerNode = NodeGraphComponents::Node::Integer;
 
 class NodeGraphNodesView final : public INodeGraphView
@@ -41,7 +45,11 @@ public:
         }
         if (type == NodeTypes::Subtract)
         {
-            n = std::make_unique<AddNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Subtract", spawnPosScreen.x, spawnPosScreen.y);
+            n = std::make_unique<SubtractNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Subtract", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::GreaterThan)
+        {
+            n = std::make_unique<GreaterThanNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "GreaterThan", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Integer)
         {

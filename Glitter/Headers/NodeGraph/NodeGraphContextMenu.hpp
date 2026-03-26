@@ -86,6 +86,12 @@ public:
                     m_addNode(m_user, NodeTypes::Subtract, contextMenuX, contextMenuY);
 
             }
+            if (ImGui::MenuItem("GreaterThan"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::GreaterThan, contextMenuX, contextMenuY);
+
+            }
             if (ImGui::MenuItem("Integer"))
             {
                 if (m_addNode)

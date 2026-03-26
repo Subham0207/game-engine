@@ -8,6 +8,7 @@ enum class NodeTypes
 {
     Add,
     Subtract,
+    GreaterThan,
     Integer
 };
 #endif //GLITTER_NODETYPES_HPP
