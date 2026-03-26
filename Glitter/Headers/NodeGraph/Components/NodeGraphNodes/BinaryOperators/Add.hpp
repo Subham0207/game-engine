@@ -24,6 +24,9 @@ namespace NodeGraphComponents::Node
             inputs().push_back(B);
 
             outputs().push_back(result);
+
+            setupExecInput(nextInputPinId);
+            setupExecOutput(nextOutputPinId);
         }
 
     private:

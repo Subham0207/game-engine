@@ -26,6 +26,9 @@ namespace NodeGraphComponents::Node
             inputs().push_back(B);
 
             outputs().push_back(isAGreaterThanB);
+
+            setupExecInput(nextInputPinId);
+            setupExecOutput(nextOutputPinId);
         }
 
     private:

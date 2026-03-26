@@ -63,7 +63,7 @@ public:
         }
         if (type == NodeTypes::Function)
         {
-            n = std::make_unique<FunctionNode>(nextOutputPinId, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
+            n = std::make_unique<FunctionNode>(nextOutputPinId, 0, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Print)
         {
@@ -131,6 +131,28 @@ public:
             ImNodes::BeginNodeTitleBar();
             ImGui::TextUnformatted(node->name().c_str());
             ImNodes::EndNodeTitleBar();
+
+            if (node->hasExecInput())
+            {
+                auto execInput = node->getExecInput();
+                const int attributeId = execInput->getId();
+                ImNodes::BeginInputAttribute(attributeId, ImNodesPinShape_TriangleFilled);
+                ImGui::Text(execInput->getName().c_str());
+                //Input Attribute cannot have field.
+                ImNodes::EndInputAttribute();
+                ImGui::Spacing();
+            }
+
+            if (node->hasExecOutput())
+            {
+                auto execOutput = node->getExecOutput();
+                const int attributeId = execOutput->getId();
+                ImNodes::BeginOutputAttribute(attributeId, ImNodesPinShape_TriangleFilled);
+                ImGui::Text(execOutput->getName().c_str());
+                //Input Attribute cannot have field.
+                ImNodes::EndOutputAttribute();
+                ImGui::Spacing();
+            }
 
             for (int i = 0; i < node->inputs().size(); ++i)
             {

@@ -12,14 +12,18 @@ namespace NodeGraphComponents::Node::Keywords
     {
     public:
         template<typename... Args>
-        explicit Function(int& nextOutputPinId, Args&&... args):
-        NodeGraphNode(std::forward<Args>(args)...),
-        startPin(nextOutputPinId++,"StartPin", TYPE::PIN)
+        explicit Function(int& nextOutputPinId, const int argumentsSize, Args&&... args):
+        NodeGraphNode(std::forward<Args>(args)...)
         {
-            outputs().push_back(startPin);
+            FunctionArgs.resize(argumentsSize);
+            for (int i = 0; i < FunctionArgs.size(); ++i)
+            {
+                FunctionArgs[i] = Attribute(nextOutputPinId++,"ArgPin", TYPE::FIELD);
+            }
+            setupExecOutput(nextOutputPinId);
         }
     private:
-        Attribute startPin;
+        std::vector<Attribute> FunctionArgs;
     };
 }
 #endif //GLITTER_FUNCTION_HPP

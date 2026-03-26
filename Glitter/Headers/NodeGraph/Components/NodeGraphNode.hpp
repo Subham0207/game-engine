@@ -11,7 +11,6 @@
 #include <utility>
 
 #include <imgui.h>
-
 #include "Attribute.hpp"
 
 using NodeAttribute = NodeGraphComponents::Node::Attribute;
@@ -24,7 +23,7 @@ class NodeGraphNode
 public:
     NodeGraphNode() = default;
     NodeGraphNode(int id, std::string name, float x = 0.0f, float y = 0.0f)
-        : m_id(id), m_name(std::move(name)), m_spawnPosScreen(x,y)
+        : m_id(id), m_name(std::move(name)), m_spawnPosScreen(x,y), executionFlowIn(nullptr), executionFlowOut(nullptr)
     {
     }
 
@@ -47,6 +46,22 @@ public:
     std::vector<NodeAttribute>& inputs() { return inputAttributes; }
     std::vector<NodeAttribute>& outputs() { return outputAttributes; }
 
+    void setupExecInput(int& nextInputPinId, const std::string& name = "")
+    {
+        executionFlowIn = std::make_unique<NodeAttribute>(nextInputPinId++, name, NodeAttributeType::ExecutionFlowInPin);
+    }
+
+    void setupExecOutput(int& nextOutputPinId, const std::string& name = "")
+    {
+        executionFlowOut = std::make_unique<NodeAttribute>(nextOutputPinId++, name, NodeAttributeType::ExecutionFlowOutPin);
+    }
+
+    bool hasExecInput() const { return executionFlowIn != nullptr; }
+    bool hasExecOutput() const { return executionFlowOut != nullptr; }
+
+    NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
+    NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
+
 private:
     int m_id = -1;
     std::string m_name;
@@ -58,6 +73,13 @@ private:
 
     std::vector<NodeAttribute> inputAttributes;
     std::vector<NodeAttribute> outputAttributes;
+
+    //For making this node part of an execution flow
+    //connect any outgoing execution to executionFlowIn.
+    //And to continue the execution flow after this node
+    //connect the executionFlowOut to another executionFlowIn.
+    std::unique_ptr<NodeAttribute> executionFlowIn;
+    std::unique_ptr<NodeAttribute> executionFlowOut;
 };
 
 

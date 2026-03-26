@@ -17,6 +17,8 @@ namespace NodeGraphComponents::Node::Keywords
         PrintInputPin(nextInputPinId++,"PrintInputPin", TYPE::PIN)
         {
             inputs().push_back(PrintInputPin);
+
+            setupExecInput(nextInputPinId);
         }
     private:
         Attribute PrintInputPin;
