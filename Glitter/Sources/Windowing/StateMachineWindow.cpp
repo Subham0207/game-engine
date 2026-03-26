@@ -46,8 +46,8 @@ void StateMachineWindow::init()
         EngineState::state->mStatemachineWindow = mWindow;
 
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
-    mStateMachineGraph = std::make_unique<StateMachineGraph>();
     mFlowScript = std::make_unique<FlowScript>();
+    mStateMachineGraph = std::make_unique<StateMachineGraph>(mFlowScript.get());
 
     // Inline scene setup (mirrors EditorWindow)
     if (EngineState::state)
@@ -200,5 +200,4 @@ void StateMachineWindow::setupLevelObjs()
 
     mPreviewLevel->spawnCharacter(mCharacterFilePath);
 }
-
 

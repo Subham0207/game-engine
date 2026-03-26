@@ -7,7 +7,9 @@
 
 #include "NodeGraph.hpp"
 #include "StateMachineJsonExporter.hpp"
+#include "Views/StateMachineView.hpp"
 
+class FlowScript;
 // A specialized NodeGraph focused on state-machine authoring.
 //
 // Today NodeGraph registers multiple views (generic nodes/comments + state-machine).
@@ -16,8 +18,11 @@
 class StateMachineGraph final : public NodeGraph
 {
 public:
-    StateMachineGraph()
+    StateMachineGraph(FlowScript* ref)
     {
+        auto view = views.findView<StateMachineView>();
+        view->setFlowScriptRef(ref);
+
         // Add state-machine specific UI via the generic NodeGraph screen-space hook.
         setScreenSpaceUi(
             [](NodeGraphRenderContext& ctx, void*) {
@@ -60,5 +65,4 @@ public:
 };
 
 #endif // GLITTER_STATEMACHINEGRAPH_HPP
-
 

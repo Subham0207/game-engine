@@ -4,7 +4,7 @@
 
 #ifndef GLITTER_FLOWSCRIPT_HPP
 #define GLITTER_FLOWSCRIPT_HPP
-
+#pragma once
 #include <NodeGraph/NodeGraph.hpp>
 #include <vector>
 
@@ -19,6 +19,7 @@ public:
     // The result is stored internally and also returned for convenience.
     const std::string& compile();
     [[nodiscard]] const std::string& getCompiledLua() const { return compiledLua; }
+    void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
 
 private:
     void appendLuaLog(const std::string& line);

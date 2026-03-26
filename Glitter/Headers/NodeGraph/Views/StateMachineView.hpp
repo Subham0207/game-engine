@@ -21,6 +21,7 @@
 #include "../Components/StateMachineNode.hpp"
 #include "../Components/StateMachineLink.hpp"
 
+class FlowScript;
 // View: draws and edits a prototype state-machine graph.
 // - State nodes are ImNodes nodes (we rely on ImNodes for node selection + movement).
 // - Links are fully custom rendered & interactive, with ports that can attach
@@ -182,7 +183,12 @@ public:
         }
     }
 
+    void setFlowScriptRef(FlowScript* ref){flowscriptRef = ref;}
+
 private:
+
+    FlowScript* flowscriptRef = nullptr;
+
     struct LinkDragState
     {
         bool active = false;
@@ -530,7 +536,7 @@ private:
                 tr.toSide = f.clicked.side;
                 tr.fromOffsetGrid = m_pendingStartPort.offsetGrid;
                 tr.toOffsetGrid = f.clicked.offsetGrid;
-                tr.condition = "true";
+                tr.condition = "";
 
                 links.emplace_back(std::move(tr));
                 m_pendingLinkActive = false;
@@ -757,6 +763,8 @@ private:
         }
     }
 
+    void EditCondition(const StateMachineLink* selectedLink) const;
+
     void renderLinkEditPopup(std::vector<StateMachineLink>& links)
     {
         // Link edit popup
@@ -767,13 +775,7 @@ private:
             {
                 ImGui::Text("Link %d", tr->id);
 
-                char buf[256];
-                buf[0] = '\0';
-                if (!tr->condition.empty())
-                    strncpy_s(buf, tr->condition.c_str(), sizeof(buf) - 1);
-
-                if (ImGui::InputText("Condition", buf, sizeof(buf)))
-                    tr->condition = buf;
+                EditCondition(tr);
 
                 if (ImGui::Button("Delete"))
                 {
