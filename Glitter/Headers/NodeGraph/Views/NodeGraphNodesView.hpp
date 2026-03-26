@@ -19,10 +19,16 @@
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/GreaterThan.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
 using AddNode = NodeGraphComponents::Node::Add;
 using SubtractNode = NodeGraphComponents::Node::Subtract;
 using GreaterThanNode = NodeGraphComponents::Node::GreaterThan;
 using IntegerNode = NodeGraphComponents::Node::Integer;
+using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
+using PrintNode = NodeGraphComponents::Node::Keywords::Print;
+using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
 
 class NodeGraphNodesView final : public INodeGraphView
 {
@@ -55,6 +61,19 @@ public:
         {
             n = std::make_unique<IntegerNode>(nextOutputPinId, nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
         }
+        if (type == NodeTypes::Function)
+        {
+            n = std::make_unique<FunctionNode>(nextOutputPinId, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Print)
+        {
+            n = std::make_unique<PrintNode>(nextInputPinId, nextNodeId++, "Print", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Return)
+        {
+            n = std::make_unique<ReturnNode>(nextInputPinId, nextNodeId++, "Return", spawnPosScreen.x, spawnPosScreen.y);
+        }
+
 
         if (n)
         {

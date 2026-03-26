@@ -9,6 +9,11 @@ enum class NodeTypes
     Add,
     Subtract,
     GreaterThan,
-    Integer
+
+    Integer,
+
+    Function,
+    Print,
+    Return
 };
 #endif //GLITTER_NODETYPES_HPP
