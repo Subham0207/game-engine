@@ -20,6 +20,7 @@ public:
     virtual const std::string& compile();
     [[nodiscard]] const std::string& getCompiledLua() const { return compiledLua; }
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
+    void clearScript();
 
 private:
     void appendLuaLog(const std::string& line);

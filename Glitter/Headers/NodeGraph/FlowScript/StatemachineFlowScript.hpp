@@ -16,10 +16,11 @@ public:
 
     void setSelectedLink(StateMachineLink* link)
     {
+        clearScript();
         selectedLink = link;
         showUI = true;
 
-        if (!selectedLink->condition.empty())
+        if (selectedLink && !selectedLink->condition.empty())
             setCompiledLua(selectedLink->condition);
     }
 

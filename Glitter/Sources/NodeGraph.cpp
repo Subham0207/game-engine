@@ -145,3 +145,28 @@ void NodeGraph::drawUIEmbedded()
     g_lastImNodesEditorCtx = prevCtx;
     ImGui::PopID();
 }
+
+void NodeGraph::clearNodes()
+{
+    nodes.clear();
+}
+
+void NodeGraph::clearNodeGraphLinks()
+{
+    nodeGraphLinks.clear();
+}
+
+void NodeGraph::clearComments()
+{
+    comments.clear();
+}
+
+void NodeGraph::clearStateNodes()
+{
+    stateNodes.clear();
+}
+
+void NodeGraph::clearStateLinks()
+{
+    stateLinks.clear();
+}

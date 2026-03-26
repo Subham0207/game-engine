@@ -129,6 +129,13 @@ FlowScript::FlowScript()
         this);
 }
 
+void FlowScript::clearScript()
+{
+    clearNodes();
+    clearNodeGraphLinks();
+    clearComments();
+}
+
 const std::string& FlowScript::compile()
 {
     struct AttrInfo
