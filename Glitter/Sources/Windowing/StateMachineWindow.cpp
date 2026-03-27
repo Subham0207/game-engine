@@ -33,9 +33,10 @@
 #include <NodeGraph/FlowScript/StatemachineFlowScript.hpp>
 
 #include <cstdio>
+#include <utility>
 
-StateMachineWindow::StateMachineWindow(std::string characterFilePath)
-    : mCharacterFilePath(characterFilePath)
+StateMachineWindow::StateMachineWindow(std::string characterFilePath, std::string statemachineFilePath)
+    : mCharacterFilePath(std::move(characterFilePath)), mStatemachineFilePath(std::move(statemachineFilePath))
 {
 }
 
@@ -193,5 +194,7 @@ void StateMachineWindow::setupLevelObjs()
     mPreviewLevel->addRenderable(cube);
 
     mPreviewLevel->spawnCharacter(mCharacterFilePath);
+
+    mStateMachineGraph->load(mStatemachineFilePath);
 }
 

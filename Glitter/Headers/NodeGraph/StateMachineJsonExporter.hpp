@@ -24,6 +24,11 @@ namespace StateMachineJsonExporter
     std::string ExportChainJson(const std::vector<StateMachineNode>& nodes,
                                const std::vector<StateMachineLink>& links,
                                int rootNodeId);
+
+    bool DeserializeChainJson(const std::string& filepath,
+                          std::vector<StateMachineNode>& outNodes,
+                          std::vector<StateMachineLink>& outLinks,
+                          int& activeRootNodeId);
 }
 
 #endif // GLITTER_STATEMACHINEJSONEXPORTER_HPP

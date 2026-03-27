@@ -11,7 +11,7 @@
 class EditorStateMachine
 {
 public:
-    int openEditor(std::string characterFilepath);
+    int openEditor(std::string characterFilepath, std::string& smFilePath);
 };
 
 

@@ -33,7 +33,7 @@ namespace ProjectAsset { class AssetBrowser; }
 // Initially a copy of EditorWindow; later you can strip renderer/game tick.
 class StateMachineWindow final : public GameWindow {
 public:
-    explicit StateMachineWindow(std::string characterFilePath);
+    explicit StateMachineWindow(std::string characterFilePath, std::string statemachineFilePath);
 
     StateMachineWindow(const StateMachineWindow&) = delete;
     StateMachineWindow& operator=(const StateMachineWindow&) = delete;
@@ -53,6 +53,7 @@ private:
     void setupLevelObjs();
 
     std::string mCharacterFilePath;
+    std::string mStatemachineFilePath;
 
     int selectedModelIndex = 0;
     std::unique_ptr<Debug::Raycast> mRayCastObjectSelector;

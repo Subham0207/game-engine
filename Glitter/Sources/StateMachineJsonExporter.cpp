@@ -8,7 +8,28 @@
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <boost/json.hpp>
+namespace json = boost::json;
+namespace
+{
+    ImVec2 ParseVec2(const json::value& v)
+    {
+        if (!v.is_array())
+            return ImVec2(0.0f, 0.0f);
 
+        const auto& arr = v.as_array();
+        if (arr.size() != 2)
+            return ImVec2(0.0f, 0.0f);
+
+        return ImVec2(
+            json::value_to<float>(arr[0]),
+            json::value_to<float>(arr[1])
+        );
+    }
+}
 namespace
 {
     static std::string escapeJson(const std::string& s)
@@ -182,5 +203,123 @@ namespace StateMachineJsonExporter
 
         json += "}";
         return json;
+    }
+
+    bool DeserializeChainJson(const std::string& filePath,
+                          std::vector<StateMachineNode>& outNodes,
+                          std::vector<StateMachineLink>& outLinks,
+                          int& activeRootNodeId)
+    {
+        std::ifstream file(filePath);
+        if (!file.is_open())
+        {
+            std::cout << "Failed to open file: " << filePath << std::endl;
+            return false;
+        }
+
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        auto jsonStr = buffer.str();
+
+        outNodes.clear();
+        outLinks.clear();
+        activeRootNodeId = -1;
+
+        try
+        {
+            json::value rootVal = json::parse(jsonStr);
+
+            if (!rootVal.is_object())
+                return false;
+
+            const json::object& rootObj = rootVal.as_object();
+
+            // Root node
+            if (auto it = rootObj.find("root"); it != rootObj.end())
+            {
+                activeRootNodeId = json::value_to<int>(it->value());
+            }
+            else
+            {
+                return false;
+            }
+
+            // Nodes
+            if (auto it = rootObj.find("nodes"); it != rootObj.end() && it->value().is_array())
+            {
+                const auto& nodesArr = it->value().as_array();
+
+                for (const auto& nVal : nodesArr)
+                {
+                    if (!nVal.is_object())
+                        continue;
+
+                    const auto& n = nVal.as_object();
+
+                    StateMachineNode node{};
+
+                    if (auto f = n.find("id"); f != n.end())
+                        node.id = json::value_to<int>(f->value());
+
+                    if (auto f = n.find("name"); f != n.end())
+                        node.name = json::value_to<std::string>(f->value());
+
+                    if (auto f = n.find("pos"); f != n.end())
+                        node.spawnPosScreen = ParseVec2(f->value());
+                    else
+                        node.spawnPosScreen = ImVec2(0.0f, 0.0f);
+
+                    outNodes.push_back(std::move(node));
+                }
+            }
+
+            // Transitions (links)
+            if (auto it = rootObj.find("transitions"); it != rootObj.end() && it->value().is_array())
+            {
+                const auto& transArr = it->value().as_array();
+
+                for (const auto& tVal : transArr)
+                {
+                    if (!tVal.is_object())
+                        continue;
+
+                    const auto& t = tVal.as_object();
+
+                    StateMachineLink link{};
+
+                    if (auto f = t.find("id"); f != t.end())
+                        link.id = json::value_to<int>(f->value());
+
+                    if (auto f = t.find("from"); f != t.end())
+                        link.fromNodeId = json::value_to<int>(f->value());
+
+                    if (auto f = t.find("to"); f != t.end())
+                        link.toNodeId = json::value_to<int>(f->value());
+
+                    if (auto f = t.find("from_side"); f != t.end())
+                        link.fromSide = static_cast<StateMachinePortSide>(json::value_to<int>(f->value()));
+
+                    if (auto f = t.find("to_side"); f != t.end())
+                        link.toSide = static_cast<StateMachinePortSide>(json::value_to<int>(f->value()));
+
+                    if (auto f = t.find("from_offset_grid"); f != t.end())
+                        link.fromOffsetGrid = ParseVec2(f->value());
+
+                    if (auto f = t.find("to_offset_grid"); f != t.end())
+                        link.toOffsetGrid = ParseVec2(f->value());
+
+                    if (auto f = t.find("condition"); f != t.end())
+                        link.condition = json::value_to<std::string>(f->value());
+
+                    outLinks.push_back(std::move(link));
+                }
+            }
+
+            return true;
+        }
+        catch (const std::exception&)
+        {
+            return false;
+        }
     }
 }

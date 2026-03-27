@@ -79,6 +79,17 @@ public:
     }
     ~StateMachineGraph() override = default;
 
+    void load(const std::string& filepath)
+    {
+        int activeId = -1;
+        StateMachineJsonExporter::DeserializeChainJson(
+            filepath,
+            getStateNodes(),
+            getStateLinks(),
+            activeId
+            );
+    }
+
 private:
     void save()
     {
