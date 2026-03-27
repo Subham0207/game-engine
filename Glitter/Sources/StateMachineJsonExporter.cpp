@@ -220,6 +220,11 @@ namespace StateMachineJsonExporter
         std::stringstream buffer;
         buffer << file.rdbuf();
         auto jsonStr = buffer.str();
+        if (jsonStr.empty())
+        {
+            std::cout << "File is empty: " << filePath << std::endl;
+            return false;
+        }
 
         outNodes.clear();
         outLinks.clear();
