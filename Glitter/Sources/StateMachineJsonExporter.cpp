@@ -17,11 +17,28 @@ namespace
 {
     ImVec2 ParseVec2(const json::value& v)
     {
+        // Current writer format: { "x": ..., "y": ... }
+        if (v.is_object())
+        {
+            const auto& obj = v.as_object();
+            const auto xIt = obj.find("x");
+            const auto yIt = obj.find("y");
+            if (xIt != obj.end() && yIt != obj.end() &&
+                xIt->value().is_number() && yIt->value().is_number())
+            {
+                return ImVec2(
+                    json::value_to<float>(xIt->value()),
+                    json::value_to<float>(yIt->value())
+                );
+            }
+        }
+
+        // Backward compatibility for legacy format: [x, y]
         if (!v.is_array())
             return ImVec2(0.0f, 0.0f);
 
         const auto& arr = v.as_array();
-        if (arr.size() != 2)
+        if (arr.size() != 2 || !arr[0].is_number() || !arr[1].is_number())
             return ImVec2(0.0f, 0.0f);
 
         return ImVec2(
@@ -270,7 +287,10 @@ namespace StateMachineJsonExporter
                         node.name = json::value_to<std::string>(f->value());
 
                     if (auto f = n.find("pos"); f != n.end())
+                    {
                         node.spawnPosScreen = ParseVec2(f->value());
+                        node.hasSpawn = true;
+                    }
                     else
                         node.spawnPosScreen = ImVec2(0.0f, 0.0f);
 
