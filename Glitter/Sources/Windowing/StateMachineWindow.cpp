@@ -132,14 +132,7 @@ void StateMachineWindow::tickImpl()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("State Machine Editor");
-
-    ImGui::TextUnformatted("Node Graph");
-    // Draw the node graph embedded into this window.
-    if (mStateMachineGraph)
-        mStateMachineGraph->drawUIEmbedded();
-
-    ImGui::End();
+    mStateMachineGraph->draw();
 
     mSmFlowScript->draw();
 

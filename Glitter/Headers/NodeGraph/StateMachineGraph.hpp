@@ -8,7 +8,6 @@
 #include "NodeGraph.hpp"
 #include "StateMachineJsonExporter.hpp"
 #include "Views/StateMachineView.hpp"
-#include "UI/Shared/EditableText.hpp"
 #include "Helpers/Shared.hpp"
 #include "EngineState.hpp"
 #include <filesystem>
@@ -26,7 +25,7 @@ public:
         auto view = views.findView<StateMachineView>();
         view->setFlowScriptRef(ref);
 
-        filename.setText("statemachine");
+        filename.setText("State Machine Editor");
 
         // Add state-machine specific UI via the generic NodeGraph screen-space hook.
         setScreenSpaceUi(
@@ -47,8 +46,6 @@ public:
                 // Simple toolbar button in screen space.
                 ImGui::SetCursorPos(ImVec2(8.0f, 8.0f));
                 ImGui::BeginGroup();
-
-                UI::Shared::EditableTextUI("Filename", self->filename);
 
                 const bool hasActive = (activeId != -1);
                 if (!hasActive)
@@ -79,8 +76,20 @@ public:
     }
     ~StateMachineGraph() override = default;
 
+    void draw()
+    {
+        ImGui::Begin(filename.value.c_str());
+
+        ImGui::TextUnformatted("Node Graph");
+
+        drawUIEmbedded();
+
+        ImGui::End();
+    }
+
     void load(const std::string& filepath)
     {
+        filename.setText(fs::path(filepath).filename().stem().string());
         int activeId = -1;
         StateMachineJsonExporter::DeserializeChainJson(
             filepath,
