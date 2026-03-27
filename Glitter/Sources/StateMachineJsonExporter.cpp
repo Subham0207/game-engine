@@ -52,6 +52,15 @@ namespace
                 return static_cast<int>(i);
         return -1;
     }
+
+    static void appendVec2(std::string& json, const ImVec2& v)
+    {
+        json += "{ \"x\": ";
+        json += std::to_string(v.x);
+        json += ", \"y\": ";
+        json += std::to_string(v.y);
+        json += " }";
+    }
 }
 
 namespace StateMachineJsonExporter
@@ -129,12 +138,15 @@ namespace StateMachineJsonExporter
             const int id = reachableNodes[i];
             const int idx = findNodeIndexById(nodes, id);
             const std::string name = (idx >= 0) ? nodes[idx].name : std::string();
+            const ImVec2 pos = (idx >= 0) ? nodes[idx].spawnPosScreen : ImVec2(0.0f, 0.0f);
 
             json += "    { \"id\": ";
             json += std::to_string(id);
             json += ", \"name\": \"";
             json += escapeJson(name);
-            json += "\" }";
+            json += "\", \"pos\": ";
+            appendVec2(json, pos);
+            json += " }";
             if (i + 1 < reachableNodes.size())
                 json += ",";
             json += "\n";
@@ -151,6 +163,14 @@ namespace StateMachineJsonExporter
             json += std::to_string(l->fromNodeId);
             json += ", \"to\": ";
             json += std::to_string(l->toNodeId);
+            json += ", \"from_side\": ";
+            json += std::to_string(static_cast<int>(l->fromSide));
+            json += ", \"to_side\": ";
+            json += std::to_string(static_cast<int>(l->toSide));
+            json += ", \"from_offset_grid\": ";
+            appendVec2(json, l->fromOffsetGrid);
+            json += ", \"to_offset_grid\": ";
+            appendVec2(json, l->toOffsetGrid);
             json += ", \"condition\": \"";
             json += escapeJson(l->condition);
             json += "\" }";
@@ -164,4 +184,3 @@ namespace StateMachineJsonExporter
         return json;
     }
 }
-

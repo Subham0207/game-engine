@@ -156,6 +156,10 @@ public:
             const ImVec2 dims = ImNodes::GetNodeDimensions(n.id);
             m_nodeRects[n.id] = ImRect(pos, ImVec2(pos.x + dims.x, pos.y + dims.y));
 
+            // Persist latest position so exporter can serialize it.
+            n.spawnPosScreen = pos;
+            n.hasSpawn = true;
+
             if (isActive)
                 ImNodes::PopColorStyle();
         }
@@ -894,6 +898,8 @@ private:
 };
 
 #endif // GLITTER_NODEGRAPH_STATEMACHINEVIEW_HPP
+
+
 
 
 
