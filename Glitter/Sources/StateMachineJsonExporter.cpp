@@ -15,6 +15,23 @@
 namespace json = boost::json;
 namespace
 {
+    StateMachineNodeType ParseNodeType(const json::value& v)
+    {
+        if (!v.is_number())
+            return StateMachineNodeType::None;
+
+        const int raw = json::value_to<int>(v);
+        switch (raw)
+        {
+        case static_cast<int>(StateMachineNodeType::Blendspace):
+            return StateMachineNodeType::Blendspace;
+        case static_cast<int>(StateMachineNodeType::Animation):
+            return StateMachineNodeType::Animation;
+        default:
+            return StateMachineNodeType::None;
+        }
+    }
+
     ImVec2 ParseVec2(const json::value& v)
     {
         // Current writer format: { "x": ..., "y": ... }
@@ -177,6 +194,8 @@ namespace StateMachineJsonExporter
             const int idx = findNodeIndexById(nodes, id);
             const std::string name = (idx >= 0) ? nodes[idx].name : std::string();
             const ImVec2 pos = (idx >= 0) ? nodes[idx].spawnPosScreen : ImVec2(0.0f, 0.0f);
+            const StateMachineNodeType type = (idx >= 0) ? nodes[idx].type : StateMachineNodeType::None;
+            const std::string resourceGuid = (idx >= 0) ? nodes[idx].resourceGuid : std::string();
 
             json += "    { \"id\": ";
             json += std::to_string(id);
@@ -184,6 +203,11 @@ namespace StateMachineJsonExporter
             json += escapeJson(name);
             json += "\", \"pos\": ";
             appendVec2(json, pos);
+            json += ", \"type\": ";
+            json += std::to_string(static_cast<int>(type));
+            json += ", \"resource_guid\": \"";
+            json += escapeJson(resourceGuid);
+            json += "\"";
             json += " }";
             if (i + 1 < reachableNodes.size())
                 json += ",";
@@ -293,6 +317,12 @@ namespace StateMachineJsonExporter
                     }
                     else
                         node.spawnPosScreen = ImVec2(0.0f, 0.0f);
+
+                    if (auto f = n.find("type"); f != n.end())
+                        node.type = ParseNodeType(f->value());
+
+                    if (auto f = n.find("resource_guid"); f != n.end() && f->value().is_string())
+                        node.resourceGuid = json::value_to<std::string>(f->value());
 
                     outNodes.push_back(std::move(node));
                 }

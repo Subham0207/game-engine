@@ -81,6 +81,8 @@ public:
         auto& nodes = ctx.stateNodes;
         auto& links = ctx.stateLinks;
 
+        refreshAvailableResources();
+
         if (!ctx.editorSpace.valid)
             return;
 
@@ -145,8 +147,8 @@ public:
 
             // Context-ish controls inside node.
             ImGui::Spacing();
-            if (ImGui::SmallButton((std::string("Make Active##") + std::to_string(n.id)).c_str()))
-                setActive(nodes, n.id);
+
+            nodeBody(nodes, n);
 
             ImNodes::EndNode();
 
@@ -192,6 +194,26 @@ public:
 private:
 
     StatemachineFlowScript* mSmflowscriptRef = nullptr;
+
+    struct blendspaceUI
+    {
+        std::vector<std::string> blendspaceguids;
+        std::vector<std::string> blendspacenamesStorage;
+        std::vector<const char*> blendspacenames;
+    };
+
+    struct animationsUI
+    {
+        std::vector<std::string> animationguids;
+        std::vector<std::string> animationnamesStorage;
+        std::vector<const char*> animationnames;
+    };
+
+    void refreshAvailableResources();
+    static int findGuidIndex(const std::vector<std::string>& guids, const std::string& guid);
+
+    animationsUI animations;
+    blendspaceUI blendspaces;
 
     struct LinkDragState
     {
@@ -768,6 +790,11 @@ private:
     }
 
     void EditCondition(StateMachineLink* selectedLink) const;
+
+    void nodeBody(
+        std::vector<StateMachineNode>& nodes,
+        StateMachineNode& currentNode
+    );
 
     void renderLinkEditPopup(std::vector<StateMachineLink>& links)
     {

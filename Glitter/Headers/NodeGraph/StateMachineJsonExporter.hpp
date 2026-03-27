@@ -21,10 +21,15 @@ namespace StateMachineJsonExporter
 {
     // Export the graph reachable starting from `rootNodeId`.
     // If `rootNodeId` is not found, returns an empty JSON object string: "{}".
+    // Node payload also includes:
+    // - "type" (int: StateMachineNodeType)
+    // - "resource_guid" (string)
     std::string ExportChainJson(const std::vector<StateMachineNode>& nodes,
                                const std::vector<StateMachineLink>& links,
                                int rootNodeId);
 
+    // Loads legacy files that may not include "type"/"resource_guid" by keeping
+    // defaults from StateMachineNode (None + empty guid).
     bool DeserializeChainJson(const std::string& filepath,
                           std::vector<StateMachineNode>& outNodes,
                           std::vector<StateMachineLink>& outLinks,
