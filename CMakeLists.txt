@@ -66,6 +66,7 @@ file(GLOB PROJECT_SOURCES
         Glitter/Sources/*.cpp
         Glitter/Sources/*/*.cpp
         Glitter/Sources/*/*/*.cpp
+        Glitter/Sources/*/*/*/*.cpp
 )
 file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
                           Glitter/Shaders/*.frag
