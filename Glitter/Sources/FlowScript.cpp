@@ -93,6 +93,47 @@ namespace
             throw std::runtime_error("Unsupported expression: multiple operators");
         return { value.substr(0, pos), value.substr(pos + token.size()) };
     }
+
+    bool isGenericTypeNodeName(const std::string& value)
+    {
+        return startsWith(value, "GenericType(") && value.size() > std::strlen("GenericType(") && value.back() == ')';
+    }
+
+    std::string getGenericObjectName(const std::string& nodeName)
+    {
+        if (!isGenericTypeNodeName(nodeName))
+            return {};
+        const size_t prefixLen = std::strlen("GenericType(");
+        return nodeName.substr(prefixLen, nodeName.size() - prefixLen - 1);
+    }
+
+    std::string stripInlineLuaComment(const std::string& value)
+    {
+        bool inSingleQuote = false;
+        bool inDoubleQuote = false;
+        for (size_t i = 0; i + 1 < value.size(); ++i)
+        {
+            const char c = value[i];
+            if (c == '\\')
+            {
+                ++i;
+                continue;
+            }
+            if (!inDoubleQuote && c == '\'')
+            {
+                inSingleQuote = !inSingleQuote;
+                continue;
+            }
+            if (!inSingleQuote && c == '"')
+            {
+                inDoubleQuote = !inDoubleQuote;
+                continue;
+            }
+            if (!inSingleQuote && !inDoubleQuote && c == '-' && value[i + 1] == '-')
+                return value.substr(0, i);
+        }
+        return value;
+    }
 }
 
 FlowScript::FlowScript()
@@ -337,7 +378,19 @@ const std::string& FlowScript::compile()
         auto outputIt = attrInfo.find(inputIt->second);
         if (outputIt == attrInfo.end() || !outputIt->second.node)
             return std::string("0");
-        return nodeVar[outputIt->second.node];
+
+        NodeGraphNode* srcNode = outputIt->second.node;
+        const std::string& srcNodeName = srcNode->name();
+        if (isGenericTypeNodeName(srcNodeName) && outputIt->second.index >= 0)
+        {
+            const std::string objectName = getGenericObjectName(srcNodeName);
+            auto& srcOutputs = srcNode->outputs();
+            const int outIndex = outputIt->second.index;
+            if (!objectName.empty() && outIndex < static_cast<int>(srcOutputs.size()))
+                return objectName + "." + srcOutputs[outIndex].getName();
+        }
+
+        return nodeVar[srcNode];
     };
 
     std::unordered_map<NodeGraphNode*, std::vector<NodeGraphNode*>> execOutgoing;
@@ -497,7 +550,33 @@ const std::string& FlowScript::compile()
         const std::string& nodeName = node->name();
         const std::string& varName = nodeVar[node];
 
-        if (nodeName == "Integer")
+        if (isGenericTypeNodeName(nodeName))
+        {
+            const std::string objectName = getGenericObjectName(nodeName);
+            if (!objectName.empty())
+            {
+                out << "local " << objectName << " = {}\n";
+                for (auto& output : node->outputs())
+                {
+                    if (output.getType() != NodeAttributeType::FIELD)
+                        continue;
+
+                    std::string value = trimCopy(output.getValueBuff());
+                    if (value.empty())
+                        value = "0";
+
+                    if (isBooleanLiteral(value))
+                        value = parseBooleanOrDefault(value.c_str());
+                    else if (isNumberLiteral(value))
+                        value = parseNumberOrDefault(value.c_str());
+                    else
+                        continue;
+
+                    out << objectName << "." << output.getName() << " = " << value << "\n";
+                }
+            }
+        }
+        else if (nodeName == "Integer")
         {
             std::string value = "0";
             if (!node->outputs().empty())
@@ -554,6 +633,8 @@ const std::string& FlowScript::compile()
     std::vector<std::string> terminalVars;
     for (auto* node : ordered)
     {
+        if (isGenericTypeNodeName(node->name()))
+            continue;
         if (referencedOutputs.find(node) == referencedOutputs.end() && !node->outputs().empty())
             terminalVars.push_back(nodeVar[node]);
     }
@@ -788,7 +869,9 @@ void FlowScript::deCompile(const std::string& luaCode)
     {
         if (!rawLine.empty() && rawLine.back() == '\r')
             rawLine.pop_back();
-        std::string line = trimCopy(rawLine);
+        if (rawLine.find("-- unsupported node: GenericType(") != std::string::npos)
+            continue;
+        std::string line = trimCopy(stripInlineLuaComment(rawLine));
         if (line.empty())
             continue;
         if (startsWith(line, "--"))

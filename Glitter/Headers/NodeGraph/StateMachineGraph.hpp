@@ -113,6 +113,8 @@ public:
             else
             {
                 state_link.condition = luaPrelude + "\n" + state_link.condition;
+
+                std::cout << "State_Link: " << state_link.condition << std::endl;
             }
         }
 
