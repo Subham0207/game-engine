@@ -45,6 +45,9 @@ public:
     void tickImpl() override;
     void shutdown() override;
 
+    template<typename T>
+    void load(T& t);
+
     void setSelectedModelIndex(const int idx){ selectedModelIndex = idx; }
     int getSelectedModelIndex() const { return selectedModelIndex; }
 

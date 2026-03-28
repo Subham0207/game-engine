@@ -87,7 +87,8 @@ public:
         ImGui::End();
     }
 
-    void load(const std::string& filepath)
+    template<typename T>
+    void load(const std::string& filepath, T t)
     {
         //We load the graph
         filename.setText(fs::path(filepath).filename().stem().string());
@@ -99,7 +100,7 @@ public:
             activeId
         );
 
-        //The Generic Type is not saved so needs to added in plain Lua code.
+        //The Generic Type is not saved so needs to be added in plain Lua code.
         //Then when we open the script This type should get automatically decompiled in GenericType Flowscript node.
         for (auto& state_link : getStateLinks())
         {

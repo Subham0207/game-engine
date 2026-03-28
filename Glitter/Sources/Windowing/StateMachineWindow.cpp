@@ -86,6 +86,12 @@ void StateMachineWindow::init()
     }
 }
 
+template <typename T>
+void StateMachineWindow::load(T& t)
+{
+    mStateMachineGraph->load(mStatemachineFilePath, t);
+}
+
 void StateMachineWindow::tickImpl()
 {
     if (!mWindow) return;
@@ -187,7 +193,5 @@ void StateMachineWindow::setupLevelObjs()
     mPreviewLevel->addRenderable(cube);
 
     mPreviewLevel->spawnCharacter(mCharacterFilePath);
-
-    mStateMachineGraph->load(mStatemachineFilePath);
 }
 

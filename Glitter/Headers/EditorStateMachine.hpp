@@ -11,7 +11,8 @@
 class EditorStateMachine
 {
 public:
-    int openEditor(std::string characterFilepath, std::string& smFilePath);
+    template<typename T>
+    int openEditor(std::string characterFilepath, std::string& smFilePath, T& t);
 };
 
 
