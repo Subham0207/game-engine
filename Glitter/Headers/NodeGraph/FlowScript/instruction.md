@@ -11,6 +11,11 @@ This file documents the recent FlowScript changes and how the compile step works
   - `LuaEmitter` converts IR into Lua source.
 - Added compile diagnostics surfaced through `FlowScript::getCompileDiagnostics()` and logged as `[COMPILE] ...` lines.
 - Added `FlowScript::deCompile` to rebuild a node graph from supported Lua.
+- Refactored decompile into focused components under `FlowScript/Decompile`:
+  - `LuaSubsetLineParser` for line-level Lua subset parsing.
+  - `DecompileGraphBuilder` for node/link reconstruction and execution-chain wiring.
+  - `Helpers` for shared utility logic (trim/prefix/literal/operator split helpers).
+- `FlowScript::deCompile()` is now orchestration-only: parse line -> apply statement -> finalize.
 
 ## How compilation works now (`FlowScript::compile`)
 
@@ -62,6 +67,23 @@ This file documents the recent FlowScript changes and how the compile step works
 `deCompile` parses a limited Lua subset (the patterns emitted by the compiler/emitter) and rebuilds nodes/links.
 If it encounters unsupported Lua, it throws a runtime error.
 
+Current decompile pipeline:
+- `FlowScript::deCompile()` (`Glitter/Sources/FlowScript.cpp`) creates:
+  - `Flowscript::Decompile::LuaSubsetLineParser`
+  - `Flowscript::Decompile::DecompileGraphBuilder`
+- For each Lua line:
+  - parser returns `ParsedStatement` (or skips comments/blank lines)
+  - builder `apply(...)` mutates graph state (nodes/links/function scopes/pending generic objects)
+- After iteration, `builder.finalize()` flushes pending generic objects, validates function-scope balance, and links top-level execution chain.
+
+Primary decompile files:
+- `Glitter/Headers/NodeGraph/FlowScript/Decompile/ParsedStatement.hpp`
+- `Glitter/Headers/NodeGraph/FlowScript/Decompile/LuaSubsetLineParser.hpp`
+- `Glitter/Headers/NodeGraph/FlowScript/Decompile/DecompileGraphBuilder.hpp`
+- `Glitter/Headers/NodeGraph/FlowScript/Decompile/Helpers.hpp`
+- `Glitter/Sources/FlowScript/Decompile/LuaSubsetLineParser.cpp`
+- `Glitter/Sources/FlowScript/Decompile/DecompileGraphBuilder.cpp`
+
 Supported statements and mappings:
 - `local node_x = <number>` -> `Integer` node with field set.
 - `local node_x = <true|false>` -> `Boolean` node with field set.
@@ -89,6 +111,9 @@ Data value resolution:
 Limitations:
 - `return { ... }` is not supported.
 - No attempt is made to parse arbitrary Lua; only the supported subset is accepted.
+
+Build-system note:
+- `CMakeLists.txt` now includes `Glitter/Sources/*/*/*/*.cpp` in `PROJECT_SOURCES` so nested decompile sources under `Glitter/Sources/FlowScript/Decompile/` are compiled automatically.
 
 ## Notes
 
