@@ -21,6 +21,7 @@
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/NotEqualsTo.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Boolean.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/DataTypes/GenericType.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
@@ -32,6 +33,7 @@ using EqualsToNode = NodeGraphComponents::Node::EqualsTo;
 using NotEqualsToNode = NodeGraphComponents::Node::NotEqualsTo;
 using IntegerNode = NodeGraphComponents::Node::Integer;
 using BooleanNode = NodeGraphComponents::Node::Boolean;
+using GenericTypeNode = NodeGraphComponents::Node::GenericType;
 using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
 using PrintNode = NodeGraphComponents::Node::Keywords::Print;
 using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
@@ -98,6 +100,28 @@ public:
             n->setSpawnPosScreen(spawnPosScreen);
             nodes.push_back(std::move(n));
         }
+    }
+
+    void addGenericTypeNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
+                            const std::string& objectName,
+                            const std::vector<NodeGraphComponents::Node::GenericMemberSpec>& members,
+                            const ImVec2& spawnPosScreen)
+    {
+        std::string title = "GenericType";
+        if (!objectName.empty())
+            title += "(" + objectName + ")";
+
+        auto n = std::make_unique<GenericTypeNode>(
+            nextOutputPinId,
+            members,
+            nextNodeId++,
+            title,
+            spawnPosScreen.x,
+            spawnPosScreen.y
+        );
+
+        n->setSpawnPosScreen(spawnPosScreen);
+        nodes.push_back(std::move(n));
     }
 
 	void addLink(std::vector<NodeGraphNodeLink>& links, int startAttr, int endAttr)

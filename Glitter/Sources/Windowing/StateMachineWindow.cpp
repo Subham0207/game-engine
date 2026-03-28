@@ -86,11 +86,7 @@ void StateMachineWindow::init()
     }
 }
 
-template <typename T>
-void StateMachineWindow::load(T& t)
-{
-    mStateMachineGraph->load(mStatemachineFilePath, t);
-}
+// load<T> is header-defined so external projects can instantiate it.
 
 void StateMachineWindow::tickImpl()
 {

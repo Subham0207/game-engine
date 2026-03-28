@@ -602,6 +602,12 @@ void FlowScript::deCompile(const std::string& luaCode)
         int outputAttr = -1;
     };
 
+    struct PendingGenericObject
+    {
+        std::vector<NodeGraphComponents::Node::GenericMemberSpec> members;
+        std::unordered_map<std::string, size_t> fieldToMemberIndex;
+    };
+
     std::unordered_map<std::string, NodeOutputRef> vars;
     std::vector<NodeGraphNode*> topLevelExec;
 
@@ -628,6 +634,15 @@ void FlowScript::deCompile(const std::string& luaCode)
         return nodes.back().get();
     };
 
+    auto addGenericTypeNode = [&](const std::string& objectName,
+                                  const std::vector<NodeGraphComponents::Node::GenericMemberSpec>& members) -> NodeGraphNode* {
+        const size_t before = nodes.size();
+        nodeView->addGenericTypeNode(nodes, objectName, members, nextPos());
+        if (nodes.size() <= before)
+            throw std::runtime_error("Failed to create generic object node");
+        return nodes.back().get();
+    };
+
     auto setFieldValue = [&](NodeGraphNode* node, const std::string& value) {
         if (!node || node->outputs().empty())
             throw std::runtime_error("Node has no outputs to set");
@@ -643,6 +658,11 @@ void FlowScript::deCompile(const std::string& luaCode)
 
     auto resolveValue = [&](const std::string& raw) -> NodeOutputRef {
         const std::string value = trimCopy(raw);
+        {
+            const auto it = vars.find(value);
+            if (it != vars.end() && it->second.node && it->second.outputAttr >= 0)
+                return it->second;
+        }
         if (startsWith(value, "node_"))
         {
             const auto it = vars.find(value);
@@ -702,6 +722,65 @@ void FlowScript::deCompile(const std::string& luaCode)
     };
 
     std::vector<FunctionScope> functionStack;
+    std::unordered_map<std::string, PendingGenericObject> pendingGenericObjects;
+    std::vector<std::string> pendingGenericOrder;
+
+    auto registerGenericField = [&](const std::string& objectName,
+                                    const std::string& fieldName,
+                                    const std::string& literalValue) {
+        auto objectIt = pendingGenericObjects.find(objectName);
+        if (objectIt == pendingGenericObjects.end())
+            return false;
+
+        const bool isBool = isBooleanLiteral(literalValue);
+        const bool isNumber = isNumberLiteral(literalValue);
+        if (!isBool && !isNumber)
+            return true; // Ignore unsupported literals for GenericType v1.
+
+        auto& pending = objectIt->second;
+        auto fieldIt = pending.fieldToMemberIndex.find(fieldName);
+        if (fieldIt == pending.fieldToMemberIndex.end())
+        {
+            NodeGraphComponents::Node::GenericMemberSpec spec;
+            spec.name = fieldName;
+            spec.literalValue = literalValue;
+            spec.isBoolean = isBool;
+
+            pending.fieldToMemberIndex[fieldName] = pending.members.size();
+            pending.members.push_back(std::move(spec));
+        }
+        else
+        {
+            auto& spec = pending.members[fieldIt->second];
+            spec.literalValue = literalValue;
+            spec.isBoolean = isBool;
+        }
+
+        return true;
+    };
+
+    auto flushPendingGenericObjects = [&]() {
+        for (const auto& objectName : pendingGenericOrder)
+        {
+            const auto objectIt = pendingGenericObjects.find(objectName);
+            if (objectIt == pendingGenericObjects.end())
+                continue;
+
+            const auto& members = objectIt->second.members;
+            if (members.empty())
+                continue;
+
+            auto* genericNode = addGenericTypeNode(objectName, members);
+            auto& outputs = genericNode->outputs();
+            const size_t count = std::min(outputs.size(), members.size());
+            for (size_t i = 0; i < count; ++i)
+                vars[objectName + "." + members[i].name] = { genericNode, outputs[i].getId() };
+        }
+
+        pendingGenericObjects.clear();
+        pendingGenericOrder.clear();
+    };
+
     std::istringstream stream(luaCode);
     std::string rawLine;
 
@@ -725,6 +804,16 @@ void FlowScript::deCompile(const std::string& luaCode)
                 throw std::runtime_error("Invalid assignment: " + line);
             std::string varName = trimCopy(rest.substr(0, eqPos));
             std::string expr = trimCopy(rest.substr(eqPos + 1));
+
+            if (expr == "{}")
+            {
+                if (pendingGenericObjects.find(varName) == pendingGenericObjects.end())
+                    pendingGenericOrder.push_back(varName);
+                pendingGenericObjects[varName];
+                continue;
+            }
+
+            flushPendingGenericObjects();
 
             if (expr == "function()")
             {
@@ -809,6 +898,25 @@ void FlowScript::deCompile(const std::string& luaCode)
             throw std::runtime_error("Unsupported assignment: " + line);
         }
 
+        {
+            const size_t eqPos = line.find('=');
+            if (eqPos != std::string::npos)
+            {
+                const std::string lhs = trimCopy(line.substr(0, eqPos));
+                const std::string rhs = trimCopy(line.substr(eqPos + 1));
+                const size_t dotPos = lhs.find('.');
+                if (dotPos != std::string::npos && dotPos > 0 && dotPos + 1 < lhs.size())
+                {
+                    const std::string objectName = trimCopy(lhs.substr(0, dotPos));
+                    const std::string fieldName = trimCopy(lhs.substr(dotPos + 1));
+                    if (registerGenericField(objectName, fieldName, rhs))
+                        continue;
+                }
+            }
+        }
+
+        flushPendingGenericObjects();
+
         if (startsWith(line, "print("))
         {
             const size_t commaPos = line.find(",");
@@ -857,6 +965,8 @@ void FlowScript::deCompile(const std::string& luaCode)
 
         throw std::runtime_error("Unsupported Lua statement: " + line);
     }
+
+    flushPendingGenericObjects();
 
     if (!functionStack.empty())
         throw std::runtime_error("Unclosed function block in Lua");

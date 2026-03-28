@@ -2,8 +2,6 @@
 
 #include "Windowing/GameWindow.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include <memory>
 
 // Required because this header owns std::unique_ptr<NodeGraph>
@@ -46,7 +44,11 @@ public:
     void shutdown() override;
 
     template<typename T>
-    void load(T& t);
+    void load(T& t)
+    {
+        if (mStateMachineGraph)
+            mStateMachineGraph->load(mStatemachineFilePath, t);
+    }
 
     void setSelectedModelIndex(const int idx){ selectedModelIndex = idx; }
     int getSelectedModelIndex() const { return selectedModelIndex; }
@@ -74,4 +76,3 @@ private:
     std::unique_ptr<StateMachineGraph> mStateMachineGraph;
     std::unique_ptr<StatemachineFlowScript> mSmFlowScript;
 };
-

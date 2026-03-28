@@ -8,6 +8,8 @@
 #include <boost/pfr.hpp>
 #include <vector>
 #include <sstream>
+#include <string>
+#include <type_traits>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 
@@ -52,7 +54,93 @@ namespace NodeGraphHelpers
         );
         return names;
     }
+
+    inline std::string escape_lua_string(const std::string& input)
+    {
+        std::string out;
+        out.reserve(input.size() + 8);
+        for (const char c : input)
+        {
+            switch (c)
+            {
+            case '\\': out += "\\\\"; break;
+            case '"': out += "\\\""; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default: out += c; break;
+            }
+        }
+        return out;
+    }
+
+    template <typename TValue>
+    std::string to_lua_literal(const TValue& value)
+    {
+        using ValueType = std::decay_t<TValue>;
+        if constexpr (std::is_same_v<ValueType, bool>)
+        {
+            return value ? "true" : "false";
+        }
+        else if constexpr (std::is_integral_v<ValueType> || std::is_floating_point_v<ValueType>)
+        {
+            std::ostringstream stream;
+            stream << value;
+            return stream.str();
+        }
+        else if constexpr (std::is_same_v<ValueType, std::string>)
+        {
+            return "\"" + escape_lua_string(value) + "\"";
+        }
+        else if constexpr (std::is_same_v<ValueType, const char*> || std::is_same_v<ValueType, char*>)
+        {
+            return value ? ("\"" + escape_lua_string(value) + "\"") : "\"\"";
+        }
+        else
+        {
+            return "nil";
+        }
+    }
+
+    template <typename T>
+    std::string get_field_name_or_default(const std::vector<std::string>& fieldNames, const std::size_t index)
+    {
+        if (index < fieldNames.size())
+            return fieldNames[index];
+        return "field_" + std::to_string(index);
+    }
+
+    template <typename T, std::size_t... I>
+    void append_lua_fields(const T& value,
+                           const std::vector<std::string>& fieldNames,
+                           const std::string& objectName,
+                           std::ostringstream& stream,
+                           std::index_sequence<I...>)
+    {
+        ((stream << objectName << "." << get_field_name_or_default<T>(fieldNames, I)
+                 << " = " << to_lua_literal(boost::pfr::get<I>(value)) << "\n"), ...);
+    }
+
+    // Build a Lua snippet that creates `objectName` and assigns reflected fields.
+    template <typename T>
+    std::string build_lua_object_prelude(const T& value, const std::string& objectName = "t")
+    {
+        std::ostringstream stream;
+        stream << "local " << objectName << " = {}\n";
+
+        const auto fieldNames = get_field_names<T>();
+        append_lua_fields(
+            value,
+            fieldNames,
+            objectName,
+            stream,
+            std::make_index_sequence<boost::pfr::tuple_size_v<T>>{}
+        );
+
+        return stream.str();
+    }
 };
 
 
 #endif //GLITTER_NODEGRAPHHELPERS_HPP
+

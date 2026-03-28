@@ -9,6 +9,7 @@
 #include "StateMachineJsonExporter.hpp"
 #include "Views/StateMachineView.hpp"
 #include "Helpers/Shared.hpp"
+#include "Helpers/NodeGraphHelpers.hpp"
 #include "EngineState.hpp"
 #include <filesystem>
 
@@ -102,9 +103,17 @@ public:
 
         //The Generic Type is not saved so needs to be added in plain Lua code.
         //Then when we open the script This type should get automatically decompiled in GenericType Flowscript node.
+        const std::string luaPrelude = NodeGraphHelpers::build_lua_object_prelude(t, "t");
         for (auto& state_link : getStateLinks())
         {
-            state_link.condition =
+            if (state_link.condition.empty())
+            {
+                state_link.condition = luaPrelude;
+            }
+            else
+            {
+                state_link.condition = luaPrelude + "\n" + state_link.condition;
+            }
         }
 
     }

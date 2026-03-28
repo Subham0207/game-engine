@@ -8,11 +8,23 @@
 #pragma once
 #include <string>
 
+#include "Windowing/StateMachineWindow.hpp"
+
 class EditorStateMachine
 {
 public:
+    EditorStateMachine(std::string characterFilepath, std::string& smFilePath);
+    int openEditor();
+
     template<typename T>
-    int openEditor(std::string characterFilepath, std::string& smFilePath, T& t);
+    void load(T& t)
+    {
+        if (window != nullptr)
+            window->load(t);
+    }
+
+private:
+    std::unique_ptr<StateMachineWindow> window;
 };
 
 
