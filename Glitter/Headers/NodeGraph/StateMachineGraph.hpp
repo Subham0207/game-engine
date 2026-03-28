@@ -89,6 +89,7 @@ public:
 
     void load(const std::string& filepath)
     {
+        //We load the graph
         filename.setText(fs::path(filepath).filename().stem().string());
         int activeId = -1;
         StateMachineJsonExporter::DeserializeChainJson(
@@ -97,6 +98,14 @@ public:
             getStateLinks(),
             activeId
         );
+
+        //The Generic Type is not saved so needs to added in plain Lua code.
+        //Then when we open the script This type should get automatically decompiled in GenericType Flowscript node.
+        for (auto& state_link : getStateLinks())
+        {
+            state_link.condition =
+        }
+
     }
 
 private:

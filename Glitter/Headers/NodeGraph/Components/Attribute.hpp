@@ -31,6 +31,11 @@ namespace NodeGraphComponents::Node
         //Only For Field type attributes;
         char* getValueBuff() { return valueBuff; }
         static int getValueSize() { return SIZE; }
+        void setValue(const std::string& value)
+        {
+            const std::size_t len = value.copy(valueBuff, SIZE - 1);
+            valueBuff[len] = '\0';
+        }
     private:
         int m_id;
         std::string name;
