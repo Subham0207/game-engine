@@ -29,6 +29,8 @@ namespace NodeGraphComponents::Node
             setupExecOutput(nextOutputPinId);
         }
 
+        NodeTypes type() override { return NodeTypes::Add; }
+
     private:
         Attribute A;
         Attribute B;

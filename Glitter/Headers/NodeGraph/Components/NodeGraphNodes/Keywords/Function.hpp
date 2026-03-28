@@ -22,6 +22,7 @@ namespace NodeGraphComponents::Node::Keywords
             }
             setupExecOutput(nextOutputPinId);
         }
+        NodeTypes type() override { return NodeTypes::Function; }
     private:
         std::vector<Attribute> FunctionArgs;
     };

@@ -27,6 +27,8 @@ namespace NodeGraphComponents::Node
 
             outputs().push_back(Result);
         }
+
+        NodeTypes type() override { return NodeTypes::EqualsTo; }
     private:
         Attribute FirstValue;
         Attribute SecondValue;

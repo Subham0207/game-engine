@@ -20,6 +20,8 @@ namespace NodeGraphComponents::Node::Keywords
 
             setupExecInput(nextInputPinId);
         }
+
+        NodeTypes type() override { return NodeTypes::Return; }
     private:
         Attribute returnInputPin;
     };

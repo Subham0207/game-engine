@@ -12,6 +12,7 @@
 
 #include <imgui.h>
 #include "Attribute.hpp"
+#include "NodeGraphNodes/NodeTypes.hpp"
 
 using NodeAttribute = NodeGraphComponents::Node::Attribute;
 using NodeAttributeType = NodeGraphComponents::Node::TYPE;
@@ -21,6 +22,7 @@ using NodeAttributeType = NodeGraphComponents::Node::TYPE;
 class NodeGraphNode
 {
 public:
+    virtual ~NodeGraphNode() = default;
     NodeGraphNode() = default;
     NodeGraphNode(int id, std::string name, float x = 0.0f, float y = 0.0f)
         : m_id(id), m_name(std::move(name)), m_spawnPosScreen(x,y), executionFlowIn(nullptr), executionFlowOut(nullptr)
@@ -61,6 +63,8 @@ public:
 
     NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
     NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
+
+    virtual NodeTypes type() = 0;
 
 private:
     int m_id = -1;

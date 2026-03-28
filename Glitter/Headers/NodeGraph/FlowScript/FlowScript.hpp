@@ -19,6 +19,7 @@ public:
     // The result is stored internally and also returned for convenience.
     virtual const std::string& compile();
     [[nodiscard]] const std::string& getCompiledLua() const { return compiledLua; }
+    [[nodiscard]] const std::vector<std::string>& getCompileDiagnostics() const { return compileDiagnostics; }
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
     void clearScript();
     void deCompile(const std::string& luaCode);
@@ -27,6 +28,7 @@ private:
     void appendLuaLog(const std::string& line);
 
     std::string compiledLua;
+    std::vector<std::string> compileDiagnostics;
 
     std::vector<std::string> luaConsoleLines;
     bool luaConsoleScrollToBottom = false;

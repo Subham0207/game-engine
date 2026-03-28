@@ -58,6 +58,8 @@ namespace NodeGraphComponents::Node
             //------------------------------------------
 
         }
+
+        NodeTypes type() override { return NodeTypes::Generic; }
     };
 }
 #endif //GLITTER_GENERICTYPE_HPP

@@ -14,6 +14,7 @@ enum class NodeTypes
 
     Integer,
     Boolean,
+    Generic,
 
     Function,
     Print,

@@ -21,6 +21,8 @@ namespace NodeGraphComponents::Node::Keywords
             setupExecInput(nextInputPinId);
             setupExecOutput(nextOutputPinId);
         }
+
+        NodeTypes type() override { return NodeTypes::Print; }
     private:
         Attribute PrintInputPin;
     };

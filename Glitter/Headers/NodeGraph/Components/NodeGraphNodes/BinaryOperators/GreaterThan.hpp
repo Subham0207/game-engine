@@ -31,6 +31,8 @@ namespace NodeGraphComponents::Node
             setupExecOutput(nextOutputPinId);
         }
 
+        NodeTypes type() override { return NodeTypes::GreaterThan; }
+
     private:
         Attribute A;
         Attribute B;
