@@ -239,7 +239,9 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     skeleton->load(skeletonParentPath, characterPrefab.skeletonGuid);
     character->skeleton = skeleton;
 
-    character->animStateMachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
+    character->animStateMachine = std::make_shared<Controls::StateMachine>();
+    auto statemachinePath = getEngineRegistryFilesMap()[characterPrefab.stateMachineGuid];
+    character->animStateMachine->LoadSMfile(statemachinePath);
 
     //TODO: make this playerController a scriptable file.
     character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);

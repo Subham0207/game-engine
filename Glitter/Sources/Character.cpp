@@ -103,9 +103,12 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
         character->skeleton = skeleton;
         character->skeleton_guid = characterPrefab.skeletonGuid;
     }
-    if (!characterPrefab.stateMachineClassId.empty())
+    if (!characterPrefab.stateMachineGuid.empty())
     {
-        auto statemachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
+        auto statemachine = std::make_shared<Controls::StateMachine>();
+        auto statemachinePath = getEngineRegistryFilesMap()[characterPrefab.stateMachineGuid];
+        statemachine->LoadSMfile(statemachinePath);
+        character->animStateMachine = statemachine;
     }
 
     getActiveLevel().renderables.emplace_back(character);

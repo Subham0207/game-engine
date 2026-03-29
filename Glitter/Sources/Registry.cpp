@@ -56,7 +56,7 @@ void Engine::Registry::updateEachFileTypeMap(std::string guid, std::string filep
 {
     //TODO: refactor this code...
 
-    auto suffix = ".statemachine";
+    auto suffix = ".sm";
     if(Shared::endsWith(filepath, suffix))
     {
         statemachineFileMap[guid] = filepath;
