@@ -18,6 +18,7 @@
 #include <Event/EventQueue.hpp>
 
 #include "CharacterPrefabConfig.hpp"
+#include "Controls/Controller.hpp"
 
 namespace Controls
 {

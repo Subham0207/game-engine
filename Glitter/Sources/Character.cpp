@@ -234,7 +234,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
         if(controller)
         {
             if(animStateMachine != nullptr)
-            animStateMachine->tick(animator);
+                animStateMachine->tick(animator);
         }
 
         if (capsuleCollider)

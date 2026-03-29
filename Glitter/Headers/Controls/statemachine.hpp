@@ -1,7 +1,6 @@
 #pragma once
 #include <3DModel/Animation/Animation.hpp>
 #include <3DModel/Animation/Animator.hpp>
-#include <Controls/PlayerController.hpp>
 #include <Controls/BlendSpace2D.hpp>
 #include <vector>
 #include <functional>
@@ -92,6 +91,21 @@ namespace Controls
 
             void LoadSMfile(std::string filename);
 
+            template<typename T>
+            void loadContext(T& t)
+            {
+                m_luaEvalContext = static_cast<const void*>(&t);
+                m_luaEvalWithContext = [](LuaCondition& condition, LuaEngine& engine, const void* ctx) -> bool
+                {
+                    return condition.evaluate(engine, *static_cast<const T*>(ctx));
+                };
+            }
+
+            void clearContext()
+            {
+                m_luaEvalContext = nullptr;
+                m_luaEvalWithContext = nullptr;
+            }
         protected:
             //TODO: Remove saving and loading this object to disk. We now load sm file saved by statemachinegraph.
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
@@ -99,7 +113,7 @@ namespace Controls
         private:
             void traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap);
 
-            void StateMachine::dfsLoad(const std::shared_ptr<State>& state,
+            void dfsLoad(const std::shared_ptr<State>& state,
             std::map<std::string, std::string>& filesMap,
             std::unordered_set<State*>& visited);
 
@@ -108,7 +122,11 @@ namespace Controls
             std::string filename;
 
             bool started = false;
-            
+
+            const void* m_luaEvalContext = nullptr;
+            bool (*m_luaEvalWithContext)(LuaCondition&, LuaEngine&, const void*) = nullptr;
+            bool evaluateLuaCondition(LuaCondition& condition) const;
+
             friend class boost::serialization::access;
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {

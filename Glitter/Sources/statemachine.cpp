@@ -96,8 +96,7 @@ void Controls::StateMachine::tick(Animator* animator)
     //1. first setPoseTransition bool if present.
     for (size_t i = 0; i < activeState->toStateWhenCondition.size(); i++)
     {
-        // auto playThisState = activeState->toStateWhenCondition[i].luaCondition.evaluate(getLuaEngine(), playerController);
-        auto playThisState = activeState->toStateWhenCondition[i].cppCondition();
+        auto playThisState = evaluateLuaCondition(activeState->toStateWhenCondition[i].luaCondition);
         if(playThisState)
         {
             activeState = activeState->toStateWhenCondition[i].state;
@@ -109,6 +108,14 @@ void Controls::StateMachine::tick(Animator* animator)
     //2. then set blendselection and m_currentAnimation
     activeState->Play(animator);
     //3. not here but executes: it is the actual poseTransition logic
+}
+
+bool Controls::StateMachine::evaluateLuaCondition(LuaCondition& condition) const
+{
+    if (m_luaEvalWithContext == nullptr || m_luaEvalContext == nullptr)
+        return false;
+
+    return m_luaEvalWithContext(condition, getLuaEngine(), m_luaEvalContext);
 }
 
 void Controls::StateMachine::setActiveState(std::shared_ptr<State> state)
@@ -249,8 +256,9 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     if (!state->animationGuid.empty()) {
         if (auto it = filesMap.find(state->animationGuid); it != filesMap.end()) {
             auto p = fs::path(it->second);
+            auto parent = p.parent_path();
             state->animation = new Animation();
-            state->animation->load(p.parent_path(), state->animationGuid);
+            state->animation->load(parent, state->animationGuid);
         } else {
             std::cerr << "[StateMachine] No file for animationGuid " << state->animationGuid << "\n";
         }
@@ -260,8 +268,9 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
     if (!state->blendspaceGuid.empty()) {
         if (auto it = filesMap.find(state->blendspaceGuid); it != filesMap.end()) {
             auto p = fs::path(it->second);
+            auto parent = p.parent_path();
             state->blendspace = new BlendSpace2D();
-            state->blendspace->load(p.parent_path(), state->blendspaceGuid);
+            state->blendspace->load(parent, state->blendspaceGuid);
         } else {
             std::cerr << "[StateMachine] No file for blendspaceGuid " << state->blendspaceGuid << "\n";
         }
