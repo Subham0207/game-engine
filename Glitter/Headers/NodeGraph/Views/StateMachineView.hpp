@@ -20,6 +20,7 @@
 #include "../NodeGraphIdRanges.hpp"
 #include "../Components/StateMachineNode.hpp"
 #include "../Components/StateMachineLink.hpp"
+#include "Helpers/NodeGraphHelpers.hpp"
 
 class StatemachineFlowScript;
 // View: draws and edits a prototype state-machine graph.
@@ -192,6 +193,24 @@ public:
     void setFlowScriptRef(StatemachineFlowScript* ref){mSmflowscriptRef = ref;}
     void setLuaConditionPrelude(const std::string& prelude) { m_luaConditionPrelude = prelude; }
 
+    template<typename T>
+    void setContextObject(const T&)
+    {
+        contextFloatFields.fieldNamesStorage.clear();
+        contextFloatFields.fieldNames.clear();
+
+        contextFloatFields.fieldNamesStorage.push_back("None");
+        const auto reflectedFields = NodeGraphHelpers::get_float_field_names<T>();
+        contextFloatFields.fieldNamesStorage.insert(
+            contextFloatFields.fieldNamesStorage.end(),
+            reflectedFields.begin(),
+            reflectedFields.end());
+
+        contextFloatFields.fieldNames.reserve(contextFloatFields.fieldNamesStorage.size());
+        for (const std::string& name : contextFloatFields.fieldNamesStorage)
+            contextFloatFields.fieldNames.push_back(name.c_str());
+    }
+
 private:
 
     StatemachineFlowScript* mSmflowscriptRef = nullptr;
@@ -213,9 +232,18 @@ private:
 
     void refreshAvailableResources();
     static int findGuidIndex(const std::vector<std::string>& guids, const std::string& guid);
+    static int findFieldNameIndex(const std::vector<std::string>& fieldNames, const std::string& fieldName);
 
     animationsUI animations;
     blendspaceUI blendspaces;
+
+    struct contextFloatFieldsUI
+    {
+        std::vector<std::string> fieldNamesStorage;
+        std::vector<const char*> fieldNames;
+    };
+
+    contextFloatFieldsUI contextFloatFields;
 
     struct LinkDragState
     {

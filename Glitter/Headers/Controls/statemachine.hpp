@@ -47,7 +47,7 @@ namespace Controls
         
         State()=default;
         State(std::string stateName);
-        void Play(Animator* animator);
+        void Play(Animator* animator, glm::vec2 scrubLoc = glm::vec2(0.0f));
         void assignBlendspace(BlendSpace2D* blendspace);
         void assignAnimation(Animation* animation);
         void assignAnimation(std::string animationGuid, bool noLoop, std::function<void()> animNotify);

@@ -196,6 +196,8 @@ namespace StateMachineJsonExporter
             const ImVec2 pos = (idx >= 0) ? nodes[idx].spawnPosScreen : ImVec2(0.0f, 0.0f);
             const StateMachineNodeType type = (idx >= 0) ? nodes[idx].type : StateMachineNodeType::None;
             const std::string resourceGuid = (idx >= 0) ? nodes[idx].resourceGuid : std::string();
+            const std::string blendspaceAxisX = (idx >= 0) ? nodes[idx].blendspaceAxisXField : std::string();
+            const std::string blendspaceAxisY = (idx >= 0) ? nodes[idx].blendspaceAxisYField : std::string();
 
             json += "    { \"id\": ";
             json += std::to_string(id);
@@ -207,6 +209,10 @@ namespace StateMachineJsonExporter
             json += std::to_string(static_cast<int>(type));
             json += ", \"resource_guid\": \"";
             json += escapeJson(resourceGuid);
+            json += "\", \"blendspace_axis_x\": \"";
+            json += escapeJson(blendspaceAxisX);
+            json += "\", \"blendspace_axis_y\": \"";
+            json += escapeJson(blendspaceAxisY);
             json += "\"";
             json += " }";
             if (i + 1 < reachableNodes.size())
@@ -323,6 +329,12 @@ namespace StateMachineJsonExporter
 
                     if (auto f = n.find("resource_guid"); f != n.end() && f->value().is_string())
                         node.resourceGuid = json::value_to<std::string>(f->value());
+
+                    if (auto f = n.find("blendspace_axis_x"); f != n.end() && f->value().is_string())
+                        node.blendspaceAxisXField = json::value_to<std::string>(f->value());
+
+                    if (auto f = n.find("blendspace_axis_y"); f != n.end() && f->value().is_string())
+                        node.blendspaceAxisYField = json::value_to<std::string>(f->value());
 
                     outNodes.push_back(std::move(node));
                 }

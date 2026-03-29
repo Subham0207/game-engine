@@ -35,6 +35,11 @@ struct StateMachineNode
     StateMachineNodeType type = StateMachineNodeType::None;
     std::string resourceGuid;
 
+    // Blendspace driver variable names from the reflected context type T.
+    // Stored by name so bindings stay stable across sessions.
+    std::string blendspaceAxisXField;
+    std::string blendspaceAxisYField;
+
     // Runtime-ish flags for the editor prototype.
     // "Active" here means "currently active state" inside the editor simulation.
     bool active = false;

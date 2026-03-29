@@ -67,6 +67,17 @@ int StateMachineView::findGuidIndex(const std::vector<std::string>& guids, const
     return 0;
 }
 
+int StateMachineView::findFieldNameIndex(const std::vector<std::string>& fieldNames, const std::string& fieldName)
+{
+    for (int i = 0; i < static_cast<int>(fieldNames.size()); ++i)
+    {
+        if (fieldNames[i] == fieldName)
+            return i;
+    }
+
+    return 0;
+}
+
 void StateMachineView::EditCondition(StateMachineLink* selectedLink) const
 {
     if (ImGui::Button("Edit Condition"))
@@ -109,6 +120,8 @@ void StateMachineView::nodeBody(
         if (currentNode.type == StateMachineNodeType::None)
         {
             currentNode.resourceGuid.clear();
+            currentNode.blendspaceAxisXField.clear();
+            currentNode.blendspaceAxisYField.clear();
         }
         else
         {
@@ -119,15 +132,45 @@ void StateMachineView::nodeBody(
 
             if (findGuidIndex(guids, currentNode.resourceGuid) == 0)
                 currentNode.resourceGuid.clear();
+
+            if (currentNode.type != StateMachineNodeType::Blendspace)
+            {
+                currentNode.blendspaceAxisXField.clear();
+                currentNode.blendspaceAxisYField.clear();
+            }
         }
     }
 
     if (currentNode.type == StateMachineNodeType::Blendspace)
     {
+        if (contextFloatFields.fieldNamesStorage.empty())
+        {
+            contextFloatFields.fieldNamesStorage.push_back("None");
+            contextFloatFields.fieldNames.push_back(contextFloatFields.fieldNamesStorage.back().c_str());
+        }
+
         int selectedIndex = findGuidIndex(blendspaces.blendspaceguids, currentNode.resourceGuid);
         ImGui::SetNextItemWidth(220.0f);
         if (ImGui::Combo("Blendspace", &selectedIndex, blendspaces.blendspacenames.data(), static_cast<int>(blendspaces.blendspacenames.size())))
             currentNode.resourceGuid = blendspaces.blendspaceguids[selectedIndex];
+
+        int axisXIndex = findFieldNameIndex(contextFloatFields.fieldNamesStorage, currentNode.blendspaceAxisXField);
+        ImGui::SetNextItemWidth(220.0f);
+        if (ImGui::Combo("Axis X", &axisXIndex, contextFloatFields.fieldNames.data(), static_cast<int>(contextFloatFields.fieldNames.size())))
+        {
+            currentNode.blendspaceAxisXField = (axisXIndex == 0)
+                ? ""
+                : contextFloatFields.fieldNamesStorage[axisXIndex];
+        }
+
+        int axisYIndex = findFieldNameIndex(contextFloatFields.fieldNamesStorage, currentNode.blendspaceAxisYField);
+        ImGui::SetNextItemWidth(220.0f);
+        if (ImGui::Combo("Axis Y", &axisYIndex, contextFloatFields.fieldNames.data(), static_cast<int>(contextFloatFields.fieldNames.size())))
+        {
+            currentNode.blendspaceAxisYField = (axisYIndex == 0)
+                ? ""
+                : contextFloatFields.fieldNamesStorage[axisYIndex];
+        }
     }
     else if (currentNode.type == StateMachineNodeType::Animation)
     {

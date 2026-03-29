@@ -89,7 +89,7 @@ public:
     }
 
     template<typename T>
-    void load(const std::string& filepath, T t)
+    void load(const std::string& filepath, T& t)
     {
         //We load the graph
         filename.setText(fs::path(filepath).filename().stem().string());
@@ -104,6 +104,7 @@ public:
         auto view = views.findView<StateMachineView>();
         auto prelude = NodeGraphHelpers::build_lua_object_prelude(t, "t");
         view->setLuaConditionPrelude(prelude);
+        view->setContextObject(t);
     }
 
 private:

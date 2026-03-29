@@ -27,7 +27,7 @@ Controls::State::State(std::string stateName)
     blendspace = NULL;
 }
 
-void Controls::State::Play(Animator* animator)
+void Controls::State::Play(Animator* animator, glm::vec2 scrubLoc)
 {
     if(!animationGuid.empty())
     {
@@ -49,6 +49,7 @@ void Controls::State::Play(Animator* animator)
     if(!blendspaceGuid.empty())
     {
         auto blendSelection = blendspace->GetBlendSelection();
+        blendspace->setScrubberLocation(scrubLoc);
         animator->PlayAnimationBlended(blendSelection);
     }
 }

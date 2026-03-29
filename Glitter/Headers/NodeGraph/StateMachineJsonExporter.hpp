@@ -24,12 +24,14 @@ namespace StateMachineJsonExporter
     // Node payload also includes:
     // - "type" (int: StateMachineNodeType)
     // - "resource_guid" (string)
+    // - "blendspace_axis_x" (string)
+    // - "blendspace_axis_y" (string)
     std::string ExportChainJson(const std::vector<StateMachineNode>& nodes,
                                const std::vector<StateMachineLink>& links,
                                int rootNodeId);
 
-    // Loads legacy files that may not include "type"/"resource_guid" by keeping
-    // defaults from StateMachineNode (None + empty guid).
+    // Loads legacy files that may not include node metadata keys by keeping defaults
+    // from StateMachineNode (None + empty guid/axis names).
     bool DeserializeChainJson(const std::string& filepath,
                           std::vector<StateMachineNode>& outNodes,
                           std::vector<StateMachineLink>& outLinks,
