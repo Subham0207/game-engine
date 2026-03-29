@@ -10,6 +10,10 @@
 #include <boost/serialization/base_object.hpp>
 #include <LuaEngine/LuaCondition.hpp>
 #include <unordered_set>
+#include <type_traits>
+
+#include <Helpers/NodeGraphHelpers.hpp>
+#include <boost/pfr.hpp>
 
 namespace Controls
 {
@@ -44,7 +48,9 @@ namespace Controls
         
         std::string blendspaceGuid;
         BlendSpace2D* blendspace;
-        
+        std::string blendspaceAxisXField;
+        std::string blendspaceAxisYField;
+
         State()=default;
         State(std::string stateName);
         void Play(Animator* animator, glm::vec2 scrubLoc = glm::vec2(0.0f));
@@ -99,12 +105,22 @@ namespace Controls
                 {
                     return condition.evaluate(engine, *static_cast<const T*>(ctx));
                 };
+
+                m_blendspaceScrubWithContext = [](const State& state, const void* ctx) -> glm::vec2
+                {
+                    const auto& typedCtx = *static_cast<const T*>(ctx);
+                    return glm::vec2(
+                        StateMachine::template getContextFloatFieldByName<T>(typedCtx, state.blendspaceAxisXField),
+                        StateMachine::template getContextFloatFieldByName<T>(typedCtx, state.blendspaceAxisYField)
+                    );
+                };
             }
 
             void clearContext()
             {
                 m_luaEvalContext = nullptr;
-                m_luaEvalWithContext = nullptr;
+                m_luaEvalWithContext = {};
+                m_blendspaceScrubWithContext = {};
             }
         protected:
             //TODO: Remove saving and loading this object to disk. We now load sm file saved by statemachinegraph.
@@ -124,8 +140,43 @@ namespace Controls
             bool started = false;
 
             const void* m_luaEvalContext = nullptr;
-            bool (*m_luaEvalWithContext)(LuaCondition&, LuaEngine&, const void*) = nullptr;
+            std::function<bool(LuaCondition&, LuaEngine&, const void*)> m_luaEvalWithContext;
+            std::function<glm::vec2(const State&, const void*)> m_blendspaceScrubWithContext;
             bool evaluateLuaCondition(LuaCondition& condition) const;
+            glm::vec2 evaluateBlendspaceScrub(const State& state) const;
+
+            template<typename T>
+            static float getContextFloatFieldByName(const T& context, const std::string& fieldName)
+            {
+                if (fieldName.empty())
+                    return 0.0f;
+
+                const auto fieldNames = NodeGraphHelpers::get_field_names<T>();
+                float resolvedValue = 0.0f;
+                bool found = false;
+                std::size_t currentIndex = 0;
+
+                boost::pfr::for_each_field(context, [&](const auto& field)
+                {
+                    if (found)
+                    {
+                        ++currentIndex;
+                        return;
+                    }
+
+                    if (currentIndex < fieldNames.size() && fieldNames[currentIndex] == fieldName)
+                    {
+                        using FieldType = std::decay_t<decltype(field)>;
+                        if constexpr (std::is_same_v<FieldType, float>)
+                            resolvedValue = field;
+                        found = true;
+                    }
+
+                    ++currentIndex;
+                });
+
+                return resolvedValue;
+            }
 
             friend class boost::serialization::access;
             template<class Archive>

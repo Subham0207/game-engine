@@ -107,16 +107,25 @@ void Controls::StateMachine::tick(Animator* animator)
     }
 
     //2. then set blendselection and m_currentAnimation
-    activeState->Play(animator);
+    const glm::vec2 scrubLoc = evaluateBlendspaceScrub(*activeState);
+    activeState->Play(animator, scrubLoc);
     //3. not here but executes: it is the actual poseTransition logic
 }
 
 bool Controls::StateMachine::evaluateLuaCondition(LuaCondition& condition) const
 {
-    if (m_luaEvalWithContext == nullptr || m_luaEvalContext == nullptr)
+    if (!m_luaEvalWithContext || m_luaEvalContext == nullptr)
         return false;
 
     return m_luaEvalWithContext(condition, getLuaEngine(), m_luaEvalContext);
+}
+
+glm::vec2 Controls::StateMachine::evaluateBlendspaceScrub(const State& state) const
+{
+    if (!m_blendspaceScrubWithContext || m_luaEvalContext == nullptr)
+        return glm::vec2(0.0f, 0.0f);
+
+    return m_blendspaceScrubWithContext(state, m_luaEvalContext);
 }
 
 void Controls::StateMachine::setActiveState(std::shared_ptr<State> state)
@@ -150,6 +159,10 @@ void Controls::StateMachine::LoadSMfile(std::string filename)
             else if (node.type == StateMachineNodeType::Blendspace)
                 runtimeState->blendspaceGuid = node.resourceGuid;
         }
+
+        runtimeState->blendspaceAxisXField = node.blendspaceAxisXField;
+        runtimeState->blendspaceAxisYField = node.blendspaceAxisYField;
+
         statesById[node.id] = runtimeState;
     }
 
