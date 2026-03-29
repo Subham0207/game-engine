@@ -103,7 +103,9 @@ namespace Controls
                 m_luaEvalContext = static_cast<const void*>(&t);
                 m_luaEvalWithContext = [](LuaCondition& condition, LuaEngine& engine, const void* ctx) -> bool
                 {
-                    return condition.evaluate(engine, *static_cast<const T*>(ctx));
+                    const auto& typedCtx = *static_cast<const T*>(ctx);
+                    sol::table luaContext = StateMachine::template buildLuaContextTable<T>(engine, typedCtx);
+                    return condition.evaluate(engine, luaContext);
                 };
 
                 m_blendspaceScrubWithContext = [](const State& state, const void* ctx) -> glm::vec2
@@ -176,6 +178,42 @@ namespace Controls
                 });
 
                 return resolvedValue;
+            }
+
+            template<typename T>
+            static sol::table buildLuaContextTable(LuaEngine& engine, const T& context)
+            {
+                sol::table table = engine.state().create_table();
+                const auto fieldNames = NodeGraphHelpers::get_field_names<T>();
+
+                std::size_t currentIndex = 0;
+                boost::pfr::for_each_field(context, [&](const auto& field)
+                {
+                    if (currentIndex >= fieldNames.size())
+                    {
+                        ++currentIndex;
+                        return;
+                    }
+
+                    const std::string& fieldName = fieldNames[currentIndex];
+                    using FieldType = std::decay_t<decltype(field)>;
+
+                    if constexpr (std::is_same_v<FieldType, bool>
+                               || std::is_integral_v<FieldType>
+                               || std::is_floating_point_v<FieldType>
+                               || std::is_same_v<FieldType, std::string>)
+                    {
+                        table[fieldName] = field;
+                    }
+                    else if constexpr (std::is_same_v<FieldType, const char*> || std::is_same_v<FieldType, char*>)
+                    {
+                        table[fieldName] = field ? field : "";
+                    }
+
+                    ++currentIndex;
+                });
+
+                return table;
             }
 
             friend class boost::serialization::access;

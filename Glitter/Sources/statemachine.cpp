@@ -117,9 +117,15 @@ bool Controls::StateMachine::evaluateLuaCondition(LuaCondition& condition) const
     if (!m_luaEvalWithContext || m_luaEvalContext == nullptr)
         return false;
 
-    std::cout << "[statemachine][evaluationLuaCondition] Debug: " << std::endl;
-
-    return m_luaEvalWithContext(condition, getLuaEngine(), m_luaEvalContext);
+    try
+    {
+        return m_luaEvalWithContext(condition, getLuaEngine(), m_luaEvalContext);
+    }
+    catch (const std::exception& ex)
+    {
+        std::cerr << "[StateMachine] Lua condition eval failed: " << ex.what() << "\n";
+        return false;
+    }
 }
 
 glm::vec2 Controls::StateMachine::evaluateBlendspaceScrub(const State& state) const
