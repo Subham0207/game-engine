@@ -169,6 +169,12 @@ void UI::CharacterUI::draw()
                 return pair.second == skeletonNames[characterConfigUIModel.selectedSkeletonIndex - 1];
             })->first;
 
+            auto& statemachineFileMap = EngineState::state->engineRegistry->statemachineFileMap;
+            auto statemachine_guid = std::find_if(statemachineFileMap.begin(), statemachineFileMap.end(), [&](const auto& pair)
+            {
+                return pair.second == statemachineNames[characterConfigUIModel.selectedStateMachineIndex - 1];
+            })->first;
+
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->modelRelativePosition = characterConfigUIModel.modelRelativePosition;
             characterPrefabConfig->modelScale = characterConfigUIModel.modelScale;
@@ -177,7 +183,7 @@ void UI::CharacterUI::draw()
             characterPrefabConfig->capsuleRadius = characterConfigUIModel.capsuleRadius;
 
             characterPrefabConfig->skeletonGuid = skeleton_guid;
-            characterPrefabConfig->stateMachineGuid = statemachineNames[characterConfigUIModel.selectedStateMachineIndex - 1];
+            characterPrefabConfig->stateMachineGuid = statemachine_guid;
             characterPrefabConfig->controllerClassId = controllerNames[characterConfigUIModel.selectedControllerIndex - 1];
 
             auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value + "." +  std::string(toString(FileType::CharacterType)));
