@@ -117,6 +117,8 @@ bool Controls::StateMachine::evaluateLuaCondition(LuaCondition& condition) const
     if (!m_luaEvalWithContext || m_luaEvalContext == nullptr)
         return false;
 
+    std::cout << "[statemachine][evaluationLuaCondition] Debug: " << std::endl;
+
     return m_luaEvalWithContext(condition, getLuaEngine(), m_luaEvalContext);
 }
 

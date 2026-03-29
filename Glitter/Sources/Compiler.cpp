@@ -41,6 +41,11 @@ namespace Flowscript::Compile
             if (objectName.empty())
                 continue;
 
+            // `t` is runtime context injected as function parameter in transition conditions.
+            // Do not emit local table/literal assignments for it.
+            if (objectName == "t")
+                continue;
+
             auto tableStmt = std::make_unique<LocalTableStmt>();
             tableStmt->variableName = objectName;
             result.statements.push_back(std::move(tableStmt));
@@ -304,6 +309,18 @@ namespace Flowscript::Compile
             }
         }
 
+        if (sourceNode->type() == NodeTypes::Function && sourcePin->index >= 0)
+        {
+            const auto& outputs = sourceNode->outputs();
+            if (sourcePin->index < static_cast<int>(outputs.size()))
+            {
+                auto expr = std::make_unique<VariableExpr>();
+                const std::string pinName = trimCopy(outputs[sourcePin->index].getName());
+                expr->name = pinName.empty() ? ("arg" + std::to_string(sourcePin->index)) : pinName;
+                return expr;
+            }
+        }
+
         auto expr = std::make_unique<VariableExpr>();
         expr->name = NodeVarName(*sourceNode);
         return expr;
@@ -333,6 +350,14 @@ namespace Flowscript::Compile
             {
                 auto fn = std::make_unique<FunctionStmt>();
                 fn->name = NodeVarName(*node);
+
+                for (size_t i = 0; i < node->outputs().size(); ++i)
+                {
+                    std::string paramName = trimCopy(node->outputs()[i].getName());
+                    if (paramName.empty())
+                        paramName = "arg" + std::to_string(i);
+                    fn->parameters.push_back(std::move(paramName));
+                }
 
                 const auto next = GetExecNextNodes(graph_, node);
                 for (auto* child : next)

@@ -76,7 +76,14 @@ void LuaEmitter::EmitStmt(std::ostringstream& out, const Stmt& stmt, const int i
 
     if (const auto* functionStmt = dynamic_cast<const FunctionStmt*>(&stmt))
     {
-        out << pad << "local " << functionStmt->name << " = function()\n";
+        out << pad << "local " << functionStmt->name << " = function(";
+        for (size_t i = 0; i < functionStmt->parameters.size(); ++i)
+        {
+            if (i > 0)
+                out << ", ";
+            out << functionStmt->parameters[i];
+        }
+        out << ")\n";
         for (const auto& bodyStmt : functionStmt->body)
         {
             if (bodyStmt)

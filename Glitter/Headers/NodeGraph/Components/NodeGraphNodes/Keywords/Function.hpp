@@ -4,6 +4,8 @@
 
 #ifndef GLITTER_FUNCTION_HPP
 #define GLITTER_FUNCTION_HPP
+#include <vector>
+
 #include "NodeGraph/Components/NodeGraphNode.hpp"
 
 namespace NodeGraphComponents::Node::Keywords
@@ -12,19 +14,21 @@ namespace NodeGraphComponents::Node::Keywords
     {
     public:
         template<typename... Args>
-        explicit Function(int& nextOutputPinId, const int argumentsSize, Args&&... args):
+        explicit Function(int& nextOutputPinId,
+                          const std::vector<std::string>& argumentNames,
+                          Args&&... args):
         NodeGraphNode(std::forward<Args>(args)...)
         {
-            FunctionArgs.resize(argumentsSize);
-            for (int i = 0; i < FunctionArgs.size(); ++i)
+            for (size_t i = 0; i < argumentNames.size(); ++i)
             {
-                FunctionArgs[i] = Attribute(nextOutputPinId++,"ArgPin", TYPE::FIELD);
+                std::string argName = argumentNames[i].empty()
+                    ? ("arg" + std::to_string(i))
+                    : argumentNames[i];
+                outputs().emplace_back(nextOutputPinId++, argName, TYPE::PIN);
             }
             setupExecOutput(nextOutputPinId);
         }
         NodeTypes type() override { return NodeTypes::Function; }
-    private:
-        std::vector<Attribute> FunctionArgs;
     };
 }
 #endif //GLITTER_FUNCTION_HPP

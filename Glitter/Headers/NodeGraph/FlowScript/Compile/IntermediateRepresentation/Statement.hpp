@@ -38,6 +38,7 @@ namespace Flowscript::Compile
     struct FunctionStmt : Stmt
     {
         std::string name;
+        std::vector<std::string> parameters;
         std::vector<std::unique_ptr<Stmt>> body;
     };
 }

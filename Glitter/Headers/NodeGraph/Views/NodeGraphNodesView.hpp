@@ -50,6 +50,25 @@ public:
     int nextInputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeInputAttribute);
     int nextOutputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeOutputAttribute);
 
+    NodeGraphNode* addFunctionNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
+                                   const std::vector<std::string>& argumentNames,
+                                   const ImVec2& spawnPosScreen)
+    {
+        auto n = std::make_unique<FunctionNode>(
+            nextOutputPinId,
+            argumentNames,
+            nextNodeId++,
+            "Function",
+            spawnPosScreen.x,
+            spawnPosScreen.y
+        );
+
+        n->setSpawnPosScreen(spawnPosScreen);
+        NodeGraphNode* raw = n.get();
+        nodes.push_back(std::move(n));
+        return raw;
+    }
+
     void addNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes, NodeTypes type, const ImVec2& spawnPosScreen)
     {
         std::unique_ptr<NodeGraphNode> n;
@@ -83,7 +102,7 @@ public:
         }
         if (type == NodeTypes::Function)
         {
-            n = std::make_unique<FunctionNode>(nextOutputPinId, 0, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
+            n = std::make_unique<FunctionNode>(nextOutputPinId, std::vector<std::string>{"t"}, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Print)
         {

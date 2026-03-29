@@ -9,7 +9,6 @@
 #include "StateMachineJsonExporter.hpp"
 #include "Views/StateMachineView.hpp"
 #include "Helpers/Shared.hpp"
-#include "Helpers/NodeGraphHelpers.hpp"
 #include "EngineState.hpp"
 #include <filesystem>
 
@@ -22,6 +21,7 @@ class StateMachineGraph final : public NodeGraph
 {
 public:
     StateMachineGraph(StatemachineFlowScript* ref)
+        : mFlowScriptRef(ref)
     {
         auto view = views.findView<StateMachineView>();
         view->setFlowScriptRef(ref);
@@ -102,9 +102,9 @@ public:
         );
 
         auto view = views.findView<StateMachineView>();
-        auto prelude = NodeGraphHelpers::build_lua_object_prelude(t, "t");
-        view->setLuaConditionPrelude(prelude);
         view->setContextObject(t);
+        if (mFlowScriptRef)
+            mFlowScriptRef->setContextObject(t);
     }
 
 private:
@@ -137,6 +137,7 @@ private:
 
     UI::Shared::EditableText filename{};
     std::string json;
+    StatemachineFlowScript* mFlowScriptRef = nullptr;
 };
 
 #endif // GLITTER_STATEMACHINEGRAPH_HPP

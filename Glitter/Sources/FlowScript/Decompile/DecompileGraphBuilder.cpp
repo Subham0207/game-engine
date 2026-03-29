@@ -2,6 +2,7 @@
 #include "NodeGraph/FlowScript/Decompile/Helpers.hpp"
 
 #include <algorithm>
+#include <cstring>
 #include <cstdio>
 #include <stdexcept>
 #include <unordered_map>
@@ -132,6 +133,36 @@ namespace Flowscript::Decompile
             if (!node || node->outputs().empty())
                 throw std::runtime_error("Node has no output attribute");
             return node->outputs()[0].getId();
+        }
+
+        static std::vector<std::string> parseFunctionParameters(const std::string& expression)
+        {
+            if (!Helpers::startsWith(expression, "function(") || expression.back() != ')')
+                return {};
+
+            const std::string paramsExpr = Helpers::trimCopy(
+                expression.substr(std::strlen("function("), expression.size() - std::strlen("function(") - 1));
+            if (paramsExpr.empty())
+                return {};
+
+            std::vector<std::string> params;
+            size_t start = 0;
+            while (start < paramsExpr.size())
+            {
+                const size_t comma = paramsExpr.find(',', start);
+                const std::string raw = (comma == std::string::npos)
+                    ? paramsExpr.substr(start)
+                    : paramsExpr.substr(start, comma - start);
+                const std::string trimmed = Helpers::trimCopy(raw);
+                if (!trimmed.empty())
+                    params.push_back(trimmed);
+
+                if (comma == std::string::npos)
+                    break;
+                start = comma + 1;
+            }
+
+            return params;
         }
 
         NodeOutputRef resolveValue(const std::string& rawValue)
@@ -280,9 +311,10 @@ namespace Flowscript::Decompile
 
             flushPendingGenericObjects();
 
-            if (expr == "function()")
+            if (Helpers::startsWith(expr, "function(") && expr.back() == ')')
             {
-                auto* functionNode = addNode(NodeTypes::Function);
+                const auto parameters = parseFunctionParameters(expr);
+                auto* functionNode = nodeView.addFunctionNode(nodes, parameters, nextPos());
                 vars[varName] = { functionNode, -1 };
                 functionStack.push_back({ functionNode, {} });
                 return;

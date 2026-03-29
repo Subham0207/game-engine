@@ -191,7 +191,6 @@ public:
     }
 
     void setFlowScriptRef(StatemachineFlowScript* ref){mSmflowscriptRef = ref;}
-    void setLuaConditionPrelude(const std::string& prelude) { m_luaConditionPrelude = prelude; }
 
     template<typename T>
     void setContextObject(const T&)
@@ -213,8 +212,16 @@ public:
 
 private:
 
+    static const std::string& defaultConditionChunk()
+    {
+        static const std::string chunk =
+            "return function(t)\n"
+            "    return false\n"
+            "end";
+        return chunk;
+    }
+
     StatemachineFlowScript* mSmflowscriptRef = nullptr;
-    std::string m_luaConditionPrelude;
 
     struct blendspaceUI
     {
@@ -592,7 +599,7 @@ private:
                 tr.toSide = f.clicked.side;
                 tr.fromOffsetGrid = m_pendingStartPort.offsetGrid;
                 tr.toOffsetGrid = f.clicked.offsetGrid;
-                tr.condition = m_luaConditionPrelude;
+                tr.condition = defaultConditionChunk();
 
                 links.emplace_back(std::move(tr));
                 m_pendingLinkActive = false;

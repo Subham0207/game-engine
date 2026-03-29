@@ -5,6 +5,11 @@
 #ifndef GLITTER_STATEMACHINEFLOWSCRIPT_HPP
 #define GLITTER_STATEMACHINEFLOWSCRIPT_HPP
 #include "FlowScript.hpp"
+#include "Helpers/NodeGraphHelpers.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/DataTypes/GenericType.hpp"
+
+#include <boost/pfr.hpp>
+#include <type_traits>
 
 class StatemachineFlowScript: public FlowScript
 {
@@ -14,17 +19,38 @@ public:
 
     void draw();
 
-    void setSelectedLink(StateMachineLink* link)
-    {
-        clearScript();
-        selectedLink = link;
-        showUI = true;
+    void setSelectedLink(StateMachineLink* link);
 
-        if (selectedLink && !selectedLink->condition.empty())
+    template<typename T>
+    void setContextObject(const T& context)
+    {
+        contextMembers.clear();
+        const auto fieldNames = NodeGraphHelpers::get_field_names<T>();
+
+        size_t index = 0;
+        boost::pfr::for_each_field(context, [&](const auto& field)
         {
-            setCompiledLua(selectedLink->condition);
-            deCompile(selectedLink->condition);
-        }
+            using FieldType = std::decay_t<decltype(field)>;
+            if (index < fieldNames.size())
+            {
+                NodeGraphComponents::Node::GenericMemberSpec spec;
+                spec.name = fieldNames[index];
+
+                if constexpr (std::is_same_v<FieldType, bool>)
+                {
+                    spec.literalValue = "false";
+                    spec.isBoolean = true;
+                    contextMembers.push_back(std::move(spec));
+                }
+                else if constexpr (std::is_integral_v<FieldType> || std::is_floating_point_v<FieldType>)
+                {
+                    spec.literalValue = "0";
+                    spec.isBoolean = false;
+                    contextMembers.push_back(std::move(spec));
+                }
+            }
+            ++index;
+        });
     }
 
     void close()
@@ -35,9 +61,17 @@ public:
 
     const std::string& compile() override;
 
+    static const std::string& defaultConditionChunk();
+
 private:
+    static std::string trimCopy(const std::string& value);
+    static std::string unwrapConditionChunk(const std::string& storedCondition);
+    static std::string wrapCompiledEditorScript(const std::string& compiledEditorScript);
+    void ensureContextNode();
+
     bool showUI;
     StateMachineLink* selectedLink;
+    std::vector<NodeGraphComponents::Node::GenericMemberSpec> contextMembers;
 };
 
 
