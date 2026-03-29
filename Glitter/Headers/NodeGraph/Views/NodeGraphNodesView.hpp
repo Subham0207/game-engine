@@ -130,9 +130,13 @@ public:
         if (!objectName.empty())
             title += "(" + objectName + ")";
 
+        const bool asDestructuringNode = (objectName == "t");
+
         auto n = std::make_unique<GenericTypeNode>(
+            nextInputPinId,
             nextOutputPinId,
             members,
+            asDestructuringNode,
             nextNodeId++,
             title,
             spawnPosScreen.x,

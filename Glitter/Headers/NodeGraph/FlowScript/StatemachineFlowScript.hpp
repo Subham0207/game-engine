@@ -68,6 +68,7 @@ private:
     static std::string unwrapConditionChunk(const std::string& storedCondition);
     static std::string wrapCompiledEditorScript(const std::string& compiledEditorScript);
     void ensureContextNode();
+    void ensureContextInputConnection();
 
     bool showUI;
     StateMachineLink* selectedLink;

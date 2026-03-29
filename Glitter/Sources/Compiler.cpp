@@ -41,9 +41,16 @@ namespace Flowscript::Compile
             if (objectName.empty())
                 continue;
 
-            // `t` is runtime context injected as function parameter in transition conditions.
-            // Do not emit local table/literal assignments for it.
-            if (objectName == "t")
+            bool hasLiteralFields = false;
+            for (const auto& output : node->outputs())
+            {
+                if (output.getType() == NodeAttributeType::FIELD)
+                {
+                    hasLiteralFields = true;
+                    break;
+                }
+            }
+            if (!hasLiteralFields)
                 continue;
 
             auto tableStmt = std::make_unique<LocalTableStmt>();
@@ -213,6 +220,30 @@ namespace Flowscript::Compile
         return 0;
     }
 
+    std::string Compiler::ResolveGenericObjectSymbol(NodeGraphNode& genericNode) const
+    {
+        const std::string fallbackObjectName = getGenericObjectName(genericNode.name());
+        if (genericNode.inputs().empty())
+            return fallbackObjectName;
+
+        const auto* sourcePin = GetDataSourcePinInfo(graph_, genericNode.inputs()[0].getId());
+        if (!sourcePin || !sourcePin->node)
+            return fallbackObjectName;
+
+        if (sourcePin->node->type() == NodeTypes::Function && sourcePin->index >= 0)
+        {
+            const auto& outputs = sourcePin->node->outputs();
+            if (sourcePin->index < static_cast<int>(outputs.size()))
+            {
+                const std::string symbol = trimCopy(outputs[sourcePin->index].getName());
+                if (!symbol.empty())
+                    return symbol;
+            }
+        }
+
+        return fallbackObjectName;
+    }
+
     std::unique_ptr<Expr> Compiler::CompileExpr(NodeGraphNode* node)
     {
         if (!node)
@@ -299,7 +330,7 @@ namespace Flowscript::Compile
 
         if (isGenericTypeNodeName(sourceNode->name()) && sourcePin->index >= 0)
         {
-            const std::string objectName = getGenericObjectName(sourceNode->name());
+            const std::string objectName = ResolveGenericObjectSymbol(*sourceNode);
             const auto& outputs = sourceNode->outputs();
             if (!objectName.empty() && sourcePin->index < static_cast<int>(outputs.size()))
             {

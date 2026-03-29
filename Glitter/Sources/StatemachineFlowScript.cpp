@@ -102,6 +102,43 @@ void StatemachineFlowScript::ensureContextNode()
     nodeView->addGenericTypeNode(nodes, "t", contextMembers, ImVec2(120.0f, 120.0f));
 }
 
+void StatemachineFlowScript::ensureContextInputConnection()
+{
+    NodeGraphNode* functionNode = nullptr;
+    NodeGraphNode* contextNode = nullptr;
+
+    for (const auto& node : nodes)
+    {
+        if (!node)
+            continue;
+
+        if (!functionNode && node->type() == NodeTypes::Function)
+            functionNode = node.get();
+
+        if (!contextNode && node->name() == "GenericType(t)")
+            contextNode = node.get();
+    }
+
+    if (!functionNode || !contextNode || contextNode->inputs().empty() || functionNode->outputs().empty())
+        return;
+
+    int tOutputAttrId = functionNode->outputs()[0].getId();
+    for (const auto& output : functionNode->outputs())
+    {
+        if (output.getName() == "t")
+        {
+            tOutputAttrId = output.getId();
+            break;
+        }
+    }
+
+    auto* nodeView = views.findView<NodeGraphNodesView>();
+    if (!nodeView)
+        return;
+
+    nodeView->addLink(nodeGraphLinks, tOutputAttrId, contextNode->inputs()[0].getId());
+}
+
 std::string StatemachineFlowScript::wrapCompiledEditorScript(const std::string& compiledEditorScript)
 {
     std::istringstream stream(compiledEditorScript);
@@ -166,6 +203,7 @@ void StatemachineFlowScript::setSelectedLink(StateMachineLink* link)
         deCompile(editorSource);
     }
     ensureContextNode();
+    ensureContextInputConnection();
 }
 
 void StatemachineFlowScript::draw()

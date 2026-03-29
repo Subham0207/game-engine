@@ -36,6 +36,7 @@ namespace Flowscript::Compile
         static std::string NodeVarName(const NodeGraphNode& node);
         static bool IsExpressionNode(NodeTypes type);
         static int RequiredInputCount(NodeTypes type);
+        std::string ResolveGenericObjectSymbol(NodeGraphNode& genericNode) const;
 
         std::unique_ptr<Expr> CompileExpr(NodeGraphNode* node);
         std::unique_ptr<Expr> CompileInputExpr(NodeGraphNode& node, int inputIndex);

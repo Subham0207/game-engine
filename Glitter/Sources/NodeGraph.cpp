@@ -5,6 +5,7 @@
 #include "../Headers/NodeGraph/NodeGraph.hpp"
 #include <imnodes.h>
 #include <imgui.h>
+#include <algorithm>
 
 #include "NodeGraph/NodeGraphContextMenu.hpp"
 #include "NodeGraph/Views/NodeGraphCommentsView.hpp"
@@ -138,6 +139,39 @@ void NodeGraph::drawUIEmbedded()
     {
         auto nodeView = views.findView<NodeGraphNodesView>();
         nodeView->addLink(nodeGraphLinks, startAttr, endAttr);
+    }
+
+    int destroyedLinkId = -1;
+    if (ImNodes::IsLinkDestroyed(&destroyedLinkId))
+    {
+        nodeGraphLinks.erase(
+            std::remove_if(
+                nodeGraphLinks.begin(),
+                nodeGraphLinks.end(),
+                [destroyedLinkId](const NodeGraphNodeLink& link) { return link.id() == destroyedLinkId; }),
+            nodeGraphLinks.end());
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_Delete))
+    {
+        const int selectedLinkCount = ImNodes::NumSelectedLinks();
+        if (selectedLinkCount > 0)
+        {
+            std::vector<int> selectedLinkIds(static_cast<size_t>(selectedLinkCount));
+            ImNodes::GetSelectedLinks(selectedLinkIds.data());
+
+            nodeGraphLinks.erase(
+                std::remove_if(
+                    nodeGraphLinks.begin(),
+                    nodeGraphLinks.end(),
+                    [&selectedLinkIds](const NodeGraphNodeLink& link)
+                    {
+                        return std::find(selectedLinkIds.begin(), selectedLinkIds.end(), link.id()) != selectedLinkIds.end();
+                    }),
+                nodeGraphLinks.end());
+
+            ImNodes::ClearLinkSelection();
+        }
     }
 
     // Restore previous context (important when multiple graphs are drawn in one frame).

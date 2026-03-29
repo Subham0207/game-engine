@@ -24,23 +24,32 @@ namespace NodeGraphComponents::Node
     public:
         // Runtime-driven constructor used by Lua decompiler.
         template<typename... Args>
-        explicit GenericType(int& nextOutputPinId,
+        explicit GenericType(int& nextInputPinId,
+                             int& nextOutputPinId,
                              const std::vector<GenericMemberSpec>& members,
+                             const bool asDestructuringNode,
                              Args&&... args) :
         NodeGraphNode(std::forward<Args>(args)...)
         {
+            if (asDestructuringNode)
+                inputs().emplace_back(nextInputPinId++, "Object", TYPE::PIN);
+
             for (const auto& memberSpec : members)
             {
-                auto member = Attribute(nextOutputPinId++, memberSpec.name, TYPE::FIELD);
-                member.setValue(memberSpec.literalValue);
+                auto member = Attribute(nextOutputPinId++, memberSpec.name, asDestructuringNode ? TYPE::PIN : TYPE::FIELD);
+                if (!asDestructuringNode)
+                    member.setValue(memberSpec.literalValue);
                 outputs().push_back(member);
             }
         }
 
         template<typename T, typename... Args>
-        explicit GenericType(int& nextOutputPinId, T t, Args&&... args) :
+        explicit GenericType(int& nextInputPinId, int& nextOutputPinId, T t, const bool asDestructuringNode, Args&&... args) :
         NodeGraphNode(std::forward<Args>(args)...)
         {
+            if (asDestructuringNode)
+                inputs().emplace_back(nextInputPinId++, "Object", TYPE::PIN);
+
             //Mapping Type T obj to be NodeGraphNode
             auto memberVariableTypes = NodeGraphHelpers::get_field_type_names<T>();
             auto memberVariableNames = NodeGraphHelpers::get_field_names<T>();
@@ -52,7 +61,7 @@ namespace NodeGraphComponents::Node
                     continue;
 
                 auto memberVariableName = memberVariableNames[i];
-                auto member = Attribute(nextOutputPinId++, memberVariableName, TYPE::FIELD);
+                auto member = Attribute(nextOutputPinId++, memberVariableName, asDestructuringNode ? TYPE::PIN : TYPE::FIELD);
                 outputs().push_back(member);
             }
             //------------------------------------------

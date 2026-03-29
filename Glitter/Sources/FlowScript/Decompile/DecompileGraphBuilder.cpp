@@ -172,6 +172,44 @@ namespace Flowscript::Decompile
             if (existingIt != vars.end() && existingIt->second.node && existingIt->second.outputAttr >= 0)
                 return existingIt->second;
 
+            const size_t dotPos = value.find('.');
+            if (dotPos != std::string::npos && dotPos > 0 && dotPos + 1 < value.size())
+            {
+                const std::string objectName = Helpers::trimCopy(value.substr(0, dotPos));
+                const std::string fieldName = Helpers::trimCopy(value.substr(dotPos + 1));
+                if (!objectName.empty() && !fieldName.empty())
+                {
+                    auto* objectNode = addGenericTypeNode(objectName, {
+                        NodeGraphComponents::Node::GenericMemberSpec{fieldName, "0", false}
+                    });
+
+                    if (objectName == "t" && !objectNode->inputs().empty() && !functionStack.empty())
+                    {
+                        if (auto* functionNode = functionStack.back().functionNode)
+                        {
+                            int sourceAttrId = -1;
+                            for (const auto& output : functionNode->outputs())
+                            {
+                                if (output.getName() == "t")
+                                {
+                                    sourceAttrId = output.getId();
+                                    break;
+                                }
+                            }
+                            if (sourceAttrId == -1 && !functionNode->outputs().empty())
+                                sourceAttrId = functionNode->outputs()[0].getId();
+
+                            if (sourceAttrId != -1)
+                                nodeView.addLink(nodeGraphLinks, sourceAttrId, objectNode->inputs()[0].getId());
+                        }
+                    }
+
+                    const int outputAttr = getOutputAttr(objectNode);
+                    vars[value] = { objectNode, outputAttr };
+                    return vars[value];
+                }
+            }
+
             if (Helpers::startsWith(value, "node_"))
                 throw std::runtime_error("Unknown variable reference: " + value);
 
