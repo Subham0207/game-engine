@@ -101,23 +101,9 @@ public:
             activeId
         );
 
-        //The Generic Type is not saved so needs to be added in plain Lua code.
-        //Then when we open the script This type should get automatically decompiled in GenericType Flowscript node.
-        const std::string luaPrelude = NodeGraphHelpers::build_lua_object_prelude(t, "t");
-        for (auto& state_link : getStateLinks())
-        {
-            if (state_link.condition.empty())
-            {
-                state_link.condition = luaPrelude;
-            }
-            else
-            {
-                state_link.condition = luaPrelude + "\n" + state_link.condition;
-
-                std::cout << "State_Link: " << state_link.condition << std::endl;
-            }
-        }
-
+        auto view = views.findView<StateMachineView>();
+        auto prelude = NodeGraphHelpers::build_lua_object_prelude(t, "t");
+        view->setLuaConditionPrelude(prelude);
     }
 
 private:

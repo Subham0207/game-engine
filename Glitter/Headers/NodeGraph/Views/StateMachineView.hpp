@@ -190,10 +190,12 @@ public:
     }
 
     void setFlowScriptRef(StatemachineFlowScript* ref){mSmflowscriptRef = ref;}
+    void setLuaConditionPrelude(const std::string& prelude) { m_luaConditionPrelude = prelude; }
 
 private:
 
     StatemachineFlowScript* mSmflowscriptRef = nullptr;
+    std::string m_luaConditionPrelude;
 
     struct blendspaceUI
     {
@@ -562,7 +564,7 @@ private:
                 tr.toSide = f.clicked.side;
                 tr.fromOffsetGrid = m_pendingStartPort.offsetGrid;
                 tr.toOffsetGrid = f.clicked.offsetGrid;
-                tr.condition = "";
+                tr.condition = m_luaConditionPrelude;
 
                 links.emplace_back(std::move(tr));
                 m_pendingLinkActive = false;
