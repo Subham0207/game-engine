@@ -128,8 +128,18 @@ public:
 			else
 			{
 				m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
-				m_ElapsedTime = m_CurrentTime;
-				m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+				if (m_LoopCurrentAnimation)
+				{
+					m_ElapsedTime = m_CurrentTime;
+					m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+				}
+				else
+				{
+					const float duration = m_CurrentAnimation->GetDuration();
+					if (m_CurrentTime > duration)
+						m_CurrentTime = duration;
+					m_ElapsedTime = m_CurrentTime;
+				}
 
 				CalculateBoneTransform(
 					node,
@@ -167,8 +177,14 @@ public:
 	{
 		m_startTime = m_DeltaTime;
 		m_CurrentTime = 0.0f;
+		m_ElapsedTime = 0.0f;
 		poseTransitionStarted = true;
 		poseTransitionInProgress = false;
+	}
+
+	void SetLoopCurrentAnimation(const bool shouldLoop)
+	{
+		m_LoopCurrentAnimation = shouldLoop;
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -309,6 +325,7 @@ public:
 
 	float m_CurrentTime;
 	float m_ElapsedTime;
+	bool m_LoopCurrentAnimation = true;
 
 	std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> timewarpmap; // pair{index of blendpoint, index of point blendpoint} like 1->3
 	

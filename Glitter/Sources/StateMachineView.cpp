@@ -122,6 +122,9 @@ void StateMachineView::nodeBody(
             currentNode.resourceGuid.clear();
             currentNode.blendspaceAxisXField.clear();
             currentNode.blendspaceAxisYField.clear();
+            currentNode.animationCompletionBoolField.clear();
+            currentNode.animationShouldLoop = true;
+            currentNode.animationCompletionBoolValue = true;
         }
         else
         {
@@ -137,6 +140,13 @@ void StateMachineView::nodeBody(
             {
                 currentNode.blendspaceAxisXField.clear();
                 currentNode.blendspaceAxisYField.clear();
+            }
+
+            if (currentNode.type != StateMachineNodeType::Animation)
+            {
+                currentNode.animationCompletionBoolField.clear();
+                currentNode.animationShouldLoop = true;
+                currentNode.animationCompletionBoolValue = true;
             }
         }
     }
@@ -174,10 +184,32 @@ void StateMachineView::nodeBody(
     }
     else if (currentNode.type == StateMachineNodeType::Animation)
     {
+        if (contextBoolFields.fieldNamesStorage.empty())
+        {
+            contextBoolFields.fieldNamesStorage.push_back("None");
+            contextBoolFields.fieldNames.push_back(contextBoolFields.fieldNamesStorage.back().c_str());
+        }
+
         int selectedIndex = findGuidIndex(animations.animationguids, currentNode.resourceGuid);
         ImGui::SetNextItemWidth(220.0f);
         if (ImGui::Combo("Animation", &selectedIndex, animations.animationnames.data(), static_cast<int>(animations.animationnames.size())))
             currentNode.resourceGuid = animations.animationguids[selectedIndex];
+
+        ImGui::Checkbox("Loop", &currentNode.animationShouldLoop);
+
+        if (!currentNode.animationShouldLoop)
+        {
+            int boolFieldIndex = findFieldNameIndex(contextBoolFields.fieldNamesStorage, currentNode.animationCompletionBoolField);
+            ImGui::SetNextItemWidth(220.0f);
+            if (ImGui::Combo("On Complete Field", &boolFieldIndex, contextBoolFields.fieldNames.data(), static_cast<int>(contextBoolFields.fieldNames.size())))
+            {
+                currentNode.animationCompletionBoolField = (boolFieldIndex == 0)
+                    ? ""
+                    : contextBoolFields.fieldNamesStorage[boolFieldIndex];
+            }
+
+            ImGui::Checkbox("On Complete Value", &currentNode.animationCompletionBoolValue);
+        }
     }
 
     ImGui::PopID();

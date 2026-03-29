@@ -198,6 +198,9 @@ namespace StateMachineJsonExporter
             const std::string resourceGuid = (idx >= 0) ? nodes[idx].resourceGuid : std::string();
             const std::string blendspaceAxisX = (idx >= 0) ? nodes[idx].blendspaceAxisXField : std::string();
             const std::string blendspaceAxisY = (idx >= 0) ? nodes[idx].blendspaceAxisYField : std::string();
+            const bool animationShouldLoop = (idx >= 0) ? nodes[idx].animationShouldLoop : true;
+            const std::string animationCompleteBoolField = (idx >= 0) ? nodes[idx].animationCompletionBoolField : std::string();
+            const bool animationCompleteBoolValue = (idx >= 0) ? nodes[idx].animationCompletionBoolValue : true;
 
             json += "    { \"id\": ";
             json += std::to_string(id);
@@ -213,7 +216,12 @@ namespace StateMachineJsonExporter
             json += escapeJson(blendspaceAxisX);
             json += "\", \"blendspace_axis_y\": \"";
             json += escapeJson(blendspaceAxisY);
-            json += "\"";
+            json += "\", \"animation_should_loop\": ";
+            json += animationShouldLoop ? "true" : "false";
+            json += ", \"animation_complete_bool_field\": \"";
+            json += escapeJson(animationCompleteBoolField);
+            json += "\", \"animation_complete_bool_value\": ";
+            json += animationCompleteBoolValue ? "true" : "false";
             json += " }";
             if (i + 1 < reachableNodes.size())
                 json += ",";
@@ -335,6 +343,15 @@ namespace StateMachineJsonExporter
 
                     if (auto f = n.find("blendspace_axis_y"); f != n.end() && f->value().is_string())
                         node.blendspaceAxisYField = json::value_to<std::string>(f->value());
+
+                    if (auto f = n.find("animation_should_loop"); f != n.end() && f->value().is_bool())
+                        node.animationShouldLoop = json::value_to<bool>(f->value());
+
+                    if (auto f = n.find("animation_complete_bool_field"); f != n.end() && f->value().is_string())
+                        node.animationCompletionBoolField = json::value_to<std::string>(f->value());
+
+                    if (auto f = n.find("animation_complete_bool_value"); f != n.end() && f->value().is_bool())
+                        node.animationCompletionBoolValue = json::value_to<bool>(f->value());
 
                     outNodes.push_back(std::move(node));
                 }

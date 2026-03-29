@@ -197,6 +197,8 @@ public:
     {
         contextFloatFields.fieldNamesStorage.clear();
         contextFloatFields.fieldNames.clear();
+        contextBoolFields.fieldNamesStorage.clear();
+        contextBoolFields.fieldNames.clear();
 
         contextFloatFields.fieldNamesStorage.push_back("None");
         const auto reflectedFields = NodeGraphHelpers::get_float_field_names<T>();
@@ -205,9 +207,20 @@ public:
             reflectedFields.begin(),
             reflectedFields.end());
 
+        contextBoolFields.fieldNamesStorage.push_back("None");
+        const auto reflectedBoolFields = NodeGraphHelpers::get_bool_field_names<T>();
+        contextBoolFields.fieldNamesStorage.insert(
+            contextBoolFields.fieldNamesStorage.end(),
+            reflectedBoolFields.begin(),
+            reflectedBoolFields.end());
+
         contextFloatFields.fieldNames.reserve(contextFloatFields.fieldNamesStorage.size());
         for (const std::string& name : contextFloatFields.fieldNamesStorage)
             contextFloatFields.fieldNames.push_back(name.c_str());
+
+        contextBoolFields.fieldNames.reserve(contextBoolFields.fieldNamesStorage.size());
+        for (const std::string& name : contextBoolFields.fieldNamesStorage)
+            contextBoolFields.fieldNames.push_back(name.c_str());
     }
 
 private:
@@ -250,7 +263,14 @@ private:
         std::vector<const char*> fieldNames;
     };
 
+    struct contextBoolFieldsUI
+    {
+        std::vector<std::string> fieldNamesStorage;
+        std::vector<const char*> fieldNames;
+    };
+
     contextFloatFieldsUI contextFloatFields;
+    contextBoolFieldsUI contextBoolFields;
 
     struct LinkDragState
     {

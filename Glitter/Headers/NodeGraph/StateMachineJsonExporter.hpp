@@ -26,6 +26,9 @@ namespace StateMachineJsonExporter
     // - "resource_guid" (string)
     // - "blendspace_axis_x" (string)
     // - "blendspace_axis_y" (string)
+    // - "animation_should_loop" (bool)
+    // - "animation_complete_bool_field" (string)
+    // - "animation_complete_bool_value" (bool)
     std::string ExportChainJson(const std::vector<StateMachineNode>& nodes,
                                const std::vector<StateMachineLink>& links,
                                int rootNodeId);

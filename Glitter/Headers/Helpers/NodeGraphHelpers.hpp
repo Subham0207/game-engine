@@ -85,6 +85,35 @@ namespace NodeGraphHelpers
         );
     }
 
+    template <typename T, std::size_t... I>
+    std::vector<std::string> get_bool_field_names_impl(std::index_sequence<I...>)
+    {
+        std::vector<std::string> names;
+        const auto allFieldNames = get_field_names<T>();
+
+        ([&]() {
+            using FieldType = std::decay_t<boost::pfr::tuple_element_t<I, T>>;
+            if constexpr (std::is_same_v<FieldType, bool>)
+            {
+                if (I < allFieldNames.size())
+                    names.push_back(allFieldNames[I]);
+                else
+                    names.push_back("field_" + std::to_string(I));
+            }
+        }(), ...);
+
+        return names;
+    }
+
+    // Return only reflected bool field names from T, preserving struct order.
+    template <typename T>
+    std::vector<std::string> get_bool_field_names()
+    {
+        return get_bool_field_names_impl<T>(
+            std::make_index_sequence<boost::pfr::tuple_size_v<T>>{}
+        );
+    }
+
     inline std::string escape_lua_string(const std::string& input)
     {
         std::string out;

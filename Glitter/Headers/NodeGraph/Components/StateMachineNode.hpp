@@ -40,6 +40,11 @@ struct StateMachineNode
     std::string blendspaceAxisXField;
     std::string blendspaceAxisYField;
 
+    // Animation-specific settings.
+    bool animationShouldLoop = true;
+    std::string animationCompletionBoolField;
+    bool animationCompletionBoolValue = true;
+
     // Runtime-ish flags for the editor prototype.
     // "Active" here means "currently active state" inside the editor simulation.
     bool active = false;
