@@ -2,6 +2,9 @@
 #include <Controls/statemachine.hpp>
 #include <Helpers/Shared.hpp>
 #include <EngineState.hpp>
+#include <NodeGraph/StateMachineJsonExporter.hpp>
+
+#include <unordered_map>
 
 Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> state, std::string condition)
 {
@@ -112,6 +115,64 @@ void Controls::StateMachine::setActiveState(std::shared_ptr<State> state)
 {
     this->stateGraph = state;
     this->activeState = state;
+}
+
+void Controls::StateMachine::LoadSMfile(std::string filename)
+{
+    std::vector<StateMachineNode> graphNodes;
+    std::vector<StateMachineLink> graphLinks;
+    int rootNodeId = -1;
+
+    if (!StateMachineJsonExporter::DeserializeChainJson(filename, graphNodes, graphLinks, rootNodeId))
+    {
+        std::cerr << "[StateMachine] Failed to load .sm file: " << filename << "\n";
+        return;
+    }
+
+    // Build runtime states first so links can resolve targets by node id.
+    std::unordered_map<int, std::shared_ptr<State>> statesById;
+    statesById.reserve(graphNodes.size());
+    for (const auto& node : graphNodes)
+    {
+        auto runtimeState = std::make_shared<State>(node.name);
+        if (!node.resourceGuid.empty())
+        {
+            if (node.type == StateMachineNodeType::Animation)
+                runtimeState->animationGuid = node.resourceGuid;
+            else if (node.type == StateMachineNodeType::Blendspace)
+                runtimeState->blendspaceGuid = node.resourceGuid;
+        }
+        statesById[node.id] = runtimeState;
+    }
+
+    // Wire transitions. Conditions from .sm map directly to luaCondition.
+    for (const auto& link : graphLinks)
+    {
+        auto fromIt = statesById.find(link.fromNodeId);
+        auto toIt = statesById.find(link.toNodeId);
+        if (fromIt == statesById.end() || toIt == statesById.end())
+            continue;
+
+        fromIt->second->toStateWhenCondition.emplace_back(toIt->second, link.condition);
+    }
+
+    auto rootIt = statesById.find(rootNodeId);
+    if (rootIt == statesById.end())
+    {
+        std::cerr << "[StateMachine] Root state not found in .sm graph: " << filename << "\n";
+        stateGraph = nullptr;
+        activeState = nullptr;
+        states.clear();
+        return;
+    }
+
+    stateGraph = rootIt->second;
+    activeState = rootIt->second;
+    this->filename = fs::path(filename).filename().stem().string();
+
+    // Resolve animation/blendspace pointers and rebuild cached state list/index mapping.
+    auto filesMap = getEngineRegistryFilesMap();
+    traverseAndLoadStateGraph(activeState, filesMap);
 }
 
 void Controls::StateMachine::saveContent(fs::path contentFile, std::ostream& os)

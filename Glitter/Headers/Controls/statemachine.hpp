@@ -90,7 +90,10 @@ namespace Controls
             
             const std::string typeName() const override {return "statemachine"; }
 
+            void LoadSMfile(std::string filename);
+
         protected:
+            //TODO: Remove saving and loading this object to disk. We now load sm file saved by statemachinegraph.
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
         private:
