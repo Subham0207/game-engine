@@ -240,7 +240,6 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
         if (capsuleCollider)
         {
             // TODO: Add setIsJumping() and setWalkSpeed() methods in CapsuleCollider. So we can set these values from the derived character class.
-            bool isJumping = false;
             bool dodgeStart = false;
             capsuleCollider->moveBody(
                 deltaTime,

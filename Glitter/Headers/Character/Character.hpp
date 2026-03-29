@@ -198,6 +198,8 @@ public:
     void setEventQueue(EventQueue* q) { eventQueue = q; }
     void setEventBus(EventBus* b) { eventBus = b; }
 
+    void setIsJumping(const bool& x){isJumping = x;}
+
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
@@ -207,6 +209,8 @@ private:
     glm::quat rotationOffset = glm::identity<glm::quat>();
 
     Controls::Empty empty{};
+
+    bool isJumping = false;
 
     //deprecated
     glm::mat4 transformation;
