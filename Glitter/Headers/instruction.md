@@ -6,6 +6,90 @@ This note documents the current state of the **separate windowing** work for the
 
 ---
 
+## 2026-03 summary: StateMachine + NodeGraph + FlowScript work
+
+This section summarizes the recent work that landed across the state-machine editor, FlowScript condition authoring, serialization, and runtime evaluation.
+
+### 1) StateMachine graph model + persistence
+
+Files:
+- `Glitter/Headers/NodeGraph/Components/StateMachineNode.hpp`
+- `Glitter/Sources/StateMachineJsonExporter.cpp`
+- `Glitter/Headers/NodeGraph/StateMachineJsonExporter.hpp`
+
+What changed:
+- `StateMachineNode` now stores:
+  - `blendspaceAxisXField`
+  - `blendspaceAxisYField`
+- `.sm` JSON node payload now persists:
+  - `blendspace_axis_x`
+  - `blendspace_axis_y`
+- Loader is backward compatible: missing keys keep defaults.
+
+### 2) StateMachine editor UI updates
+
+Files:
+- `Glitter/Headers/NodeGraph/Views/StateMachineView.hpp`
+- `Glitter/Sources/StateMachineView.cpp`
+- `Glitter/Headers/NodeGraph/StateMachineGraph.hpp`
+
+What changed:
+- `StateMachineGraph::load<T>(...)` forwards context object data to the view (`setContextObject`).
+- Blendspace nodes now expose two additional dropdowns:
+  - `Axis X`
+  - `Axis Y`
+- Dropdown values are derived from reflected float fields of context type `T`.
+- New links are initialized with a valid default condition chunk:
+
+```lua
+return function(t)
+    return false
+end
+```
+
+### 3) FlowScript transition-condition authoring
+
+Files:
+- `Glitter/Headers/NodeGraph/FlowScript/StatemachineFlowScript.hpp`
+- `Glitter/Sources/StatemachineFlowScript.cpp`
+- `Glitter/Headers/NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp`
+- `Glitter/Headers/NodeGraph/Views/NodeGraphNodesView.hpp`
+- `Glitter/Sources/Compiler.cpp`
+- `Glitter/Sources/LuaEmitter.cpp`
+- `Glitter/Sources/FlowScript/Decompile/DecompileGraphBuilder.cpp`
+
+What changed:
+- Transition conditions are edited in FlowScript and saved as runtime chunks that return a Lua function.
+- Function nodes now support parameter pins (notably `t`) and emitter outputs `function(t)` signatures.
+- A context/destructuring node is injected for transition editing (`GenericType(t)`), with field outputs representing `t.<field>` access.
+- Condition open path unwraps stored runtime chunk into editor source; compile path wraps editor output back into runtime function-chunk format.
+
+### 4) Runtime load/eval path
+
+Files:
+- `Glitter/Sources/statemachine.cpp`
+- `Glitter/Headers/Controls/statemachine.hpp`
+- `Glitter/Headers/LuaEngine/LuaCondition.hpp`
+
+What changed:
+- `StateMachine::LoadSMfile(...)` maps `.sm` node metadata into runtime state objects, including blendspace axis field bindings.
+- `StateMachine::tick(...)` computes blendspace scrub values from context field names and passes them to `State::Play(animator, scrubLoc)`.
+- `loadContext<T>(...)` passes Lua conditions a reflected Lua table (`t`) instead of raw C++ userdata.
+- `LuaCondition` compile/evaluate path is hardened (wrapper fallback, safer return coercion, cached fn invalidation on source changes).
+- `StateMachine::evaluateLuaCondition(...)` catches Lua exceptions and returns `false` instead of crashing the frame.
+
+### 5) NodeGraph QoL
+
+Files:
+- `Glitter/Sources/NodeGraph.cpp`
+
+What changed:
+- FlowScript node links can be deleted reliably:
+  - by ImNodes link-destroy events,
+  - by pressing `Delete` on selected links.
+
+---
+
 ## High-level architecture
 
 ### 1) `GameWindow` base class
