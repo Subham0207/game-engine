@@ -71,8 +71,7 @@ void Outliner::Render(Level &lvl, float& editorCameraMoveSpeed) {
         UI::Blendspace2DUI::draw(blendspace, selection, getUIState().blendspace2DUIState->showBlendspaceUI);
     }
 
-    if(getUIState().statemachineUIState->showStateMachineUI)
-    UI::StatemachineUI::draw(getUIState().statemachineUIState->UIOpenedForStatemachine, getUIState().statemachineUIState->showStateMachineUI);
+    getUIState().statemachineUIState->draw();
 
     if(getUIState().ai_ui_state->showUI)
     getUIState().ai_ui_state->draw();
@@ -272,17 +271,7 @@ void Outliner::levelControlsComponent(Level &lvl, float& editorCameraMoveSpeed)
 
     if(ImGui::Button("Create new statmachine"))
     {
-        // Request opening a dedicated StateMachineWindow.
-        // The owning EditorWindow injects a request flag; the Editor window manager spawns the window.
-        if (windowRequests.openStateMachineWindow)
-            *windowRequests.openStateMachineWindow = true;
-
-        // If already spawned, we can focus it immediately.
-        if (EngineState::state && EngineState::state->mStatemachineWindow)
-        {
-            glfwShowWindow(EngineState::state->mStatemachineWindow);
-            glfwFocusWindow(EngineState::state->mStatemachineWindow);
-        }
+        getUIState().statemachineUIState->start();
     }
 
     if(ImGui::Button("Create new AI"))

@@ -124,20 +124,6 @@ private:
         const auto smPath = assetsDir / smFileName;
 
         Shared::WriteTextFile(smPath, json);
-
-        const std::string guid = Shared::uuid();
-        const auto metaPath = assetsDir / (guid + ".meta.json");
-        const std::string metaJson =
-            "{\n"
-            "    \"guid\": \"" + guid + "\",\n"
-            "    \"type\": \"statemachine\",\n"
-            "    \"version\": \"0.1\",\n"
-            "    \"content\": {\n"
-            "        \"relative_path\": \"" + smFileName + "\"\n"
-            "    }\n"
-            "}\n";
-
-        Shared::WriteTextFile(metaPath, metaJson);
     }
 
     UI::Shared::EditableText filename{};
