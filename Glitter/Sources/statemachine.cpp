@@ -55,6 +55,12 @@ bool Controls::State::Play(Animator* animator, glm::vec2 scrubLoc)
     {
         blendspace->interpolateToScrubberLocation(scrubLoc);
         auto blendSelection = blendspace->GetBlendSelection();
+        std::cout <<"[statemachine][play] scrubLocL: " << blendspace->getScrubberLocation().x << " scrubLocY: " << blendspace->getScrubberLocation().y << std::endl;
+        std::cout << "[statemachine][play] blendfactors: " <<
+            "bottomLeft: " << blendSelection->bottomLeftBlendFactor << " "
+            "bottomRight: " << blendSelection->bottomRightBlendFactor << " "
+            "bottomTopLeft: " << blendSelection->topLeftBlendFactor << " "
+            "bottomTopRight: " << blendSelection->topRightBlendFactor << std::endl;
         animator->PlayAnimationBlended(blendSelection);
     }
 
