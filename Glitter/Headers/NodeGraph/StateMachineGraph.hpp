@@ -102,6 +102,11 @@ public:
         );
 
         auto view = views.findView<StateMachineView>();
+        view->syncIdAllocators(getStateNodes(), getStateLinks());
+
+        if (activeId != -1)
+            StateMachineView::setActive(getStateNodes(), activeId);
+
         view->setContextObject(t);
         if (mFlowScriptRef)
             mFlowScriptRef->setContextObject(t);

@@ -44,12 +44,21 @@ public:
 
     void addState(std::vector<StateMachineNode>& nodes, const std::string& baseName, const ImVec2& spawnPosScreen)
     {
+        // Keep allocator aligned with externally loaded/imported node IDs.
+        syncNodeIdAllocator(nodes);
+
         StateMachineNode n;
         n.id = nextStateId++;
         n.name = baseName + " " + std::to_string(n.id);
         n.spawnPosScreen = spawnPosScreen;
         n.hasSpawn = true;
         nodes.emplace_back(std::move(n));
+    }
+
+    void syncIdAllocators(const std::vector<StateMachineNode>& nodes, const std::vector<StateMachineLink>& links)
+    {
+        syncNodeIdAllocator(nodes);
+        syncTransitionIdAllocator(links);
     }
 
     static void setActive(std::vector<StateMachineNode>& nodes, int nodeId)
@@ -224,6 +233,25 @@ public:
     }
 
 private:
+
+    void syncNodeIdAllocator(const std::vector<StateMachineNode>& nodes)
+    {
+        int maxNodeId = NodeGraphIdBase(NodeGraphElementIdBase::StateMachineNode) - 1;
+        for (const auto& n : nodes)
+            maxNodeId = std::max(maxNodeId, n.id);
+
+        const int floorId = NodeGraphIdBase(NodeGraphElementIdBase::StateMachineNode);
+        nextStateId = std::max(floorId, maxNodeId + 1);
+    }
+
+    void syncTransitionIdAllocator(const std::vector<StateMachineLink>& links)
+    {
+        int maxTransitionId = -1;
+        for (const auto& t : links)
+            maxTransitionId = std::max(maxTransitionId, t.id);
+
+        nextTransitionId = std::max(0, maxTransitionId + 1);
+    }
 
     static const std::string& defaultConditionChunk()
     {
