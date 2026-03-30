@@ -867,10 +867,6 @@ private:
             dl->AddCircleFilled(pTo, kPortRadius, IM_COL32(60, 60, 60, 255));
             dl->AddCircle(pTo, kPortRadius, col, 12, 2.0f);
 
-            // Quick condition label near the middle.
-            const ImVec2 mid((pFrom.x + pTo.x) * 0.5f, (pFrom.y + pTo.y) * 0.5f);
-            if (!t.condition.empty())
-                dl->AddText(ImVec2(mid.x + 6.0f, mid.y + 6.0f), IM_COL32(240, 240, 240, 255), t.condition.c_str());
         }
     }
 
