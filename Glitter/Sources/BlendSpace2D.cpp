@@ -5,6 +5,16 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+void BlendSpace2D::interpolateToScrubberLocation(glm::vec2 loc){
+    const float t = glm::clamp(interpolationSpeed, 0.0f, 1.0f);
+    scrubberLocation = glm::mix(scrubberLocation, loc, t);
+
+    // Snap when very close to avoid tiny floating-point drift near the target.
+    const glm::vec2 remaining = loc - scrubberLocation;
+    if ((remaining.x * remaining.x) + (remaining.y * remaining.y) < 1e-6f)
+        scrubberLocation = loc;
+}
+
 BlendSelection* BlendSpace2D::GetBlendSelection() {
     auto result = new BlendSelection {nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
 

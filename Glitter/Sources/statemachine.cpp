@@ -53,8 +53,8 @@ bool Controls::State::Play(Animator* animator, glm::vec2 scrubLoc)
 
     if(!blendspaceGuid.empty())
     {
+        blendspace->interpolateToScrubberLocation(scrubLoc);
         auto blendSelection = blendspace->GetBlendSelection();
-        blendspace->setScrubberLocation(scrubLoc);
         animator->PlayAnimationBlended(blendSelection);
     }
 

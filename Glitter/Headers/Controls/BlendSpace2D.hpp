@@ -77,6 +77,7 @@ public:
     std::string blendspaceName;
 
     void setScrubberLocation(glm::vec2 loc){scrubberLocation = loc;}
+    void interpolateToScrubberLocation(glm::vec2 loc);
     [[nodiscard]] glm::vec2 getScrubberLocation() const {return scrubberLocation;};
 
     const std::string typeName() const override {return "blendspace"; }
@@ -88,6 +89,8 @@ protected:
 
 private:
     glm::vec2 scrubberLocation{};
+
+    float interpolationSpeed = 0.1f;
 
     void calculateBlendFactors(
         glm::vec2 input,
