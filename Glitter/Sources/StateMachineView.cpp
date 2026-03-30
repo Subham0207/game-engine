@@ -208,7 +208,7 @@ void StateMachineView::nodeBody(
                     : contextBoolFields.fieldNamesStorage[boolFieldIndex];
             }
 
-            ImGui::Checkbox("On Complete Value", &currentNode.animationCompletionBoolValue);
+            ImGui::Checkbox("Should set field to: ", &currentNode.animationCompletionBoolValue);
         }
     }
 

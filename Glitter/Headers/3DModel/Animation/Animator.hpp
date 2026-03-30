@@ -36,6 +36,8 @@ public:
 		}
 	}
 
+	void HandlePlayedTypeForTransition();
+
 	void UpdateAnimation(
 		float dt,
 		std::map<std::string, BoneInfo> &boneInfoMap,
@@ -54,7 +56,11 @@ public:
 
 		if(blendSelection)
 		{
-			if(poseTransitionStarted)
+			currentPlayedType = 0;
+
+			HandlePlayedTypeForTransition();
+
+			if(bsPoseTransitionStarted)
 			{
 				transitionSourcePose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
 				currentTime1 = currentTime2 = currentTime3 = currentTime4 = 0.0f;
@@ -67,17 +73,18 @@ public:
 					bones,
 					globalInverseTransform);
 				transitionDestinationPose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
-				poseTransitionStarted = false;
-				poseTransitionInProgress = true;
+				bsPoseTransitionStarted = false;
+				bsPoseTransitionInProgress = true;
 			}
 
-			if (poseTransitionInProgress)
+			if (bsPoseTransitionInProgress)
 			{
 				onPoseTransitionInProgress(
 					node,
 					globalInverseTransform,
 					boneInfoMap,
-					globalInverseTransform
+					globalInverseTransform,
+					bsPoseTransitionInProgress
 				);
 			}	
 			else
@@ -95,7 +102,11 @@ public:
 		}
 		else if (m_CurrentAnimation)
 		{
-			if(poseTransitionStarted)
+			currentPlayedType = 1;
+
+			HandlePlayedTypeForTransition();
+
+			if(animPoseTransitionStarted)
 			{
 				//Here m_FinalBoneMatricesLocal will be from last pose.
 				transitionSourcePose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
@@ -111,18 +122,19 @@ public:
 					0.0f					
 				);
 				transitionDestinationPose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
-				poseTransitionStarted = false;
-				poseTransitionInProgress = true;
+				animPoseTransitionStarted = false;
+				animPoseTransitionInProgress = true;
 			}
 
 			
-			if (poseTransitionInProgress) 
+			if (animPoseTransitionInProgress)
 			{
 				onPoseTransitionInProgress(
 					node,
 					globalInverseTransform,
 					boneInfoMap,
-					globalInverseTransform
+					globalInverseTransform,
+					animPoseTransitionInProgress
 				);
 			}	
 			else
@@ -164,13 +176,16 @@ public:
 				globalInverseTransform,
 				m_CurrentTime);
 		}
+
+		lastPlayedType = currentPlayedType;
 	}
 
 	void onPoseTransitionInProgress(
 		const std::shared_ptr<AssimpNodeData> node,
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
-		glm::mat4 &globalInverseTransform
+		glm::mat4 &globalInverseTransform,
+		bool& poseTransitionInProgress
 	);
 
 	void initNoLoopAnimation()
@@ -178,8 +193,8 @@ public:
 		m_startTime = m_DeltaTime;
 		m_CurrentTime = 0.0f;
 		m_ElapsedTime = 0.0f;
-		poseTransitionStarted = true;
-		poseTransitionInProgress = false;
+		animPoseTransitionStarted = true;
+		animPoseTransitionInProgress = false;
 	}
 
 	void SetLoopCurrentAnimation(const bool shouldLoop)
@@ -312,8 +327,13 @@ public:
 
 	Animation* m_CurrentAnimation;
 
-	bool poseTransitionStarted = false;
-	bool poseTransitionInProgress = false;
+	int lastPlayedType = 0; // 0 means blendspace, 1 means animation;
+	int currentPlayedType = 0;
+
+	bool animPoseTransitionStarted = false;
+	bool animPoseTransitionInProgress = false;
+	bool bsPoseTransitionStarted = false;
+	bool bsPoseTransitionInProgress = false;
 	float currentTransitionTime = 0;
 	float maxTransitionDuration = 0.25;
 
