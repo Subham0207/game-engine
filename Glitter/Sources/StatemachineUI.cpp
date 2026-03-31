@@ -22,19 +22,19 @@ void UI::StatemachineUI::draw()
             const auto assetsDir = projectDir / "Assets";
             const std::string guid = SharedHelpers::uuid();
             const auto metaPath = assetsDir / (guid + ".meta.json");
+            auto filename = std::string(stateMachineName) + ".sm";
             const std::string metaJson =
                 "{\n"
                 "    \"guid\": \"" + guid + "\",\n"
                 "    \"type\": \"statemachine\",\n"
                 "    \"version\": \"0.1\",\n"
                 "    \"content\": {\n"
-                "        \"relative_path\": \"" + stateMachineName + "\"\n"
+                "        \"relative_path\": \"" + filename + "\"\n"
                 "    }\n"
                 "}\n";
 
             SharedHelpers::WriteTextFile(metaPath, metaJson);
 
-            auto filename = std::string(stateMachineName) + ".sm";
             const auto smPath = assetsDir /  filename;
             SharedHelpers::WriteTextFile(smPath, "");
 
