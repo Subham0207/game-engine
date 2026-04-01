@@ -79,7 +79,7 @@ void Physics::Capsule::moveBody(
     glm::vec3 moveOffset,
     glm::quat rotationOffset,
     bool& want_jump,
-    float walkSpeed,
+    float movementSpeed,
     float jumpSpeed
     )
 {
@@ -90,7 +90,7 @@ void Physics::Capsule::moveBody(
     const Vec3 kGravity = Vec3(0.0f, -9.81f, 0.0f);
 
     // Desired horizontal velocity from input (x,z). Keep y = 0
-    Vec3 desired_horizontal = Vec3(moveOffset.x, moveOffset.y, moveOffset.z) * walkSpeed;
+    Vec3 desired_horizontal = Vec3(moveOffset.x, moveOffset.y, moveOffset.z) * movementSpeed;
 
     Vec3 v{};
 

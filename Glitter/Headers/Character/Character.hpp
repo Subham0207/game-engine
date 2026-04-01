@@ -200,8 +200,8 @@ public:
 
     void setIsJumping(const bool& x){isJumping = x;}
     bool getIsJumping(){return isJumping;}
-    void setWalkSpeed(const float& x){walkSpeed = x;}
-    float& getWalkSpeed(){return walkSpeed;}
+    void setMoveSpeed(const float& x){movementSpeed = x;}
+    float& getMoveSpeed(){return movementSpeed;}
 
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
@@ -214,7 +214,7 @@ private:
     Controls::Empty empty{};
 
     bool isJumping = false;
-    float walkSpeed = 4.0f;
+    float movementSpeed = 4.0f;
 
     //deprecated
     glm::mat4 transformation;

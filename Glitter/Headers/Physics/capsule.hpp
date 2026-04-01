@@ -36,7 +36,7 @@ namespace Physics
             glm::vec3 moveOffset,
             glm::quat rotationOffset,
             bool& want_jump,
-            float walkSpeed,
+            float movementSpeed,
             float jumpSpeed = 6.0f
         );
         void PhysicsUpdate() override;

@@ -244,7 +244,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
                 movementOffset,
                 rotationOffset,
                 isJumping,
-                walkSpeed
+                movementSpeed
             );
 
             setWorldTransform(capsuleCollider->getWorldPosition(), capsuleCollider->getWorldRotation());
