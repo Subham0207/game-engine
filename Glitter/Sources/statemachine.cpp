@@ -116,11 +116,11 @@ void Controls::StateMachine::tick(Animator* animator)
             {
                 activeState = activeState->toStateWhenCondition[i].state;
                 activeState->animationCompletionApplied = false;
-                std::cerr << "[StateMachine] Enter state='" << activeState->stateName
-                          << "' animLoop=" << (activeState->animationShouldLoop ? "true" : "false")
-                          << " completionField='" << activeState->animationCompletionBoolField
-                          << "' completionValue=" << (activeState->animationCompletionBoolValue ? "true" : "false")
-                          << std::endl;
+                // std::cerr << "[StateMachine] Enter state='" << activeState->stateName
+                //           << "' animLoop=" << (activeState->animationShouldLoop ? "true" : "false")
+                //           << " completionField='" << activeState->animationCompletionBoolField
+                //           << "' completionValue=" << (activeState->animationCompletionBoolValue ? "true" : "false")
+                //           << std::endl;
                 animator->initNoLoopAnimation();
                 return true;
             }
@@ -141,12 +141,12 @@ void Controls::StateMachine::tick(Animator* animator)
     if (completedNow && !activeState->animationCompletionApplied)
     {
         const bool applied = applyAnimationCompletion(*activeState);
-        std::cerr << "[StateMachine] Animation completed once. state='" << activeState->stateName
-                  << "' loop=" << (activeState->animationShouldLoop ? "true" : "false")
-                  << " field='" << activeState->animationCompletionBoolField
-                  << "' value=" << (activeState->animationCompletionBoolValue ? "true" : "false")
-                  << " applied=" << (applied ? "true" : "false")
-                  << std::endl;
+        // std::cerr << "[StateMachine] Animation completed once. state='" << activeState->stateName
+        //           << "' loop=" << (activeState->animationShouldLoop ? "true" : "false")
+        //           << " field='" << activeState->animationCompletionBoolField
+        //           << "' value=" << (activeState->animationCompletionBoolValue ? "true" : "false")
+        //           << " applied=" << (applied ? "true" : "false")
+        //           << std::endl;
         activeState->animationCompletionApplied = true;
 
         // Re-check transitions immediately after completion side-effects.
@@ -187,8 +187,8 @@ bool Controls::StateMachine::applyAnimationCompletion(const State& state)
 
     if (state.animationCompletionBoolField.empty())
     {
-        std::cerr << "[StateMachine] Completion skip: no bool field selected for state='"
-                  << state.stateName << "'" << std::endl;
+        // std::cerr << "[StateMachine] Completion skip: no bool field selected for state='"
+        //           << state.stateName << "'" << std::endl;
         return false;
     }
 
