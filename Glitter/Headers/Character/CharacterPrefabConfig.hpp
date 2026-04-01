@@ -19,7 +19,7 @@ struct CharacterPrefabConfig {
     glm::vec3 modelScale{1.0f};
 
     std::string skeletonGuid;
-    std::string stateMachineClassId;
+    std::string stateMachineGuid;
     std::string controllerClassId;
 };
 #endif //GLITTER_CHARACTERPREFABINFO_HPP

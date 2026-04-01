@@ -98,16 +98,6 @@ namespace ProjectAsset
                                         getUIState().blendspace2DUIState->showBlendspaceUI = true;
                                     }
                                 }
-                                else if(selectedAsset.assetType == AssetType::StateMachineType)
-                                {
-                                    auto guid = fs::path(selectedAsset.filepath).filename().stem().stem().string();
-                                    auto filesMap = getEngineRegistryFilesMap();
-                                    if (auto it = filesMap.find(guid); it != filesMap.end())
-                                    {
-                                        auto statemachine = UI::StatemachineUI::start();
-                                        statemachine->load(fs::path(selectedAsset.filepath).parent_path(), guid);
-                                    }
-                                }
                                 else if(selectedAsset.assetType == AssetType::ModelType)
                                 {
                                     openPopup.model = true;

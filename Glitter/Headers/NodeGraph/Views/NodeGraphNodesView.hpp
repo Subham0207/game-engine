@@ -16,9 +16,27 @@
 #include "../NodeGraphRenderContext.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/NodeTypes.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/EqualsTo.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/GreaterThan.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/NotEqualsTo.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/DataTypes/Boolean.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/DataTypes/GenericType.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
 using AddNode = NodeGraphComponents::Node::Add;
+using SubtractNode = NodeGraphComponents::Node::Subtract;
+using GreaterThanNode = NodeGraphComponents::Node::GreaterThan;
+using EqualsToNode = NodeGraphComponents::Node::EqualsTo;
+using NotEqualsToNode = NodeGraphComponents::Node::NotEqualsTo;
 using IntegerNode = NodeGraphComponents::Node::Integer;
+using BooleanNode = NodeGraphComponents::Node::Boolean;
+using GenericTypeNode = NodeGraphComponents::Node::GenericType;
+using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
+using PrintNode = NodeGraphComponents::Node::Keywords::Print;
+using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
 
 class NodeGraphNodesView final : public INodeGraphView
 {
@@ -32,22 +50,101 @@ public:
     int nextInputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeInputAttribute);
     int nextOutputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeOutputAttribute);
 
+    NodeGraphNode* addFunctionNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
+                                   const std::vector<std::string>& argumentNames,
+                                   const ImVec2& spawnPosScreen)
+    {
+        auto n = std::make_unique<FunctionNode>(
+            nextOutputPinId,
+            argumentNames,
+            nextNodeId++,
+            "Function",
+            spawnPosScreen.x,
+            spawnPosScreen.y
+        );
+
+        n->setSpawnPosScreen(spawnPosScreen);
+        NodeGraphNode* raw = n.get();
+        nodes.push_back(std::move(n));
+        return raw;
+    }
+
     void addNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes, NodeTypes type, const ImVec2& spawnPosScreen)
     {
         std::unique_ptr<NodeGraphNode> n;
         if (type == NodeTypes::Add)
         {
             n = std::make_unique<AddNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Add", spawnPosScreen.x, spawnPosScreen.y);
-            n->setSpawnPosScreen(spawnPosScreen);
+        }
+        if (type == NodeTypes::Subtract)
+        {
+            n = std::make_unique<SubtractNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Subtract", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::GreaterThan)
+        {
+            n = std::make_unique<GreaterThanNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "GreaterThan", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::EqualsTo)
+        {
+            n = std::make_unique<EqualsToNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "EqualsTo", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::NotEqualsTo)
+        {
+            n = std::make_unique<NotEqualsToNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "NotEqualsTo", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::Integer)
         {
             n = std::make_unique<IntegerNode>(nextOutputPinId, nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
-            n->setSpawnPosScreen(spawnPosScreen);
+        }
+        if (type == NodeTypes::Boolean)
+        {
+            n = std::make_unique<BooleanNode>(nextOutputPinId, nextNodeId++, "Boolean", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Function)
+        {
+            n = std::make_unique<FunctionNode>(nextOutputPinId, std::vector<std::string>{"t"}, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Print)
+        {
+            n = std::make_unique<PrintNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Print", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Return)
+        {
+            n = std::make_unique<ReturnNode>(nextInputPinId, nextNodeId++, "Return", spawnPosScreen.x, spawnPosScreen.y);
         }
 
+
         if (n)
+        {
+            n->setSpawnPosScreen(spawnPosScreen);
             nodes.push_back(std::move(n));
+        }
+    }
+
+    void addGenericTypeNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
+                            const std::string& objectName,
+                            const std::vector<NodeGraphComponents::Node::GenericMemberSpec>& members,
+                            const ImVec2& spawnPosScreen)
+    {
+        std::string title = "GenericType";
+        if (!objectName.empty())
+            title += "(" + objectName + ")";
+
+        const bool asDestructuringNode = (objectName == "t");
+
+        auto n = std::make_unique<GenericTypeNode>(
+            nextInputPinId,
+            nextOutputPinId,
+            members,
+            asDestructuringNode,
+            nextNodeId++,
+            title,
+            spawnPosScreen.x,
+            spawnPosScreen.y
+        );
+
+        n->setSpawnPosScreen(spawnPosScreen);
+        nodes.push_back(std::move(n));
     }
 
 	void addLink(std::vector<NodeGraphNodeLink>& links, int startAttr, int endAttr)
@@ -99,6 +196,28 @@ public:
             ImNodes::BeginNodeTitleBar();
             ImGui::TextUnformatted(node->name().c_str());
             ImNodes::EndNodeTitleBar();
+
+            if (node->hasExecInput())
+            {
+                auto execInput = node->getExecInput();
+                const int attributeId = execInput->getId();
+                ImNodes::BeginInputAttribute(attributeId, ImNodesPinShape_TriangleFilled);
+                ImGui::Text(execInput->getName().c_str());
+                //Input Attribute cannot have field.
+                ImNodes::EndInputAttribute();
+                ImGui::Spacing();
+            }
+
+            if (node->hasExecOutput())
+            {
+                auto execOutput = node->getExecOutput();
+                const int attributeId = execOutput->getId();
+                ImNodes::BeginOutputAttribute(attributeId, ImNodesPinShape_TriangleFilled);
+                ImGui::Text(execOutput->getName().c_str());
+                //Input Attribute cannot have field.
+                ImNodes::EndOutputAttribute();
+                ImGui::Spacing();
+            }
 
             for (int i = 0; i < node->inputs().size(); ++i)
             {

@@ -1,7 +1,6 @@
 #pragma once
 #include <3DModel/Animation/Animation.hpp>
 #include <3DModel/Animation/Animator.hpp>
-#include <Controls/PlayerController.hpp>
 #include <Controls/BlendSpace2D.hpp>
 #include <vector>
 #include <functional>
@@ -11,6 +10,10 @@
 #include <boost/serialization/base_object.hpp>
 #include <LuaEngine/LuaCondition.hpp>
 #include <unordered_set>
+#include <type_traits>
+
+#include <Helpers/NodeGraphHelpers.hpp>
+#include <boost/pfr.hpp>
 
 namespace Controls
 {
@@ -45,10 +48,17 @@ namespace Controls
         
         std::string blendspaceGuid;
         BlendSpace2D* blendspace;
-        
+        std::string blendspaceAxisXField;
+        std::string blendspaceAxisYField;
+
+        bool animationShouldLoop = true;
+        std::string animationCompletionBoolField;
+        bool animationCompletionBoolValue = true;
+        bool animationCompletionApplied = false;
+
         State()=default;
         State(std::string stateName);
-        void Play(Animator* animator);
+        bool Play(Animator* animator, glm::vec2 scrubLoc = glm::vec2(0.0f));
         void assignBlendspace(BlendSpace2D* blendspace);
         void assignAnimation(Animation* animation);
         void assignAnimation(std::string animationGuid, bool noLoop, std::function<void()> animNotify);
@@ -90,13 +100,57 @@ namespace Controls
             
             const std::string typeName() const override {return "statemachine"; }
 
+            void LoadSMfile(std::string filename);
+
+            //Load context is called in derived Character tick for now...
+            template<typename T>
+            void loadContext(T& t)
+            {
+                m_luaEvalContext = static_cast<void*>(&t);
+                m_luaEvalWithContext = [](LuaCondition& condition, LuaEngine& engine, const void* ctx) -> bool
+                {
+                    const auto& typedCtx = *static_cast<const T*>(ctx);
+                    sol::table luaContext = StateMachine::template buildLuaContextTable<T>(engine, typedCtx);
+                    return condition.evaluate(engine, luaContext);
+                };
+
+                m_blendspaceScrubWithContext = [](const State& state, const void* ctx) -> glm::vec2
+                {
+                    const auto& typedCtx = *static_cast<const T*>(ctx);
+                    return glm::vec2(
+                        StateMachine::template getContextFloatFieldByName<T>(typedCtx, state.blendspaceAxisXField),
+                        StateMachine::template getContextFloatFieldByName<T>(typedCtx, state.blendspaceAxisYField)
+                    );
+                };
+
+                m_applyAnimationCompletionWithContext = [](const State& state, void* ctx) -> bool
+                {
+                    auto& typedCtx = *static_cast<T*>(ctx);
+                    if (state.animationCompletionBoolField.empty())
+                        return false;
+
+                    return StateMachine::template setContextBoolFieldByName<T>(
+                        typedCtx,
+                        state.animationCompletionBoolField,
+                        state.animationCompletionBoolValue);
+                };
+            }
+
+            void clearContext()
+            {
+                m_luaEvalContext = nullptr;
+                m_luaEvalWithContext = {};
+                m_blendspaceScrubWithContext = {};
+                m_applyAnimationCompletionWithContext = {};
+            }
         protected:
+            //TODO: Remove saving and loading this object to disk. We now load sm file saved by statemachinegraph.
             virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
             virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
         private:
             void traverseAndLoadStateGraph(std::shared_ptr<State> state, std::map<std::string, std::string> filesMap);
 
-            void StateMachine::dfsLoad(const std::shared_ptr<State>& state,
+            void dfsLoad(const std::shared_ptr<State>& state,
             std::map<std::string, std::string>& filesMap,
             std::unordered_set<State*>& visited);
 
@@ -105,7 +159,118 @@ namespace Controls
             std::string filename;
 
             bool started = false;
-            
+
+            void* m_luaEvalContext = nullptr;
+            std::function<bool(LuaCondition&, LuaEngine&, const void*)> m_luaEvalWithContext;
+            std::function<glm::vec2(const State&, const void*)> m_blendspaceScrubWithContext;
+            std::function<bool(const State&, void*)> m_applyAnimationCompletionWithContext;
+            bool evaluateLuaCondition(LuaCondition& condition) const;
+            glm::vec2 evaluateBlendspaceScrub(const State& state) const;
+            bool applyAnimationCompletion(const State& state);
+
+            template<typename T>
+            static float getContextFloatFieldByName(const T& context, const std::string& fieldName)
+            {
+                if (fieldName.empty())
+                    return 0.0f;
+
+                const auto fieldNames = NodeGraphHelpers::get_field_names<T>();
+                float resolvedValue = 0.0f;
+                bool found = false;
+                std::size_t currentIndex = 0;
+
+                boost::pfr::for_each_field(context, [&](const auto& field)
+                {
+                    if (found)
+                    {
+                        ++currentIndex;
+                        return;
+                    }
+
+                    if (currentIndex < fieldNames.size() && fieldNames[currentIndex] == fieldName)
+                    {
+                        using FieldType = std::decay_t<decltype(field)>;
+                        if constexpr (std::is_same_v<FieldType, float>)
+                            resolvedValue = field;
+                        found = true;
+                    }
+
+                    ++currentIndex;
+                });
+
+                return resolvedValue;
+            }
+
+            template<typename T>
+            static bool setContextBoolFieldByName(T& context, const std::string& fieldName, const bool value)
+            {
+                if (fieldName.empty())
+                    return false;
+
+                const auto fieldNames = NodeGraphHelpers::get_field_names<T>();
+                bool assigned = false;
+                std::size_t currentIndex = 0;
+
+                boost::pfr::for_each_field(context, [&](auto& field)
+                {
+                    if (assigned)
+                    {
+                        ++currentIndex;
+                        return;
+                    }
+
+                    if (currentIndex < fieldNames.size() && fieldNames[currentIndex] == fieldName)
+                    {
+                        using FieldType = std::decay_t<decltype(field)>;
+                        if constexpr (std::is_same_v<FieldType, bool>)
+                        {
+                            field = value;
+                            assigned = true;
+                        }
+                    }
+
+                    ++currentIndex;
+                });
+
+                return assigned;
+            }
+
+            template<typename T>
+            static sol::table buildLuaContextTable(LuaEngine& engine, const T& context)
+            {
+                sol::table table = engine.state().create_table();
+                const auto fieldNames = NodeGraphHelpers::get_field_names<T>();
+
+                std::size_t currentIndex = 0;
+                boost::pfr::for_each_field(context, [&](const auto& field)
+                {
+                    if (currentIndex >= fieldNames.size())
+                    {
+                        ++currentIndex;
+                        return;
+                    }
+
+                    const std::string& fieldName = fieldNames[currentIndex];
+                    using FieldType = std::decay_t<decltype(field)>;
+
+                    if constexpr (std::is_same_v<FieldType, bool>
+                               || std::is_integral_v<FieldType>
+                               || std::is_floating_point_v<FieldType>
+                               || std::is_same_v<FieldType, std::string>)
+                    {
+                        table[fieldName] = field;
+                    }
+                    else if constexpr (std::is_same_v<FieldType, const char*> || std::is_same_v<FieldType, char*>)
+                    {
+                        table[fieldName] = field ? field : "";
+                    }
+
+                    ++currentIndex;
+                });
+
+                return table;
+            }
+
             friend class boost::serialization::access;
             template<class Archive>
             void serialize(Archive &ar, const unsigned int version) {

@@ -17,6 +17,8 @@ namespace NodeGraphComponents::Node
         {
             outputs().push_back(value);
         }
+
+        NodeTypes type() override { return NodeTypes::Integer; }
     private:
         Attribute value;
     };

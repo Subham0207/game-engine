@@ -73,16 +73,18 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
         skeletonNames.emplace_back(filename);
     }
 
+    auto statemachineMap = EngineState::state->engineRegistry->statemachineFileMap;
     statemachineNames = std::vector<std::string>();
     index=0;
-    for (const auto& [fst, snd] : StateMachineFactory::GetTable())
+    for (auto& statemachine : statemachineMap)
     {
-        if (fst == characterPrefab.stateMachineClassId)
+        auto filename = statemachine.second;
+        if (statemachine.first == characterPrefab.stateMachineGuid)
         {
             characterConfigUIModel.selectedStateMachineIndex = Utils::toUiIndex(index);
         }
         index+=1;
-        statemachineNames.emplace_back(fst);
+        statemachineNames.emplace_back(filename);
     }
 
     controllerNames = std::vector<std::string>();
@@ -167,6 +169,12 @@ void UI::CharacterUI::draw()
                 return pair.second == skeletonNames[characterConfigUIModel.selectedSkeletonIndex - 1];
             })->first;
 
+            auto& statemachineFileMap = EngineState::state->engineRegistry->statemachineFileMap;
+            auto statemachine_guid = std::find_if(statemachineFileMap.begin(), statemachineFileMap.end(), [&](const auto& pair)
+            {
+                return pair.second == statemachineNames[characterConfigUIModel.selectedStateMachineIndex - 1];
+            })->first;
+
             characterPrefabConfig->modelGuid = model_guid;
             characterPrefabConfig->modelRelativePosition = characterConfigUIModel.modelRelativePosition;
             characterPrefabConfig->modelScale = characterConfigUIModel.modelScale;
@@ -175,7 +183,7 @@ void UI::CharacterUI::draw()
             characterPrefabConfig->capsuleRadius = characterConfigUIModel.capsuleRadius;
 
             characterPrefabConfig->skeletonGuid = skeleton_guid;
-            characterPrefabConfig->stateMachineClassId = statemachineNames[characterConfigUIModel.selectedStateMachineIndex - 1];
+            characterPrefabConfig->stateMachineGuid = statemachine_guid;
             characterPrefabConfig->controllerClassId = controllerNames[characterConfigUIModel.selectedControllerIndex - 1];
 
             auto filepath = EngineState::navIntoProjectDir("Assets"s + "/" + characterName.value + "." +  std::string(toString(FileType::CharacterType)));

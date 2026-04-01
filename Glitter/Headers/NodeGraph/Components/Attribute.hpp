@@ -14,12 +14,15 @@ namespace NodeGraphComponents::Node
     enum TYPE
     {
         FIELD,
-        PIN
+        PIN,
+        ExecutionFlowInPin,
+        ExecutionFlowOutPin,
     };
 
     class Attribute
     {
     public:
+        Attribute() = default;
         Attribute(int id, std::string name, const TYPE type) : m_id(id), name(std::move(name)), type(type), valueBuff("") {}
         [[nodiscard]] int getId() const { return m_id; }
         [[nodiscard]] std::string getName() const { return name; }
@@ -28,6 +31,11 @@ namespace NodeGraphComponents::Node
         //Only For Field type attributes;
         char* getValueBuff() { return valueBuff; }
         static int getValueSize() { return SIZE; }
+        void setValue(const std::string& value)
+        {
+            const std::size_t len = value.copy(valueBuff, SIZE - 1);
+            valueBuff[len] = '\0';
+        }
     private:
         int m_id;
         std::string name;

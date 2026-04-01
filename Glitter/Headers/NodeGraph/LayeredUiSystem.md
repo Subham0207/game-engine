@@ -88,6 +88,45 @@ There are **three core pieces**:
 
 All node positions and link endpoints are **saved** so users can intentionally arrange readable layouts.
 
+#### Current StateMachineView interaction details (important)
+
+Relevant files:
+- `Glitter/Headers/NodeGraph/Views/StateMachineView.hpp`
+- `Glitter/Sources/StateMachineView.cpp`
+
+Current behavior in the view:
+- Custom link interaction is split into clear phases:
+  - `updatePortHoverAndCaptureInput(...)`
+  - `updatePendingLinkCreation(...)`
+  - `hitTestLinksAndPorts(...)`
+  - `handleLinkClickInteractions(...)`
+  - `updatePortDrag(...)`
+  - `renderAllLinks(...)`
+- Transition creation uses pending-port state (`m_pendingLinkActive`, `m_pendingStartPort`).
+- Reconnect is supported by dragging link endpoints (`m_dragLink`).
+- Each new transition gets a valid default Lua condition:
+
+```lua
+return function(t)
+    return false
+end
+```
+
+- Link editing is popup-driven (`SM_LinkEdit`) and can launch `StatemachineFlowScript` via `Edit Condition`.
+- Blendspace node body also includes axis selection sourced from reflected context float fields (`Axis X`, `Axis Y`).
+
+#### Interaction ownership notes
+
+State-machine link/port interactions use `NodeGraphInteractionOwner::Other` with a higher claim priority than generic ImNodes hover/selection when needed. This avoids marquee-selection or node-drag stealing while connecting ports.
+
+#### Generic NodeGraph link deletion (ImNodes links)
+
+`NodeGraph` now handles link deletion after `ImNodes::EndNodeEditor()` in two ways:
+- `ImNodes::IsLinkDestroyed(...)`
+- `Delete` key on selected links (`NumSelectedLinks` / `GetSelectedLinks`)
+
+Both paths remove link ids from `nodeGraphLinks` so model and UI stay in sync.
+
 ---
 
 ## Creating a new Node Graph Component (recommended recipe)

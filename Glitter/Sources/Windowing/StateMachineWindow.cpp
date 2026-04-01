@@ -30,11 +30,13 @@
 #include "3DModel/model.hpp"
 
 #include <filesystem>
+#include <NodeGraph/FlowScript/StatemachineFlowScript.hpp>
 
 #include <cstdio>
+#include <utility>
 
-StateMachineWindow::StateMachineWindow(std::string characterFilePath)
-    : mCharacterFilePath(characterFilePath)
+StateMachineWindow::StateMachineWindow(std::string characterFilePath, std::string statemachineFilePath)
+    : mCharacterFilePath(std::move(characterFilePath)), mStatemachineFilePath(std::move(statemachineFilePath))
 {
 }
 
@@ -46,8 +48,8 @@ void StateMachineWindow::init()
         EngineState::state->mStatemachineWindow = mWindow;
 
     // Copy of UI setup (like EditorWindow) - will be cleaned up later.
-    mStateMachineGraph = std::make_unique<StateMachineGraph>();
-    mStateMachineGraph2 = std::make_unique<StateMachineGraph>();
+    mSmFlowScript = std::make_unique<StatemachineFlowScript>();
+    mStateMachineGraph = std::make_unique<StateMachineGraph>(mSmFlowScript.get());
 
     // Inline scene setup (mirrors EditorWindow)
     if (EngineState::state)
@@ -83,6 +85,8 @@ void StateMachineWindow::init()
         mSceneViewport->init(mWindow, mLights.get());
     }
 }
+
+// load<T> is header-defined so external projects can instantiate it.
 
 void StateMachineWindow::tickImpl()
 {
@@ -130,23 +134,9 @@ void StateMachineWindow::tickImpl()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("State Machine Editor");
+    mStateMachineGraph->draw();
 
-    ImGui::TextUnformatted("Node Graph");
-    // Draw the node graph embedded into this window.
-    if (mStateMachineGraph)
-        mStateMachineGraph->drawUIEmbedded();
-
-    ImGui::End();
-
-    ImGui::Begin("State Machine Editor2");
-
-    ImGui::TextUnformatted("Node Graph2");
-    // Draw the node graph embedded into this window.
-    if (mStateMachineGraph2)
-        mStateMachineGraph2->drawUIEmbedded();
-
-    ImGui::End();
+    mSmFlowScript->draw();
 
     mRayCastObjectSelector->HandleSelection(
         frameContext(),
@@ -200,5 +190,4 @@ void StateMachineWindow::setupLevelObjs()
 
     mPreviewLevel->spawnCharacter(mCharacterFilePath);
 }
-
 

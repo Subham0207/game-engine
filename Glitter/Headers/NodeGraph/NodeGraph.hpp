@@ -48,6 +48,12 @@ class NodeGraph
         [[nodiscard]] std::vector<StateMachineLink>& getStateLinks() { return stateLinks; }
         [[nodiscard]] NodeGraphRenderContext& getRenderContext() { return renderCtx; }
 
+        void clearNodes();
+        void clearNodeGraphLinks();
+        void clearComments();
+        void clearStateNodes();
+        void clearStateLinks();
+
     protected:
         std::vector<std::unique_ptr<NodeGraphNode>> nodes;
 		std::vector<NodeGraphNodeLink> nodeGraphLinks;

@@ -6,6 +6,7 @@
 #include <AI/NavMeshBuilder.hpp>
 #include <Modals/3DModelType.hpp>
 #include <AI/AI.hpp>
+#include <Controls/PlayerController.hpp>
 
 #include "GenericFactory.hpp"
 #include "Prefab.hpp"
@@ -239,7 +240,16 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     skeleton->load(skeletonParentPath, characterPrefab.skeletonGuid);
     character->skeleton = skeleton;
 
-    character->animStateMachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
+    character->animStateMachine = std::make_shared<Controls::StateMachine>();
+    if (!characterPrefab.stateMachineGuid.empty())
+    {
+        auto statemachinePath = getEngineRegistryFilesMap()[characterPrefab.stateMachineGuid];
+        character->animStateMachine->LoadSMfile(statemachinePath);
+    }
+    else
+    {
+        std::cout << "[LEVEL][SpawnCharacter]: Statemachine guid is empty" << std::endl;
+    }
 
     //TODO: make this playerController a scriptable file.
     character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);

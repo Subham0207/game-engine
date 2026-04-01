@@ -2,8 +2,6 @@
 
 #include "Windowing/GameWindow.hpp"
 
-#include <GLFW/glfw3.h>
-
 #include <memory>
 
 // Required because this header owns std::unique_ptr<NodeGraph>
@@ -18,6 +16,8 @@
 
 #include "Event/EventBus.hpp"
 #include "NodeGraph/StateMachineGraph.hpp"
+#include "NodeGraph/FlowScript/FlowScript.hpp"
+#include "NodeGraph/FlowScript/StatemachineFlowScript.hpp"
 
 class EventQueue;
 struct InputContext;
@@ -31,7 +31,7 @@ namespace ProjectAsset { class AssetBrowser; }
 // Initially a copy of EditorWindow; later you can strip renderer/game tick.
 class StateMachineWindow final : public GameWindow {
 public:
-    explicit StateMachineWindow(std::string characterFilePath);
+    explicit StateMachineWindow(std::string characterFilePath, std::string statemachineFilePath);
 
     StateMachineWindow(const StateMachineWindow&) = delete;
     StateMachineWindow& operator=(const StateMachineWindow&) = delete;
@@ -43,6 +43,13 @@ public:
     void tickImpl() override;
     void shutdown() override;
 
+    template<typename T>
+    void load(T& t)
+    {
+        if (mStateMachineGraph)
+            mStateMachineGraph->load(mStatemachineFilePath, t);
+    }
+
     void setSelectedModelIndex(const int idx){ selectedModelIndex = idx; }
     int getSelectedModelIndex() const { return selectedModelIndex; }
 
@@ -51,6 +58,7 @@ private:
     void setupLevelObjs();
 
     std::string mCharacterFilePath;
+    std::string mStatemachineFilePath;
 
     int selectedModelIndex = 0;
     std::unique_ptr<Debug::Raycast> mRayCastObjectSelector;
@@ -66,6 +74,5 @@ private:
     std::unique_ptr<Lighting::Skybox> mSkyBox;
 
     std::unique_ptr<StateMachineGraph> mStateMachineGraph;
-    std::unique_ptr<StateMachineGraph> mStateMachineGraph2;
+    std::unique_ptr<StatemachineFlowScript> mSmFlowScript;
 };
-

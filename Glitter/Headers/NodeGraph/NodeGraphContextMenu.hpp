@@ -71,7 +71,7 @@ public:
                 return;
             }
 
-            ImGui::Text("Add Node");
+            ImGui::Text("Binary Operators");
             ImGui::Separator();
 
             if (ImGui::MenuItem("Add"))
@@ -80,12 +80,75 @@ public:
                     m_addNode(m_user, NodeTypes::Add, contextMenuX, contextMenuY);
 
             }
+            if (ImGui::MenuItem("Subtract"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Subtract, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("GreaterThan"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::GreaterThan, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("EqualsTo"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::EqualsTo, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("NotEqualsTo"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::NotEqualsTo, contextMenuX, contextMenuY);
+
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Data Types");
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Integer"))
             {
                 if (m_addNode)
                     m_addNode(m_user, NodeTypes::Integer, contextMenuX, contextMenuY);
 
             }
+            if (ImGui::MenuItem("Boolean"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Boolean, contextMenuX, contextMenuY);
+
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Keywords");
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Function"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Function, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("Print"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Print, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("Return"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Return, contextMenuX, contextMenuY);
+
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Others");
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Add Comment"))
             {
                 const ImVec2 spawnGrid = cache.valid ? NodeGraphScreenToGrid(cache, spawnPosScreen)
@@ -97,6 +160,7 @@ public:
 
 			ImGui::Separator();
 			ImGui::Text("State Machine");
+            ImGui::Separator();
 			if (ImGui::MenuItem("Add State"))
 			{
 				if (m_addStateNode)

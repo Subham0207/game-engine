@@ -24,7 +24,12 @@ namespace NodeGraphComponents::Node
             inputs().push_back(B);
 
             outputs().push_back(result);
+
+            setupExecInput(nextInputPinId);
+            setupExecOutput(nextOutputPinId);
         }
+
+        NodeTypes type() override { return NodeTypes::Add; }
 
     private:
         Attribute A;

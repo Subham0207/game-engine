@@ -3,7 +3,18 @@
 #include <vector>
 #include <EngineState.hpp>
 #include <filesystem>
+#include <cmath>
 namespace fs = std::filesystem;
+
+void BlendSpace2D::interpolateToScrubberLocation(glm::vec2 loc){
+    const float t = glm::clamp(interpolationSpeed, 0.0f, 1.0f);
+    scrubberLocation = glm::mix(scrubberLocation, loc, t);
+
+    // Snap when very close to avoid tiny floating-point drift near the target.
+    const glm::vec2 remaining = loc - scrubberLocation;
+    if ((remaining.x * remaining.x) + (remaining.y * remaining.y) < 1e-6f)
+        scrubberLocation = loc;
+}
 
 BlendSelection* BlendSpace2D::GetBlendSelection() {
     auto result = new BlendSelection {nullptr, nullptr, nullptr, nullptr, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -13,39 +24,50 @@ BlendSelection* BlendSpace2D::GetBlendSelection() {
     // Find the four nearest blend points
 
     float minDistTL = FLT_MAX, minDistTR = FLT_MAX, minDistBL = FLT_MAX, minDistBR = FLT_MAX;
-    bool hasTL = false, hasTR = false, hasBL = false, hasBR = false;
+    BlendPoint* topLeft = nullptr;
+    BlendPoint* topRight = nullptr;
+    BlendPoint* bottomLeft = nullptr;
+    BlendPoint* bottomRight = nullptr;
 
-    auto topLeft = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    auto topRight = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    auto bottomLeft = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
-    auto bottomRight = new BlendPoint({glm::vec2(0.0f,0.0f), nullptr});
+    BlendPoint* nearestPoint = nullptr;
+    float nearestDistSq = FLT_MAX;
+
     for (auto& point : blendPoints) {
-        float distance = glm::length(point.position - scrubberLocation);
+        const glm::vec2 d = point.position - scrubberLocation;
+        const float distSq = d.x * d.x + d.y * d.y;
+        const float distance = sqrtf(distSq);
+
+        if (distSq < nearestDistSq) {
+            nearestDistSq = distSq;
+            nearestPoint = &point;
+        }
 
         if (point.position.x <= scrubberLocation.x && point.position.y >= scrubberLocation.y && distance < minDistTL) {
             minDistTL = distance;
             topLeft = &point;
-            hasTL = true;
         }
 
         if (point.position.x >= scrubberLocation.x && point.position.y >= scrubberLocation.y && distance < minDistTR) {
             minDistTR = distance;
             topRight = &point;
-            hasTR = true;
         }
 
         if (point.position.x <= scrubberLocation.x && point.position.y <= scrubberLocation.y && distance < minDistBL) {
             minDistBL = distance;
             bottomLeft = &point;
-            hasBL = true;
         }
 
         if (point.position.x >= scrubberLocation.x && point.position.y <= scrubberLocation.y && distance < minDistBR) {
             minDistBR = distance;
             bottomRight = &point;
-            hasBR = true;
         }
     }
+
+    // Stable fallback when a quadrant has no point.
+    if (!topLeft) topLeft = nearestPoint;
+    if (!topRight) topRight = nearestPoint;
+    if (!bottomLeft) bottomLeft = nearestPoint;
+    if (!bottomRight) bottomRight = nearestPoint;
 
     calculateBlendFactors(scrubberLocation, *result, *topLeft, *topRight, *bottomLeft, *bottomRight);
     
@@ -127,38 +149,66 @@ void BlendSpace2D::calculateBlendFactors(
     BlendPoint anim3Point, // bottom left (x0, y1)
     BlendPoint anim4Point) // bottom right (x1, y1)
 {
-    float x0 = anim1Point.position.x;
-    float y0 = anim1Point.position.y;
-    float x1 = anim2Point.position.x;
-    float y1 = anim3Point.position.y;
+    constexpr float kExactEpsSq = 1e-8f;
+    // IDW power=2 (1/d^2) gives stronger local dominance than 1/d.
+    constexpr float kInvDistEpsSq = 1e-8f;
 
-    // Prevent divide-by-zero
-    float dx = x1 - x0;
-    float dy = y1 - y0;
-    
-    // Compute alpha and beta
-    float alpha = 0.0f;
-    float beta  = 0.0f;
+    const glm::vec2 dTL = input - anim1Point.position;
+    const glm::vec2 dTR = input - anim2Point.position;
+    const glm::vec2 dBL = input - anim3Point.position;
+    const glm::vec2 dBR = input - anim4Point.position;
 
-    if (dx != 0.0f) {
-        alpha = (input.x - x0) / dx;
-        alpha = glm::clamp(alpha, 0.0f, 1.0f);
-    } else {
-        alpha = 0.0f;
+    const float d2TL = dTL.x * dTL.x + dTL.y * dTL.y;
+    const float d2TR = dTR.x * dTR.x + dTR.y * dTR.y;
+    const float d2BL = dBL.x * dBL.x + dBL.y * dBL.y;
+    const float d2BR = dBR.x * dBR.x + dBR.y * dBR.y;
+
+    // Exact hit on any selected corner should produce deterministic one-hot output.
+    if (d2TL <= kExactEpsSq) {
+        result.topLeftBlendFactor = 1.0f;
+        result.topRightBlendFactor = 0.0f;
+        result.bottomLeftBlendFactor = 0.0f;
+        result.bottomRightBlendFactor = 0.0f;
+        return;
+    }
+    if (d2TR <= kExactEpsSq) {
+        result.topLeftBlendFactor = 0.0f;
+        result.topRightBlendFactor = 1.0f;
+        result.bottomLeftBlendFactor = 0.0f;
+        result.bottomRightBlendFactor = 0.0f;
+        return;
+    }
+    if (d2BL <= kExactEpsSq) {
+        result.topLeftBlendFactor = 0.0f;
+        result.topRightBlendFactor = 0.0f;
+        result.bottomLeftBlendFactor = 1.0f;
+        result.bottomRightBlendFactor = 0.0f;
+        return;
+    }
+    if (d2BR <= kExactEpsSq) {
+        result.topLeftBlendFactor = 0.0f;
+        result.topRightBlendFactor = 0.0f;
+        result.bottomLeftBlendFactor = 0.0f;
+        result.bottomRightBlendFactor = 1.0f;
+        return;
     }
 
-    if (dy != 0.0f) {
-        beta  = (input.y - y0) / dy;
-        beta  = glm::clamp(beta, 0.0f, 1.0f);
-    } else {
-        beta = 0.0f;
-    }
+    const float wTL = 1.0f / glm::max(d2TL, kInvDistEpsSq);
+    const float wTR = 1.0f / glm::max(d2TR, kInvDistEpsSq);
+    const float wBL = 1.0f / glm::max(d2BL, kInvDistEpsSq);
+    const float wBR = 1.0f / glm::max(d2BR, kInvDistEpsSq);
 
-    // Bilinear interpolation weights
-    float tl = (1.0f - alpha) * (1.0f - beta);
-    float tr = alpha * (1.0f - beta);
-    float bl = (1.0f - alpha) * beta;
-    float br = alpha * beta;
+    const float sum = wTL + wTR + wBL + wBR;
+    float tl = 0.0f;
+    float tr = 0.0f;
+    float bl = 0.0f;
+    float br = 0.0f;
+    if (sum > 0.0f) {
+        tl = wTL / sum;
+        tr = wTR / sum;
+        bl = wBL / sum;
+        br = wBR / sum;
+    }
 
     result.topLeftBlendFactor = tl;
     result.topRightBlendFactor = tr;

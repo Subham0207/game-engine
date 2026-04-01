@@ -20,7 +20,9 @@
 #include "../NodeGraphIdRanges.hpp"
 #include "../Components/StateMachineNode.hpp"
 #include "../Components/StateMachineLink.hpp"
+#include "Helpers/NodeGraphHelpers.hpp"
 
+class StatemachineFlowScript;
 // View: draws and edits a prototype state-machine graph.
 // - State nodes are ImNodes nodes (we rely on ImNodes for node selection + movement).
 // - Links are fully custom rendered & interactive, with ports that can attach
@@ -42,12 +44,21 @@ public:
 
     void addState(std::vector<StateMachineNode>& nodes, const std::string& baseName, const ImVec2& spawnPosScreen)
     {
+        // Keep allocator aligned with externally loaded/imported node IDs.
+        syncNodeIdAllocator(nodes);
+
         StateMachineNode n;
         n.id = nextStateId++;
         n.name = baseName + " " + std::to_string(n.id);
         n.spawnPosScreen = spawnPosScreen;
         n.hasSpawn = true;
         nodes.emplace_back(std::move(n));
+    }
+
+    void syncIdAllocators(const std::vector<StateMachineNode>& nodes, const std::vector<StateMachineLink>& links)
+    {
+        syncNodeIdAllocator(nodes);
+        syncTransitionIdAllocator(links);
     }
 
     static void setActive(std::vector<StateMachineNode>& nodes, int nodeId)
@@ -79,6 +90,8 @@ public:
 
         auto& nodes = ctx.stateNodes;
         auto& links = ctx.stateLinks;
+
+        refreshAvailableResources();
 
         if (!ctx.editorSpace.valid)
             return;
@@ -144,8 +157,8 @@ public:
 
             // Context-ish controls inside node.
             ImGui::Spacing();
-            if (ImGui::SmallButton((std::string("Make Active##") + std::to_string(n.id)).c_str()))
-                setActive(nodes, n.id);
+
+            nodeBody(nodes, n);
 
             ImNodes::EndNode();
 
@@ -154,6 +167,10 @@ public:
             const ImVec2 pos = ImNodes::GetNodeScreenSpacePos(n.id);
             const ImVec2 dims = ImNodes::GetNodeDimensions(n.id);
             m_nodeRects[n.id] = ImRect(pos, ImVec2(pos.x + dims.x, pos.y + dims.y));
+
+            // Persist latest position so exporter can serialize it.
+            n.spawnPosScreen = pos;
+            n.hasSpawn = true;
 
             if (isActive)
                 ImNodes::PopColorStyle();
@@ -182,7 +199,107 @@ public:
         }
     }
 
+    void setFlowScriptRef(StatemachineFlowScript* ref){mSmflowscriptRef = ref;}
+
+    template<typename T>
+    void setContextObject(const T&)
+    {
+        contextFloatFields.fieldNamesStorage.clear();
+        contextFloatFields.fieldNames.clear();
+        contextBoolFields.fieldNamesStorage.clear();
+        contextBoolFields.fieldNames.clear();
+
+        contextFloatFields.fieldNamesStorage.push_back("None");
+        const auto reflectedFields = NodeGraphHelpers::get_float_field_names<T>();
+        contextFloatFields.fieldNamesStorage.insert(
+            contextFloatFields.fieldNamesStorage.end(),
+            reflectedFields.begin(),
+            reflectedFields.end());
+
+        contextBoolFields.fieldNamesStorage.push_back("None");
+        const auto reflectedBoolFields = NodeGraphHelpers::get_bool_field_names<T>();
+        contextBoolFields.fieldNamesStorage.insert(
+            contextBoolFields.fieldNamesStorage.end(),
+            reflectedBoolFields.begin(),
+            reflectedBoolFields.end());
+
+        contextFloatFields.fieldNames.reserve(contextFloatFields.fieldNamesStorage.size());
+        for (const std::string& name : contextFloatFields.fieldNamesStorage)
+            contextFloatFields.fieldNames.push_back(name.c_str());
+
+        contextBoolFields.fieldNames.reserve(contextBoolFields.fieldNamesStorage.size());
+        for (const std::string& name : contextBoolFields.fieldNamesStorage)
+            contextBoolFields.fieldNames.push_back(name.c_str());
+    }
+
 private:
+
+    void syncNodeIdAllocator(const std::vector<StateMachineNode>& nodes)
+    {
+        int maxNodeId = NodeGraphIdBase(NodeGraphElementIdBase::StateMachineNode) - 1;
+        for (const auto& n : nodes)
+            maxNodeId = std::max(maxNodeId, n.id);
+
+        const int floorId = NodeGraphIdBase(NodeGraphElementIdBase::StateMachineNode);
+        nextStateId = std::max(floorId, maxNodeId + 1);
+    }
+
+    void syncTransitionIdAllocator(const std::vector<StateMachineLink>& links)
+    {
+        int maxTransitionId = -1;
+        for (const auto& t : links)
+            maxTransitionId = std::max(maxTransitionId, t.id);
+
+        nextTransitionId = std::max(0, maxTransitionId + 1);
+    }
+
+    static const std::string& defaultConditionChunk()
+    {
+        static const std::string chunk =
+            "return function(t)\n"
+            "    return false\n"
+            "end";
+        return chunk;
+    }
+
+    StatemachineFlowScript* mSmflowscriptRef = nullptr;
+
+    struct blendspaceUI
+    {
+        std::vector<std::string> blendspaceguids;
+        std::vector<std::string> blendspacenamesStorage;
+        std::vector<const char*> blendspacenames;
+    };
+
+    struct animationsUI
+    {
+        std::vector<std::string> animationguids;
+        std::vector<std::string> animationnamesStorage;
+        std::vector<const char*> animationnames;
+    };
+
+    void refreshAvailableResources();
+    static int findGuidIndex(const std::vector<std::string>& guids, const std::string& guid);
+    static int findFieldNameIndex(const std::vector<std::string>& fieldNames, const std::string& fieldName);
+
+    animationsUI animations;
+    blendspaceUI blendspaces;
+
+    struct contextFloatFieldsUI
+    {
+        std::vector<std::string> fieldNamesStorage;
+        std::vector<const char*> fieldNames;
+    };
+
+    struct contextBoolFieldsUI
+    {
+        std::vector<std::string> fieldNamesStorage;
+        std::vector<const char*> fieldNames;
+    };
+
+    contextFloatFieldsUI contextFloatFields;
+    contextBoolFieldsUI contextBoolFields;
+
     struct LinkDragState
     {
         bool active = false;
@@ -530,7 +647,7 @@ private:
                 tr.toSide = f.clicked.side;
                 tr.fromOffsetGrid = m_pendingStartPort.offsetGrid;
                 tr.toOffsetGrid = f.clicked.offsetGrid;
-                tr.condition = "true";
+                tr.condition = defaultConditionChunk();
 
                 links.emplace_back(std::move(tr));
                 m_pendingLinkActive = false;
@@ -750,12 +867,15 @@ private:
             dl->AddCircleFilled(pTo, kPortRadius, IM_COL32(60, 60, 60, 255));
             dl->AddCircle(pTo, kPortRadius, col, 12, 2.0f);
 
-            // Quick condition label near the middle.
-            const ImVec2 mid((pFrom.x + pTo.x) * 0.5f, (pFrom.y + pTo.y) * 0.5f);
-            if (!t.condition.empty())
-                dl->AddText(ImVec2(mid.x + 6.0f, mid.y + 6.0f), IM_COL32(240, 240, 240, 255), t.condition.c_str());
         }
     }
+
+    void EditCondition(StateMachineLink* selectedLink) const;
+
+    void nodeBody(
+        std::vector<StateMachineNode>& nodes,
+        StateMachineNode& currentNode
+    );
 
     void renderLinkEditPopup(std::vector<StateMachineLink>& links)
     {
@@ -767,13 +887,7 @@ private:
             {
                 ImGui::Text("Link %d", tr->id);
 
-                char buf[256];
-                buf[0] = '\0';
-                if (!tr->condition.empty())
-                    strncpy_s(buf, tr->condition.c_str(), sizeof(buf) - 1);
-
-                if (ImGui::InputText("Condition", buf, sizeof(buf)))
-                    tr->condition = buf;
+                EditCondition(tr);
 
                 if (ImGui::Button("Delete"))
                 {
@@ -892,6 +1006,8 @@ private:
 };
 
 #endif // GLITTER_NODEGRAPH_STATEMACHINEVIEW_HPP
+
+
 
 
 

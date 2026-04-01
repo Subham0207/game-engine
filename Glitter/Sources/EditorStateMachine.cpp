@@ -8,12 +8,14 @@
 #include <EngineState.hpp>
 #include <LuaEngine/LuaRegistry.hpp>
 
-#include "Windowing/StateMachineWindow.hpp"
 #include "Windowing/GameWindow.hpp"
 
+#ifndef GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_NONE
+#endif
 #include <GLFW/glfw3.h>
 
-int EditorStateMachine::openEditor(std::string characterFilepath)
+EditorStateMachine::EditorStateMachine(std::string characterFilepath, std::string& smFilePath)
 {
     // Engine init (once for this process)
     auto* state = new EngineState();
@@ -25,9 +27,12 @@ int EditorStateMachine::openEditor(std::string characterFilepath)
         EngineState::state->currentActiveProjectDirectory);
 
     // Create and drive the tool window. No share context (separate process).
-    auto window = std::make_unique<StateMachineWindow>(characterFilepath);
+    window = std::make_unique<StateMachineWindow>(characterFilepath, smFilePath);
     window->init();
+}
 
+int EditorStateMachine::openEditor()
+{
     while (window && !window->shouldClose())
     {
         glfwPollEvents();

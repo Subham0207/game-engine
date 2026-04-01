@@ -7,6 +7,17 @@
 enum class NodeTypes
 {
     Add,
-    Integer
+    Subtract,
+    GreaterThan,
+    EqualsTo,
+    NotEqualsTo,
+
+    Integer,
+    Boolean,
+    Generic,
+
+    Function,
+    Print,
+    Return
 };
 #endif //GLITTER_NODETYPES_HPP

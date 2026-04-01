@@ -8,6 +8,13 @@
 #include <string>
 #include <imgui.h>
 
+enum class StateMachineNodeType : int
+{
+    Blendspace,
+    Animation,
+    None
+};
+
 // Model: a state machine node in the NodeGraph editor.
 // Persistent data only; UI state belongs in the view.
 struct StateMachineNode
@@ -20,6 +27,23 @@ struct StateMachineNode
     ImVec2 spawnPosScreen{0.0f, 0.0f};
     bool hasSpawn = false;
     bool posSet = false;
+
+    /*
+     * type is blendspace then resource guid is blendspace guid.
+     * type is animation then resource guid is animation guid.
+     */
+    StateMachineNodeType type = StateMachineNodeType::None;
+    std::string resourceGuid;
+
+    // Blendspace driver variable names from the reflected context type T.
+    // Stored by name so bindings stay stable across sessions.
+    std::string blendspaceAxisXField;
+    std::string blendspaceAxisYField;
+
+    // Animation-specific settings.
+    bool animationShouldLoop = true;
+    std::string animationCompletionBoolField;
+    bool animationCompletionBoolValue = true;
 
     // Runtime-ish flags for the editor prototype.
     // "Active" here means "currently active state" inside the editor simulation.

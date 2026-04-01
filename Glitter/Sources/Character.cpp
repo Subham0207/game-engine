@@ -103,9 +103,12 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
         character->skeleton = skeleton;
         character->skeleton_guid = characterPrefab.skeletonGuid;
     }
-    if (!characterPrefab.stateMachineClassId.empty())
+    if (!characterPrefab.stateMachineGuid.empty())
     {
-        auto statemachine = StateMachineFactory::Create(characterPrefab.stateMachineClassId);
+        auto statemachine = std::make_shared<Controls::StateMachine>();
+        auto statemachinePath = getEngineRegistryFilesMap()[characterPrefab.stateMachineGuid];
+        statemachine->LoadSMfile(statemachinePath);
+        character->animStateMachine = statemachine;
     }
 
     getActiveLevel().renderables.emplace_back(character);
@@ -231,20 +234,17 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
         if(controller)
         {
             if(animStateMachine != nullptr)
-            animStateMachine->tick(animator);
+                animStateMachine->tick(animator);
         }
 
         if (capsuleCollider)
         {
-            // TODO: Add setIsJumping() and setWalkSpeed() methods in CapsuleCollider. So we can set these values from the derived character class.
-            bool isJumping = false;
-            bool dodgeStart = false;
             capsuleCollider->moveBody(
                 deltaTime,
                 movementOffset,
                 rotationOffset,
                 isJumping,
-                dodgeStart ? 8.0f: 4.0f
+                walkSpeed
             );
 
             setWorldTransform(capsuleCollider->getWorldPosition(), capsuleCollider->getWorldRotation());

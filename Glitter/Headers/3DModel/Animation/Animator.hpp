@@ -36,6 +36,8 @@ public:
 		}
 	}
 
+	void HandlePlayedTypeForTransition();
+
 	void UpdateAnimation(
 		float dt,
 		std::map<std::string, BoneInfo> &boneInfoMap,
@@ -54,7 +56,11 @@ public:
 
 		if(blendSelection)
 		{
-			if(poseTransitionStarted)
+			currentPlayedType = 0;
+
+			HandlePlayedTypeForTransition();
+
+			if(bsPoseTransitionStarted)
 			{
 				transitionSourcePose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
 				currentTime1 = currentTime2 = currentTime3 = currentTime4 = 0.0f;
@@ -67,17 +73,18 @@ public:
 					bones,
 					globalInverseTransform);
 				transitionDestinationPose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
-				poseTransitionStarted = false;
-				poseTransitionInProgress = true;
+				bsPoseTransitionStarted = false;
+				bsPoseTransitionInProgress = true;
 			}
 
-			if (poseTransitionInProgress)
+			if (bsPoseTransitionInProgress)
 			{
 				onPoseTransitionInProgress(
 					node,
 					globalInverseTransform,
 					boneInfoMap,
-					globalInverseTransform
+					globalInverseTransform,
+					bsPoseTransitionInProgress
 				);
 			}	
 			else
@@ -95,7 +102,11 @@ public:
 		}
 		else if (m_CurrentAnimation)
 		{
-			if(poseTransitionStarted)
+			currentPlayedType = 1;
+
+			HandlePlayedTypeForTransition();
+
+			if(animPoseTransitionStarted)
 			{
 				//Here m_FinalBoneMatricesLocal will be from last pose.
 				transitionSourcePose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
@@ -111,25 +122,36 @@ public:
 					0.0f					
 				);
 				transitionDestinationPose = new std::vector<glm::mat4>(m_FinalBoneMatricesLocal);
-				poseTransitionStarted = false;
-				poseTransitionInProgress = true;
+				animPoseTransitionStarted = false;
+				animPoseTransitionInProgress = true;
 			}
 
 			
-			if (poseTransitionInProgress) 
+			if (animPoseTransitionInProgress)
 			{
 				onPoseTransitionInProgress(
 					node,
 					globalInverseTransform,
 					boneInfoMap,
-					globalInverseTransform
+					globalInverseTransform,
+					animPoseTransitionInProgress
 				);
 			}	
 			else
 			{
 				m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
-				m_ElapsedTime = m_CurrentTime;
-				m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+				if (m_LoopCurrentAnimation)
+				{
+					m_ElapsedTime = m_CurrentTime;
+					m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+				}
+				else
+				{
+					const float duration = m_CurrentAnimation->GetDuration();
+					if (m_CurrentTime > duration)
+						m_CurrentTime = duration;
+					m_ElapsedTime = m_CurrentTime;
+				}
 
 				CalculateBoneTransform(
 					node,
@@ -154,21 +176,30 @@ public:
 				globalInverseTransform,
 				m_CurrentTime);
 		}
+
+		lastPlayedType = currentPlayedType;
 	}
 
 	void onPoseTransitionInProgress(
 		const std::shared_ptr<AssimpNodeData> node,
 		glm::mat4 parentTransform,
 		std::map<std::string, BoneInfo> &boneInfoMap,
-		glm::mat4 &globalInverseTransform
+		glm::mat4 &globalInverseTransform,
+		bool& poseTransitionInProgress
 	);
 
 	void initNoLoopAnimation()
 	{
 		m_startTime = m_DeltaTime;
 		m_CurrentTime = 0.0f;
-		poseTransitionStarted = true;
-		poseTransitionInProgress = false;
+		m_ElapsedTime = 0.0f;
+		animPoseTransitionStarted = true;
+		animPoseTransitionInProgress = false;
+	}
+
+	void SetLoopCurrentAnimation(const bool shouldLoop)
+	{
+		m_LoopCurrentAnimation = shouldLoop;
 	}
 
 	void PlayAnimation(Animation* pAnimation)
@@ -296,8 +327,13 @@ public:
 
 	Animation* m_CurrentAnimation;
 
-	bool poseTransitionStarted = false;
-	bool poseTransitionInProgress = false;
+	int lastPlayedType = 0; // 0 means blendspace, 1 means animation;
+	int currentPlayedType = 0;
+
+	bool animPoseTransitionStarted = false;
+	bool animPoseTransitionInProgress = false;
+	bool bsPoseTransitionStarted = false;
+	bool bsPoseTransitionInProgress = false;
 	float currentTransitionTime = 0;
 	float maxTransitionDuration = 0.25;
 
@@ -309,6 +345,7 @@ public:
 
 	float m_CurrentTime;
 	float m_ElapsedTime;
+	bool m_LoopCurrentAnimation = true;
 
 	std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> timewarpmap; // pair{index of blendpoint, index of point blendpoint} like 1->3
 	

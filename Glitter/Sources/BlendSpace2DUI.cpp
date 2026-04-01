@@ -115,13 +115,26 @@ UI::Grid2DResult UI::ImGuiGrid2D(
             //Blendselection: points taken for blending in resultant animation.
             if (selection) {
                 char label[32];
-                float blendValue = -1.0f;
-                if (selection->bottomLeft  == &point) blendValue = selection->bottomLeftBlendFactor;
-                else if (selection->bottomRight == &point) blendValue = selection->bottomRightBlendFactor;
-                else if (selection->topLeft == &point) blendValue = selection->topLeftBlendFactor;
-                else if (selection->topRight == &point) blendValue = selection->topRightBlendFactor;
+                float blendValue = 0.0f;
+                bool hasContribution = false;
+                if (selection->bottomLeft  == &point) {
+                    blendValue += selection->bottomLeftBlendFactor;
+                    hasContribution = true;
+                }
+                if (selection->bottomRight == &point) {
+                    blendValue += selection->bottomRightBlendFactor;
+                    hasContribution = true;
+                }
+                if (selection->topLeft == &point) {
+                    blendValue += selection->topLeftBlendFactor;
+                    hasContribution = true;
+                }
+                if (selection->topRight == &point) {
+                    blendValue += selection->topRightBlendFactor;
+                    hasContribution = true;
+                }
 
-                if (blendValue >= 0.0f) {
+                if (hasContribution) {
                     snprintf(label, sizeof(label), "%.2f", blendValue);
                     ImVec2 textSize = ImGui::CalcTextSize(label);
                     ImVec2 textPos(screenPoint.x - textSize.x * 0.5f, screenPoint.y + pointRadius + 2.0f);

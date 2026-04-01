@@ -2,11 +2,35 @@
 #include <EngineState.hpp>
 #include <glm/glm.hpp>
 
+void Animator::HandlePlayedTypeForTransition()
+{
+    //Animation to blendspace
+    if (lastPlayedType == 1 && currentPlayedType == 0)
+    {
+        bsPoseTransitionInProgress = false;
+        bsPoseTransitionStarted = true;
+
+        animPoseTransitionInProgress = false;
+        animPoseTransitionStarted = false;
+    }
+
+    //Blendspace to animation
+    if (lastPlayedType == 0 && currentPlayedType == 1)
+    {
+        animPoseTransitionInProgress = false;
+        animPoseTransitionStarted = true;
+
+        bsPoseTransitionInProgress = false;
+        bsPoseTransitionStarted = false;
+    }
+}
+
 void Animator::onPoseTransitionInProgress(
     const std::shared_ptr<AssimpNodeData> node,
     glm::mat4 parentTransform,
     std::map<std::string, BoneInfo> &boneInfoMap,
-    glm::mat4 &globalInverseTransform
+    glm::mat4 &globalInverseTransform,
+    bool& poseTransitionInProgress
 )
 {
     currentTransitionTime += m_DeltaTime;
