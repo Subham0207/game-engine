@@ -104,11 +104,14 @@ void NodeGraph::drawUIEmbedded()
   // Capture per-frame input snapshot once; views should use renderCtx instead
   // of querying ImGui/ImNodes directly.
   renderCtx.mouseScreen = ImGui::GetMousePos();
-  renderCtx.editorHovered = ImNodes::IsEditorHovered();
-  renderCtx.leftClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-  renderCtx.leftDoubleClicked = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
-  renderCtx.leftDown = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-  renderCtx.leftReleased = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+  // ImNodes hover includes focused windows; require actual window hover to avoid
+  // click-through when multiple graph windows overlap.
+  const bool windowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+  renderCtx.editorHovered = windowHovered && ImNodes::IsEditorHovered();
+  renderCtx.leftClicked = renderCtx.editorHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  renderCtx.leftDoubleClicked = renderCtx.editorHovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+  renderCtx.leftDown = renderCtx.editorHovered && ImGui::IsMouseDown(ImGuiMouseButton_Left);
+  renderCtx.leftReleased = renderCtx.editorHovered && ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
   // Interaction ownership:
   // - Keep owner sticky while mouse is down

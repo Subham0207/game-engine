@@ -662,6 +662,9 @@ private:
         const ImVec2 mouse = ctx.mouseScreen;
         LinkHitResult r;
 
+        if (!ctx.editorHovered)
+            return r;
+
         for (auto& t : links)
         {
             ImVec2 pFrom, pTo;
@@ -707,6 +710,9 @@ private:
         // Begin interactions
         // - Click on port: drag that port (reconnect)
         // - Click on link: select + open popup for condition
+
+        if (!ctx.editorHovered)
+            return;
 
         const bool allow = ctx.interaction.canInteract(NodeGraphInteractionOwner::Other);
         if (allow && ctx.leftClicked)

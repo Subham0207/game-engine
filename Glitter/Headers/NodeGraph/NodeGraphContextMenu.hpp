@@ -41,7 +41,7 @@ public:
     void draw(NodeGraphRenderContext& ctx) override
     {
         const NodeGraphEditorSpace& cache = ctx.editorSpace;
-        const bool editorHovered = ImNodes::IsEditorHovered();
+        const bool editorHovered = ctx.editorHovered;
 
         int hoveredNode = -1;
         int hoveredLink = -1;
