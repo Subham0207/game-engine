@@ -92,21 +92,7 @@ namespace Flowscript::Compile
             }
         }
 
-        // Emit pure data expression nodes as local assignments in data dependency order.
-        const auto ordered = TopoSortDataNodes(graph_);
-        for (auto* node : ordered)
-        {
-            if (!node || node->hasExecInput() || node->hasExecOutput())
-                continue;
-
-            if (!IsExpressionNode(node->type()))
-                continue;
-
-            auto localAssign = std::make_unique<LocalAssignStmt>();
-            localAssign->variableName = NodeVarName(*node);
-            localAssign->value = CompileExpr(node);
-            result.statements.push_back(std::move(localAssign));
-        }
+        EmitDataAssignments(result);
 
         std::unordered_set<int> activeExecNodes;
         std::unordered_set<int> emittedExecNodes;
@@ -141,6 +127,25 @@ namespace Flowscript::Compile
 
         result.diagnostics = diagnostics_;
         return result;
+    }
+
+    void Compiler::EmitDataAssignments(CompileResult& result)
+    {
+        // Emit pure data expression nodes as local assignments in data dependency order.
+        const auto ordered = TopoSortDataNodes(graph_);
+        for (auto* node : ordered)
+        {
+            if (!node || node->hasExecInput() || node->hasExecOutput())
+                continue;
+
+            if (!IsExpressionNode(node->type()))
+                continue;
+
+            auto localAssign = std::make_unique<LocalAssignStmt>();
+            localAssign->variableName = NodeVarName(*node);
+            localAssign->value = CompileExpr(node);
+            result.statements.push_back(std::move(localAssign));
+        }
     }
 
     void Compiler::ValidateGraph(const std::vector<NodeGraphNodeLink>& links)

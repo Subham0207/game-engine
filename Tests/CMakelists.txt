@@ -7,7 +7,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 # Add the test executable and link it to the GlitterLib library
-add_executable(Test test.cpp)
+add_executable(Test
+        test.cpp
+        NodeGraph/FlowScript/Compile/compiler.cpp)
 
 target_include_directories(Test PRIVATE
         ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include
