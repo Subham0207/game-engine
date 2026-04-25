@@ -45,7 +45,7 @@ namespace Flowscript::Compile
         std::unique_ptr<Stmt> CompileExecStatement(NodeGraphNode* node,
                                                    std::unordered_set<int>& activeExecNodes,
                                                    std::unordered_set<int>& emittedExecNodes);
-        std::vector<std::unique_ptr<Stmt>> CompileExecChain(NodeGraphNode* start,
+        std::vector<std::unique_ptr<Stmt>> CompileExecChain(NodeGraphNode* current,
                                                             std::unordered_set<int>& activeExecNodes,
                                                             std::unordered_set<int>& emittedExecNodes);
     };

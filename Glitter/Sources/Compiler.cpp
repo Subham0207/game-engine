@@ -92,18 +92,24 @@ namespace Flowscript::Compile
             }
         }
 
+        //TODO: Instead of creating variable declarations for pure data node we should just use the value directly at usage site.
+        //This will help simplify the AST creation logic.
         EmitDataAssignments(result);
 
+        // activeExecNodes: nodes currently in recursion stack (used for cycle detection).
         std::unordered_set<int> activeExecNodes;
+        // emittedExecNodes: nodes already compiled/emitted (used to avoid duplicates across passes/paths).
         std::unordered_set<int> emittedExecNodes;
 
-        // Start from execution roots first.
+        // Root pass:
+        // Compile from exec entry points (indegree == 0) so primary flows are emitted first.
         for (auto* node : graph_.allNodes)
         {
             if (!node || !(node->hasExecInput() || node->hasExecOutput()))
                 continue;
 
             const auto indegreeIt = graph_.execIndegree.find(node);
+            //the root node is the one which has not incoming execution flow node.
             if (indegreeIt != graph_.execIndegree.end() && indegreeIt->second == 0)
             {
                 auto chain = CompileExecChain(node, activeExecNodes, emittedExecNodes);
@@ -112,7 +118,9 @@ namespace Flowscript::Compile
             }
         }
 
-        // Emit any disconnected exec components as well.
+        // Fallback pass:
+        // Compile any remaining exec nodes that were not reached from roots
+        // (disconnected subgraphs, unusual wiring, etc.).
         for (auto* node : graph_.allNodes)
         {
             if (!node || !(node->hasExecInput() || node->hasExecOutput()))
@@ -395,6 +403,8 @@ namespace Flowscript::Compile
                     fn->parameters.push_back(std::move(paramName));
                 }
 
+                // Function case: first recursion builds function body.
+                // Outer recursion tries again, but quickly no-ops due to emittedExecNodes.
                 const auto next = GetExecNextNodes(graph_, node);
                 for (auto* child : next)
                 {
@@ -443,25 +453,27 @@ namespace Flowscript::Compile
         return stmt;
     }
 
-    std::vector<std::unique_ptr<Stmt>> Compiler::CompileExecChain(NodeGraphNode* start,
+    std::vector<std::unique_ptr<Stmt>> Compiler::CompileExecChain(NodeGraphNode* current,
                                                                    std::unordered_set<int>& activeExecNodes,
                                                                    std::unordered_set<int>& emittedExecNodes)
     {
         std::vector<std::unique_ptr<Stmt>> chain;
-        if (!start)
+        if (!current)
             return chain;
 
-        if (emittedExecNodes.find(start->id()) != emittedExecNodes.end())
+        // If current->id() is found in emittedExecNodes, this node was already emitted, so return early.
+        if (emittedExecNodes.find(current->id()) != emittedExecNodes.end())
             return chain;
 
-        auto stmt = CompileExecStatement(start, activeExecNodes, emittedExecNodes);
+        auto stmt = CompileExecStatement(current, activeExecNodes, emittedExecNodes);
         if (stmt)
             chain.push_back(std::move(stmt));
 
-        if (start->type() == NodeTypes::Return)
+        if (current->type() == NodeTypes::Return)
             return chain;
 
-        const auto nextNodes = GetExecNextNodes(graph_, start);
+        // Recursively call compileExeChain on child exec nodes.
+        const auto nextNodes = GetExecNextNodes(graph_, current);
         for (auto* next : nextNodes)
         {
             auto child = CompileExecChain(next, activeExecNodes, emittedExecNodes);
