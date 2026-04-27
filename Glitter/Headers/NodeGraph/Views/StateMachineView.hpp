@@ -74,17 +74,9 @@ public:
 
         if (ctx.editorHovered)
         {
-            int hoveredNode = -1;
-            int hoveredLink = -1;
-            int hoveredPin = -1;
-            (void)ImNodes::IsNodeHovered(&hoveredNode);
-            (void)ImNodes::IsLinkHovered(&hoveredLink);
-            (void)ImNodes::IsPinHovered(&hoveredPin);
-
-            int activeAttribute = -1;
-            const bool anyAttributeActive = ImNodes::IsAnyAttributeActive(&activeAttribute);
-            const bool hoveringImNodesElement = (hoveredNode != -1) || (hoveredLink != -1) || (hoveredPin != -1);
-            if (hoveringImNodesElement || anyAttributeActive)
+            const bool hoveringImNodesElement =
+                (ctx.hoveredNodeId != -1) || (ctx.hoveredLinkId != -1) || (ctx.hoveredPinId != -1);
+            if (hoveringImNodesElement || ctx.anyAttributeActive)
                 ctx.interaction.tryClaim(NodeGraphInteractionOwner::ImNodes, 10);
         }
 

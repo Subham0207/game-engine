@@ -98,6 +98,14 @@ struct NodeGraphRenderContext
 	bool leftReleased = false;
 	ImVec2 mouseScreen{0.0f, 0.0f};
 
+	// Cached ImNodes query results. These are updated by NodeGraph after
+	// ImNodes::EndNodeEditor() and consumed by views in the next frame.
+	int hoveredNodeId = -1;
+	int hoveredLinkId = -1;
+	int hoveredPinId = -1;
+	int activeAttributeId = -1;
+	bool anyAttributeActive = false;
+
 	// Exclusive input/interaction ownership across views.
 	NodeGraphInteractionState interaction;
 

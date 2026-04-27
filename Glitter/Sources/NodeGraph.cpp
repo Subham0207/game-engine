@@ -136,6 +136,17 @@ void NodeGraph::drawUIEmbedded()
     ImNodes::MiniMap(0.2f, ImNodesMiniMapLocation_BottomRight);
     ImNodes::EndNodeEditor();
 
+    // ImNodes hover/selection query APIs are only valid after EndNodeEditor().
+    renderCtx.hoveredNodeId = -1;
+    renderCtx.hoveredLinkId = -1;
+    renderCtx.hoveredPinId = -1;
+    renderCtx.activeAttributeId = -1;
+    renderCtx.anyAttributeActive = false;
+    (void)ImNodes::IsNodeHovered(&renderCtx.hoveredNodeId);
+    (void)ImNodes::IsLinkHovered(&renderCtx.hoveredLinkId);
+    (void)ImNodes::IsPinHovered(&renderCtx.hoveredPinId);
+    renderCtx.anyAttributeActive = ImNodes::IsAnyAttributeActive(&renderCtx.activeAttributeId);
+
     int startAttr = -1;
     int endAttr = -1;
     if (ImNodes::IsLinkCreated(&startAttr, &endAttr))

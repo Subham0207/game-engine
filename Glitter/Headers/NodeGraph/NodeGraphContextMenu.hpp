@@ -43,11 +43,7 @@ public:
         const NodeGraphEditorSpace& cache = ctx.editorSpace;
         const bool editorHovered = ctx.editorHovered;
 
-        int hoveredNode = -1;
-        int hoveredLink = -1;
-        (void)ImNodes::IsNodeHovered(&hoveredNode);
-        (void)ImNodes::IsLinkHovered(&hoveredLink);
-        const bool hoveringNodeOrLink = (hoveredNode != -1) || (hoveredLink != -1);
+        const bool hoveringNodeOrLink = (ctx.hoveredNodeId != -1) || (ctx.hoveredLinkId != -1);
 
         if (editorHovered && !hoveringNodeOrLink && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
         {
