@@ -1,5 +1,10 @@
 # FlowScript AST Unification Plan
 
+## Document-Wide Rules
+
+- At first mention, every new term or class name must include a one-line plain-language meaning.
+- Decisions already recorded in this plan are fixed unless the user explicitly approves a change.
+
 ## Goal
 
 Unify FlowScript compile and decompile around one common AST so both directions share the same semantics, reduce duplicated logic, and support additional target languages more easily.
