@@ -5,14 +5,15 @@
 #include <unordered_map>
 #include <vector>
 
-#include "NodeGraph/Components/NodeGraphNodeLink.hpp"
 #include "NodeGraph/Components/NodeGraphNode.hpp"
+#include "NodeGraph/Components/NodeGraphNodeLink.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Boolean.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
 #include "NodeGraph/FlowScript/Compile/Compiler.hpp"
+#include "NodeGraph/FlowScript/Compile/IntermediateRepresentation/Expression.hpp"
 #include "NodeGraph/FlowScript/Compile/IntermediateRepresentation/Statement.hpp"
 
 using Flowscript::Compile::BoolExpr;
@@ -22,21 +23,15 @@ using Flowscript::Compile::LocalAssignStmt;
 using Flowscript::Compile::NumberExpr;
 using Flowscript::Compile::PrintStmt;
 using Flowscript::Compile::ReturnStmt;
+using Flowscript::Compile::VariableExpr;
 using NodeGraphComponents::Node::Boolean;
 using NodeGraphComponents::Node::Integer;
 using NodeGraphComponents::Node::Keywords::Function;
 using NodeGraphComponents::Node::Keywords::Print;
 using NodeGraphComponents::Node::Keywords::Return;
 
-TEST(CompilerEmitPureDataExpressionAssignments, EmitsDataExpressionAssignments)
+TEST(CompilerEmitPureDataExpressionAssignments, shouldEmitDataExpressionAssignments)
 {
-    // Example input graph for this test:
-    //   Integer(id=101, value="42")   Boolean(id=202, value="true")
-    //   (no links, no exec flow)
-    // Expected compile output includes:
-    //   local node_101 = 42
-    //   local node_202 = true
-
     int nextOutputPinId = 1;
 
     std::vector<std::unique_ptr<NodeGraphNode>> nodes;
@@ -55,7 +50,6 @@ TEST(CompilerEmitPureDataExpressionAssignments, EmitsDataExpressionAssignments)
     Compiler compiler;
     const auto result = compiler.Compile(nodes, links);
 
-    // Keep only local assignments so we can assert by variable name.
     std::unordered_map<std::string, const LocalAssignStmt*> assignByVar;
     for (const auto& stmt : result.statements)
     {
@@ -81,12 +75,8 @@ TEST(CompilerEmitPureDataExpressionAssignments, EmitsDataExpressionAssignments)
     EXPECT_TRUE(result.diagnostics.empty());
 }
 
-TEST(CompilerCompileExecChain, EmitsExecChainInsideFunctionBody)
+TEST(CompilerCompileExecChain, shouldEmitExecChainInsideFunctionBody)
 {
-    // Example exec graph:
-    //   Function(start) --exec--> Print(1) --exec--> Print(2)
-    // Data for both prints comes from Function output pin "x".
-
     int nextInputPinId = 1000;
     int nextOutputPinId = 1;
 
@@ -126,11 +116,8 @@ TEST(CompilerCompileExecChain, EmitsExecChainInsideFunctionBody)
     EXPECT_NE(dynamic_cast<const PrintStmt*>(functionStmt->body[1].get()), nullptr);
 }
 
-TEST(CompilerCompileExecChain, DoesNotDuplicateAlreadyEmittedExecNodes)
+TEST(CompilerCompileExecChain, shouldNotDuplicateAlreadyEmittedExecNodes)
 {
-    // This validates emittedExecNodes behavior: Print should be emitted once in
-    // Function body, and not re-emitted in the disconnected-components pass.
-
     int nextInputPinId = 2000;
     int nextOutputPinId = 1;
 
@@ -170,3 +157,52 @@ TEST(CompilerCompileExecChain, DoesNotDuplicateAlreadyEmittedExecNodes)
     EXPECT_NE(dynamic_cast<const ReturnStmt*>(functionStmt->body[1].get()), nullptr);
 }
 
+TEST(CompilerCompileResultStatements, shouldKeepTopLevelStatementsLinearAndNestedExecInsideFunctionBody)
+{
+    int nextInputPinId = 1000;
+    int nextOutputPinId = 1;
+
+    auto integerNode = std::make_unique<Integer>(nextOutputPinId, 101, "Integer");
+    integerNode->outputs()[0].setValue("42");
+
+    auto functionNode = std::make_unique<Function>(nextOutputPinId, std::vector<std::string>{"x"}, 10, "Function");
+    auto printNode = std::make_unique<Print>(nextInputPinId, nextOutputPinId, 20, "Print");
+
+    NodeGraphNode* fn = functionNode.get();
+    NodeGraphNode* print = printNode.get();
+
+    std::vector<std::unique_ptr<NodeGraphNode>> nodes;
+    nodes.push_back(std::move(integerNode));
+    nodes.push_back(std::move(functionNode));
+    nodes.push_back(std::move(printNode));
+
+    std::vector<NodeGraphNodeLink> links;
+    int nextLinkId = 1;
+    links.emplace_back(nextLinkId++, fn->getExecOutput()->getId(), print->getExecInput()->getId());
+    links.emplace_back(nextLinkId++, fn->outputs()[0].getId(), print->inputs()[0].getId());
+
+    Compiler compiler;
+    const auto result = compiler.Compile(nodes, links);
+
+    ASSERT_TRUE(result.diagnostics.empty());
+    ASSERT_EQ(result.statements.size(), 2u);
+
+    const auto* topLevelAssign = dynamic_cast<const LocalAssignStmt*>(result.statements[0].get());
+    ASSERT_NE(topLevelAssign, nullptr);
+    EXPECT_EQ(topLevelAssign->variableName, "node_101");
+
+    const auto* topLevelAssignValue = dynamic_cast<const NumberExpr*>(topLevelAssign->value.get());
+    ASSERT_NE(topLevelAssignValue, nullptr);
+    EXPECT_EQ(topLevelAssignValue->value, "42");
+
+    const auto* topLevelFunction = dynamic_cast<const FunctionStmt*>(result.statements[1].get());
+    ASSERT_NE(topLevelFunction, nullptr);
+    ASSERT_EQ(topLevelFunction->body.size(), 1u);
+
+    const auto* printStmt = dynamic_cast<const PrintStmt*>(topLevelFunction->body[0].get());
+    ASSERT_NE(printStmt, nullptr);
+
+    const auto* printValue = dynamic_cast<const VariableExpr*>(printStmt->value.get());
+    ASSERT_NE(printValue, nullptr);
+    EXPECT_EQ(printValue->name, "x");
+}
