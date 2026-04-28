@@ -10,7 +10,9 @@ FetchContent_MakeAvailable(googletest)
 add_executable(Test
         test.cpp
         NodeGraph/NodeGraph.test.cpp
-        NodeGraph/FlowScript/Compile/Compiler.test.cpp)
+        NodeGraph/FlowScript/Compile/Compiler.test.cpp
+        NodeGraph/FlowScript/Compile/Ast.test.cpp
+)
 
 target_include_directories(Test PRIVATE
         ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include
