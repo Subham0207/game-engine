@@ -20,5 +20,11 @@ target_include_directories(Test PRIVATE
 
 target_link_libraries(Test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GlitterLib)
 
+# Copy the Lua DLL to the test output directory
+add_custom_command(TARGET Test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${LUA_DLL}"
+        "$<TARGET_FILE_DIR:Test>/")
+
 # Add test target
 add_test(NAME GlitterTests COMMAND Test)
