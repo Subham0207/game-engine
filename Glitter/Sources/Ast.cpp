@@ -11,11 +11,11 @@ Flowscript::Compile::Ast::Ast(
 )
 {
     // using Nodes and links we build the AST
-    //Start from the node where no inputExec exists.
+    // Start from exec root nodes (no exec input, has exec output).
     std::vector<NodeGraphNode*> rootNodes;
     for (const auto& node: nodes)
     {
-        if (node->getExecInput() == nullptr)
+        if (node->hasExecOutput() && !node->hasExecInput())
         {
             rootNodes.push_back(node.get());
         }
@@ -23,10 +23,11 @@ Flowscript::Compile::Ast::Ast(
 
     for (const auto& node: rootNodes)
     {
-        //Construct Tree for this rootNode...
+        // Construct tree for this root node.
         auto root = std::make_unique<AstNode>();
-        programRoot.emplace_back(std::move(root));
-        recurse(root.get(), node, nodes, links);
+        root->type = node->name();
+        programRoot.push_back(std::move(root));
+        recurse(programRoot.back().get(), node, nodes, links);
     }
 }
 
@@ -37,26 +38,35 @@ void Flowscript::Compile::Ast::recurse(
     const std::vector<NodeGraphNodeLink>& links
 )
 {
+    if (current == nullptr || currentNode == nullptr || !currentNode->hasExecOutput())
+    {
+        return;
+    }
     //look for a link that starts from this node's execOutput
+    auto endExecNodeAttr = -1;
     for (const auto& link: links)
     {
         //using the link find which is the end node exec flow attaches to.
-        auto endExecNodeAttr = -1;
-        if (link.startAttr() == currentNode->getExecOutput()->getId())
+        if (currentNode->hasExecOutput() && link.startAttr() == currentNode->getExecOutput()->getId())
         {
             endExecNodeAttr = link.endAttr();
             break;
         }
+    }
 
-        //find the nodeGraphNode for this endNodeAttr
-        for (const auto& node: nodes)
+    //find the nodeGraphNode for this endNodeAttr
+    for (const auto& node: nodes)
+    {
+        if (node->hasExecInput() && node->getExecInput()->getId() == endExecNodeAttr)
         {
-            if (node->getExecInput()->getId() == endExecNodeAttr)
-            {
-                auto child = new AstNode();
-                current->children.push_back(child);
-                recurse(child, node.get(), nodes, links);
-            }
+            auto child = std::make_unique<AstNode>();
+            child->type = node->name();
+            current->children.push_back(std::move(child));
+            recurse(
+                current->children.back().get()
+                , node.get()
+                , nodes
+                , links);
         }
     }
 }

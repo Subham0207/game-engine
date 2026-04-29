@@ -15,7 +15,7 @@ namespace Flowscript::Compile
     struct AstNode
     {
         std::string type;
-        std::vector<AstNode*> children;
+        std::vector<std::unique_ptr<AstNode>> children;
     };
 
     class Ast

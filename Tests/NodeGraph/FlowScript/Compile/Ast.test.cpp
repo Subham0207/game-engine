@@ -30,6 +30,7 @@ using NodeGraphComponents::Node::Keywords::Return;
 
 TEST(Ast, shouldCreateTree)
 {
+    // function node -> print node -> return node.
     int nextInputPinId = 1000;
     int nextOutputPinId = 1;
     int nextLinkId = 1;
@@ -52,7 +53,21 @@ TEST(Ast, shouldCreateTree)
     links.emplace_back(nextLinkId++, print->getExecOutput()->getId(), ret->getExecInput()->getId());
 
     const Flowscript::Compile::Ast ast(nodes, links);
-    EXPECT_EQ(ast.programRoot.size(), 1u);
+    ASSERT_EQ(ast.programRoot.size(), 1u);
+
+    const auto* rootNode = ast.programRoot[0].get();
+    ASSERT_NE(rootNode, nullptr);
+    EXPECT_EQ(rootNode->type, "Function");
+
+    ASSERT_EQ(rootNode->children.size(), 1u);
+    const auto* printAstNode = rootNode->children[0].get();
+    ASSERT_NE(printAstNode, nullptr);
+    EXPECT_EQ(printAstNode->type, "Print");
+
+    ASSERT_EQ(printAstNode->children.size(), 1u);
+    const auto* returnAstNode = printAstNode->children[0].get();
+    ASSERT_NE(returnAstNode, nullptr);
+    EXPECT_EQ(returnAstNode->type, "Return");
 }
 
 // TEST(Ast, shouldCreateTreeFromNodesAndLinks)
