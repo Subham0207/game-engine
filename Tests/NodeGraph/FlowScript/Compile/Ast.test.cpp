@@ -22,6 +22,7 @@ using NodeGraphComponents::Node::Keywords::Function;
 using NodeGraphComponents::Node::Keywords::Print;
 using NodeGraphComponents::Node::Keywords::Return;
 using NodeGraphComponents::NodeGraphNodeFactory;
+using NodeGraphComponents::NodeGraphIdAllocator;
 
 TEST(Ast, shouldCreateTree)
 {
@@ -31,12 +32,14 @@ TEST(Ast, shouldCreateTree)
     std::vector<std::unique_ptr<NodeGraphNode>> nodes;
     std::vector<NodeGraphNodeLink> links;
 
-    auto nodeGraphFactory = new NodeGraphNodeFactory();
+    auto nodeGraphIdAllocator = new NodeGraphIdAllocator();
+    auto nodeGraphFactory = new NodeGraphNodeFactory(nodeGraphIdAllocator);
 
     auto fn = nodeGraphFactory->addFunctionNode(nodes, std::vector<std::string>{"x"});
     auto print = nodeGraphFactory->addNode(nodes, NodeTypes::Print);
     auto ret = nodeGraphFactory->addNode(nodes, NodeTypes::Return);
 
+    //TODO: add simple functions for test to attach exec flow nodes.
     links.emplace_back(nextLinkId++, fn->getExecOutputId(), print->getExecInputId());
     links.emplace_back(nextLinkId++, print->getExecOutputId(), ret->getExecInputId());
 
@@ -63,11 +66,10 @@ TEST(Ast, shouldCreateTreeFromNodesAndLinks)
     std::vector<std::unique_ptr<NodeGraphNode>> nodes;
 
     //c = a + b;
-    int nextInputPinId = 1000;
-    int nextOutputPinId = 1;
     int nextLinkId = 1;
 
-    auto nodeGraphFactory = new NodeGraphNodeFactory();
+    auto nodeGraphIdAllocator = new NodeGraphComponents::NodeGraphIdAllocator();
+    auto nodeGraphFactory = new NodeGraphNodeFactory(nodeGraphIdAllocator);
 
     // literals
     auto integer1 = nodeGraphFactory->addNode(nodes, NodeTypes::Integer);

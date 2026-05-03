@@ -18,11 +18,11 @@ namespace NodeGraphComponents
     class NodeGraphNodeFactory
     {
     private:
-        std::unique_ptr<NodeGraphIdAllocator> _nodeGraphIdAllocator;
+        NodeGraphIdAllocator* _nodeGraphIdAllocator;
     public:
-        NodeGraphNodeFactory()
+        explicit NodeGraphNodeFactory(NodeGraphIdAllocator* nodeGraphIdAllocator)
         {
-            _nodeGraphIdAllocator = std::make_unique<NodeGraphIdAllocator>();
+            _nodeGraphIdAllocator = nodeGraphIdAllocator;
         }
         NodeGraphNode* addNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes, NodeTypes type, const ImVec2& spawnPosScreen = {0.0f,0.0f});
         NodeGraphNode* addFunctionNode(

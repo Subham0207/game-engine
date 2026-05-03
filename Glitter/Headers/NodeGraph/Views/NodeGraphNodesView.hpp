@@ -11,9 +11,10 @@
 #include <imnodes.h>
 #include "../Components/NodeGraphNode.hpp"
 #include "../Components/NodeGraphNodeLink.hpp"
-#include "../NodeGraphIdRanges.hpp"
 #include "INodeGraphView.hpp"
 #include "../NodeGraphRenderContext.hpp"
+#include "NodeGraph/Components/NodeGraphIdAllocator.hpp"
+#include "NodeGraph/Components/NodeGraphNodeFactory.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/NodeTypes.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/EqualsTo.hpp"
@@ -37,88 +38,44 @@ using GenericTypeNode = NodeGraphComponents::Node::GenericType;
 using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
 using PrintNode = NodeGraphComponents::Node::Keywords::Print;
 using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
+using NodeGraphComponents::NodeGraphIdAllocator;
+using NodeGraphComponents::NodeGraphNodeFactory;
 
 class NodeGraphNodesView final : public INodeGraphView
 {
 public:
     [[nodiscard]] NodeGraphLayer layer() const override { return NodeGraphLayer::Content; }
 
+    NodeGraphNodesView(): idAllocator(), nodeFactory(&idAllocator)
+    {
+    }
+
     // Model mutation API (called by menu/tools). Keeping it here makes it easy to
     // add new element types with their own ID allocation logic.
-    int nextNodeId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode);
-	int nextLinkId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeLink);
-    int nextInputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeInputAttribute);
-    int nextOutputPinId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeOutputAttribute);
+    NodeGraphIdAllocator idAllocator;
+    NodeGraphNodeFactory nodeFactory;
 
     NodeGraphNode* addFunctionNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
                                    const std::vector<std::string>& argumentNames,
                                    const ImVec2& spawnPosScreen)
     {
         auto n = std::make_unique<FunctionNode>(
-            nextOutputPinId,
+            idAllocator.nextOutputPinId,
             argumentNames,
-            nextNodeId++,
+            idAllocator.nextNodeId++,
             "Function",
             spawnPosScreen.x,
             spawnPosScreen.y
         );
 
         n->setSpawnPosScreen(spawnPosScreen);
-        NodeGraphNode* raw = n.get();
         nodes.push_back(std::move(n));
-        return raw;
+        return nodes.back().get();
     }
 
     void addNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes, NodeTypes type, const ImVec2& spawnPosScreen)
     {
-        std::unique_ptr<NodeGraphNode> n;
-        if (type == NodeTypes::Add)
-        {
-            n = std::make_unique<AddNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Add", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::Subtract)
-        {
-            n = std::make_unique<SubtractNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Subtract", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::GreaterThan)
-        {
-            n = std::make_unique<GreaterThanNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "GreaterThan", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::EqualsTo)
-        {
-            n = std::make_unique<EqualsToNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "EqualsTo", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::NotEqualsTo)
-        {
-            n = std::make_unique<NotEqualsToNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "NotEqualsTo", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::Integer)
-        {
-            n = std::make_unique<IntegerNode>(nextOutputPinId, nextNodeId++, "Integer", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::Boolean)
-        {
-            n = std::make_unique<BooleanNode>(nextOutputPinId, nextNodeId++, "Boolean", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::Function)
-        {
-            n = std::make_unique<FunctionNode>(nextOutputPinId, std::vector<std::string>{"t"}, nextNodeId++, "Function", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::Print)
-        {
-            n = std::make_unique<PrintNode>(nextInputPinId, nextOutputPinId, nextNodeId++, "Print", spawnPosScreen.x, spawnPosScreen.y);
-        }
-        if (type == NodeTypes::Return)
-        {
-            n = std::make_unique<ReturnNode>(nextInputPinId, nextNodeId++, "Return", spawnPosScreen.x, spawnPosScreen.y);
-        }
-
-
-        if (n)
-        {
-            n->setSpawnPosScreen(spawnPosScreen);
-            nodes.push_back(std::move(n));
-        }
+        nodeFactory.addNode(nodes, type, spawnPosScreen);
     }
 
     void addGenericTypeNode(std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
@@ -133,11 +90,11 @@ public:
         const bool asDestructuringNode = (objectName == "t");
 
         auto n = std::make_unique<GenericTypeNode>(
-            nextInputPinId,
-            nextOutputPinId,
+            idAllocator.nextInputPinId,
+            idAllocator.nextOutputPinId,
             members,
             asDestructuringNode,
-            nextNodeId++,
+            idAllocator.nextNodeId++,
             title,
             spawnPosScreen.x,
             spawnPosScreen.y
@@ -155,7 +112,7 @@ public:
       if (l.startAttr() == startAttr && l.endAttr() == endAttr)
         return;
     }
-		links.emplace_back(nextLinkId++, startAttr, endAttr);
+		links.emplace_back(idAllocator.nextLinkId++, startAttr, endAttr);
 	}
 
     void draw(NodeGraphRenderContext& ctx) override

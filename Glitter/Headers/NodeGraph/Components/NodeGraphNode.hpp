@@ -61,8 +61,8 @@ public:
     bool hasExecInput() const { return executionFlowIn != nullptr; }
     bool hasExecOutput() const { return executionFlowOut != nullptr; }
 
-    NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
-    NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
+    [[nodiscard]] NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
+    [[nodiscard]] NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
 
     [[nodiscard]] int getExecInputId() const { return executionFlowIn ? executionFlowIn->getId() : -1; }
     [[nodiscard]] int getExecOutputId() const { return executionFlowOut ? executionFlowOut->getId(): -1; }

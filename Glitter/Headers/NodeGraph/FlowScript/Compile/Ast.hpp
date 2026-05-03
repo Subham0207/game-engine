@@ -15,7 +15,9 @@ namespace Flowscript::Compile
     struct AstNode
     {
         std::string type;
-        std::vector<std::unique_ptr<AstNode>> children;// Let's start with placing exec flow nodes and data flow nodes in same children array.
+        // Better is to have inputDataChildrens, outputDataChildrens, inputExecutionFlow, outputExecutionFlows (serialized sequentially).
+        // This is because there is order of serialization into Lua code for these properties. we cannot have them sequentially under one array.
+        std::vector<std::unique_ptr<AstNode>> children;
     };
 
     class Ast
