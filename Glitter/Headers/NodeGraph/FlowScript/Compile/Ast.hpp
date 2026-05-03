@@ -15,9 +15,13 @@ namespace Flowscript::Compile
     struct AstNode
     {
         std::string type;
-        // Better is to have inputDataChildrens, outputDataChildrens, inputExecutionFlow, outputExecutionFlows (serialized sequentially).
+        // inputDataChildrens, outputDataChildrens, inputExecutionFlow, outputExecutionFlows (serialized sequentially).
         // This is because there is order of serialization into Lua code for these properties. we cannot have them sequentially under one array.
-        std::vector<std::unique_ptr<AstNode>> children;
+        std::vector<std::unique_ptr<AstNode>> inputDataChildrens;
+        std::vector<std::unique_ptr<AstNode>> outputExecutionFlows;
+        // Below are backwards link...
+        std::vector<std::unique_ptr<AstNode>> outputDataChildrens;
+        std::unique_ptr<AstNode> inputExecutionFlow;
     };
 
     class Ast

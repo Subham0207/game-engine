@@ -51,7 +51,7 @@ namespace Flowscript::Compile
             //build a tree from this attribute...
             auto ast = recurseForDataValue(input.getId(), nodes, links);
             if (ast)
-                current->children.push_back(std::move(ast));
+                current->inputDataChildrens.push_back(std::move(ast));
         }
 
         //look for a link that starts from this node's execOutput
@@ -73,9 +73,9 @@ namespace Flowscript::Compile
             {
                 auto child = std::make_unique<AstNode>();
                 child->type = node->name();
-                current->children.push_back(std::move(child));
+                current->outputExecutionFlows.push_back(std::move(child));
                 recurse(
-                    current->children.back().get()
+                    current->outputExecutionFlows.back().get()
                     , node.get()
                     , nodes
                     , links);
@@ -128,7 +128,7 @@ namespace Flowscript::Compile
         {
             auto ast = recurseForDataValue(input.getId(), nodes, links);
             if (ast)
-                currentAstNode->children.push_back(std::move(ast));
+                currentAstNode->inputDataChildrens.push_back(std::move(ast));
         }
 
         return currentAstNode;

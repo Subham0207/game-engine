@@ -50,13 +50,13 @@ TEST(Ast, shouldCreateTree)
     ASSERT_NE(rootNode, nullptr);
     EXPECT_EQ(rootNode->type, "Function");
 
-    ASSERT_EQ(rootNode->children.size(), 1u);
-    const auto* printAstNode = rootNode->children[0].get();
+    ASSERT_EQ(rootNode->outputExecutionFlows.size(), 1u);
+    const auto* printAstNode = rootNode->outputExecutionFlows[0].get();
     ASSERT_NE(printAstNode, nullptr);
     EXPECT_EQ(printAstNode->type, "Print");
 
-    ASSERT_EQ(printAstNode->children.size(), 1u);
-    const auto* returnAstNode = printAstNode->children[0].get();
+    ASSERT_EQ(printAstNode->outputExecutionFlows.size(), 1u);
+    const auto* returnAstNode = printAstNode->outputExecutionFlows[0].get();
     ASSERT_NE(returnAstNode, nullptr);
     EXPECT_EQ(returnAstNode->type, "Return");
 }
@@ -96,14 +96,14 @@ TEST(Ast, shouldCreateTreeFromNodesAndLinks)
     ASSERT_NE(rootNode, nullptr);
     EXPECT_EQ(rootNode->type, "Print");
 
-    ASSERT_EQ(rootNode->children.size(), 1u);
-    const auto* equalsToNode = rootNode->children[0].get();
+    ASSERT_EQ(rootNode->inputDataChildrens.size(), 1u);
+    const auto* equalsToNode = rootNode->inputDataChildrens[0].get();
     ASSERT_NE(equalsToNode, nullptr);
     EXPECT_EQ(equalsToNode->type, "EqualsTo");
 
-    ASSERT_EQ(equalsToNode->children.size(), 2u);
-    const auto* integer1_ast = equalsToNode->children[0].get();
-    const auto* integer2_ast = equalsToNode->children[1].get();
+    ASSERT_EQ(equalsToNode->inputDataChildrens.size(), 2u);
+    const auto* integer1_ast = equalsToNode->inputDataChildrens[0].get();
+    const auto* integer2_ast = equalsToNode->inputDataChildrens[1].get();
 
     //TODO: update type checking here...
     ASSERT_NE(integer1_ast, nullptr);
