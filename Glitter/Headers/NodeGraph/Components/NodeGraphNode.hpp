@@ -64,6 +64,9 @@ public:
     NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
     NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
 
+    [[nodiscard]] int getExecInputId() const { return executionFlowIn ? executionFlowIn->getId() : -1; }
+    [[nodiscard]] int getExecOutputId() const { return executionFlowOut ? executionFlowOut->getId(): -1; }
+
     virtual NodeTypes type() = 0;
 
 private:

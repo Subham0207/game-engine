@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <NodeGraph/FlowScript/Compile/Ast.hpp>
 
+#include "NodeGraph/Components/NodeGraphNodeFactory.hpp"
 #include "NodeGraph/Components/NodeGraphNodeLink.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/EqualsTo.hpp"
@@ -20,30 +21,24 @@ using NodeGraphComponents::Node::EqualsTo;
 using NodeGraphComponents::Node::Keywords::Function;
 using NodeGraphComponents::Node::Keywords::Print;
 using NodeGraphComponents::Node::Keywords::Return;
+using NodeGraphComponents::NodeGraphNodeFactory;
 
 TEST(Ast, shouldCreateTree)
 {
     // function node -> print node -> return node.
-    int nextInputPinId = 1000;
-    int nextOutputPinId = 1;
     int nextLinkId = 1;
 
-    auto functionNode = std::make_unique<Function>(nextOutputPinId, std::vector<std::string>{"x"}, 10, "Function");
-    auto printNode = std::make_unique<Print>(nextInputPinId, nextOutputPinId, 20, "Print");
-    auto returnNode = std::make_unique<Return>(nextInputPinId, 30, "Return");
-
-    NodeGraphNode* fn = functionNode.get();
-    NodeGraphNode* print = printNode.get();
-    NodeGraphNode* ret = returnNode.get();
-
     std::vector<std::unique_ptr<NodeGraphNode>> nodes;
-    nodes.push_back(std::move(functionNode));
-    nodes.push_back(std::move(printNode));
-    nodes.push_back(std::move(returnNode));
-
     std::vector<NodeGraphNodeLink> links;
-    links.emplace_back(nextLinkId++, fn->getExecOutput()->getId(), print->getExecInput()->getId());
-    links.emplace_back(nextLinkId++, print->getExecOutput()->getId(), ret->getExecInput()->getId());
+
+    auto nodeGraphFactory = new NodeGraphNodeFactory();
+
+    auto fn = nodeGraphFactory->addFunctionNode(nodes, std::vector<std::string>{"x"});
+    auto print = nodeGraphFactory->addNode(nodes, NodeTypes::Print);
+    auto ret = nodeGraphFactory->addNode(nodes, NodeTypes::Return);
+
+    links.emplace_back(nextLinkId++, fn->getExecOutputId(), print->getExecInputId());
+    links.emplace_back(nextLinkId++, print->getExecOutputId(), ret->getExecInputId());
 
     const Flowscript::Compile::Ast ast(nodes, links);
     ASSERT_EQ(ast.programRoot.size(), 1u);
@@ -72,29 +67,25 @@ TEST(Ast, shouldCreateTreeFromNodesAndLinks)
     int nextOutputPinId = 1;
     int nextLinkId = 1;
 
+    auto nodeGraphFactory = new NodeGraphNodeFactory();
+
     // literals
-    auto integer1 = std::make_unique<Integer>(nextOutputPinId, 101, "Integer1");
+    auto integer1 = nodeGraphFactory->addNode(nodes, NodeTypes::Integer);
     integer1->outputs()[0].setValue("1");
 
-    auto integer2 = std::make_unique<Integer>(nextOutputPinId, 102, "Integer2");
+    auto integer2 = nodeGraphFactory->addNode(nodes, NodeTypes::Integer);
     integer2->outputs()[0].setValue("2");
 
     // comparison node (needs BOTH counters)
-    auto equals = std::make_unique<EqualsTo>(nextInputPinId, nextOutputPinId, 103, "EqualsTo");
+    auto equals = nodeGraphFactory->addNode(nodes, NodeTypes::EqualsTo);
 
-    auto print = std::make_unique<Print>(nextInputPinId, nextOutputPinId, 104, "Print");
+    auto print = nodeGraphFactory->addNode(nodes, NodeTypes::Print);
 
     // wire: int1 -> FirstValue, int2 -> SecondValue
     std::vector<NodeGraphNodeLink> links;
     links.emplace_back(nextLinkId++, integer1->outputs()[0].getId(), equals->inputs()[0].getId());
     links.emplace_back(nextLinkId++, integer2->outputs()[0].getId(), equals->inputs()[1].getId());
     links.emplace_back(nextLinkId++, equals->outputs()[0].getId(), print->inputs()[0].getId());
-
-    nodes.push_back(std::move(integer1));
-    nodes.push_back(std::move(integer2));
-    nodes.push_back(std::move(equals));
-    nodes.push_back(std::move(print));
-
 
     const Flowscript::Compile::Ast ast(nodes, links);
     ASSERT_EQ(ast.programRoot.size(), 1u); // tree resolution worked here. need to add equalsTo, integer Node in ast.
@@ -114,8 +105,21 @@ TEST(Ast, shouldCreateTreeFromNodesAndLinks)
 
     //TODO: update type checking here...
     ASSERT_NE(integer1_ast, nullptr);
-    EXPECT_EQ(integer1_ast->type, "Integer1");
+    EXPECT_EQ(integer1_ast->type, "Integer");
 
     ASSERT_NE(integer2_ast, nullptr);
-    EXPECT_EQ(integer2_ast->type, "Integer2");
+    EXPECT_EQ(integer2_ast->type, "Integer");
+}
+
+TEST(Ast, EasyTreeTest)
+{
+    //NodeGraphIdAllocator: owns nextNodeId, nextInputPinId, nextOutputPinId, nextLinkId.
+    //pass instance of this when creating NodeGraphNodeFactory. Now we don't need to manually manage this.
+
+    //NodeGraphNodeFactory creates node of a certain type: (nodes, nodeType, optional screenPos);
+    //(NOT IMPORTANT: ) nodes contains all the nodes. if we can make the factory own nodes. this becomes easier.
+
+    //NodeGraphNodeLinkFactory create link b/w two nodes.
+
+    //why does the nodes need name again when they have an id ? For identifier type nodes we can pass name ( example for variable, function names, etc)
 }
