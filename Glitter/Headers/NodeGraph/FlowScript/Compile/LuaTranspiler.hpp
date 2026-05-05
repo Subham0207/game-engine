@@ -20,7 +20,7 @@ namespace Flowscript::Compile
             void recurse(
                 const AstNode* node
             );
-            void recurseInputChildren(const AstNode* node);
+            std::string recurseInputChildren(const AstNode* node);
     };
 }
 

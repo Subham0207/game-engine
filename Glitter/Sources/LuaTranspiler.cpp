@@ -21,17 +21,31 @@ namespace Flowscript::Compile
             for (auto& inputChild: node->inputDataChildrens)
             {
                 recurseInputChildren(inputChild.get());
+                //what kind of input child this is (Binary operator)
+                // we use that info to fill out a syntax template.
+            }
+        }
+
+        if (!node->outputExecutionFlows.empty())
+        {
+            for (auto& outputExec: node->outputExecutionFlows)
+            {
+                recurse(outputExec.get());
+                //what kind of statement it is. We use that info to fill out a syntax template.
             }
         }
     }
 
-    void LuaTranspiler::recurseInputChildren(const AstNode* node)
+    std::string LuaTranspiler::recurseInputChildren(const AstNode* node)
     {
         if (node->inputDataChildrens.empty())
-            return;
+            return "";
+
+        std::string expr = "";
         for (auto& inputChild: node->inputDataChildrens)
         {
-            recurseInputChildren(inputChild.get());
+            expr += recurseInputChildren(inputChild.get());
         }
+        return expr;
     }
 }

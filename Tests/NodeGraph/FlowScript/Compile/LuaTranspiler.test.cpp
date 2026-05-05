@@ -9,6 +9,7 @@
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
 #include "NodeGraph/FlowScript/Compile/Compiler.hpp"
+#include "NodeGraph/FlowScript/Compile/LuaTranspiler.hpp"
 
 using NodeGraphComponents::Node::Integer;
 using NodeGraphComponents::Node::Add;
@@ -19,6 +20,7 @@ using NodeGraphComponents::Node::Keywords::Return;
 using NodeGraphComponents::NodeGraphNodeFactory;
 using NodeGraphComponents::NodeGraphIdAllocator;
 using Flowscript::Compile::Ast;
+using Flowscript::Compile::LuaTranspiler;
 //
 // Created by subha on 05-05-2026.
 //
@@ -39,7 +41,6 @@ TEST(LuaTranspiler, shouldTranspileAstToLua)
     auto print = nodeGraphFactory->addNode(nodes, NodeTypes::Print);
     auto ret = nodeGraphFactory->addNode(nodes, NodeTypes::Return);
 
-    //TODO: add simple functions for test to attach exec flow nodes.
     links.emplace_back(nextLinkId++, fn->getExecOutputId(), print->getExecInputId());
     links.emplace_back(nextLinkId++, print->getExecOutputId(), ret->getExecInputId());
 
@@ -52,4 +53,16 @@ TEST(LuaTranspiler, shouldTranspileAstToLua)
         end
     */
 
+    // Lua can understand oneliners. There are some cases where it cannot.
+    // So semicolon is used to separate statements.
+    // Therefore, newlines or semicolons are essentials.
+    // Lua does not care about indentations.
+    std::string expectedLuaCode =  "function foo(x)\n"
+                            "print('Hello world')\n"
+                            "return\n"
+                            "end";
+
+    LuaTranspiler luaTranspiler;
+    std::string luaCode = luaTranspiler.Transpile(ast.programRoot);
+    ASSERT_EQ(luaCode, expectedLuaCode);
 }
