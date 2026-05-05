@@ -21,7 +21,7 @@ namespace Flowscript::Compile
             for (auto& inputChild: node->inputDataChildrens)
             {
                 recurseInputChildren(inputChild.get());
-                //what kind of input child this is (Binary operator)
+                //what kind of input child this is (example: Binary operator)
                 // we use that info to fill out a syntax template.
             }
         }
@@ -31,7 +31,7 @@ namespace Flowscript::Compile
             for (auto& outputExec: node->outputExecutionFlows)
             {
                 recurse(outputExec.get());
-                //what kind of statement it is. We use that info to fill out a syntax template.
+                //what kind of statement it is (example print, function). We use that info to fill out a syntax template.
             }
         }
     }
