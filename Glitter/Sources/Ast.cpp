@@ -7,6 +7,61 @@
 
 namespace Flowscript::Compile
 {
+    namespace
+    {
+        AstStatementOpcode mapStatementOpcode(const NodeTypes type)
+        {
+            switch (type)
+            {
+                case NodeTypes::Function: return AstStatementOpcode::Function;
+                case NodeTypes::Print: return AstStatementOpcode::Print;
+                case NodeTypes::Return: return AstStatementOpcode::Return;
+                default: return AstStatementOpcode::Unknown;
+            }
+        }
+
+        AstExpressionOpcode mapExpressionOpcode(const NodeTypes type)
+        {
+            switch (type)
+            {
+                case NodeTypes::Integer: return AstExpressionOpcode::IntegerLiteral;
+                case NodeTypes::Boolean: return AstExpressionOpcode::BooleanLiteral;
+                case NodeTypes::Add: return AstExpressionOpcode::Add;
+                case NodeTypes::Subtract: return AstExpressionOpcode::Subtract;
+                case NodeTypes::EqualsTo: return AstExpressionOpcode::EqualsTo;
+                case NodeTypes::GreaterThan: return AstExpressionOpcode::GreaterThan;
+                case NodeTypes::NotEqualsTo: return AstExpressionOpcode::NotEqualsTo;
+                default: return AstExpressionOpcode::Unknown;
+            }
+        }
+
+        std::string firstOutputValue(NodeGraphNode* node)
+        {
+            if (!node || node->outputs().empty())
+                return "";
+            return node->outputs()[0].getValueBuff();
+        }
+
+        std::string joinFunctionParams(NodeGraphNode* node)
+        {
+            if (!node)
+                return "";
+
+            std::string params;
+            for (size_t i = 0; i < node->outputs().size(); ++i)
+            {
+                const std::string name = node->outputs()[i].getName();
+                if (name.empty())
+                    continue;
+                if (!params.empty())
+                    params += ",";
+                params += name;
+            }
+
+            return params;
+        }
+    }
+
     Ast::Ast(
         const std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
         const std::vector<NodeGraphNodeLink>& links
@@ -28,6 +83,9 @@ namespace Flowscript::Compile
             // Construct tree for this root node.
             auto root = std::make_unique<AstNode>();
             root->type = node->name();
+            root->kind = AstNodeKind::Statement;
+            root->statementOpcode = mapStatementOpcode(node->type());
+            root->variableName = joinFunctionParams(node);
             programRoot.push_back(std::move(root));
             recurse(programRoot.back().get(), node, nodes, links);
         }
@@ -54,6 +112,11 @@ namespace Flowscript::Compile
                 current->inputDataChildrens.push_back(std::move(ast));
         }
 
+        current->kind = AstNodeKind::Statement;
+        current->statementOpcode = mapStatementOpcode(currentNode->type());
+        if (current->statementOpcode == AstStatementOpcode::Function)
+            current->variableName = joinFunctionParams(currentNode);
+
         //look for a link that starts from this node's execOutput
         auto endExecNodeAttr = -1;
         for (const auto& link: links)
@@ -73,6 +136,10 @@ namespace Flowscript::Compile
             {
                 auto child = std::make_unique<AstNode>();
                 child->type = node->name();
+                child->kind = AstNodeKind::Statement;
+                child->statementOpcode = mapStatementOpcode(node->type());
+                if (child->statementOpcode == AstStatementOpcode::Function)
+                    child->variableName = joinFunctionParams(node.get());
                 current->outputExecutionFlows.push_back(std::move(child));
                 recurse(
                     current->outputExecutionFlows.back().get()
@@ -122,6 +189,9 @@ namespace Flowscript::Compile
         //create new ast node... And recursive Asts will be added to its children
         auto currentAstNode = std::make_unique<AstNode>();
         currentAstNode->type = nodeWithOutStartAttr->name();
+        currentAstNode->kind = AstNodeKind::Expression;
+        currentAstNode->expressionOpcode = mapExpressionOpcode(nodeWithOutStartAttr->type());
+        currentAstNode->value = firstOutputValue(nodeWithOutStartAttr);
 
         //resolve all input attributes of this node recursively.
         for (auto& input: nodeWithOutStartAttr->inputs())

@@ -23,6 +23,9 @@ using NodeGraphComponents::Node::Keywords::Print;
 using NodeGraphComponents::Node::Keywords::Return;
 using NodeGraphComponents::NodeGraphNodeFactory;
 using NodeGraphComponents::NodeGraphIdAllocator;
+using Flowscript::Compile::AstExpressionOpcode;
+using Flowscript::Compile::AstNodeKind;
+using Flowscript::Compile::AstStatementOpcode;
 
 TEST(Ast, shouldCreateTree)
 {
@@ -49,16 +52,23 @@ TEST(Ast, shouldCreateTree)
     const auto* rootNode = ast.programRoot[0].get();
     ASSERT_NE(rootNode, nullptr);
     EXPECT_EQ(rootNode->type, "Function");
+    EXPECT_EQ(rootNode->kind, AstNodeKind::Statement);
+    EXPECT_EQ(rootNode->statementOpcode, AstStatementOpcode::Function);
+    EXPECT_EQ(rootNode->variableName, "x");
 
     ASSERT_EQ(rootNode->outputExecutionFlows.size(), 1u);
     const auto* printAstNode = rootNode->outputExecutionFlows[0].get();
     ASSERT_NE(printAstNode, nullptr);
     EXPECT_EQ(printAstNode->type, "Print");
+    EXPECT_EQ(printAstNode->kind, AstNodeKind::Statement);
+    EXPECT_EQ(printAstNode->statementOpcode, AstStatementOpcode::Print);
 
     ASSERT_EQ(printAstNode->outputExecutionFlows.size(), 1u);
     const auto* returnAstNode = printAstNode->outputExecutionFlows[0].get();
     ASSERT_NE(returnAstNode, nullptr);
     EXPECT_EQ(returnAstNode->type, "Return");
+    EXPECT_EQ(returnAstNode->kind, AstNodeKind::Statement);
+    EXPECT_EQ(returnAstNode->statementOpcode, AstStatementOpcode::Return);
 }
 
 TEST(Ast, shouldCreateTreeFromNodesAndLinks)
@@ -95,22 +105,31 @@ TEST(Ast, shouldCreateTreeFromNodesAndLinks)
     const auto* rootNode = ast.programRoot[0].get();
     ASSERT_NE(rootNode, nullptr);
     EXPECT_EQ(rootNode->type, "Print");
+    EXPECT_EQ(rootNode->kind, AstNodeKind::Statement);
+    EXPECT_EQ(rootNode->statementOpcode, AstStatementOpcode::Print);
 
     ASSERT_EQ(rootNode->inputDataChildrens.size(), 1u);
     const auto* equalsToNode = rootNode->inputDataChildrens[0].get();
     ASSERT_NE(equalsToNode, nullptr);
     EXPECT_EQ(equalsToNode->type, "EqualsTo");
+    EXPECT_EQ(equalsToNode->kind, AstNodeKind::Expression);
+    EXPECT_EQ(equalsToNode->expressionOpcode, AstExpressionOpcode::EqualsTo);
 
     ASSERT_EQ(equalsToNode->inputDataChildrens.size(), 2u);
     const auto* integer1_ast = equalsToNode->inputDataChildrens[0].get();
     const auto* integer2_ast = equalsToNode->inputDataChildrens[1].get();
 
-    //TODO: update type checking here...
     ASSERT_NE(integer1_ast, nullptr);
     EXPECT_EQ(integer1_ast->type, "Integer");
+    EXPECT_EQ(integer1_ast->kind, AstNodeKind::Expression);
+    EXPECT_EQ(integer1_ast->expressionOpcode, AstExpressionOpcode::IntegerLiteral);
+    EXPECT_EQ(integer1_ast->value, "1");
 
     ASSERT_NE(integer2_ast, nullptr);
     EXPECT_EQ(integer2_ast->type, "Integer");
+    EXPECT_EQ(integer2_ast->kind, AstNodeKind::Expression);
+    EXPECT_EQ(integer2_ast->expressionOpcode, AstExpressionOpcode::IntegerLiteral);
+    EXPECT_EQ(integer2_ast->value, "2");
 }
 
 TEST(Ast, EasyTreeTest)

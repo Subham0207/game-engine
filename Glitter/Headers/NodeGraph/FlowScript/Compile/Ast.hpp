@@ -12,12 +12,44 @@
 class NodeGraphNode;
 namespace Flowscript::Compile
 {
+    enum class AstNodeKind
+    {
+        Unknown,
+        Statement,
+        Expression
+    };
+
+    enum class AstStatementOpcode
+    {
+        None,
+        Function,
+        Print,
+        Return,
+        Unknown
+    };
+
+    enum class AstExpressionOpcode
+    {
+        None,
+        IntegerLiteral,
+        BooleanLiteral,
+        Add,
+        Subtract,
+        EqualsTo,
+        GreaterThan,
+        NotEqualsTo,
+        Unknown
+    };
+
     struct AstNode
     {
         //children of AstNode... BinaryNode, local Declaration, function.
         std::string type;
         std::string variableName;
         std::string value;
+        AstNodeKind kind = AstNodeKind::Unknown;
+        AstStatementOpcode statementOpcode = AstStatementOpcode::None;
+        AstExpressionOpcode expressionOpcode = AstExpressionOpcode::None;
 
         // inputDataChildrens, outputDataChildrens, inputExecutionFlow, outputExecutionFlows (serialized sequentially).
         // This is because there is order of serialization into Lua code for these properties. we cannot have them sequentially under one array.

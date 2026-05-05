@@ -6,6 +6,24 @@
 
 namespace Flowscript::Compile
 {
+    namespace
+    {
+        bool isFunctionNode(const AstNode* node)
+        {
+            return node && (node->statementOpcode == AstStatementOpcode::Function || node->type == "Function");
+        }
+
+        bool isPrintNode(const AstNode* node)
+        {
+            return node && (node->statementOpcode == AstStatementOpcode::Print || node->type == "Print");
+        }
+
+        bool isReturnNode(const AstNode* node)
+        {
+            return node && (node->statementOpcode == AstStatementOpcode::Return || node->type == "Return");
+        }
+    }
+
     std::string LuaTranspiler::Transpile(const std::vector<std::unique_ptr<AstNode>>& ast)
     {
         std::string luaCode;
@@ -25,7 +43,7 @@ namespace Flowscript::Compile
             return "";
 
         // Minimal statement templates used by tests.
-        if (node->type == "Function")
+        if (isFunctionNode(node))
         {
             const std::string functionName = "foo";
             const std::string parameters = node->variableName.empty() ? "x" : node->variableName;
@@ -47,7 +65,7 @@ namespace Flowscript::Compile
         }
 
         std::string currentStatement;
-        if (node->type == "Print")
+        if (isPrintNode(node))
         {
             std::string expr = "'Hello world'";
             if (!node->inputDataChildrens.empty())
@@ -58,7 +76,7 @@ namespace Flowscript::Compile
             }
             currentStatement = "print(" + expr + ")";
         }
-        else if (node->type == "Return")
+        else if (isReturnNode(node))
         {
             if (!node->inputDataChildrens.empty())
             {
@@ -105,24 +123,32 @@ namespace Flowscript::Compile
             if (!node->value.empty())
                 return node->value;
 
-            if (node->type.find("Integer") != std::string::npos)
+            if (node->expressionOpcode == AstExpressionOpcode::IntegerLiteral
+                || node->type.find("Integer") != std::string::npos)
                 return "0";
-            if (node->type.find("Boolean") != std::string::npos)
+            if (node->expressionOpcode == AstExpressionOpcode::BooleanLiteral
+                || node->type.find("Boolean") != std::string::npos)
                 return "false";
 
             return node->variableName;
         }
 
-        if ((node->type == "Add" || node->type == "Subtract" || node->type == "EqualsTo")
+        const bool isBinaryExpr = node->expressionOpcode == AstExpressionOpcode::Add
+                               || node->expressionOpcode == AstExpressionOpcode::Subtract
+                               || node->expressionOpcode == AstExpressionOpcode::EqualsTo
+                               || node->type == "Add"
+                               || node->type == "Subtract"
+                               || node->type == "EqualsTo";
+        if (isBinaryExpr
             && node->inputDataChildrens.size() >= 2)
         {
             const std::string lhs = recurseInputChildren(node->inputDataChildrens[0].get());
             const std::string rhs = recurseInputChildren(node->inputDataChildrens[1].get());
 
             std::string op;
-            if (node->type == "Add")
+            if (node->expressionOpcode == AstExpressionOpcode::Add || node->type == "Add")
                 op = "+";
-            else if (node->type == "Subtract")
+            else if (node->expressionOpcode == AstExpressionOpcode::Subtract || node->type == "Subtract")
                 op = "-";
             else
                 op = "==";
