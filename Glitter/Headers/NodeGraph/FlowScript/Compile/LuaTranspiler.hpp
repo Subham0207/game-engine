@@ -17,7 +17,7 @@ namespace Flowscript::Compile
         public:
             LuaTranspiler() = default;
             std::string Transpile(const std::vector<std::unique_ptr<AstNode>>& ast);
-            void recurse(
+            std::string recurse(
                 const AstNode* node
             );
             std::string recurseInputChildren(const AstNode* node);

@@ -12,6 +12,7 @@ add_executable(Test
         NodeGraph/NodeGraph.test.cpp
         NodeGraph/FlowScript/Compile/Compiler.test.cpp
         NodeGraph/FlowScript/Compile/Ast.test.cpp
+        NodeGraph/FlowScript/Compile/LuaTranspiler.test.cpp
 )
 
 target_include_directories(Test PRIVATE
