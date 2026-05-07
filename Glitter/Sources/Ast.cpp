@@ -9,30 +9,32 @@ namespace Flowscript::Compile
 {
     namespace
     {
-        AstStatementOpcode mapStatementOpcode(const NodeTypes type)
+        std::string resolveFunctionName(NodeGraphNode* node)
         {
-            switch (type)
-            {
-                case NodeTypes::Function: return AstStatementOpcode::Function;
-                case NodeTypes::Print: return AstStatementOpcode::Print;
-                case NodeTypes::Return: return AstStatementOpcode::Return;
-                default: return AstStatementOpcode::Unknown;
-            }
+            if (!node)
+                return "";
+
+            const std::string& candidate = node->name();
+            if (candidate.empty() || candidate == "Function")
+                return "";
+
+            return candidate;
         }
 
-        AstExpressionOpcode mapExpressionOpcode(const NodeTypes type)
+        std::vector<std::string> collectFunctionParams(NodeGraphNode* node)
         {
-            switch (type)
+            std::vector<std::string> params;
+            if (!node)
+                return params;
+
+            for (const auto& output: node->outputs())
             {
-                case NodeTypes::Integer: return AstExpressionOpcode::IntegerLiteral;
-                case NodeTypes::Boolean: return AstExpressionOpcode::BooleanLiteral;
-                case NodeTypes::Add: return AstExpressionOpcode::Add;
-                case NodeTypes::Subtract: return AstExpressionOpcode::Subtract;
-                case NodeTypes::EqualsTo: return AstExpressionOpcode::EqualsTo;
-                case NodeTypes::GreaterThan: return AstExpressionOpcode::GreaterThan;
-                case NodeTypes::NotEqualsTo: return AstExpressionOpcode::NotEqualsTo;
-                default: return AstExpressionOpcode::Unknown;
+                const std::string& name = output.getName();
+                if (!name.empty())
+                    params.push_back(name);
             }
+
+            return params;
         }
 
         std::string firstOutputValue(NodeGraphNode* node)
@@ -42,36 +44,95 @@ namespace Flowscript::Compile
             return node->outputs()[0].getValueBuff();
         }
 
-        std::string joinFunctionParams(NodeGraphNode* node)
+        std::unique_ptr<StatementAstNode> makeStatementNode(NodeGraphNode* node)
         {
             if (!node)
-                return "";
+                return nullptr;
 
-            std::string params;
-            for (size_t i = 0; i < node->outputs().size(); ++i)
+            switch (node->type())
             {
-                const std::string name = node->outputs()[i].getName();
-                if (name.empty())
-                    continue;
-                if (!params.empty())
-                    params += ",";
-                params += name;
+                case NodeTypes::Function:
+                {
+                    auto stmt = std::make_unique<FunctionStatementAstNode>();
+                    stmt->functionName = resolveFunctionName(node);
+                    stmt->parameters = collectFunctionParams(node);
+                    return stmt;
+                }
+                case NodeTypes::Print:
+                    return std::make_unique<PrintStatementAstNode>();
+                case NodeTypes::Return:
+                    return std::make_unique<ReturnStatementAstNode>();
+                default:
+                    return nullptr;
             }
-
-            return params;
         }
 
-        std::string resolveFunctionName(NodeGraphNode* node)
+        std::unique_ptr<ExpressionAstNode> makeExpressionNode(NodeGraphNode* node)
         {
             if (!node)
-                return "";
+                return nullptr;
 
-            const std::string candidate = node->name();
-            // "Function" is the current generic node label, not a user-defined identifier.
-            if (candidate.empty() || candidate == "Function")
-                return "";
+            switch (node->type())
+            {
+                case NodeTypes::Integer:
+                {
+                    auto expr = std::make_unique<IntegerLiteralExpressionAstNode>();
+                    expr->value = firstOutputValue(node);
+                    return expr;
+                }
+                case NodeTypes::Boolean:
+                {
+                    auto expr = std::make_unique<BooleanLiteralExpressionAstNode>();
+                    expr->value = firstOutputValue(node);
+                    return expr;
+                }
+                case NodeTypes::Add:
+                    return std::make_unique<AddExpressionAstNode>();
+                case NodeTypes::Subtract:
+                    return std::make_unique<SubtractExpressionAstNode>();
+                case NodeTypes::EqualsTo:
+                    return std::make_unique<EqualsToExpressionAstNode>();
+                case NodeTypes::GreaterThan:
+                    return std::make_unique<GreaterThanExpressionAstNode>();
+                case NodeTypes::NotEqualsTo:
+                    return std::make_unique<NotEqualsToExpressionAstNode>();
+                default:
+                    return nullptr;
+            }
+        }
 
-            return candidate;
+        int findLinkStartAttrForEndAttr(
+            int endAttr,
+            const std::vector<NodeGraphNodeLink>& links
+        )
+        {
+            for (const auto& link: links)
+            {
+                if (link.endAttr() == endAttr)
+                    return link.startAttr();
+            }
+
+            return -1;
+        }
+
+        NodeGraphNode* findNodeByOutputAttr(
+            const int outputAttr,
+            const std::vector<std::unique_ptr<NodeGraphNode>>& nodes
+        )
+        {
+            if (outputAttr == -1)
+                return nullptr;
+
+            for (const auto& node: nodes)
+            {
+                for (const auto& output: node->outputs())
+                {
+                    if (output.getId() == outputAttr)
+                        return node.get();
+                }
+            }
+
+            return nullptr;
         }
     }
 
@@ -93,21 +154,16 @@ namespace Flowscript::Compile
 
         for (const auto& node: rootNodes)
         {
-            // Construct tree for this root node.
-            auto root = std::make_unique<AstNode>();
-            root->type = node->name();
-            root->kind = AstNodeKind::Statement;
-            root->statementOpcode = mapStatementOpcode(node->type());
-            root->variableName = joinFunctionParams(node);
-            if (root->statementOpcode == AstStatementOpcode::Function)
-                root->functionName = resolveFunctionName(node);
+            auto root = makeStatementNode(node);
+            if (!root)
+                continue;
             programRoot.push_back(std::move(root));
             recurse(programRoot.back().get(), node, nodes, links);
         }
     }
 
     void Ast::recurse(
-        AstNode* current,
+        StatementAstNode* current,
         NodeGraphNode* currentNode,
         const std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
         const std::vector<NodeGraphNodeLink>& links
@@ -118,28 +174,20 @@ namespace Flowscript::Compile
             return;
         }
 
-        // For any data value attributes on this node. resolve that tree.
-        for (auto& input: currentNode->inputs())
+        if (auto* printStmt = dynamic_cast<PrintStatementAstNode*>(current))
         {
-            //build a tree from this attribute...
-            auto ast = recurseForDataValue(input.getId(), nodes, links);
-            if (ast)
-                current->inputDataChildrens.push_back(std::move(ast));
+            if (!currentNode->inputs().empty())
+                printStmt->expression = recurseForDataValue(currentNode->inputs()[0].getId(), nodes, links);
+        }
+        else if (auto* returnStmt = dynamic_cast<ReturnStatementAstNode*>(current))
+        {
+            if (!currentNode->inputs().empty())
+                returnStmt->expression = recurseForDataValue(currentNode->inputs()[0].getId(), nodes, links);
         }
 
-        current->kind = AstNodeKind::Statement;
-        current->statementOpcode = mapStatementOpcode(currentNode->type());
-        if (current->statementOpcode == AstStatementOpcode::Function)
-        {
-            current->variableName = joinFunctionParams(currentNode);
-            current->functionName = resolveFunctionName(currentNode);
-        }
-
-        //look for a link that starts from this node's execOutput
         auto endExecNodeAttr = -1;
         for (const auto& link: links)
         {
-            //using the link find which is the end node exec flow attaches to.
             if (currentNode->hasExecOutput() && link.startAttr() == currentNode->getExecOutput()->getId())
             {
                 endExecNodeAttr = link.endAttr();
@@ -147,20 +195,13 @@ namespace Flowscript::Compile
             }
         }
 
-        //find the nodeGraphNode for this endNodeAttr
         for (const auto& node: nodes)
         {
             if (node->hasExecInput() && node->getExecInput()->getId() == endExecNodeAttr)
             {
-                auto child = std::make_unique<AstNode>();
-                child->type = node->name();
-                child->kind = AstNodeKind::Statement;
-                child->statementOpcode = mapStatementOpcode(node->type());
-                if (child->statementOpcode == AstStatementOpcode::Function)
-                {
-                    child->variableName = joinFunctionParams(node.get());
-                    child->functionName = resolveFunctionName(node.get());
-                }
+                auto child = makeStatementNode(node.get());
+                if (!child)
+                    continue;
                 current->outputExecutionFlows.push_back(std::move(child));
                 recurse(
                     current->outputExecutionFlows.back().get()
@@ -171,58 +212,34 @@ namespace Flowscript::Compile
         }
     }
 
-    std::unique_ptr<AstNode> Ast::recurseForDataValue(
+    std::unique_ptr<ExpressionAstNode> Ast::recurseForDataValue(
         int currAttrId,
         const std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
-        const std::vector<NodeGraphNodeLink>& links)
+        const std::vector<NodeGraphNodeLink>& links
+    )
     {
-        //find the connection
-        //search which link ends with currAttrId.
-        int startAttr = -1;
-        for (const auto& link: links)
-        {
-            if (link.endAttr() == currAttrId)
-            {
-                startAttr = link.startAttr();
-            }
-        }
-
+        const int startAttr = findLinkStartAttrForEndAttr(currAttrId, links);
         if (startAttr == -1)
             return nullptr;
 
-        //find the node where this startAttr is there.
-        NodeGraphNode* nodeWithOutStartAttr = nullptr;
-        for (const auto& node: nodes)
+        NodeGraphNode* sourceNode = findNodeByOutputAttr(startAttr, nodes);
+        if (!sourceNode)
+            return nullptr;
+
+        auto expressionNode = makeExpressionNode(sourceNode);
+        if (!expressionNode)
+            return nullptr;
+
+        if (auto* binary = dynamic_cast<BinaryExpressionAstNode*>(expressionNode.get()))
         {
-            for (const auto& output: node->outputs())
+            if (sourceNode->inputs().size() >= 2)
             {
-                if (output.getId() == startAttr)
-                {
-                    nodeWithOutStartAttr = node.get();
-                    break;
-                }
+                binary->lhs = recurseForDataValue(sourceNode->inputs()[0].getId(), nodes, links);
+                binary->rhs = recurseForDataValue(sourceNode->inputs()[1].getId(), nodes, links);
             }
-            if (nodeWithOutStartAttr)
-                break;
         }
 
-        if (!nodeWithOutStartAttr) return nullptr;
-        //create new ast node... And recursive Asts will be added to its children
-        auto currentAstNode = std::make_unique<AstNode>();
-        currentAstNode->type = nodeWithOutStartAttr->name();
-        currentAstNode->kind = AstNodeKind::Expression;
-        currentAstNode->expressionOpcode = mapExpressionOpcode(nodeWithOutStartAttr->type());
-        currentAstNode->value = firstOutputValue(nodeWithOutStartAttr);
-
-        //resolve all input attributes of this node recursively.
-        for (auto& input: nodeWithOutStartAttr->inputs())
-        {
-            auto ast = recurseForDataValue(input.getId(), nodes, links);
-            if (ast)
-                currentAstNode->inputDataChildrens.push_back(std::move(ast));
-        }
-
-        return currentAstNode;
+        return expressionNode;
     }
 
     int Ast::inDegree(

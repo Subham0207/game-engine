@@ -23,9 +23,11 @@ using NodeGraphComponents::Node::Keywords::Print;
 using NodeGraphComponents::Node::Keywords::Return;
 using NodeGraphComponents::NodeGraphNodeFactory;
 using NodeGraphComponents::NodeGraphIdAllocator;
-using Flowscript::Compile::AstExpressionOpcode;
-using Flowscript::Compile::AstNodeKind;
-using Flowscript::Compile::AstStatementOpcode;
+using Flowscript::Compile::FunctionStatementAstNode;
+using Flowscript::Compile::PrintStatementAstNode;
+using Flowscript::Compile::ReturnStatementAstNode;
+using Flowscript::Compile::EqualsToExpressionAstNode;
+using Flowscript::Compile::IntegerLiteralExpressionAstNode;
 
 TEST(Ast, shouldCreateTree)
 {
@@ -51,25 +53,21 @@ TEST(Ast, shouldCreateTree)
 
     const auto* rootNode = ast.programRoot[0].get();
     ASSERT_NE(rootNode, nullptr);
-    EXPECT_EQ(rootNode->type, "Function");
-    EXPECT_EQ(rootNode->kind, AstNodeKind::Statement);
-    EXPECT_EQ(rootNode->statementOpcode, AstStatementOpcode::Function);
-    EXPECT_EQ(rootNode->functionName, "");
-    EXPECT_EQ(rootNode->variableName, "x");
+    const auto* functionAstNode = dynamic_cast<const FunctionStatementAstNode*>(rootNode);
+    ASSERT_NE(functionAstNode, nullptr);
+    EXPECT_EQ(functionAstNode->functionName, "");
+    ASSERT_EQ(functionAstNode->parameters.size(), 1u);
+    EXPECT_EQ(functionAstNode->parameters[0], "x");
 
     ASSERT_EQ(rootNode->outputExecutionFlows.size(), 1u);
     const auto* printAstNode = rootNode->outputExecutionFlows[0].get();
     ASSERT_NE(printAstNode, nullptr);
-    EXPECT_EQ(printAstNode->type, "Print");
-    EXPECT_EQ(printAstNode->kind, AstNodeKind::Statement);
-    EXPECT_EQ(printAstNode->statementOpcode, AstStatementOpcode::Print);
+    EXPECT_NE(dynamic_cast<const PrintStatementAstNode*>(printAstNode), nullptr);
 
     ASSERT_EQ(printAstNode->outputExecutionFlows.size(), 1u);
     const auto* returnAstNode = printAstNode->outputExecutionFlows[0].get();
     ASSERT_NE(returnAstNode, nullptr);
-    EXPECT_EQ(returnAstNode->type, "Return");
-    EXPECT_EQ(returnAstNode->kind, AstNodeKind::Statement);
-    EXPECT_EQ(returnAstNode->statementOpcode, AstStatementOpcode::Return);
+    EXPECT_NE(dynamic_cast<const ReturnStatementAstNode*>(returnAstNode), nullptr);
 }
 
 TEST(Ast, shouldCreateTreeFromNodesAndLinks)
@@ -105,31 +103,19 @@ TEST(Ast, shouldCreateTreeFromNodesAndLinks)
 
     const auto* rootNode = ast.programRoot[0].get();
     ASSERT_NE(rootNode, nullptr);
-    EXPECT_EQ(rootNode->type, "Print");
-    EXPECT_EQ(rootNode->kind, AstNodeKind::Statement);
-    EXPECT_EQ(rootNode->statementOpcode, AstStatementOpcode::Print);
+    const auto* printAstNode = dynamic_cast<const PrintStatementAstNode*>(rootNode);
+    ASSERT_NE(printAstNode, nullptr);
 
-    ASSERT_EQ(rootNode->inputDataChildrens.size(), 1u);
-    const auto* equalsToNode = rootNode->inputDataChildrens[0].get();
+    ASSERT_NE(printAstNode->expression, nullptr);
+    const auto* equalsToNode = dynamic_cast<const EqualsToExpressionAstNode*>(printAstNode->expression.get());
     ASSERT_NE(equalsToNode, nullptr);
-    EXPECT_EQ(equalsToNode->type, "EqualsTo");
-    EXPECT_EQ(equalsToNode->kind, AstNodeKind::Expression);
-    EXPECT_EQ(equalsToNode->expressionOpcode, AstExpressionOpcode::EqualsTo);
-
-    ASSERT_EQ(equalsToNode->inputDataChildrens.size(), 2u);
-    const auto* integer1_ast = equalsToNode->inputDataChildrens[0].get();
-    const auto* integer2_ast = equalsToNode->inputDataChildrens[1].get();
+    const auto* integer1_ast = dynamic_cast<const IntegerLiteralExpressionAstNode*>(equalsToNode->lhs.get());
+    const auto* integer2_ast = dynamic_cast<const IntegerLiteralExpressionAstNode*>(equalsToNode->rhs.get());
 
     ASSERT_NE(integer1_ast, nullptr);
-    EXPECT_EQ(integer1_ast->type, "Integer");
-    EXPECT_EQ(integer1_ast->kind, AstNodeKind::Expression);
-    EXPECT_EQ(integer1_ast->expressionOpcode, AstExpressionOpcode::IntegerLiteral);
     EXPECT_EQ(integer1_ast->value, "1");
 
     ASSERT_NE(integer2_ast, nullptr);
-    EXPECT_EQ(integer2_ast->type, "Integer");
-    EXPECT_EQ(integer2_ast->kind, AstNodeKind::Expression);
-    EXPECT_EQ(integer2_ast->expressionOpcode, AstExpressionOpcode::IntegerLiteral);
     EXPECT_EQ(integer2_ast->value, "2");
 }
 
