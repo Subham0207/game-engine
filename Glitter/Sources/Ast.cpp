@@ -60,6 +60,19 @@ namespace Flowscript::Compile
 
             return params;
         }
+
+        std::string resolveFunctionName(NodeGraphNode* node)
+        {
+            if (!node)
+                return "";
+
+            const std::string candidate = node->name();
+            // "Function" is the current generic node label, not a user-defined identifier.
+            if (candidate.empty() || candidate == "Function")
+                return "";
+
+            return candidate;
+        }
     }
 
     Ast::Ast(
@@ -86,6 +99,8 @@ namespace Flowscript::Compile
             root->kind = AstNodeKind::Statement;
             root->statementOpcode = mapStatementOpcode(node->type());
             root->variableName = joinFunctionParams(node);
+            if (root->statementOpcode == AstStatementOpcode::Function)
+                root->functionName = resolveFunctionName(node);
             programRoot.push_back(std::move(root));
             recurse(programRoot.back().get(), node, nodes, links);
         }
@@ -115,7 +130,10 @@ namespace Flowscript::Compile
         current->kind = AstNodeKind::Statement;
         current->statementOpcode = mapStatementOpcode(currentNode->type());
         if (current->statementOpcode == AstStatementOpcode::Function)
+        {
             current->variableName = joinFunctionParams(currentNode);
+            current->functionName = resolveFunctionName(currentNode);
+        }
 
         //look for a link that starts from this node's execOutput
         auto endExecNodeAttr = -1;
@@ -139,7 +157,10 @@ namespace Flowscript::Compile
                 child->kind = AstNodeKind::Statement;
                 child->statementOpcode = mapStatementOpcode(node->type());
                 if (child->statementOpcode == AstStatementOpcode::Function)
+                {
                     child->variableName = joinFunctionParams(node.get());
+                    child->functionName = resolveFunctionName(node.get());
+                }
                 current->outputExecutionFlows.push_back(std::move(child));
                 recurse(
                     current->outputExecutionFlows.back().get()

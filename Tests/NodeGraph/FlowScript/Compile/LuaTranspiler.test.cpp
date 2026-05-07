@@ -66,3 +66,46 @@ TEST(LuaTranspiler, shouldTranspileAstToLua)
     std::string luaCode = luaTranspiler.Transpile(ast.programRoot);
     ASSERT_EQ(luaCode, expectedLuaCode);
 }
+
+TEST(LuaTranspiler, shouldUseFunctionNameFromAstNode)
+{
+    std::vector<std::unique_ptr<Flowscript::Compile::AstNode>> ast;
+
+    auto functionNode = std::make_unique<Flowscript::Compile::AstNode>();
+    functionNode->type = "Function";
+    functionNode->statementOpcode = Flowscript::Compile::AstStatementOpcode::Function;
+    functionNode->functionName = "sum";
+    functionNode->variableName = "a,b";
+
+    auto returnNode = std::make_unique<Flowscript::Compile::AstNode>();
+    returnNode->type = "Return";
+    returnNode->statementOpcode = Flowscript::Compile::AstStatementOpcode::Return;
+
+    auto addNode = std::make_unique<Flowscript::Compile::AstNode>();
+    addNode->type = "Add";
+    addNode->expressionOpcode = Flowscript::Compile::AstExpressionOpcode::Add;
+
+    auto lhs = std::make_unique<Flowscript::Compile::AstNode>();
+    lhs->type = "Integer";
+    lhs->expressionOpcode = Flowscript::Compile::AstExpressionOpcode::IntegerLiteral;
+    lhs->value = "1";
+
+    auto rhs = std::make_unique<Flowscript::Compile::AstNode>();
+    rhs->type = "Integer";
+    rhs->expressionOpcode = Flowscript::Compile::AstExpressionOpcode::IntegerLiteral;
+    rhs->value = "2";
+
+    addNode->inputDataChildrens.push_back(std::move(lhs));
+    addNode->inputDataChildrens.push_back(std::move(rhs));
+    returnNode->inputDataChildrens.push_back(std::move(addNode));
+    functionNode->outputExecutionFlows.push_back(std::move(returnNode));
+    ast.push_back(std::move(functionNode));
+
+    LuaTranspiler luaTranspiler;
+    const std::string luaCode = luaTranspiler.Transpile(ast);
+
+    const std::string expectedLuaCode = "function sum(a,b)\n"
+                                        "return (1 + 2)\n"
+                                        "end";
+    ASSERT_EQ(luaCode, expectedLuaCode);
+}

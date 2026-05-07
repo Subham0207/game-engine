@@ -45,6 +45,8 @@ namespace Flowscript::Compile
     {
         //children of AstNode... BinaryNode, local Declaration, function.
         std::string type;
+        // Function identifier; kept separate from variableName (which stores function params today).
+        std::string functionName;
         std::string variableName;
         std::string value;
         AstNodeKind kind = AstNodeKind::Unknown;

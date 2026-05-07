@@ -21,6 +21,16 @@ namespace Flowscript::Compile
                 const AstNode* node
             );
             std::string recurseInputChildren(const AstNode* node);
+
+        private:
+            std::string transpileFunctionNode(const AstNode* node);
+            std::string transpilePrintNode(const AstNode* node);
+            std::string transpileReturnNode(const AstNode* node);
+            std::string transpileUnknownNode(const AstNode* node);
+            std::string transpileStatementWithTrailingExecution(const AstNode* node, const std::string& currentStatement);
+            std::string transpileExecutionFlowChildren(const AstNode* node);
+            std::string resolveFunctionName(const AstNode* node) const;
+            std::string resolveFunctionParameters(const AstNode* node) const;
     };
 }
 

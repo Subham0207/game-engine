@@ -42,75 +42,102 @@ namespace Flowscript::Compile
         if (!node)
             return "";
 
-        // Minimal statement templates used by tests.
         if (isFunctionNode(node))
-        {
-            const std::string functionName = "foo";
-            const std::string parameters = node->variableName.empty() ? "x" : node->variableName;
-
-            std::string body;
-            for (auto& outputExec: node->outputExecutionFlows)
-            {
-                const std::string stmt = recurse(outputExec.get());
-                if (stmt.empty())
-                    continue;
-                if (!body.empty())
-                    body += "\n";
-                body += stmt;
-            }
-
-            return "function " + functionName + "(" + parameters + ")\n"
-                 + body + "\n"
-                 + "end";
-        }
-
-        std::string currentStatement;
+            return transpileFunctionNode(node);
         if (isPrintNode(node))
+            return transpilePrintNode(node);
+        if (isReturnNode(node))
+            return transpileReturnNode(node);
+        return transpileUnknownNode(node);
+    }
+
+    std::string LuaTranspiler::transpileFunctionNode(const AstNode* node)
+    {
+        const std::string functionName = resolveFunctionName(node);
+        const std::string parameters = resolveFunctionParameters(node);
+        const std::string body = transpileExecutionFlowChildren(node);
+
+        if (body.empty())
+            return "function " + functionName + "(" + parameters + ")\nend";
+
+        return "function " + functionName + "(" + parameters + ")\n"
+             + body + "\n"
+             + "end";
+    }
+
+    std::string LuaTranspiler::transpilePrintNode(const AstNode* node)
+    {
+        std::string expr = "'Hello world'";
+        if (!node->inputDataChildrens.empty())
         {
-            std::string expr = "'Hello world'";
-            if (!node->inputDataChildrens.empty())
-            {
-                const std::string emitted = recurseInputChildren(node->inputDataChildrens[0].get());
-                if (!emitted.empty())
-                    expr = emitted;
-            }
-            currentStatement = "print(" + expr + ")";
-        }
-        else if (isReturnNode(node))
-        {
-            if (!node->inputDataChildrens.empty())
-            {
-                const std::string expr = recurseInputChildren(node->inputDataChildrens[0].get());
-                currentStatement = expr.empty() ? "return" : ("return " + expr);
-            }
-            else
-            {
-                currentStatement = "return";
-            }
-        }
-        else
-        {
-            currentStatement = node->type;
+            const std::string emitted = recurseInputChildren(node->inputDataChildrens[0].get());
+            if (!emitted.empty())
+                expr = emitted;
         }
 
-        std::string trailingStatements;
-        if (!node->outputExecutionFlows.empty())
+        return transpileStatementWithTrailingExecution(node, "print(" + expr + ")");
+    }
+
+    std::string LuaTranspiler::transpileReturnNode(const AstNode* node)
+    {
+        std::string currentStatement = "return";
+        if (!node->inputDataChildrens.empty())
         {
-            for (auto& outputExec: node->outputExecutionFlows)
-            {
-                const std::string stmt = recurse(outputExec.get());
-                if (stmt.empty())
-                    continue;
-                if (!trailingStatements.empty())
-                    trailingStatements += "\n";
-                trailingStatements += stmt;
-            }
+            const std::string expr = recurseInputChildren(node->inputDataChildrens[0].get());
+            currentStatement = expr.empty() ? "return" : ("return " + expr);
         }
 
+        return transpileStatementWithTrailingExecution(node, currentStatement);
+    }
+
+    std::string LuaTranspiler::transpileUnknownNode(const AstNode* node)
+    {
+        return transpileStatementWithTrailingExecution(node, node->type);
+    }
+
+    std::string LuaTranspiler::transpileStatementWithTrailingExecution(
+        const AstNode* node,
+        const std::string& currentStatement
+    )
+    {
+        const std::string trailingStatements = transpileExecutionFlowChildren(node);
         if (trailingStatements.empty())
             return currentStatement;
 
         return currentStatement + "\n" + trailingStatements;
+    }
+
+    std::string LuaTranspiler::transpileExecutionFlowChildren(const AstNode* node)
+    {
+        if (!node)
+            return "";
+
+        std::string statements;
+        for (const auto& outputExec: node->outputExecutionFlows)
+        {
+            const std::string stmt = recurse(outputExec.get());
+            if (stmt.empty())
+                continue;
+            if (!statements.empty())
+                statements += "\n";
+            statements += stmt;
+        }
+
+        return statements;
+    }
+
+    std::string LuaTranspiler::resolveFunctionName(const AstNode* node) const
+    {
+        if (!node || node->functionName.empty())
+            return "foo";
+        return node->functionName;
+    }
+
+    std::string LuaTranspiler::resolveFunctionParameters(const AstNode* node) const
+    {
+        if (!node || node->variableName.empty())
+            return "x";
+        return node->variableName;
     }
 
     std::string LuaTranspiler::recurseInputChildren(const AstNode* node)

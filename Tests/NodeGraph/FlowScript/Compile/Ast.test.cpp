@@ -54,6 +54,7 @@ TEST(Ast, shouldCreateTree)
     EXPECT_EQ(rootNode->type, "Function");
     EXPECT_EQ(rootNode->kind, AstNodeKind::Statement);
     EXPECT_EQ(rootNode->statementOpcode, AstStatementOpcode::Function);
+    EXPECT_EQ(rootNode->functionName, "");
     EXPECT_EQ(rootNode->variableName, "x");
 
     ASSERT_EQ(rootNode->outputExecutionFlows.size(), 1u);
