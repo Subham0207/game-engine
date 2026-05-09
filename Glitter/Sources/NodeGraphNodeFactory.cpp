@@ -9,6 +9,10 @@
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/GreaterThan.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/NotEqualsTo.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Subtract.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/LessThan.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Modulo.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Multiply.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Divide.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Boolean.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/GenericType.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
@@ -29,6 +33,10 @@ using PrintNode = NodeGraphComponents::Node::Keywords::Print;
 using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
 using GetVariableNode = NodeGraphComponents::Node::Variables::GetVariable;
 using VariableDeclarationNode = NodeGraphComponents::Node::Variables::VariableDeclaration;
+using MultiplyNode = NodeGraphComponents::Node::Multiply;
+using DivideNode = NodeGraphComponents::Node::Divide;
+using ModuloNode = NodeGraphComponents::Node::Modulo;
+using LessThanNode = NodeGraphComponents::Node::LessThan;
 
 namespace NodeGraphComponents
 {
@@ -47,6 +55,22 @@ namespace NodeGraphComponents
         if (type == NodeTypes::Subtract)
         {
             n = std::make_unique<SubtractNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "Subtract", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Multiply)
+        {
+            n = std::make_unique<MultiplyNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "Multiply", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Divide)
+        {
+            n = std::make_unique<DivideNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "Divide", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::Modulo)
+        {
+            n = std::make_unique<ModuloNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "Modulo", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::LessThan)
+        {
+            n = std::make_unique<LessThanNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "LessThan", spawnPosScreen.x, spawnPosScreen.y);
         }
         if (type == NodeTypes::GreaterThan)
         {

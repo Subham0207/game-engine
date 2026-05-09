@@ -30,7 +30,7 @@ namespace NodeGraphComponents::Node::Keywords
         }
         NodeTypes type() override { return NodeTypes::Function; }
 
-        std::string functionName;
+        std::string functionName = "foo";
     };
 }
 #endif //GLITTER_FUNCTION_HPP

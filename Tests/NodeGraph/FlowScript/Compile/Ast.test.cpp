@@ -9,6 +9,8 @@
 #include "NodeGraph/Components/NodeGraphNodeLink.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Add.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/EqualsTo.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/Multiply.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/BinaryOperators/LessThan.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/DataTypes/Integer.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
@@ -32,6 +34,8 @@ using Flowscript::Compile::EqualsToExpressionAstNode;
 using Flowscript::Compile::IntegerLiteralExpressionAstNode;
 using Flowscript::Compile::VariableDeclarationStatementAstNode;
 using Flowscript::Compile::GetVariableExpressionAstNode;
+using Flowscript::Compile::MultiplyExpressionAstNode;
+using Flowscript::Compile::LessThanExpressionAstNode;
 
 TEST(Ast, shouldCreateTree)
 {
@@ -192,4 +196,61 @@ TEST(Ast, shouldCreateVariableDeclarationAndGetVariableTree)
     const auto* getVarAstNode = dynamic_cast<const GetVariableExpressionAstNode*>(printAstNode->expression.get());
     ASSERT_NE(getVarAstNode, nullptr);
     EXPECT_EQ(getVarAstNode->name, "score");
+}
+
+TEST(Ast, shouldCaptureNodePositionsAndNewBinaryOperators)
+{
+    std::vector<std::unique_ptr<NodeGraphNode>> nodes;
+    std::vector<NodeGraphNodeLink> links;
+    int nextLinkId = 1;
+
+    auto nodeGraphIdAllocator = new NodeGraphIdAllocator();
+    auto nodeGraphFactory = new NodeGraphNodeFactory(nodeGraphIdAllocator);
+
+    auto fn = nodeGraphFactory->addFunctionNode(nodes, std::vector<std::string>{"x"}, ImVec2(100.0f, 200.0f));
+    auto* fnNode = dynamic_cast<NodeGraphComponents::Node::Keywords::Function*>(fn);
+    ASSERT_NE(fnNode, nullptr);
+    fnNode->functionName = "positioned";
+
+    auto printNode = nodeGraphFactory->addNode(nodes, NodeTypes::Print, ImVec2(120.0f, 220.0f));
+    auto lessThanNode = nodeGraphFactory->addNode(nodes, NodeTypes::LessThan, ImVec2(140.0f, 240.0f));
+    auto multiplyNode = nodeGraphFactory->addNode(nodes, NodeTypes::Multiply, ImVec2(160.0f, 260.0f));
+
+    auto integer1 = nodeGraphFactory->addNode(nodes, NodeTypes::Integer, ImVec2(180.0f, 280.0f));
+    integer1->outputs()[0].setValue("2");
+    auto integer2 = nodeGraphFactory->addNode(nodes, NodeTypes::Integer, ImVec2(200.0f, 300.0f));
+    integer2->outputs()[0].setValue("3");
+    auto integer3 = nodeGraphFactory->addNode(nodes, NodeTypes::Integer, ImVec2(220.0f, 320.0f));
+    integer3->outputs()[0].setValue("7");
+
+    links.emplace_back(nextLinkId++, fn->getExecOutputId(), printNode->getExecInputId());
+    links.emplace_back(nextLinkId++, multiplyNode->outputs()[0].getId(), lessThanNode->inputs()[0].getId());
+    links.emplace_back(nextLinkId++, integer3->outputs()[0].getId(), lessThanNode->inputs()[1].getId());
+    links.emplace_back(nextLinkId++, integer1->outputs()[0].getId(), multiplyNode->inputs()[0].getId());
+    links.emplace_back(nextLinkId++, integer2->outputs()[0].getId(), multiplyNode->inputs()[1].getId());
+    links.emplace_back(nextLinkId++, lessThanNode->outputs()[0].getId(), printNode->inputs()[0].getId());
+
+    const Flowscript::Compile::Ast ast(nodes, links);
+    ASSERT_EQ(ast.programRoot.size(), 1u);
+
+    const auto* functionAst = dynamic_cast<const FunctionStatementAstNode*>(ast.programRoot[0].get());
+    ASSERT_NE(functionAst, nullptr);
+    EXPECT_FLOAT_EQ(functionAst->x, 100.0f);
+    EXPECT_FLOAT_EQ(functionAst->y, 200.0f);
+
+    ASSERT_EQ(functionAst->outputExecutionFlows.size(), 1u);
+    const auto* printAst = dynamic_cast<const PrintStatementAstNode*>(functionAst->outputExecutionFlows[0].get());
+    ASSERT_NE(printAst, nullptr);
+    EXPECT_FLOAT_EQ(printAst->x, 120.0f);
+    EXPECT_FLOAT_EQ(printAst->y, 220.0f);
+
+    const auto* lessThanAst = dynamic_cast<const LessThanExpressionAstNode*>(printAst->expression.get());
+    ASSERT_NE(lessThanAst, nullptr);
+    EXPECT_FLOAT_EQ(lessThanAst->x, 140.0f);
+    EXPECT_FLOAT_EQ(lessThanAst->y, 240.0f);
+
+    const auto* multiplyAst = dynamic_cast<const MultiplyExpressionAstNode*>(lessThanAst->lhs.get());
+    ASSERT_NE(multiplyAst, nullptr);
+    EXPECT_FLOAT_EQ(multiplyAst->x, 160.0f);
+    EXPECT_FLOAT_EQ(multiplyAst->y, 260.0f);
 }

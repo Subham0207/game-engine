@@ -82,6 +82,30 @@ public:
                     m_addNode(m_user, NodeTypes::Subtract, contextMenuX, contextMenuY);
 
             }
+            if (ImGui::MenuItem("Multiply"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Multiply, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("Divide"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Divide, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("Modulo"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::Modulo, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("LessThan"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::LessThan, contextMenuX, contextMenuY);
+
+            }
             if (ImGui::MenuItem("GreaterThan"))
             {
                 if (m_addNode)
@@ -117,6 +141,12 @@ public:
                     m_addNode(m_user, NodeTypes::Boolean, contextMenuX, contextMenuY);
 
             }
+            if (ImGui::MenuItem("Get Variable"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::GetVariable, contextMenuX, contextMenuY);
+
+            }
 
             ImGui::Separator();
             ImGui::Text("Keywords");
@@ -138,6 +168,12 @@ public:
             {
                 if (m_addNode)
                     m_addNode(m_user, NodeTypes::Return, contextMenuX, contextMenuY);
+
+            }
+            if (ImGui::MenuItem("Variable Declaration"))
+            {
+                if (m_addNode)
+                    m_addNode(m_user, NodeTypes::VariableDeclaration, contextMenuX, contextMenuY);
 
             }
 
@@ -180,6 +216,8 @@ private:
 };
 
 #endif //GLITTER_NODEGRAPH_CONTEXTMENU_HPP
+
+
 
 
 

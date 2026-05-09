@@ -8,6 +8,10 @@ enum class NodeTypes
 {
     Add,
     Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    LessThan,
     GreaterThan,
     EqualsTo,
     NotEqualsTo,

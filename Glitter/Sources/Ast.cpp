@@ -73,12 +73,24 @@ namespace Flowscript::Compile
                     auto stmt = std::make_unique<FunctionStatementAstNode>();
                     stmt->functionName = resolveFunctionName(node);
                     stmt->parameters = collectFunctionParams(node);
+                    stmt->x = node->spawnPosScreen().x;
+                    stmt->y = node->spawnPosScreen().y;
                     return stmt;
                 }
                 case NodeTypes::Print:
-                    return std::make_unique<PrintStatementAstNode>();
+                {
+                    auto stmt = std::make_unique<PrintStatementAstNode>();
+                    stmt->x = node->spawnPosScreen().x;
+                    stmt->y = node->spawnPosScreen().y;
+                    return stmt;
+                }
                 case NodeTypes::Return:
-                    return std::make_unique<ReturnStatementAstNode>();
+                {
+                    auto stmt = std::make_unique<ReturnStatementAstNode>();
+                    stmt->x = node->spawnPosScreen().x;
+                    stmt->y = node->spawnPosScreen().y;
+                    return stmt;
+                }
                 case NodeTypes::VariableDeclaration:
                 {
                     auto stmt = std::make_unique<VariableDeclarationStatementAstNode>();
@@ -88,6 +100,8 @@ namespace Flowscript::Compile
                     stmt->name = declNode->variableName;
                     stmt->valueType = resolveVariableValueType(declNode->declaredType);
                     stmt->value = declNode->value;
+                    stmt->x = node->spawnPosScreen().x;
+                    stmt->y = node->spawnPosScreen().y;
                     return stmt;
                 }
                 default:
@@ -106,12 +120,16 @@ namespace Flowscript::Compile
                 {
                     auto expr = std::make_unique<IntegerLiteralExpressionAstNode>();
                     expr->value = firstOutputValue(node);
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
                     return expr;
                 }
                 case NodeTypes::Boolean:
                 {
                     auto expr = std::make_unique<BooleanLiteralExpressionAstNode>();
                     expr->value = firstOutputValue(node);
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
                     return expr;
                 }
                 case NodeTypes::GetVariable:
@@ -121,18 +139,73 @@ namespace Flowscript::Compile
                     if (!getVarNode || getVarNode->variableName.empty())
                         throw std::runtime_error("GetVariable node requires a variable name");
                     expr->name = getVarNode->variableName;
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
                     return expr;
                 }
                 case NodeTypes::Add:
-                    return std::make_unique<AddExpressionAstNode>();
+                {
+                    auto expr = std::make_unique<AddExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
                 case NodeTypes::Subtract:
-                    return std::make_unique<SubtractExpressionAstNode>();
+                {
+                    auto expr = std::make_unique<SubtractExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
+                case NodeTypes::Multiply:
+                {
+                    auto expr = std::make_unique<MultiplyExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
+                case NodeTypes::Divide:
+                {
+                    auto expr = std::make_unique<DivideExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
+                case NodeTypes::Modulo:
+                {
+                    auto expr = std::make_unique<ModuloExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
+                case NodeTypes::LessThan:
+                {
+                    auto expr = std::make_unique<LessThanExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
                 case NodeTypes::EqualsTo:
-                    return std::make_unique<EqualsToExpressionAstNode>();
+                {
+                    auto expr = std::make_unique<EqualsToExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
                 case NodeTypes::GreaterThan:
-                    return std::make_unique<GreaterThanExpressionAstNode>();
+                {
+                    auto expr = std::make_unique<GreaterThanExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
                 case NodeTypes::NotEqualsTo:
-                    return std::make_unique<NotEqualsToExpressionAstNode>();
+                {
+                    auto expr = std::make_unique<NotEqualsToExpressionAstNode>();
+                    expr->x = node->spawnPosScreen().x;
+                    expr->y = node->spawnPosScreen().y;
+                    return expr;
+                }
                 default:
                     return nullptr;
             }

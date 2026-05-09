@@ -303,6 +303,42 @@ namespace Flowscript::Decompile
                 shouldJoinExecChain = true;
                 return true;
             }
+            if (inner.find(" * ") != std::string::npos)
+            {
+                auto parts = Helpers::splitOnce(inner, " * ");
+                nodeType = NodeTypes::Multiply;
+                lhs = parts.first;
+                rhs = parts.second;
+                shouldJoinExecChain = true;
+                return true;
+            }
+            if (inner.find(" / ") != std::string::npos)
+            {
+                auto parts = Helpers::splitOnce(inner, " / ");
+                nodeType = NodeTypes::Divide;
+                lhs = parts.first;
+                rhs = parts.second;
+                shouldJoinExecChain = true;
+                return true;
+            }
+            if (inner.find(" % ") != std::string::npos)
+            {
+                auto parts = Helpers::splitOnce(inner, " % ");
+                nodeType = NodeTypes::Modulo;
+                lhs = parts.first;
+                rhs = parts.second;
+                shouldJoinExecChain = true;
+                return true;
+            }
+            if (inner.find(" < ") != std::string::npos)
+            {
+                auto parts = Helpers::splitOnce(inner, " < ");
+                nodeType = NodeTypes::LessThan;
+                lhs = parts.first;
+                rhs = parts.second;
+                shouldJoinExecChain = true;
+                return true;
+            }
             if (inner.find(" > ") != std::string::npos)
             {
                 auto parts = Helpers::splitOnce(inner, " > ");
@@ -516,6 +552,8 @@ namespace Flowscript::Decompile
         impl->finalize();
     }
 }
+
+
 
 
 

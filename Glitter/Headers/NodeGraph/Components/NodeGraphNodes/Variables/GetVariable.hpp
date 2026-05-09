@@ -17,7 +17,8 @@ namespace NodeGraphComponents::Node::Variables
             outputs().push_back(valueOutput);
         }
         NodeTypes type() override { return NodeTypes::GetVariable; }
-        std::string variableName;
+
+        std::string variableName = "var";
     private:
         Attribute valueOutput;
     };

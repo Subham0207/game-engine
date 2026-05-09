@@ -198,6 +198,10 @@ public:
             }
 
             ImNodes::EndNode();
+
+            const ImVec2 nodeScreenPos = ImNodes::GetNodeScreenSpacePos(node->id());
+            node->setSpawnPosScreen(nodeScreenPos);
+            node->markPositionSet(true);
         }
 
     // Draw links after nodes so ImNodes can route them correctly.

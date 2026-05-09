@@ -60,13 +60,14 @@ TEST(LuaTranspiler, shouldTranspileAstToLua)
     ASSERT_EQ(functionNode->functionName, "foo");
 
     LuaTranspiler luaTranspiler;
-    const std::string luaCode = luaTranspiler.Transpile(ast.programRoot);
+    const auto output = luaTranspiler.Transpile(ast.programRoot);
 
     const std::string expectedLuaCode = "function foo(x)\n"
                                         "print()\n"
                                         "return\n"
                                         "end";
-    ASSERT_EQ(luaCode, expectedLuaCode);
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
+    ASSERT_FALSE(output.serializedNodePositions.empty());
 }
 
 TEST(LuaTranspiler, shouldThrowWhenFunctionNameMissing)
@@ -103,12 +104,12 @@ TEST(LuaTranspiler, shouldUseFunctionNameFromAstNode)
     ast.push_back(std::move(functionNode));
 
     LuaTranspiler luaTranspiler;
-    const std::string luaCode = luaTranspiler.Transpile(ast);
+    const auto output = luaTranspiler.Transpile(ast);
 
     const std::string expectedLuaCode = "function sum(a,b)\n"
                                         "return (1 + 2)\n"
                                         "end";
-    ASSERT_EQ(luaCode, expectedLuaCode);
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
 }
 
 TEST(LuaTranspiler, shouldEmitFunctionWithoutParametersWhenNoneProvided)
@@ -120,8 +121,8 @@ TEST(LuaTranspiler, shouldEmitFunctionWithoutParametersWhenNoneProvided)
     ast.push_back(std::move(functionNode));
 
     LuaTranspiler luaTranspiler;
-    const std::string luaCode = luaTranspiler.Transpile(ast);
-    ASSERT_EQ(luaCode, "function ping()\nend");
+    const auto output = luaTranspiler.Transpile(ast);
+    ASSERT_EQ(output.luaCode, "function ping()\nend");
 }
 
 TEST(LuaTranspiler, shouldTerminateExecutionChainAtReturn)
@@ -139,12 +140,12 @@ TEST(LuaTranspiler, shouldTerminateExecutionChainAtReturn)
     ast.push_back(std::move(functionNode));
 
     LuaTranspiler luaTranspiler;
-    const std::string luaCode = luaTranspiler.Transpile(ast);
+    const auto output = luaTranspiler.Transpile(ast);
 
     const std::string expectedLuaCode = "function stopAtReturn()\n"
                                         "return\n"
                                         "end";
-    ASSERT_EQ(luaCode, expectedLuaCode);
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
 }
 
 TEST(LuaTranspiler, shouldTranspileVariableDeclarationAndGetVariable)
@@ -169,13 +170,13 @@ TEST(LuaTranspiler, shouldTranspileVariableDeclarationAndGetVariable)
     ast.push_back(std::move(functionNode));
 
     LuaTranspiler luaTranspiler;
-    const std::string luaCode = luaTranspiler.Transpile(ast);
+    const auto output = luaTranspiler.Transpile(ast);
 
     const std::string expectedLuaCode = "function useVar()\n"
                                         "local score = 10\n"
                                         "print(score)\n"
                                         "end";
-    ASSERT_EQ(luaCode, expectedLuaCode);
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
 }
 
 TEST(LuaTranspiler, shouldThrowWhenVariableDeclarationNameMissing)
@@ -243,10 +244,38 @@ TEST(LuaTranspiler, shouldTranspileAdditionalBinaryExpressions)
     ast.push_back(std::move(functionNode));
 
     LuaTranspiler luaTranspiler;
-    const std::string luaCode = luaTranspiler.Transpile(ast);
+    const auto output = luaTranspiler.Transpile(ast);
 
     const std::string expectedLuaCode = "function ops()\n"
                                         "return (((6 * 2) < (9 / 3)) == (7 % 4))\n"
                                         "end";
-    ASSERT_EQ(luaCode, expectedLuaCode);
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
+}
+
+TEST(LuaTranspiler, shouldSerializeAstNodePositions)
+{
+    std::vector<std::unique_ptr<Flowscript::Compile::StatementAstNode>> ast;
+
+    auto functionNode = std::make_unique<FunctionStatementAstNode>();
+    functionNode->functionName = "pos";
+    functionNode->x = 10.0f;
+    functionNode->y = 20.0f;
+
+    auto printNode = std::make_unique<PrintStatementAstNode>();
+    printNode->x = 30.0f;
+    printNode->y = 40.0f;
+
+    auto intExpr = std::make_unique<IntegerLiteralExpressionAstNode>();
+    intExpr->x = 50.0f;
+    intExpr->y = 60.0f;
+    intExpr->value = "1";
+    printNode->expression = std::move(intExpr);
+
+    functionNode->outputExecutionFlows.push_back(std::move(printNode));
+    ast.push_back(std::move(functionNode));
+
+    LuaTranspiler luaTranspiler;
+    const auto output = luaTranspiler.Transpile(ast);
+
+    ASSERT_EQ(output.serializedNodePositions, "10.00,20.00;30.00,40.00;50.00,60.00");
 }

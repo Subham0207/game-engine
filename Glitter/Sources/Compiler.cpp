@@ -218,6 +218,10 @@ namespace Flowscript::Compile
             || type == NodeTypes::Boolean
             || type == NodeTypes::Add
             || type == NodeTypes::Subtract
+            || type == NodeTypes::Multiply
+            || type == NodeTypes::Divide
+            || type == NodeTypes::Modulo
+            || type == NodeTypes::LessThan
             || type == NodeTypes::GreaterThan
             || type == NodeTypes::EqualsTo
             || type == NodeTypes::NotEqualsTo;
@@ -225,8 +229,9 @@ namespace Flowscript::Compile
 
     int Compiler::RequiredInputCount(const NodeTypes type)
     {
-        if (type == NodeTypes::Add || type == NodeTypes::Subtract || type == NodeTypes::GreaterThan
-            || type == NodeTypes::EqualsTo || type == NodeTypes::NotEqualsTo)
+        if (type == NodeTypes::Add || type == NodeTypes::Subtract || type == NodeTypes::Multiply
+            || type == NodeTypes::Divide || type == NodeTypes::Modulo || type == NodeTypes::LessThan
+            || type == NodeTypes::GreaterThan || type == NodeTypes::EqualsTo || type == NodeTypes::NotEqualsTo)
             return 2;
         if (type == NodeTypes::Print || type == NodeTypes::Return)
             return 1;
@@ -292,6 +297,10 @@ namespace Flowscript::Compile
             }
             case NodeTypes::Add:
             case NodeTypes::Subtract:
+            case NodeTypes::Multiply:
+            case NodeTypes::Divide:
+            case NodeTypes::Modulo:
+            case NodeTypes::LessThan:
             case NodeTypes::GreaterThan:
             case NodeTypes::EqualsTo:
             case NodeTypes::NotEqualsTo:
@@ -301,6 +310,14 @@ namespace Flowscript::Compile
                     expr->op = "+";
                 else if (node->type() == NodeTypes::Subtract)
                     expr->op = "-";
+                else if (node->type() == NodeTypes::Multiply)
+                    expr->op = "*";
+                else if (node->type() == NodeTypes::Divide)
+                    expr->op = "/";
+                else if (node->type() == NodeTypes::Modulo)
+                    expr->op = "%";
+                else if (node->type() == NodeTypes::LessThan)
+                    expr->op = "<";
                 else if (node->type() == NodeTypes::GreaterThan)
                     expr->op = ">";
                 else if (node->type() == NodeTypes::EqualsTo)
@@ -432,6 +449,10 @@ namespace Flowscript::Compile
             }
             case NodeTypes::Add:
             case NodeTypes::Subtract:
+            case NodeTypes::Multiply:
+            case NodeTypes::Divide:
+            case NodeTypes::Modulo:
+            case NodeTypes::LessThan:
             case NodeTypes::GreaterThan:
             case NodeTypes::EqualsTo:
             case NodeTypes::NotEqualsTo:

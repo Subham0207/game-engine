@@ -24,9 +24,9 @@ namespace NodeGraphComponents::Node::Variables
 
         NodeTypes type() override { return NodeTypes::VariableDeclaration; }
 
-        std::string variableName;
-        std::string declaredType;
-        std::string value;
+        std::string variableName = "var";
+        std::string declaredType = "Number";
+        std::string value = "0";
 
     private:
         Attribute valueInput;

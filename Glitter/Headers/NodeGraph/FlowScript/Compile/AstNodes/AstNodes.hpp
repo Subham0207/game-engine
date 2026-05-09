@@ -11,6 +11,8 @@ namespace Flowscript::Compile
     {
     public:
         virtual ~AstNode() = default;
+        float x = 0.0f;
+        float y = 0.0f;
     };
 
     class StatementAstNode : public AstNode
