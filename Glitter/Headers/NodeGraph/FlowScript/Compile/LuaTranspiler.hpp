@@ -9,6 +9,7 @@
 #include<vector>
 #include<memory>
 #include "Ast.hpp"
+#include "NodePositionSerialization.hpp"
 
 namespace Flowscript::Compile
 {
@@ -39,8 +40,8 @@ namespace Flowscript::Compile
             static std::string resolveFunctionParameters(const FunctionStatementAstNode* node);
             std::string resolveVariableDeclarationValue(const VariableDeclarationStatementAstNode* node) const;
             std::string transpileBinaryExpression(const BinaryExpressionAstNode* node, const std::string& op);
-            void appendNodePosition(const AstNode* node, std::string& serialized) const;
-            void appendExpressionNodePosition(const ExpressionAstNode* node, std::string& serialized) const;
+            void appendNodePosition(const AstNode* node, std::vector<NodePosition>& positions) const;
+            void appendExpressionNodePosition(const ExpressionAstNode* node, std::vector<NodePosition>& positions) const;
     };
 }
 

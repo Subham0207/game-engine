@@ -4,14 +4,13 @@
 
 #include "../Headers/NodeGraph/FlowScript/Compile/LuaTranspiler.hpp"
 #include <stdexcept>
-#include <sstream>
-#include <iomanip>
 
 namespace Flowscript::Compile
 {
     LuaTranspileOutput LuaTranspiler::Transpile(const std::vector<std::unique_ptr<StatementAstNode>>& ast)
     {
         LuaTranspileOutput output;
+        std::vector<NodePosition> positions;
 
         for (const auto& node: ast)
         {
@@ -19,9 +18,10 @@ namespace Flowscript::Compile
                 output.luaCode += "\n";
             output.luaCode += recurse(node.get());
 
-            appendNodePosition(node.get(), output.serializedNodePositions);
+            appendNodePosition(node.get(), positions);
         }
 
+        output.serializedNodePositions = NodePositionSerialization::Serialize(positions);
         return output;
     }
 
@@ -217,48 +217,40 @@ namespace Flowscript::Compile
         return "";
     }
 
-    void LuaTranspiler::appendNodePosition(const AstNode* node, std::string& serialized) const
+    void LuaTranspiler::appendNodePosition(const AstNode* node, std::vector<NodePosition>& positions) const
     {
         if (!node)
             return;
 
-        std::ostringstream entry;
-        entry << std::fixed << std::setprecision(2) << node->x << "," << node->y;
-        if (!serialized.empty())
-            serialized += ";";
-        serialized += entry.str();
+        positions.push_back({node->x, node->y});
 
         if (const auto* stmt = dynamic_cast<const StatementAstNode*>(node))
         {
             if (const auto* printNode = dynamic_cast<const PrintStatementAstNode*>(stmt))
-                appendExpressionNodePosition(printNode->expression.get(), serialized);
+                appendExpressionNodePosition(printNode->expression.get(), positions);
             else if (const auto* returnNode = dynamic_cast<const ReturnStatementAstNode*>(stmt))
-                appendExpressionNodePosition(returnNode->expression.get(), serialized);
+                appendExpressionNodePosition(returnNode->expression.get(), positions);
 
             for (const auto& child : stmt->outputExecutionFlows)
-                appendNodePosition(child.get(), serialized);
+                appendNodePosition(child.get(), positions);
         }
         else if (const auto* expr = dynamic_cast<const ExpressionAstNode*>(node))
         {
-            appendExpressionNodePosition(expr, serialized);
+            appendExpressionNodePosition(expr, positions);
         }
     }
 
-    void LuaTranspiler::appendExpressionNodePosition(const ExpressionAstNode* node, std::string& serialized) const
+    void LuaTranspiler::appendExpressionNodePosition(const ExpressionAstNode* node, std::vector<NodePosition>& positions) const
     {
         if (!node)
             return;
 
-        std::ostringstream entry;
-        entry << std::fixed << std::setprecision(2) << node->x << "," << node->y;
-        if (!serialized.empty())
-            serialized += ";";
-        serialized += entry.str();
+        positions.push_back({node->x, node->y});
 
         if (const auto* binary = dynamic_cast<const BinaryExpressionAstNode*>(node))
         {
-            appendExpressionNodePosition(binary->lhs.get(), serialized);
-            appendExpressionNodePosition(binary->rhs.get(), serialized);
+            appendExpressionNodePosition(binary->lhs.get(), positions);
+            appendExpressionNodePosition(binary->rhs.get(), positions);
         }
     }
 }
