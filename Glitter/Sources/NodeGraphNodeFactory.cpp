@@ -15,6 +15,8 @@
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Variables/GetVariable.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Variables/VariableDeclaration.hpp"
 using AddNode = NodeGraphComponents::Node::Add;
 using SubtractNode = NodeGraphComponents::Node::Subtract;
 using GreaterThanNode = NodeGraphComponents::Node::GreaterThan;
@@ -25,6 +27,8 @@ using BooleanNode = NodeGraphComponents::Node::Boolean;
 using FunctionNode = NodeGraphComponents::Node::Keywords::Function;
 using PrintNode = NodeGraphComponents::Node::Keywords::Print;
 using ReturnNode = NodeGraphComponents::Node::Keywords::Return;
+using GetVariableNode = NodeGraphComponents::Node::Variables::GetVariable;
+using VariableDeclarationNode = NodeGraphComponents::Node::Variables::VariableDeclaration;
 
 namespace NodeGraphComponents
 {
@@ -76,6 +80,14 @@ namespace NodeGraphComponents
         {
             n = std::make_unique<ReturnNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextNodeId++, "Return", spawnPosScreen.x, spawnPosScreen.y);
         }
+        if (type == NodeTypes::VariableDeclaration)
+        {
+            n = std::make_unique<VariableDeclarationNode>(_nodeGraphIdAllocator->nextInputPinId, _nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "VariableDeclaration", spawnPosScreen.x, spawnPosScreen.y);
+        }
+        if (type == NodeTypes::GetVariable)
+        {
+            n = std::make_unique<GetVariableNode>(_nodeGraphIdAllocator->nextOutputPinId, _nodeGraphIdAllocator->nextNodeId++, "GetVariable", spawnPosScreen.x, spawnPosScreen.y);
+        }
 
 
         if (n)
@@ -105,3 +117,4 @@ namespace NodeGraphComponents
     }
 
 } // NodeGraphComponents
+

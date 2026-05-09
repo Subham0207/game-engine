@@ -26,10 +26,12 @@ namespace Flowscript::Compile
             std::string transpileFunctionNode(const FunctionStatementAstNode* node);
             std::string transpilePrintNode(const PrintStatementAstNode* node);
             std::string transpileReturnNode(const ReturnStatementAstNode* node);
+            std::string transpileVariableDeclarationNode(const VariableDeclarationStatementAstNode* node);
             std::string transpileStatementWithTrailingExecution(const StatementAstNode* node, const std::string& currentStatement);
             std::string transpileExecutionFlowChildren(const StatementAstNode* node);
-            std::string resolveFunctionName(const FunctionStatementAstNode* node) const;
-            std::string resolveFunctionParameters(const FunctionStatementAstNode* node) const;
+            static std::string resolveFunctionName(const FunctionStatementAstNode* node);
+            static std::string resolveFunctionParameters(const FunctionStatementAstNode* node);
+            std::string resolveVariableDeclarationValue(const VariableDeclarationStatementAstNode* node) const;
             std::string transpileBinaryExpression(const BinaryExpressionAstNode* node, const std::string& op);
     };
 }

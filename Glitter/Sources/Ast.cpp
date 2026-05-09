@@ -4,24 +4,25 @@
 
 #include "../Headers/NodeGraph/FlowScript/Compile/Ast.hpp"
 #include <NodeGraph/Components/NodeGraphNode.hpp>
+#include <NodeGraph/Components/NodeGraphNodes/Variables/GetVariable.hpp>
+#include <NodeGraph/Components/NodeGraphNodes/Variables/VariableDeclaration.hpp>
+#include <NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp>
+#include <stdexcept>
 
 namespace Flowscript::Compile
 {
     namespace
     {
-        std::string resolveFunctionName(NodeGraphNode* node)
+        static std::string resolveFunctionName(NodeGraphNode* node)
         {
-            if (!node)
-                return "";
+            const auto* functionNode = dynamic_cast<const NodeGraphComponents::Node::Keywords::Function*>(node);
+            if (!functionNode || functionNode->functionName.empty())
+                throw std::runtime_error("Function node requires a function name");
 
-            const std::string& candidate = node->name();
-            if (candidate.empty() || candidate == "Function")
-                return "";
-
-            return candidate;
+            return functionNode->functionName;
         }
 
-        std::vector<std::string> collectFunctionParams(NodeGraphNode* node)
+        static std::vector<std::string> collectFunctionParams(NodeGraphNode* node)
         {
             std::vector<std::string> params;
             if (!node)
@@ -37,14 +38,30 @@ namespace Flowscript::Compile
             return params;
         }
 
-        std::string firstOutputValue(NodeGraphNode* node)
+        static Flowscript::Compile::VariableValueType resolveVariableValueType(const std::string& rawType)
+        {
+            if (rawType == "boolean" || rawType == "Boolean")
+                return Flowscript::Compile::VariableValueType::Boolean;
+            if (rawType == "string" || rawType == "String")
+                return Flowscript::Compile::VariableValueType::String;
+            if (rawType == "table" || rawType == "Table")
+                return Flowscript::Compile::VariableValueType::Table;
+            if (rawType == "array" || rawType == "Array")
+                return Flowscript::Compile::VariableValueType::Array;
+            if (rawType == "record" || rawType == "Record")
+                return Flowscript::Compile::VariableValueType::Record;
+
+            return Flowscript::Compile::VariableValueType::Number;
+        }
+
+        static std::string firstOutputValue(NodeGraphNode* node)
         {
             if (!node || node->outputs().empty())
                 return "";
             return node->outputs()[0].getValueBuff();
         }
 
-        std::unique_ptr<StatementAstNode> makeStatementNode(NodeGraphNode* node)
+        static std::unique_ptr<StatementAstNode> makeStatementNode(NodeGraphNode* node)
         {
             if (!node)
                 return nullptr;
@@ -62,12 +79,23 @@ namespace Flowscript::Compile
                     return std::make_unique<PrintStatementAstNode>();
                 case NodeTypes::Return:
                     return std::make_unique<ReturnStatementAstNode>();
+                case NodeTypes::VariableDeclaration:
+                {
+                    auto stmt = std::make_unique<VariableDeclarationStatementAstNode>();
+                    const auto* declNode = dynamic_cast<const NodeGraphComponents::Node::Variables::VariableDeclaration*>(node);
+                    if (!declNode || declNode->variableName.empty())
+                        throw std::runtime_error("Variable declaration requires a variable name");
+                    stmt->name = declNode->variableName;
+                    stmt->valueType = resolveVariableValueType(declNode->declaredType);
+                    stmt->value = declNode->value;
+                    return stmt;
+                }
                 default:
                     return nullptr;
             }
         }
 
-        std::unique_ptr<ExpressionAstNode> makeExpressionNode(NodeGraphNode* node)
+        static std::unique_ptr<ExpressionAstNode> makeExpressionNode(NodeGraphNode* node)
         {
             if (!node)
                 return nullptr;
@@ -86,6 +114,15 @@ namespace Flowscript::Compile
                     expr->value = firstOutputValue(node);
                     return expr;
                 }
+                case NodeTypes::GetVariable:
+                {
+                    auto expr = std::make_unique<GetVariableExpressionAstNode>();
+                    const auto* getVarNode = dynamic_cast<const NodeGraphComponents::Node::Variables::GetVariable*>(node);
+                    if (!getVarNode || getVarNode->variableName.empty())
+                        throw std::runtime_error("GetVariable node requires a variable name");
+                    expr->name = getVarNode->variableName;
+                    return expr;
+                }
                 case NodeTypes::Add:
                     return std::make_unique<AddExpressionAstNode>();
                 case NodeTypes::Subtract:
@@ -101,7 +138,7 @@ namespace Flowscript::Compile
             }
         }
 
-        int findLinkStartAttrForEndAttr(
+        static int findLinkStartAttrForEndAttr(
             int endAttr,
             const std::vector<NodeGraphNodeLink>& links
         )
@@ -115,7 +152,7 @@ namespace Flowscript::Compile
             return -1;
         }
 
-        NodeGraphNode* findNodeByOutputAttr(
+        static NodeGraphNode* findNodeByOutputAttr(
             const int outputAttr,
             const std::vector<std::unique_ptr<NodeGraphNode>>& nodes
         )
@@ -134,6 +171,24 @@ namespace Flowscript::Compile
 
             return nullptr;
         }
+
+        static int countIncomingExecLinks(
+            NodeGraphNode* currentNode,
+            const std::vector<NodeGraphNodeLink>& links
+        )
+        {
+            int inDegree = 0;
+            if (!currentNode || !currentNode->hasExecInput())
+                return inDegree;
+
+            for (const auto& link: links)
+            {
+                if (link.endAttr() == currentNode->getExecInput()->getId())
+                    ++inDegree;
+            }
+
+            return inDegree;
+        }
     }
 
     Ast::Ast(
@@ -146,7 +201,7 @@ namespace Flowscript::Compile
         std::vector<NodeGraphNode*> rootNodes;
         for (const auto& node: nodes)
         {
-            if (node->hasExecOutput() && inDegree(node.get(), nodes, links) == 0)
+            if (node->hasExecOutput() && countIncomingExecLinks(node.get(), links) == 0)
             {
                 rootNodes.push_back(node.get());
             }
@@ -183,6 +238,13 @@ namespace Flowscript::Compile
         {
             if (!currentNode->inputs().empty())
                 returnStmt->expression = recurseForDataValue(currentNode->inputs()[0].getId(), nodes, links);
+            return;
+        }
+        else if (auto* varDeclStmt = dynamic_cast<VariableDeclarationStatementAstNode*>(current))
+        {
+            const auto* varDeclNode = dynamic_cast<const NodeGraphComponents::Node::Variables::VariableDeclaration*>(currentNode);
+            if (varDeclNode)
+                varDeclStmt->value = varDeclNode->value;
         }
 
         auto endExecNodeAttr = -1;
@@ -240,27 +302,5 @@ namespace Flowscript::Compile
         }
 
         return expressionNode;
-    }
-
-    int Ast::inDegree(
-        NodeGraphNode* currentNode,
-        const std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
-        const std::vector<NodeGraphNodeLink>& links)
-    {
-        int inDegree = 0;
-
-        if (!currentNode->hasExecInput())
-            return inDegree;
-
-        for (const auto& link: links)
-        {
-            //if this link and node are attached.
-            if (link.endAttr() == currentNode->getExecInput()->getId())
-            {
-                inDegree++;
-            }
-        }
-
-        return inDegree;
     }
 }

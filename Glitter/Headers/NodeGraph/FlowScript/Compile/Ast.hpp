@@ -36,11 +36,6 @@ namespace Flowscript::Compile
             const std::vector<NodeGraphNodeLink>& links
         );
 
-        int inDegree(
-            NodeGraphNode* currentNode,
-            const std::vector<std::unique_ptr<NodeGraphNode>>& nodes,
-            const std::vector<NodeGraphNodeLink>& links
-        );
 
         std::vector<std::unique_ptr<StatementAstNode>> programRoot;
     };

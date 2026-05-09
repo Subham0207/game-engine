@@ -3,6 +3,7 @@
 //
 
 #include "../Headers/NodeGraph/FlowScript/Compile/LuaTranspiler.hpp"
+#include <stdexcept>
 
 namespace Flowscript::Compile
 {
@@ -30,6 +31,8 @@ namespace Flowscript::Compile
             return transpilePrintNode(printNode);
         if (const auto* returnNode = dynamic_cast<const ReturnStatementAstNode*>(node))
             return transpileReturnNode(returnNode);
+        if (const auto* variableDeclNode = dynamic_cast<const VariableDeclarationStatementAstNode*>(node))
+            return transpileVariableDeclarationNode(variableDeclNode);
 
         return "";
     }
@@ -50,13 +53,9 @@ namespace Flowscript::Compile
 
     std::string LuaTranspiler::transpilePrintNode(const PrintStatementAstNode* node)
     {
-        std::string expr = "'Hello world'";
+        std::string expr;
         if (node && node->expression)
-        {
-            const std::string emitted = recurseExpression(node->expression.get());
-            if (!emitted.empty())
-                expr = emitted;
-        }
+            expr = recurseExpression(node->expression.get());
 
         return transpileStatementWithTrailingExecution(node, "print(" + expr + ")");
     }
@@ -70,7 +69,19 @@ namespace Flowscript::Compile
             currentStatement = expr.empty() ? "return" : ("return " + expr);
         }
 
-        return transpileStatementWithTrailingExecution(node, currentStatement);
+        // Return terminates the execution chain in generated Lua.
+        return currentStatement;
+    }
+
+    std::string LuaTranspiler::transpileVariableDeclarationNode(const VariableDeclarationStatementAstNode* node)
+    {
+        if (!node || node->name.empty())
+            throw std::runtime_error("Variable declaration requires a name");
+
+        return transpileStatementWithTrailingExecution(
+            node,
+            "local " + node->name + " = " + resolveVariableDeclarationValue(node)
+        );
     }
 
     std::string LuaTranspiler::transpileStatementWithTrailingExecution(
@@ -104,17 +115,17 @@ namespace Flowscript::Compile
         return statements;
     }
 
-    std::string LuaTranspiler::resolveFunctionName(const FunctionStatementAstNode* node) const
+    std::string LuaTranspiler::resolveFunctionName(const FunctionStatementAstNode* node)
     {
         if (!node || node->functionName.empty())
-            return "foo";
+            throw std::runtime_error("Function statement requires a function name");
         return node->functionName;
     }
 
-    std::string LuaTranspiler::resolveFunctionParameters(const FunctionStatementAstNode* node) const
+    std::string LuaTranspiler::resolveFunctionParameters(const FunctionStatementAstNode* node)
     {
         if (!node || node->parameters.empty())
-            return "x";
+            return "";
 
         std::string parameters;
         for (const std::string& name: node->parameters)
@@ -126,7 +137,32 @@ namespace Flowscript::Compile
             parameters += name;
         }
 
-        return parameters.empty() ? "x" : parameters;
+        return parameters;
+    }
+
+    std::string LuaTranspiler::resolveVariableDeclarationValue(const VariableDeclarationStatementAstNode* node) const
+    {
+        if (!node)
+            return "nil";
+
+        if (!node->value.empty())
+            return node->value;
+
+        switch (node->valueType)
+        {
+            case VariableValueType::Boolean:
+                return "false";
+            case VariableValueType::Number:
+                return "0";
+            case VariableValueType::String:
+                return "\"\"";
+            case VariableValueType::Table:
+            case VariableValueType::Array:
+            case VariableValueType::Record:
+                return "{}";
+        }
+
+        return "nil";
     }
 
     std::string LuaTranspiler::transpileBinaryExpression(const BinaryExpressionAstNode* node, const std::string& op)
@@ -148,10 +184,24 @@ namespace Flowscript::Compile
             return integerLiteral->value.empty() ? "0" : integerLiteral->value;
         if (const auto* booleanLiteral = dynamic_cast<const BooleanLiteralExpressionAstNode*>(node))
             return booleanLiteral->value.empty() ? "false" : booleanLiteral->value;
+        if (const auto* getVariable = dynamic_cast<const GetVariableExpressionAstNode*>(node))
+        {
+            if (getVariable->name.empty())
+                throw std::runtime_error("GetVariable expression requires a variable name");
+            return getVariable->name;
+        }
         if (const auto* addExpr = dynamic_cast<const AddExpressionAstNode*>(node))
             return transpileBinaryExpression(addExpr, "+");
         if (const auto* subtractExpr = dynamic_cast<const SubtractExpressionAstNode*>(node))
             return transpileBinaryExpression(subtractExpr, "-");
+        if (const auto* multiplyExpr = dynamic_cast<const MultiplyExpressionAstNode*>(node))
+            return transpileBinaryExpression(multiplyExpr, "*");
+        if (const auto* divideExpr = dynamic_cast<const DivideExpressionAstNode*>(node))
+            return transpileBinaryExpression(divideExpr, "/");
+        if (const auto* moduloExpr = dynamic_cast<const ModuloExpressionAstNode*>(node))
+            return transpileBinaryExpression(moduloExpr, "%");
+        if (const auto* lessThanExpr = dynamic_cast<const LessThanExpressionAstNode*>(node))
+            return transpileBinaryExpression(lessThanExpr, "<");
         if (const auto* equalsExpr = dynamic_cast<const EqualsToExpressionAstNode*>(node))
             return transpileBinaryExpression(equalsExpr, "==");
         if (const auto* greaterExpr = dynamic_cast<const GreaterThanExpressionAstNode*>(node))

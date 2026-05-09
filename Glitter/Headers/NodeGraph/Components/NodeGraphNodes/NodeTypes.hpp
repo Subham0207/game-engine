@@ -15,6 +15,8 @@ enum class NodeTypes
     Integer,
     Boolean,
     Generic,
+    VariableDeclaration,
+    GetVariable,
 
     Function,
     Print,

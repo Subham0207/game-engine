@@ -29,6 +29,8 @@ namespace NodeGraphComponents::Node::Keywords
             setupExecOutput(nextOutputPinId);
         }
         NodeTypes type() override { return NodeTypes::Function; }
+
+        std::string functionName;
     };
 }
 #endif //GLITTER_FUNCTION_HPP

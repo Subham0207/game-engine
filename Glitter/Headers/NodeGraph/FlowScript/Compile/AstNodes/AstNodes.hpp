@@ -26,6 +26,16 @@ namespace Flowscript::Compile
         ~ExpressionAstNode() override = default;
     };
 
+    enum class VariableValueType
+    {
+        Boolean,
+        Number,
+        String,
+        Table, // Table is the declaration type ( whose value can be Array, Record, etc.). This might not be needed then.
+        Array,
+        Record
+    };
+
     class FunctionStatementAstNode final : public StatementAstNode
     {
     public:
@@ -45,6 +55,14 @@ namespace Flowscript::Compile
         std::unique_ptr<ExpressionAstNode> expression;
     };
 
+    class VariableDeclarationStatementAstNode final : public StatementAstNode
+    {
+    public:
+        std::string name;
+        VariableValueType valueType = VariableValueType::Number;
+        std::string value;
+    };
+
     class IntegerLiteralExpressionAstNode final : public ExpressionAstNode
     {
     public:
@@ -57,6 +75,12 @@ namespace Flowscript::Compile
         std::string value;
     };
 
+    class GetVariableExpressionAstNode final : public ExpressionAstNode
+    {
+    public:
+        std::string name;
+    };
+
     class BinaryExpressionAstNode : public ExpressionAstNode
     {
     public:
@@ -66,6 +90,10 @@ namespace Flowscript::Compile
 
     class AddExpressionAstNode final : public BinaryExpressionAstNode {};
     class SubtractExpressionAstNode final : public BinaryExpressionAstNode {};
+    class MultiplyExpressionAstNode final : public BinaryExpressionAstNode {};
+    class DivideExpressionAstNode final : public BinaryExpressionAstNode {};
+    class ModuloExpressionAstNode final : public BinaryExpressionAstNode {};
+    class LessThanExpressionAstNode final : public BinaryExpressionAstNode {};
     class EqualsToExpressionAstNode final : public BinaryExpressionAstNode {};
     class GreaterThanExpressionAstNode final : public BinaryExpressionAstNode {};
     class NotEqualsToExpressionAstNode final : public BinaryExpressionAstNode {};

@@ -13,6 +13,8 @@
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Print.hpp"
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Variables/GetVariable.hpp"
+#include "NodeGraph/Components/NodeGraphNodes/Variables/VariableDeclaration.hpp"
 #include "NodeGraph/FlowScript/Compile/Compiler.hpp"
 
 using NodeGraphComponents::Node::Integer;
@@ -28,6 +30,8 @@ using Flowscript::Compile::PrintStatementAstNode;
 using Flowscript::Compile::ReturnStatementAstNode;
 using Flowscript::Compile::EqualsToExpressionAstNode;
 using Flowscript::Compile::IntegerLiteralExpressionAstNode;
+using Flowscript::Compile::VariableDeclarationStatementAstNode;
+using Flowscript::Compile::GetVariableExpressionAstNode;
 
 TEST(Ast, shouldCreateTree)
 {
@@ -41,6 +45,9 @@ TEST(Ast, shouldCreateTree)
     auto nodeGraphFactory = new NodeGraphNodeFactory(nodeGraphIdAllocator);
 
     auto fn = nodeGraphFactory->addFunctionNode(nodes, std::vector<std::string>{"x"});
+    auto* fnNode = dynamic_cast<NodeGraphComponents::Node::Keywords::Function*>(fn);
+    ASSERT_NE(fnNode, nullptr);
+    fnNode->functionName = "foo";
     auto print = nodeGraphFactory->addNode(nodes, NodeTypes::Print);
     auto ret = nodeGraphFactory->addNode(nodes, NodeTypes::Return);
 
@@ -55,7 +62,7 @@ TEST(Ast, shouldCreateTree)
     ASSERT_NE(rootNode, nullptr);
     const auto* functionAstNode = dynamic_cast<const FunctionStatementAstNode*>(rootNode);
     ASSERT_NE(functionAstNode, nullptr);
-    EXPECT_EQ(functionAstNode->functionName, "");
+    EXPECT_EQ(functionAstNode->functionName, "foo");
     ASSERT_EQ(functionAstNode->parameters.size(), 1u);
     EXPECT_EQ(functionAstNode->parameters[0], "x");
 
@@ -130,4 +137,59 @@ TEST(Ast, EasyTreeTest)
     //NodeGraphNodeLinkFactory create link b/w two nodes.
 
     //why does the nodes need name again when they have an id ? For identifier type nodes we can pass name ( example for variable, function names, etc)
+}
+
+TEST(Ast, shouldCreateVariableDeclarationAndGetVariableTree)
+{
+    std::vector<std::unique_ptr<NodeGraphNode>> nodes;
+    std::vector<NodeGraphNodeLink> links;
+    int nextLinkId = 1;
+
+    auto nodeGraphIdAllocator = new NodeGraphIdAllocator();
+    auto nodeGraphFactory = new NodeGraphNodeFactory(nodeGraphIdAllocator);
+
+    auto fn = nodeGraphFactory->addFunctionNode(nodes, std::vector<std::string>{});
+    auto* fnNode = dynamic_cast<NodeGraphComponents::Node::Keywords::Function*>(fn);
+    ASSERT_NE(fnNode, nullptr);
+    fnNode->functionName = "vars";
+
+    auto varDecl = nodeGraphFactory->addNode(nodes, NodeTypes::VariableDeclaration);
+    auto getVar = nodeGraphFactory->addNode(nodes, NodeTypes::GetVariable);
+    auto printNode = nodeGraphFactory->addNode(nodes, NodeTypes::Print);
+
+    auto* varDeclNode = dynamic_cast<NodeGraphComponents::Node::Variables::VariableDeclaration*>(varDecl);
+    ASSERT_NE(varDeclNode, nullptr);
+    varDeclNode->variableName = "score";
+    varDeclNode->declaredType = "Number";
+    varDeclNode->value = "42";
+
+    auto* getVarNode = dynamic_cast<NodeGraphComponents::Node::Variables::GetVariable*>(getVar);
+    ASSERT_NE(getVarNode, nullptr);
+    getVarNode->variableName = "score";
+
+    links.emplace_back(nextLinkId++, fn->getExecOutputId(), varDecl->getExecInputId());
+    links.emplace_back(nextLinkId++, varDecl->getExecOutputId(), printNode->getExecInputId());
+    links.emplace_back(nextLinkId++, getVar->outputs()[0].getId(), printNode->inputs()[0].getId());
+
+    const Flowscript::Compile::Ast ast(nodes, links);
+    ASSERT_EQ(ast.programRoot.size(), 1u);
+
+    const auto* rootNode = ast.programRoot[0].get();
+    const auto* functionAstNode = dynamic_cast<const FunctionStatementAstNode*>(rootNode);
+    ASSERT_NE(functionAstNode, nullptr);
+    ASSERT_EQ(functionAstNode->outputExecutionFlows.size(), 1u);
+
+    const auto* declAstNode = dynamic_cast<const VariableDeclarationStatementAstNode*>(functionAstNode->outputExecutionFlows[0].get());
+    ASSERT_NE(declAstNode, nullptr);
+    EXPECT_EQ(declAstNode->name, "score");
+    EXPECT_EQ(declAstNode->valueType, Flowscript::Compile::VariableValueType::Number);
+    EXPECT_EQ(declAstNode->value, "42");
+
+    ASSERT_EQ(declAstNode->outputExecutionFlows.size(), 1u);
+    const auto* printAstNode = dynamic_cast<const PrintStatementAstNode*>(declAstNode->outputExecutionFlows[0].get());
+    ASSERT_NE(printAstNode, nullptr);
+    ASSERT_NE(printAstNode->expression, nullptr);
+    const auto* getVarAstNode = dynamic_cast<const GetVariableExpressionAstNode*>(printAstNode->expression.get());
+    ASSERT_NE(getVarAstNode, nullptr);
+    EXPECT_EQ(getVarAstNode->name, "score");
 }
