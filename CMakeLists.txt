@@ -173,6 +173,7 @@ endif ()
 
 add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
+        Glitter/Sources/NodePositionSerialization.cpp
         ${VENDORS_SOURCES}
         ${IMGUI_IMPL_SOURCES}
         ${IMGUIZMO_IMPL_SOURCES}

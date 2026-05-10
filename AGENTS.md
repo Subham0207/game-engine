@@ -17,3 +17,10 @@ This file documents project knowledge and coding conventions for AI coding assis
 ## Practical Rule for Agents
 - Before adding tests, check this file and follow the naming rules exactly.
 
+## Session Handoff Notes (2026-05-10)
+- Primary workspace: `E:\OpenGL\game-engine`.
+- Environment: Windows with `powershell.exe` (Windows PowerShell v5.1).
+- If terminal commands are suggested, keep commands copyable and on separate lines.
+- Use fenced code blocks for run/setup commands.
+- When uncertain about build/runtime status, avoid definitive claims unless verified.
+- If adding tests, continue to follow the naming rules in this file.
