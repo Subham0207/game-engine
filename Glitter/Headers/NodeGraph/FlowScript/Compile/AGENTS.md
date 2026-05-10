@@ -60,6 +60,14 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 - Utility is used by `LuaTranspiler` when building `serializedNodePositions`.
 - `NodeGraphNodesView` now writes live node screen position back to node model every frame.
 
+### Editor Metadata UI
+- Added inline metadata editing in `NodeGraphNodesView` for:
+  - function node `functionName`
+  - variable declaration `variableName`, `declaredType`, `value`
+  - get-variable `variableName`
+- Added required-field warning text in-node when required metadata is empty.
+- Updated node output-field ImGui IDs to include node id to avoid ID collisions.
+
 ### Visual Graph -> AST Wiring
 - Updated AST builder to read:
   - function name from visual function node
@@ -71,6 +79,10 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 ### Compatibility Updates (Current Compile/Decompile Path)
 - Extended legacy compiler support for `Multiply`, `Divide`, `Modulo`, `LessThan`.
 - Extended Lua subset decompiler binary-expression parser for same operators.
+
+### Build System Fixes
+- Fixed `ALL_BUILD` linker failure (`LNK2019`/`LNK1120`) caused by missing link of `NodePositionSerialization` implementation.
+- Added `Glitter/Sources/NodePositionSerialization.cpp` to `GlitterLib` sources in root `CMakeLists.txt`.
 
 ### Tests
 - Updated transpiler tests for `LuaTranspileOutput` contract.
@@ -85,33 +97,30 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 
 ## Current Constraints / Known Gaps
 - Some static-analysis warnings remain (non-fatal); build/tests pass.
-- Node metadata editing UI is still minimal (defaults are present, richer property panels pending).
 - Serialized position string is generated and parseable, but full save/load round-trip binding to persisted script artifacts is still pending.
 - No field/dot-path node yet (`a.b.c`) for table member access.
+- Reverse flow is still not fully typed end-to-end (`Lua -> AST -> Visual`) for production parity.
 
 ## Pending Next Steps (Priority Order)
 
-### 1) Editor Metadata Panels
-- Add property UI for:
-  - function name
-  - variable declaration name/type/value
-  - get-variable name
-- Add inline validation feedback for required fields.
-
-### 2) Position Round-Trip Integration
+### 1) Position Round-Trip Integration
 - Connect `serializedNodePositions` to persisted script storage.
 - On load/decompile, parse and apply positions deterministically to created nodes.
 - Add regression tests for save/load position round-trip.
 
-### 3) Reverse Flow: `Lua -> AST -> Visual Script`
+### 2) Reverse Flow: `Lua -> AST -> Visual Script`
 - Build parser/decompiler path that reconstructs typed AST first.
 - Materialize graph nodes/links from typed AST.
 - Keep coverage aligned with currently emitted Lua subset.
 
+### 3) Compile Path Switch Readiness
+- After reverse-flow parity, evaluate replacing legacy compile entry path with typed AST pipeline.
+- Add migration tests to ensure current project scripts remain load/compile compatible.
+
 ## Suggested Milestone Plan
-1. Editor metadata UI + validation.
-2. Position persistence round-trip integration.
-3. Round-trip subset (`Visual -> AST -> Lua -> AST -> Visual`) with fixtures.
+1. Position persistence round-trip integration.
+2. Round-trip subset (`Visual -> AST -> Lua -> AST -> Visual`) with fixtures.
+3. Compile entry-path migration once reverse flow is stable.
 4. Expand language/node coverage incrementally (tables/records/arrays/field access).
 
 ## Guardrails
