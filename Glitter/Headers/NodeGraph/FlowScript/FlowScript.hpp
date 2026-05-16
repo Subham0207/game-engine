@@ -6,6 +6,7 @@
 #define GLITTER_FLOWSCRIPT_HPP
 #pragma once
 #include <NodeGraph/NodeGraph.hpp>
+#include <filesystem>
 #include <vector>
 
 // A specialized NodeGraph for authoring flow scripts and compiling them to Lua.
@@ -23,9 +24,12 @@ public:
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
     void clearScript();
     void deCompile(const std::string& luaCode);
+    bool saveVisualScriptToFile(const std::filesystem::path& filePath) const;
+    bool loadVisualScriptFromFile(const std::filesystem::path& filePath);
 
 private:
     void appendLuaLog(const std::string& line);
+    void syncNodeIdAllocatorsAfterLoad();
 
     std::string compiledLua;
     std::vector<std::string> compileDiagnostics;

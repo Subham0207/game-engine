@@ -37,8 +37,9 @@ struct StateMachineLink
     ImVec2 fromOffsetGrid{0.0f, 0.0f};
     ImVec2 toOffsetGrid{0.0f, 0.0f};
 
-    // Prototype condition string. In the future this can be a structured expression.
-    std::string condition;
+    // Editor source asset and compiled runtime artifact for this transition condition.
+    std::string flowScriptPath;
+    std::string luaScriptPath;
 };
 
 // Backwards compatibility: older code used "Transition" terminology.

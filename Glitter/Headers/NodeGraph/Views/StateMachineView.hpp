@@ -171,24 +171,7 @@ public:
         // --- Custom links: render + hit-test + interaction
         drawAndInteractLinks(ctx, nodes, links);
 
-        // --- Prototype simulation: if the active state has an outgoing transition whose condition == "true",
-        // switch to its target.
-        // This is intentionally minimal; later you can evaluate real conditions.
-        if (!ctx.leftDown && ImGui::IsKeyPressed(ImGuiKey_Space))
-        {
-            const int activeId = findActiveNodeId(nodes);
-            if (activeId != -1)
-            {
-                for (const auto& t : links)
-                {
-                    if (t.fromNodeId == activeId && (t.condition == "true" || t.condition == "True"))
-                    {
-                        setActive(nodes, t.toNodeId);
-                        break;
-                    }
-                }
-            }
-        }
+        // Transition simulation based on condition evaluation lives in runtime StateMachine.
     }
 
     void setFlowScriptRef(StatemachineFlowScript* ref){mSmflowscriptRef = ref;}
@@ -243,15 +226,6 @@ private:
             maxTransitionId = std::max(maxTransitionId, t.id);
 
         nextTransitionId = std::max(0, maxTransitionId + 1);
-    }
-
-    static const std::string& defaultConditionChunk()
-    {
-        static const std::string chunk =
-            "return function(t)\n"
-            "    return false\n"
-            "end";
-        return chunk;
     }
 
     StatemachineFlowScript* mSmflowscriptRef = nullptr;
@@ -639,7 +613,8 @@ private:
                 tr.toSide = f.clicked.side;
                 tr.fromOffsetGrid = m_pendingStartPort.offsetGrid;
                 tr.toOffsetGrid = f.clicked.offsetGrid;
-                tr.condition = defaultConditionChunk();
+                tr.flowScriptPath.clear();
+                tr.luaScriptPath.clear();
 
                 links.emplace_back(std::move(tr));
                 m_pendingLinkActive = false;

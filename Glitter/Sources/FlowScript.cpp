@@ -5,6 +5,7 @@
 #include "../Headers/NodeGraph/FlowScript/FlowScript.hpp"
 #include <EngineState.hpp>
 #include <imgui.h>
+#include <algorithm>
 #include <sstream>
 #include <stdexcept>
 
@@ -13,6 +14,8 @@
 #include "NodeGraph/FlowScript/Decompile/DecompileGraphBuilder.hpp"
 #include "NodeGraph/FlowScript/Decompile/LuaSubsetLineParser.hpp"
 #include "NodeGraph/FlowScript/LuaEmitter.hpp"
+#include "NodeGraph/FlowScript/VisualScriptJsonSerializer.hpp"
+#include "NodeGraph/NodeGraphIdRanges.hpp"
 
 
 FlowScript::FlowScript()
@@ -122,6 +125,76 @@ void FlowScript::appendLuaLog(const std::string& line)
         luaConsoleLines.erase(luaConsoleLines.begin());
     luaConsoleLines.push_back(line);
     luaConsoleScrollToBottom = true;
+}
+
+bool FlowScript::saveVisualScriptToFile(const std::filesystem::path& filePath) const
+{
+    std::string error;
+    const bool ok = Flowscript::Serialization::VisualScriptJsonSerializer::SerializeToFile(filePath, nodes, nodeGraphLinks, &error);
+    if (!ok)
+        const_cast<FlowScript*>(this)->appendLuaLog(std::string("[FLOWSCRIPT] Failed to save: ") + error);
+    return ok;
+}
+
+bool FlowScript::loadVisualScriptFromFile(const std::filesystem::path& filePath)
+{
+    std::vector<std::unique_ptr<NodeGraphNode>> loadedNodes;
+    std::vector<NodeGraphNodeLink> loadedLinks;
+    std::string error;
+    const bool ok = Flowscript::Serialization::VisualScriptJsonSerializer::DeserializeFromFile(
+        filePath,
+        loadedNodes,
+        loadedLinks,
+        &error);
+    if (!ok)
+    {
+        appendLuaLog(std::string("[FLOWSCRIPT] Failed to load: ") + error);
+        return false;
+    }
+
+    clearScript();
+    nodes = std::move(loadedNodes);
+    nodeGraphLinks = std::move(loadedLinks);
+    syncNodeIdAllocatorsAfterLoad();
+    return true;
+}
+
+void FlowScript::syncNodeIdAllocatorsAfterLoad()
+{
+    auto* nodeView = views.findView<NodeGraphNodesView>();
+    if (!nodeView)
+        return;
+
+    int maxNodeId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode) - 1;
+    int maxLinkId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeLink) - 1;
+    int maxInputAttrId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeInputAttribute) - 1;
+    int maxOutputAttrId = NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeOutputAttribute) - 1;
+
+    for (const auto& node : nodes)
+    {
+        if (!node)
+            continue;
+
+        maxNodeId = std::max(maxNodeId, node->id());
+
+        for (const auto& input : node->inputs())
+            maxInputAttrId = std::max(maxInputAttrId, input.getId());
+        for (const auto& output : node->outputs())
+            maxOutputAttrId = std::max(maxOutputAttrId, output.getId());
+
+        if (node->hasExecInput())
+            maxInputAttrId = std::max(maxInputAttrId, node->getExecInput()->getId());
+        if (node->hasExecOutput())
+            maxOutputAttrId = std::max(maxOutputAttrId, node->getExecOutput()->getId());
+    }
+
+    for (const auto& link : nodeGraphLinks)
+        maxLinkId = std::max(maxLinkId, link.id());
+
+    nodeView->idAllocator.nextNodeId = std::max(NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNode), maxNodeId + 1);
+    nodeView->idAllocator.nextLinkId = std::max(NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeLink), maxLinkId + 1);
+    nodeView->idAllocator.nextInputPinId = std::max(NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeInputAttribute), maxInputAttrId + 1);
+    nodeView->idAllocator.nextOutputPinId = std::max(NodeGraphIdBase(NodeGraphElementIdBase::NodeGraphNodeOutputAttribute), maxOutputAttrId + 1);
 }
 
 void FlowScript::deCompile(const std::string& luaCode)

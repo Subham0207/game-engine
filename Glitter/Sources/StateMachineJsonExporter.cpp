@@ -247,8 +247,10 @@ namespace StateMachineJsonExporter
             appendVec2(json, l->fromOffsetGrid);
             json += ", \"to_offset_grid\": ";
             appendVec2(json, l->toOffsetGrid);
-            json += ", \"condition\": \"";
-            json += escapeJson(l->condition);
+            json += ", \"flow_script_path\": \"";
+            json += escapeJson(l->flowScriptPath);
+            json += "\", \"lua_script_path\": \"";
+            json += escapeJson(l->luaScriptPath);
             json += "\" }";
             if (i + 1 < reachableLinks.size())
                 json += ",";
@@ -392,8 +394,11 @@ namespace StateMachineJsonExporter
                     if (auto f = t.find("to_offset_grid"); f != t.end())
                         link.toOffsetGrid = ParseVec2(f->value());
 
-                    if (auto f = t.find("condition"); f != t.end())
-                        link.condition = json::value_to<std::string>(f->value());
+                    if (auto f = t.find("flow_script_path"); f != t.end() && f->value().is_string())
+                        link.flowScriptPath = json::value_to<std::string>(f->value());
+
+                    if (auto f = t.find("lua_script_path"); f != t.end() && f->value().is_string())
+                        link.luaScriptPath = json::value_to<std::string>(f->value());
 
                     outLinks.push_back(std::move(link));
                 }

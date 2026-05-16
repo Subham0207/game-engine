@@ -6,10 +6,17 @@
 
 #include <NodeGraph/Views/NodeGraphNodesView.hpp>
 
+#include <EngineState.hpp>
+#include <Helpers/Shared.hpp>
+
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <regex>
 #include <sstream>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 namespace
 {
@@ -17,12 +24,27 @@ namespace
         "return function(t)\n"
         "    return false\n"
         "end";
+
+    std::string makeRelativeToProject(const fs::path& absolutePath)
+    {
+        if (!EngineState::state)
+            return absolutePath.string();
+
+        const fs::path projectDir = EngineState::state->currentActiveProjectDirectory;
+        if (projectDir.empty())
+            return absolutePath.string();
+
+        std::error_code ec;
+        const fs::path relative = fs::relative(absolutePath, projectDir, ec);
+        if (ec || relative.empty())
+            return absolutePath.string();
+
+        return relative.string();
+    }
 }
 
-StatemachineFlowScript::StatemachineFlowScript():
-selectedLink(nullptr), showUI(false)
+StatemachineFlowScript::StatemachineFlowScript(): selectedLink(nullptr), showUI(false)
 {
-
 }
 
 const std::string& StatemachineFlowScript::defaultConditionChunk()
@@ -57,10 +79,7 @@ std::string StatemachineFlowScript::unwrapConditionChunk(const std::string& stor
     if (lines.size() < 3)
         return "local node_0 = function(t)\n    return false\nend\n";
 
-    // Remove outer wrapper line (return function(...)) and final end.
     std::vector<std::string> body(lines.begin() + 1, lines.end() - 1);
-
-    // Drop wrapper tail return if present (e.g. return node_6(t)).
     for (int i = static_cast<int>(body.size()) - 1; i >= 0; --i)
     {
         const std::string stripped = trimCopy(body[i]);
@@ -73,15 +92,81 @@ std::string StatemachineFlowScript::unwrapConditionChunk(const std::string& stor
 
     std::ostringstream out;
     for (const auto& bodyLine : body)
-    {
         out << bodyLine << "\n";
-    }
 
     const std::string unwrappedBody = trimCopy(out.str());
     if (unwrappedBody.empty())
         return "local node_0 = function(t)\n    return false\nend\n";
 
     return out.str();
+}
+
+std::string StatemachineFlowScript::readTextFile(const std::filesystem::path& path)
+{
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open())
+        return "";
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+bool StatemachineFlowScript::writeTextFile(const std::filesystem::path& path, const std::string& content)
+{
+    std::error_code ec;
+    fs::create_directories(path.parent_path(), ec);
+
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    if (!file.is_open())
+        return false;
+
+    file << content;
+    return true;
+}
+
+std::filesystem::path StatemachineFlowScript::resolveScriptPath(const std::string& storedPath) const
+{
+    fs::path p(storedPath);
+    if (p.is_absolute())
+        return p;
+
+    if (EngineState::state)
+    {
+        const fs::path projectDir = EngineState::state->currentActiveProjectDirectory;
+        if (!projectDir.empty())
+            return projectDir / p;
+    }
+
+    return p;
+}
+
+void StatemachineFlowScript::ensureSelectedLinkScriptPaths() const
+{
+    if (!selectedLink)
+        return;
+
+    const bool needsFlowPath = selectedLink->flowScriptPath.empty();
+    const bool needsLuaPath = selectedLink->luaScriptPath.empty();
+    if (!needsFlowPath && !needsLuaPath)
+        return;
+
+    fs::path baseDir = "Assets/FlowScripts";
+    if (EngineState::state)
+    {
+        const fs::path projectDir = EngineState::state->currentActiveProjectDirectory;
+        if (!projectDir.empty())
+            baseDir = projectDir / "Assets" / "FlowScripts";
+    }
+
+    const std::string fileStem = Shared::uuid();
+    const fs::path flowAbsolutePath = baseDir / (fileStem + ".flowscript");
+    const fs::path luaAbsolutePath = baseDir / (fileStem + ".lua");
+
+    if (needsFlowPath)
+        selectedLink->flowScriptPath = makeRelativeToProject(flowAbsolutePath);
+    if (needsLuaPath)
+        selectedLink->luaScriptPath = makeRelativeToProject(luaAbsolutePath);
 }
 
 void StatemachineFlowScript::ensureContextNode()
@@ -114,7 +199,6 @@ void StatemachineFlowScript::ensureContextInputConnection()
 
         if (!functionNode && node->type() == NodeTypes::Function)
             functionNode = node.get();
-
         if (!contextNode && node->name() == "GenericType(t)")
             contextNode = node.get();
     }
@@ -185,37 +269,43 @@ void StatemachineFlowScript::setSelectedLink(StateMachineLink* link)
     if (!selectedLink)
         return;
 
-    if (selectedLink->condition.empty())
-        selectedLink->condition = defaultConditionChunk();
+    ensureSelectedLinkScriptPaths();
 
-    std::string editorSource = unwrapConditionChunk(selectedLink->condition);
-    setCompiledLua(editorSource);
-    try
+    const fs::path flowScriptPath = resolveScriptPath(selectedLink->flowScriptPath);
+    bool loadedFlowGraph = false;
+    if (!flowScriptPath.empty())
+        loadedFlowGraph = loadVisualScriptFromFile(flowScriptPath);
+
+    if (!loadedFlowGraph)
     {
-        deCompile(editorSource);
-    }
-    catch (const std::exception&)
-    {
-        // Legacy/invalid snippets should still open with a usable starter graph.
-        clearScript();
-        editorSource = "local node_0 = function(t)\n    return false\nend\n";
+        const std::string editorSource = "local node_0 = function(t)\n    return false\nend\n";
         setCompiledLua(editorSource);
-        deCompile(editorSource);
+        try
+        {
+            deCompile(editorSource);
+        }
+        catch (const std::exception&)
+        {
+            clearScript();
+        }
     }
+
+    const fs::path luaScriptPath = resolveScriptPath(selectedLink->luaScriptPath);
+    if (!luaScriptPath.empty())
+        setCompiledLua(readTextFile(luaScriptPath));
+
     ensureContextNode();
     ensureContextInputConnection();
 }
 
 void StatemachineFlowScript::draw()
 {
-    if (!showUI || !selectedLink) return;
+    if (!showUI || !selectedLink)
+        return;
 
     ImGui::Begin("Statemachine flow script", &showUI);
-
     ImGui::TextUnformatted("Flow script");
-
     drawUIEmbedded();
-
     ImGui::End();
 }
 
@@ -225,7 +315,15 @@ const std::string& StatemachineFlowScript::compile()
     auto& luaCode = getCompiledLua();
     if (selectedLink)
     {
-        selectedLink->condition = wrapCompiledEditorScript(luaCode);
+        ensureSelectedLinkScriptPaths();
+
+        const fs::path flowPath = resolveScriptPath(selectedLink->flowScriptPath);
+        if (!flowPath.empty())
+            saveVisualScriptToFile(flowPath);
+
+        const fs::path luaPath = resolveScriptPath(selectedLink->luaScriptPath);
+        if (!luaPath.empty())
+            writeTextFile(luaPath, wrapCompiledEditorScript(luaCode));
     }
     return luaCode;
 }

@@ -10,6 +10,7 @@
 
 #include <boost/pfr.hpp>
 #include <type_traits>
+#include <filesystem>
 
 class StatemachineFlowScript: public FlowScript
 {
@@ -69,6 +70,10 @@ private:
     static std::string wrapCompiledEditorScript(const std::string& compiledEditorScript);
     void ensureContextNode();
     void ensureContextInputConnection();
+    void ensureSelectedLinkScriptPaths() const;
+    std::filesystem::path resolveScriptPath(const std::string& storedPath) const;
+    static std::string readTextFile(const std::filesystem::path& path);
+    static bool writeTextFile(const std::filesystem::path& path, const std::string& content);
 
     bool showUI;
     StateMachineLink* selectedLink;

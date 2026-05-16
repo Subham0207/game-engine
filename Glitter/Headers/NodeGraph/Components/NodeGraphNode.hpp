@@ -47,6 +47,8 @@ public:
 
     std::vector<NodeAttribute>& inputs() { return inputAttributes; }
     std::vector<NodeAttribute>& outputs() { return outputAttributes; }
+    [[nodiscard]] const std::vector<NodeAttribute>& inputs() const { return inputAttributes; }
+    [[nodiscard]] const std::vector<NodeAttribute>& outputs() const { return outputAttributes; }
 
     void setupExecInput(int& nextInputPinId, const std::string& name = "")
     {

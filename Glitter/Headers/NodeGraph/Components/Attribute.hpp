@@ -30,6 +30,7 @@ namespace NodeGraphComponents::Node
 
         //Only For Field type attributes;
         char* getValueBuff() { return valueBuff; }
+        const char* getValueBuff() const { return valueBuff; }
         static int getValueSize() { return SIZE; }
         void setValue(const std::string& value)
         {
