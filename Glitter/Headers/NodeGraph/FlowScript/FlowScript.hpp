@@ -23,11 +23,16 @@ public:
     [[nodiscard]] const std::vector<std::string>& getCompileDiagnostics() const { return compileDiagnostics; }
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
     void clearScript();
+    virtual bool canSaveVisualScriptAsset() const;
+    virtual bool saveVisualScriptAsset();
     bool saveVisualScriptToFile(const std::filesystem::path& filePath) const;
     bool loadVisualScriptFromFile(const std::filesystem::path& filePath);
 
 private:
+protected:
     void appendLuaLog(const std::string& line);
+
+private:
     void syncNodeIdAllocatorsAfterLoad();
 
     std::string compiledLua;

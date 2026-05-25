@@ -62,6 +62,8 @@ public:
 
     const std::string& compile() override;
     void compileAll(std::vector<StateMachineLink>& links);
+    bool canSaveVisualScriptAsset() const override;
+    bool saveVisualScriptAsset() override;
 
     static const std::string& defaultConditionChunk();
 

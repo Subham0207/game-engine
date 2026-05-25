@@ -305,6 +305,37 @@ const std::string& StatemachineFlowScript::compile()
     return luaCode;
 }
 
+bool StatemachineFlowScript::canSaveVisualScriptAsset() const
+{
+    return selectedLink != nullptr;
+}
+
+bool StatemachineFlowScript::saveVisualScriptAsset()
+{
+    if (!selectedLink)
+    {
+        appendLuaLog("[FLOWSCRIPT] Save failed: no selected transition link.");
+        return false;
+    }
+
+    ensureSelectedLinkScriptPaths();
+    const fs::path flowPath = resolveScriptPath(selectedLink->flowScriptPath);
+    if (flowPath.empty())
+    {
+        appendLuaLog("[FLOWSCRIPT] Save failed: flowScriptPath is empty.");
+        return false;
+    }
+
+    const bool saved = saveVisualScriptToFile(flowPath);
+    std::cout << "[FLOWSCRIPT] Saved: " << flowPath.string() << std::endl;
+    if (saved)
+        appendLuaLog("[FLOWSCRIPT] Saved visual script: " + flowPath.string());
+    else
+        appendLuaLog("[FLOWSCRIPT] Save failed for: " + flowPath.string());
+
+    return saved;
+}
+
 void StatemachineFlowScript::compileAll(std::vector<StateMachineLink>& links)
 {
     StateMachineLink* previousSelection = selectedLink;

@@ -29,6 +29,14 @@ FlowScript::FlowScript()
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
                 ImGui::SetTooltip("Compiles the graph to Lua and stores the result");
 
+            if (self->canSaveVisualScriptAsset())
+            {
+                if (ImGui::SmallButton("Save FlowScript"))
+                    self->saveVisualScriptAsset();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+                    ImGui::SetTooltip("Serializes this visual graph to its .flowscript source file");
+            }
+
             const bool hasCompiled = !self->compiledLua.empty();
             if (!hasCompiled)
                 ImGui::BeginDisabled();
@@ -93,6 +101,16 @@ void FlowScript::clearScript()
     clearNodes();
     clearNodeGraphLinks();
     clearComments();
+}
+
+bool FlowScript::canSaveVisualScriptAsset() const
+{
+    return false;
+}
+
+bool FlowScript::saveVisualScriptAsset()
+{
+    return false;
 }
 
 const std::string& FlowScript::compile()
