@@ -8,6 +8,22 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 
 ## What Was Implemented
 
+### Recent Updates (2026-05-25)
+- Added `FlowScript::compile()` regression coverage for:
+  - generated banner prefix behavior
+  - compile error capture into diagnostics
+  - diagnostics clear-on-recompile behavior
+- Added `LuaTranspiler::Transpile` regression coverage for:
+  - `GreaterThan` and `NotEqualsTo` expression emission inside `return`
+  - deserialized `.flowscript` graphs (including function/return wiring)
+- Fixed AST exec traversal behavior:
+  - statement expression inputs are resolved before exec traversal stop checks
+  - exec passthrough nodes continue traversal to the next exec-linked node
+- Fixed FlowScript deserialize value restoration:
+  - serialized FIELD values are reapplied by attribute id during graph load
+- Fixed loaded-node position persistence:
+  - deserialized nodes keep `positionSet=false` so first draw applies serialized screen positions via ImNodes
+
 ### AST Model Refactor
 - Replaced generic AST payload style with typed AST node hierarchy (`AstNode` base).
 - Statement branch includes:
@@ -59,6 +75,7 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
   - `Deserialize(string) -> std::vector<NodePosition>`
 - Utility is used by `LuaTranspiler` when building `serializedNodePositions`.
 - `NodeGraphNodesView` now writes live node screen position back to node model every frame.
+- Graph JSON load path relies on serialized node `x/y` in `.flowscript`; first-draw position application is required for positions to persist visually.
 
 ### Editor Metadata UI
 - Added inline metadata editing in `NodeGraphNodesView` for:
@@ -103,6 +120,7 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 - `LuaTranspileOutput.serializedNodePositions` still exists but editor source-of-truth is `.flowscript` JSON node positions.
 - No field/dot-path node yet (`a.b.c`) for table member access.
 - Runtime transition Lua is wrapper-based (`return function(t) ... end`) around generated FlowScript body.
+- Continue adding integration tests that deserialize real graph JSON payloads to prevent regressions between serializer, AST builder, and transpiler.
 
 ## Pending Next Steps (Priority Order)
 

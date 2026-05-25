@@ -28,3 +28,12 @@ This file documents project knowledge and coding conventions for AI coding assis
 ## Build Command Convention
 - Always build the test target with this exact command:
   `cmake.exe --build "E:\OpenGL\game-engine\cmake-build-debug-visual-studio" --target Test --config Debug`
+
+## Session Handoff Notes (2026-05-25)
+- FlowScript compile path now has regression coverage for banner behavior, compile diagnostics capture, and diagnostics reset across recompile.
+- `LuaTranspiler::Transpile` now has regression tests for comparison expressions in return statements, including deserialized graph inputs.
+- FlowScript AST traversal was hardened so statement input expressions are resolved before exec-chain traversal decisions, and exec passthrough nodes continue traversal to downstream statements.
+- FlowScript JSON deserialization now restores serialized FIELD attribute values (for example Boolean/Integer literal node outputs) by attribute id.
+- FlowScript node position persistence on load was fixed by leaving deserialized nodes as `positionSet=false` so first draw applies saved screen positions.
+- State machine JSON load diagnostics were improved: deserialize converts string paths to `std::filesystem::path`, opens in binary mode, and logs absolute path + exists/file-type checks when open fails.
+
