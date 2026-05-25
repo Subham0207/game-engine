@@ -5,6 +5,7 @@
 #include "../Headers/NodeGraph/FlowScript/StatemachineFlowScript.hpp"
 
 #include <NodeGraph/Views/NodeGraphNodesView.hpp>
+#include <NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp>
 
 #include <EngineState.hpp>
 #include <Helpers/Shared.hpp>
@@ -59,46 +60,6 @@ std::string StatemachineFlowScript::trimCopy(const std::string& value)
         return "";
     const auto end = value.find_last_not_of(" \t\r\n");
     return value.substr(begin, end - begin + 1);
-}
-
-std::string StatemachineFlowScript::unwrapConditionChunk(const std::string& storedCondition)
-{
-    const std::string trimmed = trimCopy(storedCondition);
-    if (trimmed.empty())
-        return "local node_0 = function(t)\n    return false\nend\n";
-
-    if (trimmed.rfind("return function(", 0) != 0)
-        return storedCondition;
-
-    std::istringstream stream(storedCondition);
-    std::string line;
-    std::vector<std::string> lines;
-    while (std::getline(stream, line))
-        lines.push_back(line);
-
-    if (lines.size() < 3)
-        return "local node_0 = function(t)\n    return false\nend\n";
-
-    std::vector<std::string> body(lines.begin() + 1, lines.end() - 1);
-    for (int i = static_cast<int>(body.size()) - 1; i >= 0; --i)
-    {
-        const std::string stripped = trimCopy(body[i]);
-        if (stripped.empty())
-            continue;
-        if (stripped.rfind("return ", 0) == 0)
-            body.erase(body.begin() + i);
-        break;
-    }
-
-    std::ostringstream out;
-    for (const auto& bodyLine : body)
-        out << bodyLine << "\n";
-
-    const std::string unwrappedBody = trimCopy(out.str());
-    if (unwrappedBody.empty())
-        return "local node_0 = function(t)\n    return false\nend\n";
-
-    return out.str();
 }
 
 std::string StatemachineFlowScript::readTextFile(const std::filesystem::path& path)
@@ -230,6 +191,7 @@ std::string StatemachineFlowScript::wrapCompiledEditorScript(const std::string& 
     std::vector<std::string> bodyLines;
     std::string entryFunctionName;
     const std::regex functionDeclRegex(R"(^\s*local\s+(node_\d+)\s*=\s*function\s*\()", std::regex::ECMAScript);
+    const std::regex transpiledFunctionDeclRegex(R"(^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\()", std::regex::ECMAScript);
 
     while (std::getline(stream, line))
     {
@@ -241,6 +203,8 @@ std::string StatemachineFlowScript::wrapCompiledEditorScript(const std::string& 
 
         std::smatch match;
         if (std::regex_search(line, match, functionDeclRegex) && match.size() > 1)
+            entryFunctionName = match[1].str();
+        else if (std::regex_search(line, match, transpiledFunctionDeclRegex) && match.size() > 1)
             entryFunctionName = match[1].str();
 
         bodyLines.push_back(line);
@@ -278,16 +242,29 @@ void StatemachineFlowScript::setSelectedLink(StateMachineLink* link)
 
     if (!loadedFlowGraph)
     {
-        const std::string editorSource = "local node_0 = function(t)\n    return false\nend\n";
-        setCompiledLua(editorSource);
-        try
+        clearScript();
+        if (auto* nodeView = views.findView<NodeGraphNodesView>())
         {
-            deCompile(editorSource);
+            NodeGraphNode* functionNode = nodeView->addFunctionNode(nodes, {"t"}, ImVec2(120.0f, 120.0f));
+            if (auto* functionKeywordNode = dynamic_cast<NodeGraphComponents::Node::Keywords::Function*>(functionNode))
+                functionKeywordNode->functionName = "condition";
+
+            const size_t returnNodeIndex = nodes.size();
+            nodeView->addNode(nodes, NodeTypes::Return, ImVec2(420.0f, 120.0f));
+            NodeGraphNode* returnNode = returnNodeIndex < nodes.size() ? nodes[returnNodeIndex].get() : nullptr;
+
+            const size_t boolNodeIndex = nodes.size();
+            nodeView->addNode(nodes, NodeTypes::Boolean, ImVec2(420.0f, 260.0f));
+            NodeGraphNode* falseNode = boolNodeIndex < nodes.size() ? nodes[boolNodeIndex].get() : nullptr;
+
+            if (functionNode && returnNode && functionNode->hasExecOutput() && returnNode->hasExecInput())
+                nodeView->addLink(nodeGraphLinks, functionNode->getExecOutput()->getId(), returnNode->getExecInput()->getId());
+
+            if (falseNode && !falseNode->outputs().empty() && returnNode && !returnNode->inputs().empty())
+                nodeView->addLink(nodeGraphLinks, falseNode->outputs()[0].getId(), returnNode->inputs()[0].getId());
         }
-        catch (const std::exception&)
-        {
-            clearScript();
-        }
+
+        setCompiledLua(defaultConditionChunk());
     }
 
     const fs::path luaScriptPath = resolveScriptPath(selectedLink->luaScriptPath);
@@ -326,5 +303,39 @@ const std::string& StatemachineFlowScript::compile()
             writeTextFile(luaPath, wrapCompiledEditorScript(luaCode));
     }
     return luaCode;
+}
+
+void StatemachineFlowScript::compileAll(std::vector<StateMachineLink>& links)
+{
+    StateMachineLink* previousSelection = selectedLink;
+    const bool previousShowUi = showUI;
+
+    int compiledCount = 0;
+    int failedCount = 0;
+
+    for (auto& link : links)
+    {
+        setSelectedLink(&link);
+        compile();
+
+        if (getCompileDiagnostics().empty())
+            ++compiledCount;
+        else
+            ++failedCount;
+    }
+
+    if (previousSelection)
+    {
+        setSelectedLink(previousSelection);
+    }
+    else
+    {
+        selectedLink = nullptr;
+        showUI = previousShowUi;
+        clearScript();
+    }
+
+    (void)compiledCount;
+    (void)failedCount;
 }
 

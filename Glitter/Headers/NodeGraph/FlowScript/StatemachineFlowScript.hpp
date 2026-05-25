@@ -61,12 +61,12 @@ public:
     }
 
     const std::string& compile() override;
+    void compileAll(std::vector<StateMachineLink>& links);
 
     static const std::string& defaultConditionChunk();
 
 private:
     static std::string trimCopy(const std::string& value);
-    static std::string unwrapConditionChunk(const std::string& storedCondition);
     static std::string wrapCompiledEditorScript(const std::string& compiledEditorScript);
     void ensureContextNode();
     void ensureContextInputConnection();

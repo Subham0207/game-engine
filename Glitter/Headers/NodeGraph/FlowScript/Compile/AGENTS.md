@@ -76,9 +76,12 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
   - node positions (`spawnPosScreen`) into AST `x,y`
 - Added AST mapping for new expression node types (`Multiply`, `Divide`, `Modulo`, `LessThan`).
 
-### Compatibility Updates (Current Compile/Decompile Path)
-- Extended legacy compiler support for `Multiply`, `Divide`, `Modulo`, `LessThan`.
-- Extended Lua subset decompiler binary-expression parser for same operators.
+### One-Way Pipeline Migration
+- `FlowScript::compile()` now uses typed AST + `LuaTranspiler` directly (legacy `Compiler` + `LuaEmitter` path removed from FlowScript compile entrypoint).
+- FlowScript Lua decompile API was removed.
+- State-machine transition editing now restores graphs from `.flowscript` via `VisualScriptJsonSerializer::DeserializeFromFile`.
+- Lua decompile source/header modules under `FlowScript/Decompile` were deleted from the repository.
+- Added `Compile All` action in state-machine toolbar to compile every transition FlowScript to Lua artifact.
 
 ### Build System Fixes
 - Fixed `ALL_BUILD` linker failure (`LNK2019`/`LNK1120`) caused by missing link of `NodePositionSerialization` implementation.
@@ -97,30 +100,28 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 
 ## Current Constraints / Known Gaps
 - Some static-analysis warnings remain (non-fatal); build/tests pass.
-- Serialized position string is generated and parseable, but full save/load round-trip binding to persisted script artifacts is still pending.
+- `LuaTranspileOutput.serializedNodePositions` still exists but editor source-of-truth is `.flowscript` JSON node positions.
 - No field/dot-path node yet (`a.b.c`) for table member access.
-- Reverse flow is still not fully typed end-to-end (`Lua -> AST -> Visual`) for production parity.
+- Runtime transition Lua is wrapper-based (`return function(t) ... end`) around generated FlowScript body.
 
 ## Pending Next Steps (Priority Order)
 
-### 1) Position Round-Trip Integration
-- Connect `serializedNodePositions` to persisted script storage.
-- On load/decompile, parse and apply positions deterministically to created nodes.
-- Add regression tests for save/load position round-trip.
+### 1) Compile-All UX + Diagnostics
+- Surface per-link success/failure summary in UI after batch compile.
+- Expose failed link IDs/paths for quick jump and fix.
 
-### 2) Reverse Flow: `Lua -> AST -> Visual Script`
-- Build parser/decompiler path that reconstructs typed AST first.
-- Materialize graph nodes/links from typed AST.
-- Keep coverage aligned with currently emitted Lua subset.
+### 2) Deterministic Artifact Output
+- Ensure stable ordering/newline behavior for generated Lua across repeated compiles.
+- Add regression tests that compile the same `.flowscript` twice and assert identical `.lua` output.
 
-### 3) Compile Path Switch Readiness
-- After reverse-flow parity, evaluate replacing legacy compile entry path with typed AST pipeline.
-- Add migration tests to ensure current project scripts remain load/compile compatible.
+### 3) FlowScript Serialization Hardening
+- Add malformed JSON + missing required field tests for `VisualScriptJsonSerializer`.
+- Validate link/node id references during deserialize and report actionable errors.
 
 ## Suggested Milestone Plan
-1. Position persistence round-trip integration.
-2. Round-trip subset (`Visual -> AST -> Lua -> AST -> Visual`) with fixtures.
-3. Compile entry-path migration once reverse flow is stable.
+1. Batch-compile diagnostics and editor UX polish.
+2. Deterministic Lua artifact test coverage.
+3. Serializer/deserializer validation hardening.
 4. Expand language/node coverage incrementally (tables/records/arrays/field access).
 
 ## Guardrails

@@ -23,7 +23,6 @@ public:
     [[nodiscard]] const std::vector<std::string>& getCompileDiagnostics() const { return compileDiagnostics; }
     void setCompiledLua(const std::string& codeString) { compiledLua = codeString; }
     void clearScript();
-    void deCompile(const std::string& luaCode);
     bool saveVisualScriptToFile(const std::filesystem::path& filePath) const;
     bool loadVisualScriptFromFile(const std::filesystem::path& filePath);
 

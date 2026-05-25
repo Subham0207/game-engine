@@ -54,15 +54,15 @@ Files:
 - `Glitter/Sources/StatemachineFlowScript.cpp`
 - `Glitter/Headers/NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp`
 - `Glitter/Headers/NodeGraph/Views/NodeGraphNodesView.hpp`
-- `Glitter/Sources/Compiler.cpp`
-- `Glitter/Sources/LuaEmitter.cpp`
-- `Glitter/Sources/FlowScript/Decompile/DecompileGraphBuilder.cpp`
+- `Glitter/Sources/Ast.cpp`
+- `Glitter/Sources/LuaTranspiler.cpp`
+- `Glitter/Headers/NodeGraph/FlowScript/VisualScriptJsonSerializer.hpp`
 
 What changed:
 - Transition conditions are edited in FlowScript and saved as runtime chunks that return a Lua function.
-- Function nodes now support parameter pins (notably `t`) and emitter outputs `function(t)` signatures.
+- Function nodes now support parameter pins (notably `t`) and the transpiler emits `function(t)` signatures.
 - A context/destructuring node is injected for transition editing (`GenericType(t)`), with field outputs representing `t.<field>` access.
-- Condition open path unwraps stored runtime chunk into editor source; compile path wraps editor output back into runtime function-chunk format.
+- Condition open path loads graph data from `.flowscript`; compile path wraps generated Lua into runtime function-chunk format and writes `.lua`.
 
 ### 4) Runtime load/eval path
 
