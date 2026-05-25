@@ -24,3 +24,4 @@ This file documents project knowledge and coding conventions for AI coding assis
 - Use fenced code blocks for run/setup commands.
 - When uncertain about build/runtime status, avoid definitive claims unless verified.
 - If adding tests, continue to follow the naming rules in this file.
+
