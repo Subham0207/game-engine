@@ -15,6 +15,7 @@ add_executable(Test
         NodeGraph/FlowScript/Compile/Ast.test.cpp
         NodeGraph/FlowScript/Compile/LuaTranspiler.test.cpp
         NodeGraph/FlowScript/Compile/NodePositionSerialization.test.cpp
+        NodeGraph/FlowScript/FlowScript.test.cpp
         NodeGraph/FlowScript/VisualScriptJsonSerializer.test.cpp
 )
 

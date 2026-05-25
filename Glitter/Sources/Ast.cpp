@@ -245,6 +245,20 @@ namespace Flowscript::Compile
             return nullptr;
         }
 
+        static std::string findOutputNameByOutputAttr(const int outputAttr, const NodeGraphNode* node)
+        {
+            if (!node || outputAttr == -1)
+                return "";
+
+            for (const auto& output : node->outputs())
+            {
+                if (output.getId() == outputAttr)
+                    return output.getName();
+            }
+
+            return "";
+        }
+
         static int countIncomingExecLinks(
             NodeGraphNode* currentNode,
             const std::vector<NodeGraphNodeLink>& links
@@ -297,7 +311,7 @@ namespace Flowscript::Compile
         const std::vector<NodeGraphNodeLink>& links
     )
     {
-        if (current == nullptr || currentNode == nullptr || !currentNode->hasExecOutput())
+        if (current == nullptr || currentNode == nullptr)
         {
             return;
         }
@@ -320,6 +334,9 @@ namespace Flowscript::Compile
                 varDeclStmt->value = varDeclNode->value;
         }
 
+        if (!currentNode->hasExecOutput())
+            return;
+
         auto endExecNodeAttr = -1;
         for (const auto& link: links)
         {
@@ -336,7 +353,12 @@ namespace Flowscript::Compile
             {
                 auto child = makeStatementNode(node.get());
                 if (!child)
+                {
+                    // Some nodes (e.g. expression/binary operator nodes) participate in exec flow
+                    // but do not become statement AST nodes. Traverse through them.
+                    recurse(current, node.get(), nodes, links);
                     continue;
+                }
                 current->outputExecutionFlows.push_back(std::move(child));
                 recurse(
                     current->outputExecutionFlows.back().get()
@@ -360,6 +382,27 @@ namespace Flowscript::Compile
         NodeGraphNode* sourceNode = findNodeByOutputAttr(startAttr, nodes);
         if (!sourceNode)
             return nullptr;
+
+        if (sourceNode->type() == NodeTypes::Generic)
+        {
+            const std::string memberName = findOutputNameByOutputAttr(startAttr, sourceNode);
+            if (memberName.empty())
+                return nullptr;
+
+            std::string objectExpr;
+            if (!sourceNode->inputs().empty())
+            {
+                const int objectStartAttr = findLinkStartAttrForEndAttr(sourceNode->inputs()[0].getId(), links);
+                NodeGraphNode* objectSourceNode = findNodeByOutputAttr(objectStartAttr, nodes);
+                objectExpr = findOutputNameByOutputAttr(objectStartAttr, objectSourceNode);
+            }
+
+            auto expr = std::make_unique<GetVariableExpressionAstNode>();
+            expr->name = objectExpr.empty() ? memberName : (objectExpr + "." + memberName);
+            expr->x = sourceNode->spawnPosScreen().x;
+            expr->y = sourceNode->spawnPosScreen().y;
+            return expr;
+        }
 
         auto expressionNode = makeExpressionNode(sourceNode);
         if (!expressionNode)

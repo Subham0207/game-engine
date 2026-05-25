@@ -25,3 +25,6 @@ This file documents project knowledge and coding conventions for AI coding assis
 - When uncertain about build/runtime status, avoid definitive claims unless verified.
 - If adding tests, continue to follow the naming rules in this file.
 
+## Build Command Convention
+- Always build the test target with this exact command:
+  `cmake.exe --build "E:\OpenGL\game-engine\cmake-build-debug-visual-studio" --target Test --config Debug`

@@ -414,9 +414,40 @@ namespace Flowscript::Serialization
                 }
             }
 
+            // Restore serialized field values (e.g. Integer/Boolean literal outputs) by attribute id.
+            applySerializedAttributeValues(node->inputs(), inputAttributes);
+            applySerializedAttributeValues(node->outputs(), outputAttributes);
+
             node->setSpawnPosScreen(ImVec2(x, y));
             node->markPositionSet(true);
             return node;
+        }
+
+        static inline void applySerializedAttributeValues(std::vector<NodeAttribute>& runtimeAttributes, const json::array& serializedAttributes)
+        {
+            for (const auto& serializedValue : serializedAttributes)
+            {
+                if (!serializedValue.is_object())
+                    continue;
+
+                const auto& serializedObj = serializedValue.as_object();
+                const auto idIt = serializedObj.find("id");
+                const auto valueIt = serializedObj.find("value");
+                if (idIt == serializedObj.end() || valueIt == serializedObj.end() || !valueIt->value().is_string())
+                    continue;
+
+                const int serializedId = json::value_to<int>(idIt->value());
+                const std::string serializedFieldValue = json::value_to<std::string>(valueIt->value());
+
+                for (auto& runtimeAttribute : runtimeAttributes)
+                {
+                    if (runtimeAttribute.getId() == serializedId && runtimeAttribute.getType() == NodeAttributeType::FIELD)
+                    {
+                        runtimeAttribute.setValue(serializedFieldValue);
+                        break;
+                    }
+                }
+            }
         }
     };
 }

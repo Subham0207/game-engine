@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <filesystem>
+#include <fstream>
 #include <stdexcept>
 #include <NodeGraph/FlowScript/Compile/Ast.hpp>
 #include "NodeGraph/Components/NodeGraphNodeFactory.hpp"
@@ -11,6 +13,7 @@
 #include "NodeGraph/Components/NodeGraphNodes/Keywords/Return.hpp"
 #include "NodeGraph/FlowScript/Compile/Compiler.hpp"
 #include "NodeGraph/FlowScript/Compile/LuaTranspiler.hpp"
+#include "NodeGraph/FlowScript/VisualScriptJsonSerializer.hpp"
 
 using NodeGraphComponents::Node::Integer;
 using NodeGraphComponents::Node::Add;
@@ -33,6 +36,9 @@ using Flowscript::Compile::MultiplyExpressionAstNode;
 using Flowscript::Compile::DivideExpressionAstNode;
 using Flowscript::Compile::ModuloExpressionAstNode;
 using Flowscript::Compile::IntegerLiteralExpressionAstNode;
+using Flowscript::Compile::GreaterThanExpressionAstNode;
+using Flowscript::Compile::NotEqualsToExpressionAstNode;
+using Flowscript::Serialization::VisualScriptJsonSerializer;
 
 TEST(LuaTranspiler, shouldTranspileAstToLua)
 {
@@ -279,3 +285,128 @@ TEST(LuaTranspiler, shouldSerializeAstNodePositions)
 
     ASSERT_EQ(output.serializedNodePositions, "10.00,20.00;30.00,40.00;50.00,60.00");
 }
+
+TEST(LuaTranspiler, shouldTranspileGreaterThanExpressionInsideReturn)
+{
+    std::vector<std::unique_ptr<Flowscript::Compile::StatementAstNode>> ast;
+
+    auto functionNode = std::make_unique<FunctionStatementAstNode>();
+    functionNode->functionName = "isGreater";
+
+    auto returnNode = std::make_unique<ReturnStatementAstNode>();
+    auto greaterThanNode = std::make_unique<GreaterThanExpressionAstNode>();
+
+    auto lhs = std::make_unique<IntegerLiteralExpressionAstNode>();
+    lhs->value = "10";
+    auto rhs = std::make_unique<IntegerLiteralExpressionAstNode>();
+    rhs->value = "5";
+
+    greaterThanNode->lhs = std::move(lhs);
+    greaterThanNode->rhs = std::move(rhs);
+    returnNode->expression = std::move(greaterThanNode);
+
+    functionNode->outputExecutionFlows.push_back(std::move(returnNode));
+    ast.push_back(std::move(functionNode));
+
+    LuaTranspiler luaTranspiler;
+    const auto output = luaTranspiler.Transpile(ast);
+
+    const std::string expectedLuaCode = "function isGreater()\n"
+                                        "return (10 > 5)\n"
+                                        "end";
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
+}
+
+TEST(LuaTranspiler, shouldTranspileNotEqualsExpressionInsideReturn)
+{
+    std::vector<std::unique_ptr<Flowscript::Compile::StatementAstNode>> ast;
+
+    auto functionNode = std::make_unique<FunctionStatementAstNode>();
+    functionNode->functionName = "isDifferent";
+
+    auto returnNode = std::make_unique<ReturnStatementAstNode>();
+    auto notEqualsNode = std::make_unique<NotEqualsToExpressionAstNode>();
+
+    auto lhs = std::make_unique<IntegerLiteralExpressionAstNode>();
+    lhs->value = "7";
+    auto rhs = std::make_unique<IntegerLiteralExpressionAstNode>();
+    rhs->value = "9";
+
+    notEqualsNode->lhs = std::move(lhs);
+    notEqualsNode->rhs = std::move(rhs);
+    returnNode->expression = std::move(notEqualsNode);
+
+    functionNode->outputExecutionFlows.push_back(std::move(returnNode));
+    ast.push_back(std::move(functionNode));
+
+    LuaTranspiler luaTranspiler;
+    const auto output = luaTranspiler.Transpile(ast);
+
+    const std::string expectedLuaCode = "function isDifferent()\n"
+                                        "return (7 ~= 9)\n"
+                                        "end";
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
+}
+
+TEST(LuaTranspiler, shouldTranspileReturnBooleanFromDeserializedFlowScriptGraph)
+{
+    const std::string flowScriptJson = R"JSON({"formatVersion":1,"nodes":[{"id":0,"type":14,"name":"Function","x":3.87E2,"y":3.68E2,"inputs":[],"outputs":[{"id":4000,"name":"t","type":1}],"execOutput":{"id":4001,"name":"","type":3},"metadata":{"functionName":"condition"}},{"id":1,"type":16,"name":"Return","x":1.195E3,"y":3.78E2,"inputs":[{"id":3000,"name":"ReturnInputPin","type":1}],"outputs":[],"execInput":{"id":3001,"name":"","type":2}},{"id":2,"type":10,"name":"Boolean","x":1.067E3,"y":6.59E2,"inputs":[],"outputs":[{"id":4002,"name":"Value","type":0,"value":"true"}]},{"id":3,"type":11,"name":"GenericType(t)","x":6.43E2,"y":5.42E2,"inputs":[{"id":3002,"name":"Object","type":1}],"outputs":[{"id":4003,"name":"isGrounded","type":1},{"id":4004,"name":"dodgeStart","type":1},{"id":4005,"name":"punchStarted","type":1},{"id":4006,"name":"sidekickStarted","type":1},{"id":4007,"name":"locomotionX","type":1},{"id":4008,"name":"locomotionY","type":1}]}],"links":[{"id":2000,"startAttr":4001,"endAttr":3001},{"id":2001,"startAttr":4002,"endAttr":3000},{"id":2002,"startAttr":4000,"endAttr":3002}]})JSON";
+
+    const std::filesystem::path tempPath = std::filesystem::temp_directory_path() / "LuaTranspiler_shouldTranspileReturnBooleanFromDeserializedFlowScriptGraph.flowscript";
+    {
+        std::ofstream out(tempPath, std::ios::binary | std::ios::trunc);
+        ASSERT_TRUE(out.is_open());
+        out << flowScriptJson;
+    }
+
+    std::vector<std::unique_ptr<NodeGraphNode>> nodes;
+    std::vector<NodeGraphNodeLink> links;
+    std::string error;
+    const bool loadOk = VisualScriptJsonSerializer::DeserializeFromFile(tempPath, nodes, links, &error);
+
+    std::error_code ec;
+    std::filesystem::remove(tempPath, ec);
+
+    ASSERT_TRUE(loadOk) << error;
+
+    Ast ast(nodes, links);
+    LuaTranspiler luaTranspiler;
+    const auto output = luaTranspiler.Transpile(ast.programRoot);
+
+    const std::string expectedLuaCode = "function condition(t)\n"
+                                        "return true\n"
+                                        "end";
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
+}
+
+TEST(LuaTranspiler, shouldTranspileGreaterThanUsingGenericMemberFromDeserializedFlowScriptGraph)
+{
+    const std::string flowScriptJson = R"JSON({"formatVersion":1,"nodes":[{"id":0,"type":14,"name":"Function","x":4.32E2,"y":4.13E2,"inputs":[],"outputs":[{"id":4000,"name":"t","type":1}],"execOutput":{"id":4001,"name":"","type":3},"metadata":{"functionName":"condition"}},{"id":1,"type":16,"name":"Return","x":1.236E3,"y":4.61E2,"inputs":[{"id":3000,"name":"ReturnInputPin","type":1}],"outputs":[],"execInput":{"id":3001,"name":"","type":2}},{"id":2,"type":10,"name":"Boolean","x":8.79E2,"y":6.57E2,"inputs":[],"outputs":[{"id":4002,"name":"Value","type":0,"value":"true"}]},{"id":3,"type":11,"name":"GenericType(t)","x":6.88E2,"y":5.99E2,"inputs":[{"id":3002,"name":"Object","type":1}],"outputs":[{"id":4003,"name":"isGrounded","type":1},{"id":4004,"name":"dodgeStart","type":1},{"id":4005,"name":"punchStarted","type":1},{"id":4006,"name":"sidekickStarted","type":1},{"id":4007,"name":"locomotionX","type":1},{"id":4008,"name":"locomotionY","type":1}]},{"id":4,"type":6,"name":"GreaterThan","x":9.76E2,"y":4.4E2,"inputs":[{"id":3003,"name":"A","type":1},{"id":3004,"name":"B","type":1}],"outputs":[{"id":4009,"name":"isAGreaterThanB","type":1}],"execInput":{"id":3005,"name":"","type":2},"execOutput":{"id":4010,"name":"","type":3}}],"links":[{"id":2002,"startAttr":4000,"endAttr":3002},{"id":2003,"startAttr":4001,"endAttr":3005},{"id":2004,"startAttr":4010,"endAttr":3001},{"id":2005,"startAttr":4003,"endAttr":3003},{"id":2006,"startAttr":4002,"endAttr":3004},{"id":2007,"startAttr":4009,"endAttr":3000}]})JSON";
+
+    const std::filesystem::path tempPath = std::filesystem::temp_directory_path() / "LuaTranspiler_shouldTranspileGreaterThanUsingGenericMemberFromDeserializedFlowScriptGraph.flowscript";
+    {
+        std::ofstream out(tempPath, std::ios::binary | std::ios::trunc);
+        ASSERT_TRUE(out.is_open());
+        out << flowScriptJson;
+    }
+
+    std::vector<std::unique_ptr<NodeGraphNode>> nodes;
+    std::vector<NodeGraphNodeLink> links;
+    std::string error;
+    const bool loadOk = VisualScriptJsonSerializer::DeserializeFromFile(tempPath, nodes, links, &error);
+
+    std::error_code ec;
+    std::filesystem::remove(tempPath, ec);
+
+    ASSERT_TRUE(loadOk) << error;
+
+    Ast ast(nodes, links);
+    LuaTranspiler luaTranspiler;
+    const auto output = luaTranspiler.Transpile(ast.programRoot);
+
+    const std::string expectedLuaCode = "function condition(t)\n"
+                                        "return (t.isGrounded > true)\n"
+                                        "end";
+    ASSERT_EQ(output.luaCode, expectedLuaCode);
+}
+
