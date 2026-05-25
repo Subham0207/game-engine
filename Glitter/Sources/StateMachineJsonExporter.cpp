@@ -5,6 +5,7 @@
 #include "../Headers/NodeGraph/StateMachineJsonExporter.hpp"
 
 #include <algorithm>
+#include <filesystem>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -263,14 +264,24 @@ namespace StateMachineJsonExporter
     }
 
     bool DeserializeChainJson(const std::string& filePath,
-                          std::vector<StateMachineNode>& outNodes,
-                          std::vector<StateMachineLink>& outLinks,
-                          int& activeRootNodeId)
+                              std::vector<StateMachineNode>& outNodes,
+                              std::vector<StateMachineLink>& outLinks,
+                              int& activeRootNodeId)
     {
-        std::ifstream file(filePath);
+        const std::filesystem::path fsPath(filePath);
+        std::error_code fsError;
+        const auto absolutePath = std::filesystem::absolute(fsPath, fsError);
+        const bool pathExists = std::filesystem::exists(fsPath, fsError);
+        const bool isRegularFile = std::filesystem::is_regular_file(fsPath, fsError);
+
+        std::ifstream file(fsPath, std::ios::binary);
         if (!file.is_open())
         {
-            std::cout << "Failed to open file: " << filePath << std::endl;
+            std::cout << "Failed to open file: " << filePath
+                      << " | absolute: " << absolutePath.string()
+                      << " | exists: " << (pathExists ? "true" : "false")
+                      << " | is_regular_file: " << (isRegularFile ? "true" : "false")
+                      << std::endl;
             return false;
         }
 

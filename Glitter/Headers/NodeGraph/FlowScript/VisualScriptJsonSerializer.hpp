@@ -419,7 +419,8 @@ namespace Flowscript::Serialization
             applySerializedAttributeValues(node->outputs(), outputAttributes);
 
             node->setSpawnPosScreen(ImVec2(x, y));
-            node->markPositionSet(true);
+            // Let the first draw apply this serialized screen position via ImNodes.
+            node->markPositionSet(false);
             return node;
         }
 

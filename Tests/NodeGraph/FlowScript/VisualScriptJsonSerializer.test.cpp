@@ -72,3 +72,37 @@ TEST(VisualScriptJsonSerializer, shouldSerializeAndDeserializeFlowScriptGraph)
     std::filesystem::remove(tempPath, ec);
 }
 
+TEST(VisualScriptJsonSerializer, shouldKeepDeserializedNodesPendingFirstPositionApply)
+{
+    int nextOutputPinId = 4000;
+
+    auto functionNode = std::make_unique<Function>(nextOutputPinId, std::vector<std::string>{"t"}, 100, "Function", 333.0f, 222.0f);
+    functionNode->functionName = "condition";
+    functionNode->setSpawnPosScreen(ImVec2(333.0f, 222.0f));
+    functionNode->markPositionSet(true);
+
+    std::vector<std::unique_ptr<NodeGraphNode>> nodes;
+    nodes.push_back(std::move(functionNode));
+    std::vector<NodeGraphNodeLink> links;
+
+    const std::filesystem::path tempPath = std::filesystem::temp_directory_path() / "VisualScriptJsonSerializer_shouldKeepDeserializedNodesPendingFirstPositionApply.flowscript";
+
+    std::string error;
+    const bool saveOk = VisualScriptJsonSerializer::SerializeToFile(tempPath, nodes, links, &error);
+    ASSERT_TRUE(saveOk) << error;
+
+    std::vector<std::unique_ptr<NodeGraphNode>> loadedNodes;
+    std::vector<NodeGraphNodeLink> loadedLinks;
+    const bool loadOk = VisualScriptJsonSerializer::DeserializeFromFile(tempPath, loadedNodes, loadedLinks, &error);
+    ASSERT_TRUE(loadOk) << error;
+
+    ASSERT_EQ(loadedNodes.size(), 1u);
+    EXPECT_FALSE(loadedNodes[0]->positionSet());
+    EXPECT_TRUE(loadedNodes[0]->hasSpawnPosScreen());
+    EXPECT_FLOAT_EQ(loadedNodes[0]->spawnPosScreen().x, 333.0f);
+    EXPECT_FLOAT_EQ(loadedNodes[0]->spawnPosScreen().y, 222.0f);
+
+    std::error_code ec;
+    std::filesystem::remove(tempPath, ec);
+}
+

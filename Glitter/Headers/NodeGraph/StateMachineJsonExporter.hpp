@@ -35,9 +35,9 @@ namespace StateMachineJsonExporter
 
     // Loads state machine graph JSON authored by the editor.
     bool DeserializeChainJson(const std::string& filepath,
-                          std::vector<StateMachineNode>& outNodes,
-                          std::vector<StateMachineLink>& outLinks,
-                          int& activeRootNodeId);
+                              std::vector<StateMachineNode>& outNodes,
+                              std::vector<StateMachineLink>& outLinks,
+                              int& activeRootNodeId);
 }
 
 #endif // GLITTER_STATEMACHINEJSONEXPORTER_HPP
