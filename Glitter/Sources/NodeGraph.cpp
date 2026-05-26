@@ -6,6 +6,7 @@
 #include <imnodes.h>
 #include <imgui.h>
 #include <algorithm>
+#include <unordered_set>
 
 #include "NodeGraph/NodeGraphContextMenu.hpp"
 #include "NodeGraph/Views/NodeGraphCommentsView.hpp"
@@ -166,7 +167,7 @@ void NodeGraph::drawUIEmbedded()
             nodeGraphLinks.end());
     }
 
-    if (ImGui::IsKeyPressed(ImGuiKey_Delete))
+    if (ImGui::IsKeyPressed(ImGuiKey_Delete) && !ImGui::GetIO().WantTextInput)
     {
         const int selectedLinkCount = ImNodes::NumSelectedLinks();
         if (selectedLinkCount > 0)
@@ -186,6 +187,16 @@ void NodeGraph::drawUIEmbedded()
 
             ImNodes::ClearLinkSelection();
         }
+
+        const int selectedNodeCount = ImNodes::NumSelectedNodes();
+        if (selectedNodeCount > 0)
+        {
+            std::vector<int> selectedNodeIds(static_cast<size_t>(selectedNodeCount));
+            ImNodes::GetSelectedNodes(selectedNodeIds.data());
+
+            deleteNodesByIds(selectedNodeIds);
+            ImNodes::ClearNodeSelection();
+        }
     }
 
     // Restore previous context (important when multiple graphs are drawn in one frame).
@@ -197,6 +208,74 @@ void NodeGraph::drawUIEmbedded()
 void NodeGraph::clearNodes()
 {
     nodes.clear();
+}
+
+void NodeGraph::deleteNodesByIds(const std::vector<int>& nodeIds)
+{
+    if (nodeIds.empty())
+        return;
+
+    const std::unordered_set<int> nodeIdSet(nodeIds.begin(), nodeIds.end());
+
+    // Remove regular node links connected to any deleted node pin.
+    std::unordered_set<int> deletedNodeAttributeIds;
+    for (const auto& node : nodes)
+    {
+        if (!node || nodeIdSet.find(node->id()) == nodeIdSet.end())
+            continue;
+
+        for (const auto& input : node->inputs())
+            deletedNodeAttributeIds.insert(input.getId());
+        for (const auto& output : node->outputs())
+            deletedNodeAttributeIds.insert(output.getId());
+        if (node->hasExecInput())
+            deletedNodeAttributeIds.insert(node->getExecInput()->getId());
+        if (node->hasExecOutput())
+            deletedNodeAttributeIds.insert(node->getExecOutput()->getId());
+    }
+
+    nodeGraphLinks.erase(
+        std::remove_if(
+            nodeGraphLinks.begin(),
+            nodeGraphLinks.end(),
+            [&deletedNodeAttributeIds](const NodeGraphNodeLink& link)
+            {
+                return deletedNodeAttributeIds.find(link.startAttr()) != deletedNodeAttributeIds.end() ||
+                       deletedNodeAttributeIds.find(link.endAttr()) != deletedNodeAttributeIds.end();
+            }),
+        nodeGraphLinks.end());
+
+    nodes.erase(
+        std::remove_if(
+            nodes.begin(),
+            nodes.end(),
+            [&nodeIdSet](const std::unique_ptr<NodeGraphNode>& node)
+            {
+                return node && nodeIdSet.find(node->id()) != nodeIdSet.end();
+            }),
+        nodes.end());
+
+    // Remove state-machine links connected to deleted state nodes.
+    stateLinks.erase(
+        std::remove_if(
+            stateLinks.begin(),
+            stateLinks.end(),
+            [&nodeIdSet](const StateMachineLink& link)
+            {
+                return nodeIdSet.find(link.fromNodeId) != nodeIdSet.end() ||
+                       nodeIdSet.find(link.toNodeId) != nodeIdSet.end();
+            }),
+        stateLinks.end());
+
+    stateNodes.erase(
+        std::remove_if(
+            stateNodes.begin(),
+            stateNodes.end(),
+            [&nodeIdSet](const StateMachineNode& node)
+            {
+                return nodeIdSet.find(node.id) != nodeIdSet.end();
+            }),
+        stateNodes.end());
 }
 
 void NodeGraph::clearNodeGraphLinks()
