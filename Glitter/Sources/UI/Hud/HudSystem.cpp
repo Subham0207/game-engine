@@ -1,17 +1,21 @@
 #include "UI/Hud/HudSystem.hpp"
 
 #include "Controls/Input.hpp"
+#include <EngineState.hpp>
+
+#include <filesystem>
 
 #include <glad/glad.h>
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Core/FontEngineInterface.h>
 #include <RmlUi_Platform_GLFW.h>
 #include <RmlUi_Renderer_GL3.h>
 
 #include <iostream>
+
+namespace fs = std::filesystem;
 
 namespace
 {
@@ -110,6 +114,8 @@ namespace UI::Hud
             std::cerr << "[HUD] Failed to initialize RmlUi OpenGL3 renderer" << std::endl;
             return false;
         }
+        if (!rendererMessage.empty())
+            std::cout << "[HUD] RmlGL3 message: " << rendererMessage << std::endl;
 
         mSystemInterface = new SystemInterface_GLFW();
         mSystemInterface->SetWindow(mWindow);
@@ -134,14 +140,6 @@ namespace UI::Hud
         Rml::SetSystemInterface(mSystemInterface);
         Rml::SetRenderInterface(mRenderInterface);
 
-        // This workspace currently builds RmlUi with RMLUI_FONT_ENGINE=none.
-        // Provide the default no-op font engine so Rml::Initialise() can still succeed.
-        if (!Rml::GetFontEngineInterface())
-        {
-            mFallbackFontEngine = new Rml::FontEngineInterface();
-            Rml::SetFontEngineInterface(mFallbackFontEngine);
-        }
-
         if (!Rml::Initialise())
         {
             std::cerr << "[HUD] Rml::Initialise failed (check font engine and render interface setup)" << std::endl;
@@ -150,10 +148,24 @@ namespace UI::Hud
             mRenderInterface = nullptr;
             delete mSystemInterface;
             mSystemInterface = nullptr;
-            delete mFallbackFontEngine;
-            mFallbackFontEngine = nullptr;
             return false;
         }
+
+        // Prefer project fonts first; fallback to engine fonts. This verifies whether a real font engine is active.
+        const fs::path projectRobotoDir = documentPath.parent_path().parent_path() / "Roboto";
+        const fs::path engineRobotoDir = fs::path(EngineState::state->engineInstalledDirectory) / "EngineAssets" / "Roboto";
+
+        const fs::path regularFontPath = fs::exists(projectRobotoDir / "Roboto-Regular.ttf")
+            ? (projectRobotoDir / "Roboto-Regular.ttf")
+            : (engineRobotoDir / "Roboto-Regular.ttf");
+        const fs::path boldFontPath = fs::exists(projectRobotoDir / "Roboto-Bold.ttf")
+            ? (projectRobotoDir / "Roboto-Bold.ttf")
+            : (engineRobotoDir / "Roboto-Bold.ttf");
+
+        const bool regularLoaded = Rml::LoadFontFace(regularFontPath.generic_string(), true);
+        const bool boldLoaded = Rml::LoadFontFace(boldFontPath.generic_string(), false);
+        std::cout << "[HUD] LoadFontFace regular=" << regularLoaded << " path=" << regularFontPath << std::endl;
+        std::cout << "[HUD] LoadFontFace bold=" << boldLoaded << " path=" << boldFontPath << std::endl;
 
         mContext = Rml::CreateContext("EditorHUD", Rml::Vector2i(initialWidth, initialHeight));
         if (!mContext)
@@ -179,7 +191,19 @@ namespace UI::Hud
             mDocument->Show();
 
             // Keep HUD visible even if project RCSS isn't resolved by forcing core styles at runtime.
-            if (auto* healthFrame = mDocument->GetElementById("health-frame"))
+            auto* healthFrame = mDocument->GetElementById("health-frame");
+            auto* healthFill = mDocument->GetElementById("health-fill");
+            auto* staminaFrame = mDocument->GetElementById("stamina-frame");
+            auto* staminaFill = mDocument->GetElementById("stamina-fill");
+            auto* crosshair = mDocument->GetElementById("crosshair");
+
+            std::cout << "[HUD] ids health-frame=" << (healthFrame ? 1 : 0)
+                << " health-fill=" << (healthFill ? 1 : 0)
+                << " stamina-frame=" << (staminaFrame ? 1 : 0)
+                << " stamina-fill=" << (staminaFill ? 1 : 0)
+                << " crosshair=" << (crosshair ? 1 : 0) << std::endl;
+
+            if (healthFrame)
             {
                 healthFrame->SetProperty("position", "absolute");
                 healthFrame->SetProperty("left", "24px");
@@ -189,14 +213,14 @@ namespace UI::Hud
                 healthFrame->SetProperty("background-color", "#2a2a2a");
             }
 
-            if (auto* healthFill = mDocument->GetElementById("health-fill"))
+            if (healthFill)
             {
                 healthFill->SetProperty("width", "100%");
                 healthFill->SetProperty("height", "100%");
                 healthFill->SetProperty("background-color", "#c0392b");
             }
 
-            if (auto* staminaFrame = mDocument->GetElementById("stamina-frame"))
+            if (staminaFrame)
             {
                 staminaFrame->SetProperty("position", "absolute");
                 staminaFrame->SetProperty("left", "24px");
@@ -206,14 +230,14 @@ namespace UI::Hud
                 staminaFrame->SetProperty("background-color", "#2a2a2a");
             }
 
-            if (auto* staminaFill = mDocument->GetElementById("stamina-fill"))
+            if (staminaFill)
             {
                 staminaFill->SetProperty("width", "75%");
                 staminaFill->SetProperty("height", "100%");
                 staminaFill->SetProperty("background-color", "#27ae60");
             }
 
-            if (auto* crosshair = mDocument->GetElementById("crosshair"))
+            if (crosshair)
             {
                 crosshair->SetProperty("position", "absolute");
                 crosshair->SetProperty("left", "50%");
@@ -223,6 +247,22 @@ namespace UI::Hud
                 crosshair->SetProperty("width", "4px");
                 crosshair->SetProperty("height", "4px");
                 crosshair->SetProperty("background-color", "#f0f0f0");
+            }
+
+            // Guaranteed debug primitive from Rml DOM to verify geometry visibility.
+            Rml::ElementPtr debugQuad = mDocument->CreateElement("div");
+            if (debugQuad)
+            {
+                debugQuad->SetId("hud-debug-quad");
+                debugQuad->SetProperty("position", "absolute");
+                debugQuad->SetProperty("right", "24px");
+                debugQuad->SetProperty("top", "24px");
+                debugQuad->SetProperty("width", "32px");
+                debugQuad->SetProperty("height", "32px");
+                debugQuad->SetProperty("background-color", "#ffff00");
+                debugQuad->SetProperty("z-index", "9999");
+                mDocument->AppendChild(std::move(debugQuad));
+                std::cout << "[HUD] Added debug quad element" << std::endl;
             }
         }
 
@@ -266,9 +306,37 @@ namespace UI::Hud
         }
 
         mContext->Update();
+
+        // Start from a known-good state before entering the Rml renderer.
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, viewportWidth, viewportHeight);
+        glBindVertexArray(0);
+        glUseProgram(0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_SCISSOR_TEST); // ImGui can leave a restrictive scissor rect active.
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         mRenderInterface->BeginFrame();
         mContext->Render();
         mRenderInterface->EndFrame();
+
+        // Guaranteed top-right yellow probe (independent of Rml DOM) for visibility debugging.
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GLboolean scissorWasEnabled = GL_FALSE;
+        glGetBooleanv(GL_SCISSOR_TEST, &scissorWasEnabled);
+        glEnable(GL_SCISSOR_TEST);
+        const int probeSize = 64;
+        const int probeX = viewportWidth > probeSize ? (viewportWidth - probeSize) : 0;
+        const int probeY = viewportHeight > probeSize ? (viewportHeight - probeSize) : 0;
+        glScissor(probeX, probeY, probeSize, probeSize);
+        glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        if (!scissorWasEnabled)
+            glDisable(GL_SCISSOR_TEST);
     }
 
     void HudSystem::shutdown()
@@ -298,8 +366,6 @@ namespace UI::Hud
         Rml::Shutdown();
         RmlGL3::Shutdown();
 
-        delete mFallbackFontEngine;
-        mFallbackFontEngine = nullptr;
 
         delete mRenderInterface;
         mRenderInterface = nullptr;

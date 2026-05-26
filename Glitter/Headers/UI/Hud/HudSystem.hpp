@@ -14,7 +14,6 @@ namespace Rml
 {
     class Context;
     class ElementDocument;
-    class FontEngineInterface;
 }
 
 namespace UI::Hud
@@ -42,7 +41,6 @@ namespace UI::Hud
         RenderInterface_GL3* mRenderInterface = nullptr;
         Rml::Context* mContext = nullptr;
         Rml::ElementDocument* mDocument = nullptr;
-        Rml::FontEngineInterface* mFallbackFontEngine = nullptr;
         bool mInitialized = false;
         bool mLoggedFramebufferState = false;
     };

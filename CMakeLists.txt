@@ -150,7 +150,20 @@ FetchContent_MakeAvailable(recast)
 set(RMLUI_SAMPLES OFF CACHE BOOL "" FORCE)
 set(RMLUI_TESTS OFF CACHE BOOL "" FORCE)
 set(RMLUI_SHELL ON CACHE BOOL "" FORCE)
-set(RMLUI_FONT_ENGINE "none" CACHE STRING "" FORCE)
+set(RMLUI_FONT_ENGINE "freetype" CACHE STRING "" FORCE)
+
+# Use vendored FreeType so packaging/link behavior is consistent across engine and consumers.
+set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+        freetype
+        GIT_REPOSITORY https://github.com/freetype/freetype.git
+        GIT_TAG VER-2-13-3
+)
+FetchContent_MakeAvailable(freetype)
+
+if (TARGET freetype AND NOT TARGET Freetype::Freetype)
+    add_library(Freetype::Freetype ALIAS freetype)
+endif()
 
 FetchContent_Declare(
         rmlui
@@ -348,9 +361,19 @@ include(CMakePackageConfigHelpers)
 
 set(GLITTER_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/Glitter")
 
-# UNIFIED INSTALL TARGETS (Only call this ONCE per target)
-install(TARGETS GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd DetourTileCache sol2
+set(GLITTER_EXPORT_TARGETS
+        GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd DetourTileCache sol2
         rmlui rmlui_core rmlui_debugger
+)
+
+set(GLITTER_PACKAGE_BUNDLES_FREETYPE OFF)
+if (TARGET freetype)
+    list(APPEND GLITTER_EXPORT_TARGETS freetype)
+    set(GLITTER_PACKAGE_BUNDLES_FREETYPE ON)
+endif()
+
+# UNIFIED INSTALL TARGETS (Only call this ONCE per target)
+install(TARGETS ${GLITTER_EXPORT_TARGETS}
         EXPORT GlitterTargets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -372,6 +395,9 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/" DESTINATION "${CMAKE
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imgui")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imguizmo")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imnodes/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imnodes" FILES_MATCHING PATTERN "*.h")
+if (TARGET freetype)
+    install(DIRECTORY "${freetype_SOURCE_DIR}/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/freetype2")
+endif()
 
 # Install Bundled Dependencies
 install(FILES "${LUA_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
@@ -397,6 +423,10 @@ set(BOOST_ROOT "${PACKAGE_PREFIX_DIR}")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_NO_SYSTEM_PATHS ON)
 find_dependency(Boost 1.89.0 REQUIRED COMPONENTS serialization json)
+
+if (NOT @GLITTER_PACKAGE_BUNDLES_FREETYPE@)
+    find_dependency(Freetype REQUIRED)
+endif()
 
 if (NOT TARGET Lua::Lua)
     add_library(Lua::Lua SHARED IMPORTED)
