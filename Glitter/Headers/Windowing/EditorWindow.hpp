@@ -18,6 +18,7 @@
 #include "Debug/Raycast.hpp"
 #include "UI/outliner.hpp"
 #include "UI/AssetBrowser/AssetBrowser.hpp"
+#include "UI/Hud/HudSystem.hpp"
 #include "NodeGraph/NodeGraph.hpp"
 
 #include "Controls/ClientHandler.hpp"
@@ -86,6 +87,7 @@ private:
     std::unique_ptr<Outliner> mOutliner;
     std::unique_ptr<ProjectAsset::AssetBrowser> mAssetBrowser;
     std::unique_ptr<NodeGraph> mNodeGraph;
+    std::unique_ptr<UI::Hud::HudSystem> mHudSystem;
 
     std::unique_ptr<ShadowPass> mShadowPass;
     std::unique_ptr<LightingPass> mLightingPass;

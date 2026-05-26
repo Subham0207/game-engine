@@ -23,7 +23,12 @@ target_include_directories(Test PRIVATE
         ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include
 )
 
-target_link_libraries(Test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GlitterLib)
+target_link_libraries(Test PRIVATE
+        GTest::gtest
+        GTest::gtest_main
+        GTest::gmock
+        GlitterLib
+)
 
 # Copy the Lua DLL to the test output directory
 add_custom_command(TARGET Test POST_BUILD

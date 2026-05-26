@@ -45,3 +45,24 @@ This file documents project knowledge and coding conventions for AI coding assis
 - Delete hotkey now checks `!ImGui::GetIO().WantTextInput` to avoid deleting graph elements while typing in text fields.
 - Regression coverage added in `Tests/NodeGraph/NodeGraph.test.cpp` for regular-node and state-machine node deletion cleanup behavior.
 
+## Session Handoff Notes (2026-05-26, Editor Architecture Snapshot)
+- Entry point is `Glitter/editorMain.cpp`, which creates `Editor` and calls `Editor::openEditor()`.
+- `Editor::openEditor()` (in `Glitter/Sources/Editor.cpp`) initializes `EngineState`, Lua registry, then runs a multi-window loop over `std::vector<std::unique_ptr<GameWindow>>`.
+- `GameWindow` (in `Glitter/Headers/Windowing/GameWindow.hpp`) is the shared base for standalone windows; it owns per-window input/event queue, camera, ImGui + ImNodes contexts, and frame timing.
+- The active editor scene is hosted in `EditorWindow` (`Glitter/Sources/Windowing/EditorWindow.cpp`), which sets up level loading, scene viewport, lights, outliner, asset browser, and play/editor camera switching.
+- `StateMachineWindow` is a separate `GameWindow` implementation with its own preview level, camera/input flow, and `StateMachineGraph` / FlowScript UI.
+- Input callbacks are routed through `WindowInputUserData` so each GLFW window can select the correct ImGui/ImNodes context and input handler.
+
+## Session Handoff Notes (2026-05-26, RmlUi HUD Integration)
+- RmlUi is integrated in CMake via `FetchContent` (`mikke89/RmlUi`, tag `6.0`) and linked to `GlitterLib` with backend target `rmlui_backend_GLFW_GL3`.
+- Current integration sets `RMLUI_FONT_ENGINE=none` to keep setup dependency-light on this workspace (no detected FreeType package), so HUD styling is available immediately while text/font rendering can be enabled later by adding FreeType and switching back to the freetype font engine.
+- New HUD runtime wrapper: `Glitter/Headers/UI/Hud/HudSystem.hpp` and `Glitter/Sources/UI/Hud/HudSystem.cpp`.
+- `EditorWindow` now initializes HUD from `EngineAssets/UI/hud.rml`, renders it each frame during play mode, and shuts it down with the window lifecycle.
+- GLFW input callbacks in `Input.cpp` now forward keyboard/mouse/scroll/char events to RmlUi context (when present) before continuing normal editor input handling.
+- Framebuffer resize callback in `Shared.cpp` now forwards new dimensions to RmlUi so HUD layout tracks viewport size changes.
+
+## Session Handoff Notes (2026-05-26, GlitterLib Packaging)
+- To support downstream projects that only link `GlitterLib`, RmlUi GLFW/GL3 backend sources are compiled directly into `GlitterLib`.
+- `GlitterLib` now links RmlUi transitively (`RmlUi::RmlUi`) so consumers do not need to add separate RmlUi linkage in their project CMake files.
+- Glitter package export now includes RmlUi targets (`rmlui`, `rmlui_core`, `rmlui_debugger`) in `GlitterTargets.cmake`, enabling installed-package consumers to resolve transitive links.
+

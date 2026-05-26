@@ -147,6 +147,33 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(recast)
 
+set(RMLUI_SAMPLES OFF CACHE BOOL "" FORCE)
+set(RMLUI_TESTS OFF CACHE BOOL "" FORCE)
+set(RMLUI_SHELL ON CACHE BOOL "" FORCE)
+set(RMLUI_FONT_ENGINE "none" CACHE STRING "" FORCE)
+
+FetchContent_Declare(
+        rmlui
+        GIT_REPOSITORY https://github.com/mikke89/RmlUi.git
+        GIT_TAG 6.0
+)
+
+FetchContent_MakeAvailable(rmlui)
+
+set(RMLUI_GLFW_GL3_BACKEND_SOURCES
+        ${rmlui_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp
+        ${rmlui_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.cpp
+        ${rmlui_SOURCE_DIR}/Backends/RmlUi_Backend_GLFW_GL3.cpp
+)
+
+set_source_files_properties(${RMLUI_GLFW_GL3_BACKEND_SOURCES} PROPERTIES
+        COMPILE_DEFINITIONS "GL_TRUE=1;RMLUI_GL3_CUSTOM_LOADER=<glad/glad.h>"
+)
+
+if (TARGET rmlui_backend_GLFW_GL3)
+    target_compile_definitions(rmlui_backend_GLFW_GL3 INTERFACE GL_TRUE=1)
+endif()
+
 FetchContent_GetProperties(recast)
 if (NOT recast_POPULATED)
     FetchContent_Populate(recast)
@@ -174,6 +201,7 @@ endif ()
 add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
         Glitter/Sources/NodePositionSerialization.cpp
+        ${RMLUI_GLFW_GL3_BACKEND_SOURCES}
         ${VENDORS_SOURCES}
         ${IMGUI_IMPL_SOURCES}
         ${IMGUIZMO_IMPL_SOURCES}
@@ -224,6 +252,11 @@ target_include_directories(GlitterLib
 
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
             $<INSTALL_INTERFACE:include/Glitter>
+
+        PRIVATE
+            ${rmlui_SOURCE_DIR}/Include
+            ${rmlui_SOURCE_DIR}/Backends
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include
 )
 
 if (ENGINE_WITH_TRACY)
@@ -250,6 +283,7 @@ target_link_libraries(GlitterLib
             Detour
             DetourCrowd
             DetourTileCache
+            RmlUi::RmlUi
 )
 
 if (ENGINE_WITH_TRACY)
@@ -316,6 +350,7 @@ set(GLITTER_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/Glitter")
 
 # UNIFIED INSTALL TARGETS (Only call this ONCE per target)
 install(TARGETS GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd DetourTileCache sol2
+        rmlui rmlui_core rmlui_debugger
         EXPORT GlitterTargets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
