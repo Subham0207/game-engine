@@ -251,6 +251,10 @@ void EditorWindow::tickImpl()
         ZoneScopedN("ImGuiRender");
         ImGui::Render();
     }
+    // Draw HUD before ImGui so editor widgets stay interactive on top.
+    if (mHudSystem && EngineState::state->isPlay)
+        mHudSystem->tick(mScreenWidth, mScreenHeight);
+
     {
         ZoneScopedN("ImGuiRenderDrawData");
         {
@@ -259,9 +263,6 @@ void EditorWindow::tickImpl()
         }
     }
 
-    // Draw HUD last so it stays visible above scene/editor windows.
-    if (mHudSystem && EngineState::state->isPlay)
-        mHudSystem->tick(mScreenWidth, mScreenHeight);
 
     glfwSwapBuffers(mWindow);
 

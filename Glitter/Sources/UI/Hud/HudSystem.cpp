@@ -21,6 +21,20 @@ namespace
 {
     bool gRmlInitialized = false;
 
+    void applyGenericHudLayoutCompatibility(Rml::Element* element)
+    {
+        if (!element)
+            return;
+
+        // RmlUi treats div as inline by default; force block so width/height styled HUD boxes render as expected.
+        if (element->GetTagName() == "div")
+            element->SetProperty("display", "block");
+
+        const int childCount = element->GetNumChildren();
+        for (int i = 0; i < childCount; ++i)
+            applyGenericHudLayoutCompatibility(element->GetChild(i));
+    }
+
     WindowInputUserData* getWindowUserData(GLFWwindow* window)
     {
         return static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(window));
@@ -32,7 +46,8 @@ namespace
         if (!ud || !ud->rmlContext)
             return false;
 
-        return !RmlGLFW::ProcessKeyCallback(ud->rmlContext, key, action, mods);
+        RmlGLFW::ProcessKeyCallback(ud->rmlContext, key, action, mods);
+        return false;
     }
 
     bool hudCharCallback(GLFWwindow* window, unsigned int c)
@@ -41,7 +56,8 @@ namespace
         if (!ud || !ud->rmlContext)
             return false;
 
-        return !RmlGLFW::ProcessCharCallback(ud->rmlContext, c);
+        RmlGLFW::ProcessCharCallback(ud->rmlContext, c);
+        return false;
     }
 
     bool hudCursorEnterCallback(GLFWwindow* window, int entered)
@@ -50,7 +66,8 @@ namespace
         if (!ud || !ud->rmlContext)
             return false;
 
-        return !RmlGLFW::ProcessCursorEnterCallback(ud->rmlContext, entered);
+        RmlGLFW::ProcessCursorEnterCallback(ud->rmlContext, entered);
+        return false;
     }
 
     bool hudCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
@@ -59,7 +76,8 @@ namespace
         if (!ud || !ud->rmlContext)
             return false;
 
-        return !RmlGLFW::ProcessCursorPosCallback(ud->rmlContext, window, xpos, ypos, ud->rmlModifierState);
+        RmlGLFW::ProcessCursorPosCallback(ud->rmlContext, window, xpos, ypos, ud->rmlModifierState);
+        return false;
     }
 
     bool hudMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -69,7 +87,8 @@ namespace
             return false;
 
         ud->rmlModifierState = mods;
-        return !RmlGLFW::ProcessMouseButtonCallback(ud->rmlContext, button, action, mods);
+        RmlGLFW::ProcessMouseButtonCallback(ud->rmlContext, button, action, mods);
+        return false;
     }
 
     bool hudScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
@@ -78,7 +97,8 @@ namespace
         if (!ud || !ud->rmlContext)
             return false;
 
-        return !RmlGLFW::ProcessScrollCallback(ud->rmlContext, yoffset, ud->rmlModifierState);
+        RmlGLFW::ProcessScrollCallback(ud->rmlContext, yoffset, ud->rmlModifierState);
+        return false;
     }
 
     void hudFramebufferSizeCallback(GLFWwindow* window, int width, int height)
@@ -189,152 +209,24 @@ namespace UI::Hud
         std::cout << "[HUD] Loading document: " << documentPathString << std::endl;
         mDocument = mContext->LoadDocument(documentPathString);
         if (!mDocument)
+        {
             std::cerr << "[HUD] Failed to load HUD document: " << documentPathString << std::endl;
+            Rml::Shutdown();
+            RmlGL3::Shutdown();
+            delete mRenderInterface;
+            mRenderInterface = nullptr;
+            delete mSystemInterface;
+            mSystemInterface = nullptr;
+            return false;
+        }
         else
         {
             std::cout << "[HUD] Document loaded successfully" << std::endl;
+            mDocument->SetProperty("display", "block");
+            mDocument->SetProperty("width", "100%");
+            mDocument->SetProperty("height", "100%");
+            applyGenericHudLayoutCompatibility(mDocument);
             mDocument->Show();
-
-            // Keep HUD visible even if the project hud.rml is missing expected ids.
-            auto* hudRoot = mDocument->GetElementById("hud-root");
-            if (!hudRoot)
-            {
-                Rml::ElementPtr root = mDocument->CreateElement("div");
-                if (root)
-                {
-                    root->SetId("hud-root");
-                    hudRoot = root.get();
-                    mDocument->AppendChild(std::move(root));
-                    std::cout << "[HUD] Created fallback hud-root" << std::endl;
-                }
-            }
-
-            if (hudRoot)
-            {
-                hudRoot->SetProperty("display", "block");
-                hudRoot->SetProperty("position", "absolute");
-                hudRoot->SetProperty("left", "0px");
-                hudRoot->SetProperty("top", "0px");
-                hudRoot->SetProperty("width", "100%");
-                hudRoot->SetProperty("height", "100%");
-                hudRoot->SetProperty("visibility", "visible");
-                hudRoot->SetProperty("opacity", "1");
-                hudRoot->SetProperty("z-index", "10000");
-                hudRoot->SetProperty("pointer-events", "none");
-            }
-
-            auto ensureDivById = [this, hudRoot](const char* id) -> Rml::Element*
-            {
-                Rml::Element* element = mDocument->GetElementById(id);
-                if (element || !hudRoot)
-                    return element;
-
-                Rml::ElementPtr created = mDocument->CreateElement("div");
-                if (!created)
-                    return nullptr;
-
-                created->SetId(id);
-                element = created.get();
-                hudRoot->AppendChild(std::move(created));
-                std::cout << "[HUD] Created fallback element id=" << id << std::endl;
-                return element;
-            };
-
-            auto* healthFrame = ensureDivById("health-frame");
-            auto* healthFill = ensureDivById("health-fill");
-            auto* staminaFrame = ensureDivById("stamina-frame");
-            auto* staminaFill = ensureDivById("stamina-fill");
-            auto* crosshair = ensureDivById("crosshair");
-
-            std::cout << "[HUD] ids health-frame=" << (healthFrame ? 1 : 0)
-                << " health-fill=" << (healthFill ? 1 : 0)
-                << " stamina-frame=" << (staminaFrame ? 1 : 0)
-                << " stamina-fill=" << (staminaFill ? 1 : 0)
-                << " crosshair=" << (crosshair ? 1 : 0) << std::endl;
-
-            if (healthFrame)
-            {
-                healthFrame->SetProperty("display", "block");
-                healthFrame->SetProperty("position", "absolute");
-                healthFrame->SetProperty("left", "24px");
-                healthFrame->SetProperty("bottom", "52px");
-                healthFrame->SetProperty("width", "340px");
-                healthFrame->SetProperty("height", "24px");
-                healthFrame->SetProperty("background-color", "#2a2a2a");
-                healthFrame->SetProperty("border", "2px #111111");
-                healthFrame->SetProperty("z-index", "10001");
-                healthFrame->SetProperty("visibility", "visible");
-                healthFrame->SetProperty("opacity", "1");
-
-            }
-
-            if (healthFill)
-            {
-                healthFill->SetProperty("display", "block");
-                healthFill->SetProperty("width", "100%");
-                healthFill->SetProperty("height", "100%");
-                healthFill->SetProperty("background-color", "#c0392b");
-                healthFill->SetProperty("z-index", "10002");
-                healthFill->SetProperty("visibility", "visible");
-            }
-
-            if (staminaFrame)
-            {
-                staminaFrame->SetProperty("display", "block");
-                staminaFrame->SetProperty("position", "absolute");
-                staminaFrame->SetProperty("left", "24px");
-                staminaFrame->SetProperty("bottom", "24px");
-                staminaFrame->SetProperty("width", "340px");
-                staminaFrame->SetProperty("height", "24px");
-                staminaFrame->SetProperty("background-color", "#2a2a2a");
-                staminaFrame->SetProperty("border", "2px #111111");
-                staminaFrame->SetProperty("z-index", "10001");
-                staminaFrame->SetProperty("visibility", "visible");
-
-            }
-
-            if (staminaFill)
-            {
-                staminaFill->SetProperty("display", "block");
-                staminaFill->SetProperty("width", "75%");
-                staminaFill->SetProperty("height", "100%");
-                staminaFill->SetProperty("background-color", "#27ae60");
-                staminaFill->SetProperty("z-index", "10002");
-                staminaFill->SetProperty("visibility", "visible");
-            }
-
-            if (crosshair)
-            {
-                crosshair->SetProperty("display", "block");
-                crosshair->SetProperty("position", "absolute");
-                crosshair->SetProperty("left", "50%");
-                crosshair->SetProperty("top", "50%");
-                crosshair->SetProperty("margin-left", "-5px");
-                crosshair->SetProperty("margin-top", "-5px");
-                crosshair->SetProperty("width", "10px");
-                crosshair->SetProperty("height", "10px");
-                crosshair->SetProperty("background-color", "#f0f0f0");
-                crosshair->SetProperty("border", "1px #000000");
-                crosshair->SetProperty("z-index", "10003");
-                crosshair->SetProperty("visibility", "visible");
-            }
-
-            // Debug Rml quad disabled now that HUD rendering is confirmed.
-            // Rml::ElementPtr debugQuad = mDocument->CreateElement("div");
-            // if (debugQuad)
-            // {
-            //     debugQuad->SetId("hud-debug-quad");
-            //     debugQuad->SetProperty("display", "block");
-            //     debugQuad->SetProperty("position", "absolute");
-            //     debugQuad->SetProperty("right", "24px");
-            //     debugQuad->SetProperty("top", "24px");
-            //     debugQuad->SetProperty("width", "32px");
-            //     debugQuad->SetProperty("height", "32px");
-            //     debugQuad->SetProperty("background-color", "#ffff00");
-            //     debugQuad->SetProperty("z-index", "9999");
-            //     mDocument->AppendChild(std::move(debugQuad));
-            //     std::cout << "[HUD] Added debug quad element" << std::endl;
-            // }
         }
 
         auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
@@ -387,27 +279,6 @@ namespace UI::Hud
             mContext->SetDimensions(Rml::Vector2i(framebufferWidth, framebufferHeight));
         }
 
-        // Re-apply absolute pixel positions every frame so HUD stays visible even with broken project CSS.
-        if (mDocument)
-        {
-            if (auto* healthFrame = mDocument->GetElementById("health-frame"))
-            {
-                healthFrame->SetProperty("left", "24px");
-                healthFrame->SetProperty("top", "24px");
-            }
-            if (auto* staminaFrame = mDocument->GetElementById("stamina-frame"))
-            {
-                staminaFrame->SetProperty("left", "24px");
-                staminaFrame->SetProperty("top", "56px");
-            }
-            if (auto* crosshair = mDocument->GetElementById("crosshair"))
-            {
-                const int centerX = framebufferWidth / 2;
-                const int centerY = framebufferHeight / 2;
-                crosshair->SetProperty("left", std::to_string(centerX - 5) + "px");
-                crosshair->SetProperty("top", std::to_string(centerY - 5) + "px");
-            }
-        }
 
         mContext->Update();
 
