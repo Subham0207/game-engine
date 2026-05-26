@@ -24,6 +24,11 @@ This file tracks the current `Visual Script -> AST -> Lua` workstream status and
 - Fixed loaded-node position persistence:
   - deserialized nodes keep `positionSet=false` so first draw applies serialized screen positions via ImNodes
 
+### Cross-Module Update (2026-05-26)
+- NodeGraph editor now deletes selected nodes on `Delete` (regular graph nodes + state-machine nodes), and removes attached links/transitions in the same operation.
+- Hotkey handling skips delete while text input is active (`ImGui::GetIO().WantTextInput`) to avoid accidental graph mutation during metadata editing.
+- Regression tests were added in `Tests/NodeGraph/NodeGraph.test.cpp` for both delete paths.
+
 ### AST Model Refactor
 - Replaced generic AST payload style with typed AST node hierarchy (`AstNode` base).
 - Statement branch includes:

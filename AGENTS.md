@@ -37,3 +37,11 @@ This file documents project knowledge and coding conventions for AI coding assis
 - FlowScript node position persistence on load was fixed by leaving deserialized nodes as `positionSet=false` so first draw applies saved screen positions.
 - State machine JSON load diagnostics were improved: deserialize converts string paths to `std::filesystem::path`, opens in binary mode, and logs absolute path + exists/file-type checks when open fails.
 
+## Session Handoff Notes (2026-05-26)
+- NodeGraph delete behavior now removes selected nodes on `Delete` (not only selected links).
+- Delete-node behavior applies to both regular node-graph nodes and state-machine nodes.
+- Deleting regular node-graph nodes now also removes attached node links by matching deleted node attribute ids (inputs/outputs/exec pins).
+- Deleting state-machine nodes now also removes attached transitions (`fromNodeId`/`toNodeId`).
+- Delete hotkey now checks `!ImGui::GetIO().WantTextInput` to avoid deleting graph elements while typing in text fields.
+- Regression coverage added in `Tests/NodeGraph/NodeGraph.test.cpp` for regular-node and state-machine node deletion cleanup behavior.
+
