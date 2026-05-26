@@ -55,14 +55,26 @@ This file documents project knowledge and coding conventions for AI coding assis
 
 ## Session Handoff Notes (2026-05-26, RmlUi HUD Integration)
 - RmlUi is integrated in CMake via `FetchContent` (`mikke89/RmlUi`, tag `6.0`) and linked to `GlitterLib` with backend target `rmlui_backend_GLFW_GL3`.
-- Current integration sets `RMLUI_FONT_ENGINE=freetype`; CMake first tries system FreeType and falls back to fetching `freetype` so HUD font loading works in this workspace.
+- Current integration sets `RMLUI_FONT_ENGINE=freetype` and uses vendored `freetype` (`VER-2-13-3`) for consistent engine/consumer behavior.
+- FreeType is configured with `FT_DISABLE_BZIP2=ON` to avoid unresolved BZ2 symbols in full-link targets.
 - New HUD runtime wrapper: `Glitter/Headers/UI/Hud/HudSystem.hpp` and `Glitter/Sources/UI/Hud/HudSystem.cpp`.
-- `EditorWindow` now initializes HUD from `EngineAssets/UI/hud.rml`, renders it each frame during play mode, and shuts it down with the window lifecycle.
-- GLFW input callbacks in `Input.cpp` now forward keyboard/mouse/scroll/char events to RmlUi context (when present) before continuing normal editor input handling.
+- `EditorWindow` resolves HUD from active project first (`<Project>/Assets/HUD/hud.rml`) and falls back to engine defaults (`EngineAssets/UI/hud.rml`).
+- `EditorWindow` renders HUD before ImGui draw data so editor UI remains clickable on top.
+- `HudSystem` now uses generic layout compatibility (forces `div` elements to `display:block`) instead of hardcoded gameplay HUD IDs/styles.
+- GLFW input callbacks in `Input.cpp` forward keyboard/mouse/scroll/char events to RmlUi, but HUD callbacks are non-blocking so ImGui input still works.
 - Framebuffer resize callback in `Shared.cpp` now forwards new dimensions to RmlUi so HUD layout tracks viewport size changes.
 
 ## Session Handoff Notes (2026-05-26, GlitterLib Packaging)
 - To support downstream projects that only link `GlitterLib`, RmlUi GLFW/GL3 backend sources are compiled directly into `GlitterLib`.
 - `GlitterLib` now links RmlUi transitively (`RmlUi::RmlUi`) so consumers do not need to add separate RmlUi linkage in their project CMake files.
 - Glitter package export now includes RmlUi targets (`rmlui`, `rmlui_core`, `rmlui_debugger`) in `GlitterTargets.cmake`, enabling installed-package consumers to resolve transitive links.
+- Glitter package export/install includes `freetype` when bundled, and generated config handles `Freetype` dependency resolution for consumers.
+
+## HUD Usage (Project Side)
+- Author HUD files in your active project: `Assets/HUD/hud.rml` and `Assets/HUD/hud.rcss`.
+- If project HUD files do not exist, editor startup seeds them from engine defaults in `EngineAssets/UI`.
+- HUD is rendered in play mode by `UI::Hud::HudSystem` (`Glitter/Sources/UI/Hud/HudSystem.cpp`).
+- Keep HUD styling/data in RML/RCSS; avoid relying on hardcoded element IDs in engine code.
+- Font loading uses project `Assets/Roboto` first (if present), then engine `EngineAssets/Roboto` fallback.
+- Input events are shared with ImGui; HUD should not block editor UI clicks by default.
 
