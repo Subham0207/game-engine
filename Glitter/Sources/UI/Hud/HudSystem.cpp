@@ -1,6 +1,7 @@
 #include "UI/Hud/HudSystem.hpp"
 
 #include "Controls/Input.hpp"
+#include "Event/EventBus.hpp"
 #include <EngineState.hpp>
 
 #include <filesystem>
@@ -20,20 +21,6 @@ namespace fs = std::filesystem;
 namespace
 {
     bool gRmlInitialized = false;
-
-    void applyGenericHudLayoutCompatibility(Rml::Element* element)
-    {
-        if (!element)
-            return;
-
-        // RmlUi treats div as inline by default; force block so width/height styled HUD boxes render as expected.
-        if (element->GetTagName() == "div")
-            element->SetProperty("display", "block");
-
-        const int childCount = element->GetNumChildren();
-        for (int i = 0; i < childCount; ++i)
-            applyGenericHudLayoutCompatibility(element->GetChild(i));
-    }
 
     WindowInputUserData* getWindowUserData(GLFWwindow* window)
     {
@@ -118,7 +105,7 @@ namespace UI::Hud
         shutdown();
     }
 
-    bool HudSystem::init(GLFWwindow* window, int initialWidth, int initialHeight, const std::filesystem::path& documentPath)
+    bool HudSystem::init(GLFWwindow* window, int initialWidth, int initialHeight, EventBus* eventBus)
     {
         if (mInitialized || !window)
             return false;
@@ -127,6 +114,7 @@ namespace UI::Hud
             return false;
 
         mWindow = window;
+        mEventBus = eventBus;
 
         Rml::String rendererMessage;
         if (!RmlGL3::Initialize(&rendererMessage))
@@ -171,9 +159,16 @@ namespace UI::Hud
             return false;
         }
 
-        // Prefer project fonts first; fallback to engine fonts. This verifies whether a real font engine is active.
-        const fs::path projectRobotoDir = documentPath.parent_path().parent_path() / "Roboto";
-        const fs::path engineRobotoDir = fs::path(EngineState::state->engineInstalledDirectory) / "EngineAssets" / "Roboto";
+        // Prefer project fonts first; fallback to engine fonts.
+        const fs::path activeProjectDir = EngineState::state
+            ? fs::path(EngineState::state->currentActiveProjectDirectory)
+            : fs::path();
+        const fs::path engineInstallDir = EngineState::state
+            ? fs::path(EngineState::state->engineInstalledDirectory)
+            : fs::path();
+
+        const fs::path projectRobotoDir = activeProjectDir / "Assets" / "Roboto";
+        const fs::path engineRobotoDir = engineInstallDir / "EngineAssets" / "Roboto";
 
         const fs::path regularFontPath = fs::exists(projectRobotoDir / "Roboto-Regular.ttf")
             ? (projectRobotoDir / "Roboto-Regular.ttf")
@@ -205,28 +200,17 @@ namespace UI::Hud
         glfwGetWindowContentScale(mWindow, &dpiScaleX, &dpiScaleY);
         mContext->SetDensityIndependentPixelRatio(dpiScaleX);
 
-        const auto documentPathString = documentPath.generic_string();
-        std::cout << "[HUD] Loading document: " << documentPathString << std::endl;
-        mDocument = mContext->LoadDocument(documentPathString);
-        if (!mDocument)
+        if (mEventBus)
         {
-            std::cerr << "[HUD] Failed to load HUD document: " << documentPathString << std::endl;
-            Rml::Shutdown();
-            RmlGL3::Shutdown();
-            delete mRenderInterface;
-            mRenderInterface = nullptr;
-            delete mSystemInterface;
-            mSystemInterface = nullptr;
-            return false;
-        }
-        else
-        {
-            std::cout << "[HUD] Document loaded successfully" << std::endl;
-            mDocument->SetProperty("display", "block");
-            mDocument->SetProperty("width", "100%");
-            mDocument->SetProperty("height", "100%");
-            applyGenericHudLayoutCompatibility(mDocument);
-            mDocument->Show();
+            mEventBus->subscribe<HUDUpdateEvent>([this](const HUDUpdateEvent& e)
+            {
+                onHUDUpdateEvent(e);
+            });
+
+            mEventBus->subscribe<ActivateHUDEvent>([this](const ActivateHUDEvent& e)
+            {
+                onActivateHUDEvent(e);
+            });
         }
 
         auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
@@ -247,6 +231,148 @@ namespace UI::Hud
         gRmlInitialized = true;
         mInitialized = true;
         return true;
+    }
+
+    void HudSystem::discoverHudDocuments(const std::filesystem::path& hudDirectory)
+    {
+        if (hudDirectory.empty() || !fs::exists(hudDirectory) || !fs::is_directory(hudDirectory))
+        {
+            std::cerr << "[HUD] HUD directory missing: " << hudDirectory << std::endl;
+            return;
+        }
+
+        int discoveredCount = 0;
+        for (const auto& entry : fs::directory_iterator(hudDirectory))
+        {
+            if (!entry.is_regular_file() || entry.path().extension() != ".rml")
+                continue;
+
+            const fs::path rmlPath = entry.path();
+            const std::string key = rmlPath.stem().string();
+            const fs::path rcssPath = rmlPath.parent_path() / (key + ".rcss");
+
+            registerHudDocument(key, rmlPath, rcssPath);
+            ++discoveredCount;
+        }
+
+        std::cout << "[HUD] Discovered " << discoveredCount << " HUD document(s) in " << hudDirectory << std::endl;
+    }
+
+    void HudSystem::registerHudDocument(const std::string& key, const std::filesystem::path& rmlPath, const std::filesystem::path& rcssPath)
+    {
+        if (key.empty())
+        {
+            std::cerr << "[HUD] registerHudDocument skipped: empty key for path " << rmlPath << std::endl;
+            return;
+        }
+
+        if (!rcssPath.empty() && !fs::exists(rcssPath))
+        {
+            std::cerr << "[HUD] No matching RCSS for key=" << key << " expected=" << rcssPath << std::endl;
+        }
+
+        mHudRegistry[key] = HudDefinition{rmlPath, rcssPath};
+    }
+
+    bool HudSystem::activateHud(const std::string& key)
+    {
+        if (!mContext)
+            return false;
+
+        if (mDocument)
+        {
+            mDocument->Close();
+            mDocument = nullptr;
+            mActiveHudKey.clear();
+        }
+
+        const auto it = mHudRegistry.find(key);
+        if (it == mHudRegistry.end())
+        {
+            std::cerr << "[HUD] ActivateHUDEvent failed. HUD key not registered: " << key << std::endl;
+            return false;
+        }
+
+        const auto& hudDef = it->second;
+        if (hudDef.rmlPath.empty() || !fs::exists(hudDef.rmlPath))
+        {
+            std::cerr << "[HUD] ActivateHUDEvent failed. HUD rml missing for key " << key
+                      << " path=" << hudDef.rmlPath << std::endl;
+            return false;
+        }
+
+        const auto documentPathString = hudDef.rmlPath.generic_string();
+        std::cout << "[HUD] Loading document: " << documentPathString << std::endl;
+        mDocument = mContext->LoadDocument(documentPathString);
+        if (!mDocument)
+        {
+            std::cerr << "[HUD] Failed to load HUD document: " << documentPathString << std::endl;
+            return false;
+        }
+
+        mDocument->SetProperty("display", "block");
+        mDocument->SetProperty("width", "100%");
+        mDocument->SetProperty("height", "100%");
+        mDocument->Show();
+        mActiveHudKey = key;
+
+        std::cout << "[HUD] Activated HUD: " << key
+                  << " rml=" << hudDef.rmlPath
+                  << " rcss=" << hudDef.rcssPath << std::endl;
+        return true;
+    }
+
+    bool HudSystem::setElementStyleById(const std::string& id, const std::string& property, const std::string& value)
+    {
+        if (!mDocument)
+            return false;
+
+        auto* element = mDocument->GetElementById(id);
+        if (!element)
+            return false;
+
+        element->SetProperty(property, value);
+        return true;
+    }
+
+    bool HudSystem::setElementTextById(const std::string& id, const std::string& value)
+    {
+        if (!mDocument)
+            return false;
+
+        auto* element = mDocument->GetElementById(id);
+        if (!element)
+            return false;
+
+        element->SetInnerRML(value);
+        return true;
+    }
+
+    void HudSystem::onHUDUpdateEvent(const HUDUpdateEvent& e)
+    {
+        bool updated = false;
+        switch (e.operation)
+        {
+        case HUDUpdateOperation::SetStyle:
+            updated = setElementStyleById(e.elementId, e.property, e.value);
+            break;
+        case HUDUpdateOperation::SetText:
+            updated = setElementTextById(e.elementId, e.value);
+            break;
+        }
+
+        if (!updated)
+        {
+            std::cerr << "[HUD] HUDUpdateEvent failed. elementId=" << e.elementId
+                      << " operation=" << static_cast<uint32_t>(e.operation)
+                      << " property=" << e.property
+                      << " value=" << e.value << std::endl;
+        }
+    }
+
+    void HudSystem::onActivateHUDEvent(const ActivateHUDEvent& e)
+    {
+        activateHud(e.hudKey);
     }
 
     void HudSystem::tick(int viewportWidth, int viewportHeight)
@@ -348,6 +474,8 @@ namespace UI::Hud
         delete mSystemInterface;
         mSystemInterface = nullptr;
         mWindow = nullptr;
+        mEventBus = nullptr;
+        mActiveHudKey.clear();
 
         mInitialized = false;
         gRmlInitialized = false;

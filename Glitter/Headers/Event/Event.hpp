@@ -7,6 +7,8 @@
 
 #pragma once
 #include <cstdint>
+#include <string>
+#include <utility>
 
 #include "GLFW/glfw3.h"
 
@@ -14,7 +16,15 @@ enum class EventType : uint32_t {
     MouseMove,
     MouseButton,
     Key,
-    WindowResize
+    WindowResize,
+    HUDUpdate,
+    ActivateHUD
+};
+
+enum class HUDUpdateOperation : uint32_t
+{
+    SetStyle,
+    SetText
 };
 
 struct Event {
@@ -32,6 +42,32 @@ struct MouseMoveEvent final : Event {
         : xOffset(dx), yOffset(dy), mouseState(mouseState){}
 
     EventType type() const override { return EventType::MouseMove; }
+};
+
+struct HUDUpdateEvent final : Event {
+    HUDUpdateOperation operation = HUDUpdateOperation::SetStyle;
+    std::string elementId;
+    std::string property;
+    std::string value;
+
+    HUDUpdateEvent(HUDUpdateOperation operation, std::string elementId, std::string property, std::string value)
+        : operation(operation),
+          elementId(std::move(elementId)),
+          property(std::move(property)),
+          value(std::move(value))
+    {}
+
+    EventType type() const override { return EventType::HUDUpdate; }
+};
+
+struct ActivateHUDEvent final : Event {
+    std::string hudKey;
+
+    explicit ActivateHUDEvent(std::string hudKey)
+        : hudKey(std::move(hudKey))
+    {}
+
+    EventType type() const override { return EventType::ActivateHUD; }
 };
 
 #endif //GLITTER_EVENT_HPP

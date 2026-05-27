@@ -18,6 +18,7 @@
 #include "NodeGraph/NodeGraph.hpp"
 #include "RenderPipeline/PostProcess.hpp"
 #include "Camera/FlyCam.hpp"
+#include "Event/Event.hpp"
 #include <UI/PropertiesPanel.hpp>
 #include "UI/Hud/HudSystem.hpp"
 #include <Profiler.hpp>
@@ -98,7 +99,15 @@ void EditorWindow::init()
     std::cout << "[HUD] Project HUD rcss: " << projectHudRcss << " exists=" << fs::exists(projectHudRcss) << std::endl;
     std::cout << "[HUD] Engine HUD rml: " << engineHudRml << " exists=" << fs::exists(engineHudRml) << std::endl;
     std::cout << "[HUD] Resolved HUD document: " << hudDocumentPath << std::endl;
-    mHudSystem->init(mWindow, mScreenWidth, mScreenHeight, hudDocumentPath);
+
+    const bool hudInitialized = mHudSystem->init(mWindow, mScreenWidth, mScreenHeight, mBus.get());
+    if (hudInitialized)
+    {
+        mHudSystem->discoverHudDocuments(projectHudDir);
+
+        if (mQueue)
+            mQueue->push<ActivateHUDEvent>("hud");
+    }
 }
 
 void EditorWindow::tickImpl()

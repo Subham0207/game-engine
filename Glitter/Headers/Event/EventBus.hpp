@@ -6,6 +6,9 @@
 #define GLITTER_EVENTBUS_HPP
 
 #include <functional>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>
 #include <Event/Event.hpp>
 
 class EventBus
@@ -47,5 +50,7 @@ private:
 };
 
 template<> inline EventType EventBus::eventTypeOf<MouseMoveEvent>() { return EventType::MouseMove; }
+template<> inline EventType EventBus::eventTypeOf<HUDUpdateEvent>() { return EventType::HUDUpdate; }
+template<> inline EventType EventBus::eventTypeOf<ActivateHUDEvent>() { return EventType::ActivateHUD; }
 
 #endif //GLITTER_EVENTBUS_HPP
