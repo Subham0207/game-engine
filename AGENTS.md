@@ -58,11 +58,21 @@ This file documents project knowledge and coding conventions for AI coding assis
 - Current integration sets `RMLUI_FONT_ENGINE=freetype` and uses vendored `freetype` (`VER-2-13-3`) for consistent engine/consumer behavior.
 - FreeType is configured with `FT_DISABLE_BZIP2=ON` to avoid unresolved BZ2 symbols in full-link targets.
 - New HUD runtime wrapper: `Glitter/Headers/UI/Hud/HudSystem.hpp` and `Glitter/Sources/UI/Hud/HudSystem.cpp`.
-- `EditorWindow` resolves HUD from active project first (`<Project>/Assets/HUD/hud.rml`) and falls back to engine defaults (`EngineAssets/UI/hud.rml`).
+- `EditorWindow` seeds default `hud.rml`/`hud.rcss` into `<Project>/Assets/HUD` when missing.
 - `EditorWindow` renders HUD before ImGui draw data so editor UI remains clickable on top.
-- `HudSystem` now uses generic layout compatibility (forces `div` elements to `display:block`) instead of hardcoded gameplay HUD IDs/styles.
+- `HudSystem` no longer hardcodes gameplay HUD IDs/styles and no longer traverses DOM to force `div` display.
+- HUD layout defaults should be declared in RCSS (for example `div { display: block; }`) rather than C++.
 - GLFW input callbacks in `Input.cpp` forward keyboard/mouse/scroll/char events to RmlUi, but HUD callbacks are non-blocking so ImGui input still works.
 - Framebuffer resize callback in `Shared.cpp` now forwards new dimensions to RmlUi so HUD layout tracks viewport size changes.
+
+## Session Handoff Notes (2026-05-27, Event-Driven Dynamic HUD)
+- `EventType` now includes `HUDUpdate` and `ActivateHUD` (`Glitter/Headers/Event/Event.hpp`).
+- `HUDUpdateEvent` supports `SetStyle` and `SetText` operations with payload: `elementId`, `property`, `value`.
+- `ActivateHUDEvent` now uses dynamic string keys (`hudKey`) instead of hardcoded enum layers.
+- HUD events are queued through `EventQueue` and then dispatched by `GameWindow::tick()` via `EventBus`.
+- `HudSystem` stores the window `EventBus` pointer, subscribes to HUD events, and applies updates/activations without requiring HUD references across gameplay code.
+- `HudSystem::discoverHudDocuments()` scans `<Project>/Assets/HUD` for `*.rml`; each file stem is the HUD key and matching `*.rcss` with same stem is associated when present.
+- Default startup activation uses key `"hud"` (from `hud.rml`) via queued `ActivateHUDEvent`.
 
 ## Session Handoff Notes (2026-05-26, GlitterLib Packaging)
 - To support downstream projects that only link `GlitterLib`, RmlUi GLFW/GL3 backend sources are compiled directly into `GlitterLib`.
@@ -71,10 +81,16 @@ This file documents project knowledge and coding conventions for AI coding assis
 - Glitter package export/install includes `freetype` when bundled, and generated config handles `Freetype` dependency resolution for consumers.
 
 ## HUD Usage (Project Side)
-- Author HUD files in your active project: `Assets/HUD/hud.rml` and `Assets/HUD/hud.rcss`.
+- Author HUD files in your active project under `Assets/HUD`.
+- Each `*.rml` is a HUD screen; key is file stem (for example `player_hud.rml` -> key `player_hud`).
+- Use same-stem `*.rcss` files for per-screen styles (for example `player_hud.rcss`).
 - If project HUD files do not exist, editor startup seeds them from engine defaults in `EngineAssets/UI`.
 - HUD is rendered in play mode by `UI::Hud::HudSystem` (`Glitter/Sources/UI/Hud/HudSystem.cpp`).
 - Keep HUD styling/data in RML/RCSS; avoid relying on hardcoded element IDs in engine code.
+- Use queued events to control HUD from gameplay code:
+  - `ActivateHUDEvent("player_hud")` to switch active HUD.
+  - `HUDUpdateEvent(SetStyle, "stamina-bar", "width", "84%")` to update styles.
+  - `HUDUpdateEvent(SetText, "stamina-text", "", "84 / 100")` to update text.
 - Font loading uses project `Assets/Roboto` first (if present), then engine `EngineAssets/Roboto` fallback.
 - Input events are shared with ImGui; HUD should not block editor UI clicks by default.
 
