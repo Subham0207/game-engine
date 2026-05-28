@@ -6,7 +6,18 @@
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
+#include <limits>
 using CastShapeClosestHitCollisionCollector = JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector>;
+
+namespace
+{
+    JPH::CharacterVsCharacterCollisionSimple& getCharacterVsCharacterCollisionRegistry()
+    {
+        static JPH::CharacterVsCharacterCollisionSimple registry;
+        return registry;
+    }
+}
 
 Physics::Capsule::Capsule
     (PhysicsSystemWrapper *physics,
@@ -37,6 +48,26 @@ Physics::Capsule::Capsule
     jphPosition, halfHeight, radius);
 }
 
+Physics::Capsule::~Capsule()
+{
+    if (character)
+    {
+        character->SetListener(nullptr);
+        getCharacterVsCharacterCollisionRegistry().Remove(character);
+        delete character;
+        character = nullptr;
+    }
+
+    if (set)
+    {
+        set->Release();
+        set = nullptr;
+    }
+
+    delete listener;
+    listener = nullptr;
+}
+
 void Physics::Capsule::syncTransformation()
 {
     //Get capsule dimensions from the 3d mesh
@@ -58,7 +89,9 @@ void Physics::Capsule::syncTransformation()
     {
         if (character) {
             character->SetListener(nullptr);
-            character = nullptr;            
+            getCharacterVsCharacterCollisionRegistry().Remove(character);
+            delete character;
+            character = nullptr;
         }
         set->Release();
         delete listener;
@@ -85,6 +118,7 @@ void Physics::Capsule::moveBody(
 {
     using namespace JPH;
     TempAllocatorImpl temp(64 * 1024);
+    listener->beginFrame();
 
     // Choose sane units (meters). Tune from here if your world is scaled.
     const Vec3 kGravity = Vec3(0.0f, -9.81f, 0.0f);
@@ -156,6 +190,8 @@ void Physics::Capsule::reInit(float radius, float halfheight)
 
     if (character) {
         character->SetListener(nullptr);
+        getCharacterVsCharacterCollisionRegistry().Remove(character);
+        delete character;
         character = nullptr;
     }
     set->Release();
@@ -184,6 +220,10 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     character = new JPH::CharacterVirtual(set, spawn,
                                             JPH::Quat::sIdentity(),
                                             /*userData*/0, system);
+
+    //To enable character vs character collision. And now during Extended update Jolt detects other characters.
+    character->SetCharacterVsCharacterCollision(&getCharacterVsCharacterCollisionRegistry());
+    getCharacterVsCharacterCollisionRegistry().Add(character);
 
     listener = new MyContactListener();
     character->SetListener(listener);                                  // ground callbacks
@@ -254,3 +294,30 @@ void Physics::Capsule::PhysicsUpdate()
            && "Jolt Character Rotation is NaN!");
     model->setTransformFromPhysics(transformglm, rotationglm);
 }
+
+bool Physics::Capsule::hasCharacterCollision() const
+{
+    return listener != nullptr && listener->hasCharacterContacts();
+}
+
+std::vector<uint32_t> Physics::Capsule::getCollidingCharacterIds() const
+{
+    if (listener == nullptr)
+    {
+        return {};
+    }
+
+    const auto& ids = listener->getCharacterContactIds();
+    return std::vector<uint32_t>(ids.begin(), ids.end());
+}
+
+uint32_t Physics::Capsule::getCharacterId() const
+{
+    if (character == nullptr)
+    {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    return character->GetID().GetValue();
+}
+

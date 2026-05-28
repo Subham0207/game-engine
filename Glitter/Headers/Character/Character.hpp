@@ -16,6 +16,9 @@
 #include <Controls/Input.hpp>
 #include <Event/EventBus.hpp>
 #include <Event/EventQueue.hpp>
+#include <cstdint>
+#include <limits>
+#include <unordered_map>
 
 #include "CharacterPrefabConfig.hpp"
 #include "Controls/Controller.hpp"
@@ -203,6 +206,36 @@ public:
     void setMoveSpeed(const float& x){movementSpeed = x;}
     float& getMoveSpeed(){return movementSpeed;}
 
+    [[nodiscard]] bool hasCharacterCapsuleCollision() const
+    {
+        return capsuleCollider != nullptr && capsuleCollider->hasCharacterCollision();
+    }
+
+    [[nodiscard]] std::vector<uint32_t> getCollidingCharacterCapsuleIds() const
+    {
+        if (capsuleCollider == nullptr)
+        {
+            return {};
+        }
+
+        return capsuleCollider->getCollidingCharacterIds();
+    }
+
+    [[nodiscard]] std::vector<Character*> getCollidingCharacters() const;
+
+    [[nodiscard]] uint32_t getCapsuleCharacterId() const
+    {
+        if (capsuleCollider == nullptr)
+        {
+            return std::numeric_limits<uint32_t>::max();
+        }
+
+        return capsuleCollider->getCharacterId();
+    }
+
+    static Character* getCharacterByCapsuleId(uint32_t capsuleCharacterId);
+    void syncCapsuleCharacterLookup();
+
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
@@ -223,6 +256,11 @@ private:
     glm::vec3 rightVector;
 
     bool started = false;
+
+    uint32_t registeredCapsuleCharacterId = std::numeric_limits<uint32_t>::max();
+    static std::unordered_map<uint32_t, Character*> capsuleCharacterLookup;
+
+    void unregisterCapsuleCharacterLookup();
 
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const;
     void uploadBoneMatricesToGPU() const;

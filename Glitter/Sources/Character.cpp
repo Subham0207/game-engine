@@ -8,7 +8,10 @@
 
 #include "GenericFactory.hpp"
 #include <Profiler.hpp>
+#include <limits>
 namespace fs = std::filesystem;
+
+std::unordered_map<uint32_t, Character*> Character::capsuleCharacterLookup{};
 
 Character::Character(std::string filepath): Serializable(){
     filename = fs::path(filepath).filename().string();
@@ -52,16 +55,90 @@ Character::Character(std::string filepath): Serializable(){
     this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
     this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
     getActiveLevel().cameras.push_back(camera);
+    syncCapsuleCharacterLookup();
 };
 
 Character::~Character()
 {
+    unregisterCapsuleCharacterLookup();
     EngineState::state->playerControllers.clear();
     delete model;
     delete animator;
     delete skeleton;
     delete capsuleCollider;
     delete camera;
+}
+
+Character* Character::getCharacterByCapsuleId(uint32_t capsuleCharacterId)
+{
+    const auto found = capsuleCharacterLookup.find(capsuleCharacterId);
+    if (found == capsuleCharacterLookup.end())
+    {
+        return nullptr;
+    }
+
+    return found->second;
+}
+
+std::vector<Character*> Character::getCollidingCharacters() const
+{
+    std::vector<Character*> collidingCharacters;
+    const auto collidingIds = getCollidingCharacterCapsuleIds();
+    collidingCharacters.reserve(collidingIds.size());
+
+    for (const uint32_t capsuleId : collidingIds)
+    {
+        Character* character = Character::getCharacterByCapsuleId(capsuleId);
+        if (character != nullptr && character != this)
+        {
+            collidingCharacters.push_back(character);
+        }
+    }
+
+    return collidingCharacters;
+}
+
+void Character::syncCapsuleCharacterLookup()
+{
+    const auto invalidId = std::numeric_limits<uint32_t>::max();
+    if (capsuleCollider == nullptr)
+    {
+        unregisterCapsuleCharacterLookup();
+        return;
+    }
+
+    const uint32_t newId = capsuleCollider->getCharacterId();
+    if (newId == invalidId)
+    {
+        unregisterCapsuleCharacterLookup();
+        return;
+    }
+
+    if (registeredCapsuleCharacterId == newId)
+    {
+        return;
+    }
+
+    unregisterCapsuleCharacterLookup();
+    capsuleCharacterLookup[newId] = this;
+    registeredCapsuleCharacterId = newId;
+}
+
+void Character::unregisterCapsuleCharacterLookup()
+{
+    const auto invalidId = std::numeric_limits<uint32_t>::max();
+    if (registeredCapsuleCharacterId == invalidId)
+    {
+        return;
+    }
+
+    const auto found = capsuleCharacterLookup.find(registeredCapsuleCharacterId);
+    if (found != capsuleCharacterLookup.end() && found->second == this)
+    {
+        capsuleCharacterLookup.erase(found);
+    }
+
+    registeredCapsuleCharacterId = invalidId;
 }
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -189,6 +266,7 @@ glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::W
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     ZoneScopedN("CharacterDraw");
+    syncCapsuleCharacterLookup();
     uploadBoneMatricesToGPU();
 
     if(model)
@@ -376,6 +454,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //Create new capsule collider
     this->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), radius, halfHeight, true, true);
+    syncCapsuleCharacterLookup();
 
     //Create new camera
     camera = new Camera("charactercamera");
