@@ -94,3 +94,51 @@ This file documents project knowledge and coding conventions for AI coding assis
 - Font loading uses project `Assets/Roboto` first (if present), then engine `EngineAssets/Roboto` fallback.
 - Input events are shared with ImGui; HUD should not block editor UI clicks by default.
 
+## Session Handoff Notes (2026-05-28, Jolt Character Collision + Physics Debug Refactor)
+- Character-vs-character collision for `JPH::CharacterVirtual` is now enabled through a shared `JPH::CharacterVsCharacterCollisionSimple` registry in `Glitter/Sources/capsule.cpp`.
+- Each `Physics::Capsule` registers/unregisters its `CharacterVirtual` with that registry during create/reinit/destroy.
+- `MyContactListener` now tracks per-frame character contacts (other character ids), not only ground landing events.
+- `Physics::Capsule` exposes query helpers: `hasCharacterCollision()`, `getCollidingCharacterIds()`, and `getCharacterId()`.
+- `Character` exposes higher-level helpers: `hasCharacterCapsuleCollision()`, `getCollidingCharacterCapsuleIds()`, `getCollidingCharacters()`, `getCapsuleCharacterId()`, and static `getCharacterByCapsuleId(...)`.
+- Character lookup map (`capsule id -> Character*`) is maintained in `Character` and synced on create/recreate/draw/destroy.
+
+## Session Handoff Notes (2026-05-28, Jolt Debug Rendering Integration)
+- Jolt debug rendering is integrated through `Physics::OpenGLJoltDebugRenderer` (`Glitter/Headers/Physics/OpenGLJoltDebugRenderer.hpp`, `Glitter/Sources/Physics/OpenGLJoltDebugRenderer.cpp`).
+- `PhysicsSystemWrapper` owns the debug renderer and exposes `DrawDebugBodies(...)`.
+- Editor uses `getUIState().renderPhysicsDebug` toggle to control physics debug visibility.
+- Physics debug is intentionally disabled while `EngineState::state->isPlay` is true.
+- `renderPhysicsDebug` now defaults to `true` in `UIState`.
+- Debug color behavior: static greys (`JPH::Color::sGrey` and `sLightGrey`) are remapped to yellow in `OpenGLJoltDebugRenderer::DrawLine`.
+
+## Session Handoff Notes (2026-05-28, Post-Process Depth + Debug Occlusion)
+- Physics debug lines are drawn after `SceneViewport` render, but still depth-culled against scene geometry.
+- `PostProcess::draw` now blits depth from scene FBO to default framebuffer after fullscreen post-process pass.
+- `OpenGLJoltDebugRenderer::render` draws with depth test enabled and depth writes disabled (`glDepthMask(GL_FALSE)`) so overlays do not corrupt later depth consumers.
+
+## Session Handoff Notes (2026-05-28, Collider Visualization Ownership)
+- Engine no longer relies on custom `CapsuleColliderModel` rendering for capsule visualization.
+- `Physics::Capsule` no longer creates/adds a debug renderable model; Jolt debug draw is the authoritative collider visualization path.
+- `Capsule` sets `CharacterVirtualSettings::mInnerBodyShape = mShape` so character capsules appear in Jolt body debug draw.
+- Legacy capsule draw branch was removed from `LightingPass.cpp`.
+
+## Session Handoff Notes (2026-05-28, Default Static Colliders for Models)
+- `Level::addRenderable(...)` now ensures `ModelType::ACTUAL_MODEL` instances have a default static `Physics::Box` collider and immediately syncs collider transform.
+- `.model` entries loaded in `Level::loadContent(...)` now go through `addRenderable(...)` (not direct push) so default collider policy is consistently applied.
+- `Model` added helper `ensureStaticBoxCollider()` and explicit sync helper `syncPhysicsColliderToModelTransform()`.
+
+## Session Handoff Notes (2026-05-28, Physics API Simplification)
+- `PhysicsObject` no longer owns a render `Model`; it now only manages physics body state.
+- `PhysicsObject` now syncs from explicit transforms: `syncTransformation(position, rotation, scale)`.
+- `PhysicsObject` provides body transform getters (`getWorldPosition`, `getWorldRotation`) used by `Model`.
+- Removed deprecated renderable physics hooks from `Renderable`: `physicsUpdate()` and `syncTransformationToPhysicsEntity()`.
+- Removed corresponding overrides/no-op implementations from `Model` and `Character`.
+- `EditorWindow` no longer runs per-renderable physics hook loops; it directly updates Jolt physics each play frame.
+- Removed unused `PhysicsSystemWrapper::isFirstPhysicsEnabledFrame` flag.
+
+## Known Gotchas (Physics / Debug)
+- If physics debug lines are drawn after `SceneViewport` render, they require scene depth copied to default framebuffer; keep the depth blit in `PostProcess::draw`.
+- Physics debug draw is intentionally gated by `!EngineState::state->isPlay`; if debug disappears during Play, this is expected.
+- Character capsules require `CharacterVirtualSettings::mInnerBodyShape = mShape` to appear in Jolt body debug draw.
+- Static body debug colors may appear grey/light-grey from Jolt defaults; renderer remaps both to yellow for visibility.
+- Ensure level-loaded `.model` entries go through `Level::addRenderable(...)` so default static collider attachment is applied.
+
