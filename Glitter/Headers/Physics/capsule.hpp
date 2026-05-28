@@ -1,9 +1,9 @@
 #pragma once
 #include <PhysicsSystem.hpp>
 #include <Physics/PhysicsObject.hpp>
-#include <3DModel/capsulecolliderMesh.hpp>
 #include <glm/glm.hpp>
 #include <Physics/MyContactListener.hpp>
+#include <boost/serialization/access.hpp>
 #include <cstdint>
 #include <vector>
 namespace Physics
@@ -26,7 +26,6 @@ namespace Physics
         float mHalfHeight;
 
         void tick();
-        std::shared_ptr<CapsuleColliderModel> capsule;
         void reInit(float radius, float halfheight);
         void syncTransformation() override;
         //TODO: Look for a better solution for engineRootPath

@@ -9,6 +9,13 @@
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
+#include <glm/glm.hpp>
+#include <memory>
+
+namespace Physics
+{
+    class OpenGLJoltDebugRenderer;
+}
 
 class BroadPhaseLayerInterfaceImpl : public JPH::BroadPhaseLayerInterface {
     public:
@@ -38,9 +45,11 @@ public:
     JPH::Quat GetBodyRotation(JPH::BodyID id) const;
     JPH::BodyInterface& GetPhysicsBodyInterface();
     void RemoveBody(JPH::BodyID bodyID);
+    void DrawDebugBodies(const glm::mat4& viewProjection, const glm::vec3& cameraPosition);
     bool isFirstPhysicsEnabledFrame = true;
     JPH::PhysicsSystem physicsSystem;
 private:
     JPH::TempAllocatorImpl* tempAllocator;
     JPH::JobSystemThreadPool* jobSystem;
+    std::unique_ptr<Physics::OpenGLJoltDebugRenderer> debugRenderer;
 };

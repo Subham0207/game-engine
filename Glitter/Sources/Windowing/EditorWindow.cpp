@@ -227,6 +227,12 @@ void EditorWindow::tickImpl()
                     mLights.get(),
                     mSkyBox.get(),
                     mDeltaTime);
+
+                if (getUIState().renderPhysicsDebug && !EngineState::state->isPlay)
+                {
+                    const auto viewProjection = activeCamera->projectionMatrix() * activeCamera->viewMatrix();
+                    getPhysicsSystem().DrawDebugBodies(viewProjection, activeCamera->cameraPos);
+                }
             }
         }
     }

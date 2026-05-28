@@ -70,15 +70,8 @@ Physics::Capsule::~Capsule()
 
 void Physics::Capsule::syncTransformation()
 {
-    //Get capsule dimensions from the 3d mesh
-    auto position = model->GetPosition();
-    auto rotation = model->GetRot();
-
-    glm::quat glmRot = glm::normalize(rotation);
-    JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
-
-    // Convert glm::vec3 to JPH::Vec3
-    JPH::Vec3 jphPosition(position.x, position.y, position.z);
+    const auto worldPosition = getWorldPosition();
+    JPH::Vec3 jphPosition(worldPosition.x, worldPosition.y, worldPosition.z);
 
     if(!set)
     {
@@ -102,9 +95,8 @@ void Physics::Capsule::syncTransformation()
 }
 void Physics::Capsule::addCustomModel(std::string modelPath, std::string engineRootPath)
 {
-    capsule = std::make_shared<CapsuleColliderModel>(mRadius, mHalfHeight);
-    getActiveLevel().addRenderable(capsule);
-    model = capsule->model;
+    // Rendering is handled by Jolt debug renderer; no explicit capsule renderable is created.
+    model.reset();
 }
 
 void Physics::Capsule::moveBody(
@@ -175,16 +167,13 @@ void Physics::Capsule::moveBody(
 
 void Physics::Capsule::tick()
 {
-    model->setModelMatrix(getWorldTransformation());
 }
 
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
-    //The reinit does not happen during play; So we only need to update the Model geometry and not collider.
+    // Rebuild the CharacterVirtual shape with the new dimensions.
     this->mRadius = radius;
     this->mHalfHeight = halfheight;
-    capsule->reGenerateCapsuleColliderMesh(radius, halfheight);
-    model = capsule->model;
 
     auto jphPosition = character->GetPosition();
 
@@ -207,6 +196,7 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     // --- Build the settings ------------------------------------------------
     set = new JPH::CharacterVirtualSettings();
     set->mShape = new JPH::CapsuleShape(halfheight, radius);       // two-sphere capsule
+    set->mInnerBodyShape = set->mShape;
     set->mMaxSlopeAngle     = JPH::DegreesToRadians(55.0f);           // walkable if ≤ 55°
     set->mSupportingVolume  = JPH::Plane(JPH::Vec3::sAxisY(), -radius);
     set->mPredictiveContactDistance = 0.1f;                           // prevents snagging
@@ -277,22 +267,9 @@ void Physics::Capsule::setWorldRotation(glm::quat rotation)
 
 void Physics::Capsule::PhysicsUpdate()
 {
-    auto transform = character->GetPosition();
-    auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
-
+    const auto transform = character->GetPosition();
+    const auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
     assert(!glm::any(glm::isnan(transformglm)) && "Jolt Character Position is NaN!");
-
-    auto rotation = character->GetRotation();
-    auto rotationglm = glm::quat(
-                        static_cast<float>(rotation.GetW()),
-                        static_cast<float>(rotation.GetX()),
-                        static_cast<float>(rotation.GetY()),
-                        static_cast<float>(rotation.GetZ())
-                    );
-
-    assert(!glm::any(glm::isnan(glm::vec4(rotationglm.x, rotationglm.y, rotationglm.z, rotationglm.w)))
-           && "Jolt Character Rotation is NaN!");
-    model->setTransformFromPhysics(transformglm, rotationglm);
 }
 
 bool Physics::Capsule::hasCharacterCollision() const

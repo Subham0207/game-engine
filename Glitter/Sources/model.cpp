@@ -570,6 +570,26 @@ void Model::attachPhysicsObject(Physics::PhysicsObject* physicsObj)
     this->physicsObject = physicsObj;
 }
 
+void Model::ensureStaticBoxCollider()
+{
+    if (modeltype != ModelType::ACTUAL_MODEL || physicsObject != nullptr)
+    {
+        return;
+    }
+
+    if (EngineState::state == nullptr || EngineState::state->physics == nullptr)
+    {
+        return;
+    }
+
+    attachPhysicsObject(new Physics::Box(
+        EngineState::state->engineInstalledDirectory.c_str(),
+        &getPhysicsSystem(),
+        false,
+        false
+    ));
+}
+
 void Model::syncTransformationToPhysicsEntity()
 {
     if(this->physicsObject)

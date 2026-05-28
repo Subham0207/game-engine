@@ -22,6 +22,19 @@ Level::Level(): Serializable()
     AIs = std::vector<std::shared_ptr<AI::AI>>();
 }
 
+void Level::addRenderable(const shared_ptr<Renderable>& renderable)
+{
+    modelFilePaths.push_back(renderable->getName());
+    modelTransformations.push_back(&renderable->getModelMatrix());
+    renderables.push_back(renderable);
+
+    if (auto model = std::dynamic_pointer_cast<Model>(renderable))
+    {
+        model->ensureStaticBoxCollider();
+        model->syncTransformationToPhysicsEntity();
+    }
+}
+
 void Level::loadMainLevelOfCurrentProject()
 {
     // read the project.manifest file and find which level is entry point.
@@ -75,7 +88,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 model->setInstanceId(instanceId);
                 auto filename = contentFilePath.stem().filename().string();
                 model->setFileName(filename);
-                this->renderables.push_back(model);
+                addRenderable(model);
                 instanceIdToSerializableMap[instanceId] = model;
             }
             if(extension ==  ".character")

@@ -28,6 +28,10 @@ void Outliner::Render(Level &lvl, float& editorCameraMoveSpeed) {
             getUIState().renderNavMesh = !getUIState().renderNavMesh;
         }
 
+        ImGui::Checkbox("Render physics debug", &getUIState().renderPhysicsDebug);
+        if (EngineState::state->isPlay)
+            ImGui::TextDisabled("Physics debug is disabled while Play mode is active.");
+
         levelControlsComponent(lvl, editorCameraMoveSpeed);
 
         coordinateSystemSelectorComponent();

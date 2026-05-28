@@ -159,6 +159,8 @@ public:
     void static loadFromFile(const std::string &filename, Model &model, std::shared_ptr<Materials::Material>& material);
 
     void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
+    [[nodiscard]] bool hasPhysicsObject() const { return physicsObject != nullptr; }
+    void ensureStaticBoxCollider();
     void syncTransformationToPhysicsEntity() override;
     void physicsUpdate() override;
 

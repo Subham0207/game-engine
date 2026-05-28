@@ -1,8 +1,10 @@
 #include "PhysicsSystem.hpp"
+#include <Physics/OpenGLJoltDebugRenderer.hpp>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Physics/Collision/PhysicsMaterial.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyManager.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 
 PhysicsSystemWrapper::PhysicsSystemWrapper()
@@ -39,9 +41,12 @@ void PhysicsSystemWrapper::Init() {
         objectVsBroadPhaseLayerFilter,
         objectLayerPairFilter
     );
+
+    debugRenderer = std::make_unique<Physics::OpenGLJoltDebugRenderer>();
 }
 
 void PhysicsSystemWrapper::Shutdown() {
+    debugRenderer.reset();
     JPH::UnregisterTypes();
     delete jobSystem;
     delete tempAllocator;
@@ -118,3 +123,24 @@ void PhysicsSystemWrapper::RemoveBody(JPH::BodyID bodyID)
         physicsSystem.GetBodyInterface().DestroyBody(bodyID);
     }
 }
+
+void PhysicsSystemWrapper::DrawDebugBodies(const glm::mat4& viewProjection, const glm::vec3& cameraPosition)
+{
+    if (!debugRenderer)
+    {
+        return;
+    }
+
+    debugRenderer->beginFrame();
+    debugRenderer->SetCameraPos(JPH::RVec3(cameraPosition.x, cameraPosition.y, cameraPosition.z));
+
+    JPH::BodyManager::DrawSettings drawSettings;
+    drawSettings.mDrawShape = true;
+    drawSettings.mDrawShapeWireframe = true;
+    drawSettings.mDrawBoundingBox = false;
+
+    physicsSystem.DrawBodies(drawSettings, debugRenderer.get());
+    debugRenderer->render(viewProjection);
+    debugRenderer->NextFrame();
+}
+

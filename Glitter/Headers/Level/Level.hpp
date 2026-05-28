@@ -52,11 +52,7 @@ class Level: public Serializable{
 
         void loadMainLevelOfCurrentProject();
 
-        void addRenderable(const shared_ptr<Renderable>& renderable){
-            modelFilePaths.push_back(renderable->getName());
-            modelTransformations.push_back(&renderable->getModelMatrix());
-            renderables.push_back(renderable);
-        }
+        void addRenderable(const shared_ptr<Renderable>& renderable);
 
         void createACopyForRenderableAt(int index);
 
