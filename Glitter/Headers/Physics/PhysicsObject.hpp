@@ -4,7 +4,6 @@
 #include <PhysicsSystem.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-class Model; 
 
 namespace Physics
 {
@@ -13,19 +12,15 @@ namespace Physics
         PhysicsObject() = default;
         PhysicsObject(
             PhysicsSystemWrapper* physics,
-            const char* modelPath,
-            const char* projectRootPath,
             bool isDynamic = false,
-            bool shouldAddToLevel = false,
             glm::vec3 position = glm::vec3(0.0f),
             glm::quat rotation = glm::quat(),
             glm::vec3 scale = glm::vec3(1.0f)
         );
         virtual void PhysicsUpdate();
-        virtual void syncTransformation();
-        virtual void addCustomModel(std::string modelPath, std::string engineRootPath);
-        void AddToLevel();
-        std::shared_ptr<Model> model;
+        virtual void syncTransformation(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale);
+        [[nodiscard]] glm::vec3 getWorldPosition() const;
+        [[nodiscard]] glm::quat getWorldRotation() const;
         PhysicsSystemWrapper* physics;
         JPH::BodyID physicsId;
     private:

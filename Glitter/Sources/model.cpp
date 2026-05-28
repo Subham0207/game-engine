@@ -451,13 +451,11 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
     {
         if(EngineState::state->isPlay)
         {
-            this->setTransformFromPhysics(physicsObject->model->GetPosition(), physicsObject->model->GetRot());
+            this->setTransformFromPhysics(physicsObject->getWorldPosition(), physicsObject->getWorldRotation());
         }
         else
         {
-            auto pos = GetPosition();
-            auto rot = GetRot();
-            physicsObject->model->setTransformFromPhysics(pos, rot);
+            syncPhysicsColliderToModelTransform();
         }
 
     }
@@ -583,26 +581,17 @@ void Model::ensureStaticBoxCollider()
     }
 
     attachPhysicsObject(new Physics::Box(
-        EngineState::state->engineInstalledDirectory.c_str(),
         &getPhysicsSystem(),
-        false,
         false
     ));
 }
 
-void Model::syncTransformationToPhysicsEntity()
+void Model::syncPhysicsColliderToModelTransform()
 {
-    if(this->physicsObject)
+    if (this->physicsObject)
     {
-        physicsObject->model->setModelMatrix(getModelMatrix());
-        physicsObject->syncTransformation();
+        physicsObject->syncTransformation(GetPosition(), GetRot(), GetScale());
     }
-}
-
-void Model::physicsUpdate()
-{
-    if(this->physicsObject)
-    physicsObject->PhysicsUpdate();
 }
 
 void Model::LoadA3DModel(
@@ -673,7 +662,7 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
 
 
     if(!physicsBodyType.empty())
-        this->attachPhysicsObject(new Physics::Box(EngineState::state->engineInstalledDirectory.c_str(),&getPhysicsSystem(), false, true));
+        this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false));
 }
 
 void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material)

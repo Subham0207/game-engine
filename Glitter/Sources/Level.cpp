@@ -31,7 +31,7 @@ void Level::addRenderable(const shared_ptr<Renderable>& renderable)
     if (auto model = std::dynamic_pointer_cast<Model>(renderable))
     {
         model->ensureStaticBoxCollider();
-        model->syncTransformationToPhysicsEntity();
+        model->syncPhysicsColliderToModelTransform();
     }
 }
 

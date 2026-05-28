@@ -161,8 +161,7 @@ public:
     void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
     [[nodiscard]] bool hasPhysicsObject() const { return physicsObject != nullptr; }
     void ensureStaticBoxCollider();
-    void syncTransformationToPhysicsEntity() override;
-    void physicsUpdate() override;
+    void syncPhysicsColliderToModelTransform();
 
     void static initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material);
 

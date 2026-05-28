@@ -31,8 +31,6 @@ public:
     virtual void setIsSelected(bool isSelected) = 0;
     virtual bool getIsSelected() = 0;
 
-    virtual void physicsUpdate(){};
-    virtual void syncTransformationToPhysicsEntity(){};
 
     virtual std::string GetGuid() = 0;
 };

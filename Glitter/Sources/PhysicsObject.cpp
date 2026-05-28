@@ -1,61 +1,24 @@
 #include <Physics/PhysicsObject.hpp>
-#include <EngineState.hpp>
-#include <Modals/3DModelType.hpp>
-#include<filesystem>
-namespace fs = std::filesystem;
 
-// These are physics object whose model should not be rendered on play. The model attached to the physics body is for visualization.
 
 Physics::PhysicsObject::PhysicsObject(
     PhysicsSystemWrapper *physics,
-    const char* modelPath,
-    const char* EngineRootPath,
     bool isDynamic,
-    bool shouldAddToLevel,
     glm::vec3 position,
     glm::quat rotation,
     glm::vec3 scale
 )
 {
-    if(modelPath != nullptr && EngineRootPath != nullptr)
-    {
-        auto path = fs::path(EngineRootPath) / modelPath;
-        if (fs::exists(path)) {
-            std::cout << "STATUS: [FOUND]" << std::endl;
-            std::cout << "Absolute: " << fs::absolute(path) << std::endl;
-        } else {
-            std::cout << "STATUS: [NOT FOUND]" << std::endl;
-        }
-        addCustomModel(path.string(), EngineRootPath);
-        model->setTransform(position, rotation, scale);
-    }
     this->physics = physics;
     this->isDynamic = isDynamic;
-
 }
 
 void Physics::PhysicsObject::PhysicsUpdate()
 {
-    auto transform = physics->GetBodyPosition(physicsId);
-    auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
-
-    auto rotation = physics->GetBodyRotation(physicsId);
-    auto rotationglm = glm::quat(
-                        static_cast<float>(rotation.GetW()),
-                        static_cast<float>(rotation.GetX()),
-                        static_cast<float>(rotation.GetY()),
-                        static_cast<float>(rotation.GetZ())
-                    );
-
-    model->setTransformFromPhysics(transformglm, rotationglm);
 }
 
-void Physics::PhysicsObject::syncTransformation()
+void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
 {
-    auto position = model->GetPosition();
-    auto scale = model->GetScale();
-    auto rotation = model->GetRot();
-
     glm::quat glmRot = glm::normalize(rotation);
     JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
 
@@ -74,13 +37,23 @@ void Physics::PhysicsObject::syncTransformation()
     );
 }
 
-void Physics::PhysicsObject::addCustomModel(std::string modelPath, std::string engineRootPath)
+glm::vec3 Physics::PhysicsObject::getWorldPosition() const
 {
-    model = std::make_shared<Model>(modelPath, engineRootPath);
-    model->modeltype = ModelType::COLLIDER;
+    const auto transform = physics->GetBodyPosition(physicsId);
+    return glm::vec3(
+        static_cast<float>(transform.GetX()),
+        static_cast<float>(transform.GetY()),
+        static_cast<float>(transform.GetZ())
+    );
 }
 
-void Physics::PhysicsObject::AddToLevel()
+glm::quat Physics::PhysicsObject::getWorldRotation() const
 {
-    getActiveLevel().addRenderable(model);
+    const auto rotation = physics->GetBodyRotation(physicsId);
+    return glm::quat(
+        static_cast<float>(rotation.GetW()),
+        static_cast<float>(rotation.GetX()),
+        static_cast<float>(rotation.GetY()),
+        static_cast<float>(rotation.GetZ())
+    );
 }

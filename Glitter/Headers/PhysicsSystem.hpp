@@ -46,7 +46,6 @@ public:
     JPH::BodyInterface& GetPhysicsBodyInterface();
     void RemoveBody(JPH::BodyID bodyID);
     void DrawDebugBodies(const glm::mat4& viewProjection, const glm::vec3& cameraPosition);
-    bool isFirstPhysicsEnabledFrame = true;
     JPH::PhysicsSystem physicsSystem;
 private:
     JPH::TempAllocatorImpl* tempAllocator;

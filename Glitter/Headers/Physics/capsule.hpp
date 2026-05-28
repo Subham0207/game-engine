@@ -27,9 +27,7 @@ namespace Physics
 
         void tick();
         void reInit(float radius, float halfheight);
-        void syncTransformation() override;
-        //TODO: Look for a better solution for engineRootPath
-        void addCustomModel(std::string modelPath, std::string engineRootPath) override;
+        void syncTransformation();
         void moveBody(
             float deltaTime,
             glm::vec3 moveOffset,

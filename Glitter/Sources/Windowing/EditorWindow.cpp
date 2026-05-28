@@ -138,25 +138,13 @@ void EditorWindow::tickImpl()
                     mInputHandler->m_Camera = activeCamera;
             }
 
-        if (getPhysicsSystem().isFirstPhysicsEnabledFrame == true)
-        {
-            getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
-            for (int i = 0; i < lvlrenderables.size(); i++)
-                lvlrenderables.at(i)->syncTransformationToPhysicsEntity();
-        }
-        else
-        {
-            getPhysicsSystem().Update(deltaTime);
-            for (int i = 0; i < lvlrenderables.size(); i++)
-                lvlrenderables.at(i)->physicsUpdate();
-        }
+        getPhysicsSystem().Update(deltaTime);
     }
     else
     {
         if (mInputHandler)
             //When play is stopped make the EditorCamera active.
             mInputHandler->m_Camera = activeLevel.cameras[0];
-        getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
     }
 
     for (auto& i : mLights->pointLights)

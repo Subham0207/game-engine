@@ -107,9 +107,6 @@ public:
 
     //Deprecated
     glm::vec3 capsuleColliderPosRelative;
-
-    void physicsUpdate() override;
-    void syncTransformationToPhysicsEntity() override;
     float cameraHeight = 7;
     float cameraDistance = 16;
 

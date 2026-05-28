@@ -368,17 +368,6 @@ void Character::uploadBoneMatricesToGPU() const
 
 }
 
-void Character::physicsUpdate()
-{
-}
-
-void Character::syncTransformationToPhysicsEntity()
-{
-    //The capsule mesh will be attached to the character so when character moves that mesh updates
-    //that should be enough to update the physics collider correctly
-    // capsuleCollider->syncTransformation();
-}
-
 
 void Character::saveContent(fs::path contentFile, std::ostream& os)
 {

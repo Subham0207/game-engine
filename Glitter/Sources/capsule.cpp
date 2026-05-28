@@ -29,10 +29,7 @@ Physics::Capsule::Capsule
     glm::quat rotation,
     glm::vec3 scale) : PhysicsObject(
         physics,
-        nullptr,
-        nullptr,
         isDynamic,
-        shouldAddToLevel,
         position,
         rotation,
         scale
@@ -41,7 +38,6 @@ Physics::Capsule::Capsule
     set = nullptr;
     this->mRadius = radius;
     this->mHalfHeight = halfHeight;
-    addCustomModel("", "");
 
     JPH::Vec3 jphPosition(position.x, position.y, position.z);
     CreateCharacterVirtualPhysics(&physics->physicsSystem,
@@ -92,11 +88,6 @@ void Physics::Capsule::syncTransformation()
             jphPosition, mHalfHeight, mRadius);
 
     }
-}
-void Physics::Capsule::addCustomModel(std::string modelPath, std::string engineRootPath)
-{
-    // Rendering is handled by Jolt debug renderer; no explicit capsule renderable is created.
-    model.reset();
 }
 
 void Physics::Capsule::moveBody(

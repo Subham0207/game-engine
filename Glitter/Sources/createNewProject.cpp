@@ -245,7 +245,7 @@ namespace CreateNewProject
 
         auto floorBox = std::make_shared<Model>("./EngineAssets/cube.fbx", projectManagerDir);
         floorBox->setTransform(glm::vec3(0.0f),glm::quat(), glm::vec3(100.0f,1.0f,100.0f));
-        floorBox->attachPhysicsObject(new Physics::Box(projectManagerDir.c_str(), physics, false, true));
+        floorBox->attachPhysicsObject(new Physics::Box(physics, false));
         floorBox->save(root/ "Assets");
         lvl->addRenderable(floorBox);
 
