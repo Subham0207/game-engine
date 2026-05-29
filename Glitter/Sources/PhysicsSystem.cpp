@@ -34,9 +34,8 @@ void PhysicsSystemWrapper::Init() {
     // Minimal dummy filters for now
 
     static BroadPhaseLayerInterfaceImpl broadPhaseLayerInterface;
-
-    static JPH::ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter;
-    static JPH::ObjectLayerPairFilter objectLayerPairFilter;
+    static ObjectVsBroadPhaseLayerFilterImpl objectVsBroadPhaseLayerFilter;
+    static ObjectLayerPairFilterImpl objectLayerPairFilter;
 
     physicsSystem.Init(
         1024, 0, 1024, 1024,
@@ -64,14 +63,21 @@ void PhysicsSystemWrapper::Update(float deltaTime) {
     physicsSystem.Update(deltaTime, 1, tempAllocator, jobSystem);
 }
 
-JPH::BodyID PhysicsSystemWrapper::AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, JPH::EMotionType motionType) {
+JPH::BodyID PhysicsSystemWrapper::AddBox(
+    const JPH::Vec3& pos,
+    const JPH::Quat& rot,
+    const JPH::Vec3& halfExtents,
+    JPH::EMotionType motionType,
+    const JPH::ObjectLayer objectLayer,
+    const bool isSensor) {
     JPH::BodyCreationSettings settings(
         new JPH::BoxShape(halfExtents),
         pos,
         rot,
         motionType,
-        0
+        objectLayer
     );
+    settings.mIsSensor = isSensor;
 
     JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
     const JPH::EActivation activation = motionType == JPH::EMotionType::Static
@@ -81,14 +87,20 @@ JPH::BodyID PhysicsSystemWrapper::AddBox(const JPH::Vec3& pos, const JPH::Quat& 
     return id;
 }
 
-JPH::BodyID PhysicsSystemWrapper::AddSphere(const JPH::Vec3& pos, float radius, JPH::EMotionType motionType) {
+JPH::BodyID PhysicsSystemWrapper::AddSphere(
+    const JPH::Vec3& pos,
+    const float radius,
+    const JPH::EMotionType motionType,
+    const JPH::ObjectLayer objectLayer,
+    const bool isSensor) {
     JPH::BodyCreationSettings settings(
         new JPH::SphereShape(radius),
         pos,
         JPH::Quat::sIdentity(),
         motionType,
-        0
+        objectLayer
     );
+    settings.mIsSensor = isSensor;
 
     JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
     const JPH::EActivation activation = motionType == JPH::EMotionType::Static
@@ -97,15 +109,23 @@ JPH::BodyID PhysicsSystemWrapper::AddSphere(const JPH::Vec3& pos, float radius, 
     return bi.CreateAndAddBody(settings, activation);
 }
 
-JPH::BodyID PhysicsSystemWrapper::AddCapsule(const JPH::Vec3 &pos, const JPH::Quat &rot, float halfHeight, float radius, JPH::EMotionType motionType)
+JPH::BodyID PhysicsSystemWrapper::AddCapsule(
+    const JPH::Vec3 &pos,
+    const JPH::Quat &rot,
+    const float halfHeight,
+    const float radius,
+    const JPH::EMotionType motionType,
+    const JPH::ObjectLayer objectLayer,
+    const bool isSensor)
 {
     JPH::BodyCreationSettings settings(
         new JPH::CapsuleShape(halfHeight, radius),
         pos,
         rot,
         motionType,
-        0
+        objectLayer
     );
+    settings.mIsSensor = isSensor;
     const JPH::EActivation activation = motionType == JPH::EMotionType::Static
         ? JPH::EActivation::DontActivate
         : JPH::EActivation::Activate;
@@ -116,7 +136,9 @@ JPH::BodyID PhysicsSystemWrapper::AddStaticMesh(
     const JPH::Vec3& pos,
     const JPH::Quat& rot,
     const JPH::VertexList& vertices,
-    const JPH::IndexedTriangleList& triangles)
+    const JPH::IndexedTriangleList& triangles,
+    const JPH::ObjectLayer objectLayer,
+    const bool isSensor)
 {
     if (vertices.empty() || triangles.empty())
     {
@@ -137,8 +159,9 @@ JPH::BodyID PhysicsSystemWrapper::AddStaticMesh(
         pos,
         rot,
         JPH::EMotionType::Static,
-        0
+        objectLayer
     );
+    settings.mIsSensor = isSensor;
 
     return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, JPH::EActivation::DontActivate);
 }

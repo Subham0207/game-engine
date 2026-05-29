@@ -6,6 +6,9 @@
 #include <iostream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <algorithm>
+#include <cctype>
+#include <sstream>
 
 #include "EngineState.hpp"
 #include "boost/uuid/random_generator.hpp"
@@ -16,6 +19,40 @@
 namespace bs = boost::property_tree;
 
 #include <utility>
+
+namespace
+{
+    std::vector<std::string> parseTagsCsv(const std::string& csv)
+    {
+        std::vector<std::string> tags;
+        std::stringstream stream(csv);
+        std::string token;
+        while (std::getline(stream, token, ','))
+        {
+            token.erase(token.begin(), std::find_if(token.begin(), token.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+            token.erase(std::find_if(token.rbegin(), token.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), token.end());
+            if (!token.empty())
+            {
+                tags.push_back(token);
+            }
+        }
+        return tags;
+    }
+
+    std::string toTagsCsv(const std::vector<std::string>& tags)
+    {
+        std::string csv;
+        for (size_t i = 0; i < tags.size(); ++i)
+        {
+            csv += tags[i];
+            if (i + 1 < tags.size())
+            {
+                csv += ",";
+            }
+        }
+        return csv;
+    }
+}
 
 namespace Engine
 {
@@ -60,11 +97,14 @@ namespace Engine
 
             character.capsuleHalfHeight = root.get<float>("capsuleHalfHeight");
             character.capsuleRadius = root.get<float>("capsuleRadius");
+            character.capsulePhysicsLayer = root.get<std::string>("capsule.physicsLayer", "Default");
+            character.capsuleIsSensor = root.get<bool>("capsule.isSensor", false);
 
             character.skeletonGuid = root.get<std::string>("skeleton_guid");
             // Accessing nested values using the dot notation
             character.stateMachineGuid = root.get<std::string>("statemachine_guid");
             character.controllerClassId = root.get<std::string>("playerController.classId");
+            character.gameplayTags = parseTagsCsv(root.get<std::string>("gameplayTagsCsv", ""));
         } catch (const bs::json_parser_error& e) {
             std::cerr << "Error parsing JSON: " << e.what() << std::endl;
         } catch (const bs::ptree_error& e) {
@@ -142,6 +182,8 @@ namespace Engine
 
         root.put("capsuleHalfHeight", character.capsuleHalfHeight);
         root.put("capsuleRadius", character.capsuleRadius);
+        root.put("capsule.physicsLayer", character.capsulePhysicsLayer);
+        root.put("capsule.isSensor", character.capsuleIsSensor);
 
         root.put("skeleton_guid", character.skeletonGuid);
 
@@ -149,6 +191,7 @@ namespace Engine
         // Boost will automatically create the "statemachine" node
         root.put("statemachine_guid", character.stateMachineGuid);
         root.put("playerController.classId", character.controllerClassId);
+        root.put("gameplayTagsCsv", toTagsCsv(character.gameplayTags));
 
         try {
             savePrefab(path, root);

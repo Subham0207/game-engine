@@ -18,6 +18,7 @@ add_executable(Test
         NodeGraph/FlowScript/FlowScript.test.cpp
         NodeGraph/FlowScript/VisualScriptJsonSerializer.test.cpp
         Model/Model.test.cpp
+        Physics/PhysicsLayerRegistry.test.cpp
         Windowing/ProjectManagerWindow.test.cpp
 )
 

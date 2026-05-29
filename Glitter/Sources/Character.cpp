@@ -98,6 +98,20 @@ std::vector<Character*> Character::getCollidingCharacters() const
     return collidingCharacters;
 }
 
+bool Character::hasCollidingCharacterWithTag(const std::string& tag) const
+{
+    const auto collidingCharacters = getCollidingCharacters();
+    for (const auto* character : collidingCharacters)
+    {
+        if (character != nullptr && character->hasGameplayTag(tag))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Character::syncCapsuleCharacterLookup()
 {
     const auto invalidId = std::numeric_limits<uint32_t>::max();
@@ -187,6 +201,14 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
         statemachine->LoadSMfile(statemachinePath);
         character->animStateMachine = statemachine;
     }
+
+    if (character->capsuleCollider != nullptr)
+    {
+        character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
+        character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
+        character->capsuleCollider->syncTransformation();
+    }
+    character->setGameplayTags(characterPrefab.gameplayTags);
 
     getActiveLevel().renderables.emplace_back(character);
 }

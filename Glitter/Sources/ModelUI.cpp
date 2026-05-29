@@ -7,14 +7,48 @@
 #include "EngineState.hpp"
 #include "imgui.h"
 #include "3DModel/model.hpp"
+#include "Physics/PhysicsLayerRegistry.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <sstream>
 
 namespace
 {
     const char* kBodyTypeLabels[] = {"Rigid body", "Soft body"};
     const char* kMotionTypeLabels[] = {"Static", "Dynamic", "Kinematic"};
     const char* kColliderShapeLabels[] = {"Box", "Sphere", "Capsule", "Custom"};
+
+    std::vector<std::string> parseTagsCsv(const std::string& csv)
+    {
+        std::vector<std::string> tags;
+        std::stringstream stream(csv);
+        std::string token;
+        while (std::getline(stream, token, ','))
+        {
+            token.erase(token.begin(), std::find_if(token.begin(), token.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+            token.erase(std::find_if(token.rbegin(), token.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), token.end());
+            if (!token.empty())
+            {
+                tags.push_back(token);
+            }
+        }
+        return tags;
+    }
+
+    std::string toTagsCsv(const std::vector<std::string>& tags)
+    {
+        std::string csv;
+        for (size_t i = 0; i < tags.size(); ++i)
+        {
+            csv += tags[i];
+            if (i + 1 < tags.size())
+            {
+                csv += ", ";
+            }
+        }
+        return csv;
+    }
 }
 
 UI::ModelUI::ModelUI()
@@ -46,6 +80,15 @@ void UI::ModelUI::draw()
 
         if (selectedModel != nullptr)
         {
+            char tagsBuffer[512]{};
+            const std::string tagsCsv = toTagsCsv(selectedModel->getGameplayTags());
+            const size_t tagsCopyCount = std::min(tagsCsv.size(), sizeof(tagsBuffer) - 1);
+            std::copy(tagsCsv.begin(), tagsCsv.begin() + static_cast<std::string::difference_type>(tagsCopyCount), tagsBuffer);
+            if (ImGui::InputText("Gameplay Tags (csv)", tagsBuffer, sizeof(tagsBuffer)))
+            {
+                selectedModel->setGameplayTags(parseTagsCsv(tagsBuffer));
+            }
+
             bool hasPhysicsBody = selectedModel->getPhysicsBodySettings().has_value();
             if (ImGui::Checkbox("Enable Physics Body", &hasPhysicsBody))
             {
@@ -75,6 +118,36 @@ void UI::ModelUI::draw()
                 {
                     settings.motionType = static_cast<Physics::MotionType>(motionTypeIndex);
                 }
+
+                auto& layerRegistry = Physics::PhysicsLayerRegistry::instance();
+                const auto& layerNames = layerRegistry.getLayerNames();
+                if (std::find(layerNames.begin(), layerNames.end(), settings.physicsLayer) == layerNames.end())
+                {
+                    settings.physicsLayer = layerNames.empty() ? "Default" : layerNames.front();
+                }
+
+                std::vector<const char*> layerNamePtrs;
+                layerNamePtrs.reserve(layerNames.size());
+                for (const auto& name : layerNames)
+                {
+                    layerNamePtrs.push_back(name.c_str());
+                }
+
+                int selectedLayerIndex = 0;
+                for (size_t i = 0; i < layerNames.size(); ++i)
+                {
+                    if (layerNames[i] == settings.physicsLayer)
+                    {
+                        selectedLayerIndex = static_cast<int>(i);
+                        break;
+                    }
+                }
+                if (!layerNamePtrs.empty() && ImGui::Combo("Physics Layer", &selectedLayerIndex, layerNamePtrs.data(), static_cast<int>(layerNamePtrs.size())))
+                {
+                    settings.physicsLayer = layerNames[static_cast<size_t>(selectedLayerIndex)];
+                }
+
+                ImGui::Checkbox("Is Sensor (Trigger)", &settings.isSensor);
 
                 if (settings.bodyType == Physics::BodyType::RigidBody)
                 {

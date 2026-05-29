@@ -1,4 +1,5 @@
 #include <Physics/PhysicsObject.hpp>
+#include <Physics/PhysicsLayerRegistry.hpp>
 
 #include <cmath>
 
@@ -34,6 +35,16 @@ void Physics::PhysicsObject::setMotionType(const Physics::MotionType newMotionTy
 void Physics::PhysicsObject::setTransformOffset(const Physics::TransformOffset& offset)
 {
     transformOffset = offset;
+}
+
+void Physics::PhysicsObject::setPhysicsLayerName(const std::string& layerName)
+{
+    physicsLayerName = layerName.empty() ? "Default" : layerName;
+}
+
+void Physics::PhysicsObject::setIsSensor(const bool sensor)
+{
+    isSensor = sensor;
 }
 
 void Physics::PhysicsObject::setBoxBaseHalfExtents(const glm::vec3& halfExtents)
@@ -86,6 +97,7 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
     const JPH::Quat jphRotation(worldRotationGlm.x, worldRotationGlm.y, worldRotationGlm.z, worldRotationGlm.w);
     const JPH::Vec3 jphPosition(worldPositionGlm.x, worldPositionGlm.y, worldPositionGlm.z);
     const JPH::EMotionType joltMotionType = motionTypeToJolt(motionType);
+    const JPH::ObjectLayer objectLayer = Physics::PhysicsLayerRegistry::instance().getLayerOrDefault(physicsLayerName);
 
     physics->RemoveBody(physicsId);
 
@@ -95,14 +107,14 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
         {
             const float maxScale = std::max(worldScale.x, std::max(worldScale.y, worldScale.z));
             const float radius = std::max(0.05f, maxScale * 0.5f);
-            physicsId = physics->AddSphere(jphPosition, radius, joltMotionType);
+            physicsId = physics->AddSphere(jphPosition, radius, joltMotionType, objectLayer, isSensor);
             break;
         }
         case RuntimeShape::Capsule:
         {
             const float radius = std::max(0.05f, std::min(worldScale.x, worldScale.z) * 0.5f);
             const float halfHeight = std::max(0.05f, (worldScale.y * 0.5f) - radius);
-            physicsId = physics->AddCapsule(jphPosition, jphRotation, halfHeight, radius, joltMotionType);
+            physicsId = physics->AddCapsule(jphPosition, jphRotation, halfHeight, radius, joltMotionType, objectLayer, isSensor);
             break;
         }
         case RuntimeShape::Custom:
@@ -128,7 +140,7 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
                 joltTriangles.push_back(JPH::IndexedTriangle(customIndices[i], customIndices[i + 1], customIndices[i + 2], 0));
             }
 
-            physicsId = physics->AddStaticMesh(jphPosition, jphRotation, joltVertices, joltTriangles);
+            physicsId = physics->AddStaticMesh(jphPosition, jphRotation, joltVertices, joltTriangles, objectLayer, isSensor);
             break;
         }
         case RuntimeShape::Box:
@@ -139,7 +151,7 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
                 std::max(0.05f, std::abs(boxBaseHalfExtents.y * worldScale.y)),
                 std::max(0.05f, std::abs(boxBaseHalfExtents.z * worldScale.z))
             );
-            physicsId = physics->AddBox(jphPosition, jphRotation, jphHalfExtents, joltMotionType);
+            physicsId = physics->AddBox(jphPosition, jphRotation, jphHalfExtents, joltMotionType, objectLayer, isSensor);
             break;
         }
     }

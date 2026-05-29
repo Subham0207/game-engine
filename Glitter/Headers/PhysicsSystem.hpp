@@ -14,6 +14,8 @@
 #include <memory>
 #include <vector>
 
+#include "Physics/PhysicsLayerRegistry.hpp"
+
 namespace Physics
 {
     class OpenGLJoltDebugRenderer;
@@ -30,6 +32,21 @@ class BroadPhaseLayerInterfaceImpl : public JPH::BroadPhaseLayerInterface {
         #endif
 };
 
+class ObjectVsBroadPhaseLayerFilterImpl final : public JPH::ObjectVsBroadPhaseLayerFilter
+{
+public:
+    bool ShouldCollide(JPH::ObjectLayer, JPH::BroadPhaseLayer) const override { return true; }
+};
+
+class ObjectLayerPairFilterImpl final : public JPH::ObjectLayerPairFilter
+{
+public:
+    bool ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const override
+    {
+        return Physics::PhysicsLayerRulebookRegistry::instance().shouldCollide(inObject1, inObject2);
+    }
+};
+
 class PhysicsSystemWrapper {
 public:
     PhysicsSystemWrapper();
@@ -39,10 +56,10 @@ public:
     void Shutdown();
     void Update(float deltaTime);
 
-    JPH::BodyID AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, JPH::EMotionType motionType);
-    JPH::BodyID AddSphere(const JPH::Vec3& pos, float radius, JPH::EMotionType motionType);
-    JPH::BodyID AddCapsule(const JPH::Vec3& pos, const JPH::Quat& rot, float halfHeight, float radius, JPH::EMotionType motionType);
-    JPH::BodyID AddStaticMesh(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::VertexList& vertices, const JPH::IndexedTriangleList& triangles);
+    JPH::BodyID AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, JPH::EMotionType motionType, JPH::ObjectLayer objectLayer, bool isSensor);
+    JPH::BodyID AddSphere(const JPH::Vec3& pos, float radius, JPH::EMotionType motionType, JPH::ObjectLayer objectLayer, bool isSensor);
+    JPH::BodyID AddCapsule(const JPH::Vec3& pos, const JPH::Quat& rot, float halfHeight, float radius, JPH::EMotionType motionType, JPH::ObjectLayer objectLayer, bool isSensor);
+    JPH::BodyID AddStaticMesh(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::VertexList& vertices, const JPH::IndexedTriangleList& triangles, JPH::ObjectLayer objectLayer, bool isSensor);
 
     JPH::Vec3 GetBodyPosition(JPH::BodyID id) const;
     JPH::Quat GetBodyRotation(JPH::BodyID id) const;

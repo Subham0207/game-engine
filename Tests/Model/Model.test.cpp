@@ -56,6 +56,8 @@ TEST(ModelPhysicsBodySettingsSerialization, shouldRoundTripRigidCustomColliderSe
     Physics::PhysicsBodySettings writeSettings;
     writeSettings.bodyType = Physics::BodyType::RigidBody;
     writeSettings.motionType = Physics::MotionType::Static;
+    writeSettings.physicsLayer = "Gameplay";
+    writeSettings.isSensor = true;
     writeSettings.rigidBodyData.colliderShape = Physics::ColliderShape::Custom;
     writeSettings.rigidBodyData.transformationOffset.position = glm::vec3(1.0f, 2.0f, 3.0f);
     writeSettings.rigidBodyData.transformationOffset.rotation = glm::vec3(10.0f, 20.0f, 30.0f);
@@ -82,6 +84,8 @@ TEST(ModelPhysicsBodySettingsSerialization, shouldRoundTripRigidCustomColliderSe
 
     EXPECT_EQ(readSettings.bodyType, Physics::BodyType::RigidBody);
     EXPECT_EQ(readSettings.motionType, Physics::MotionType::Static);
+    EXPECT_EQ(readSettings.physicsLayer, "Gameplay");
+    EXPECT_TRUE(readSettings.isSensor);
     EXPECT_EQ(readSettings.rigidBodyData.colliderShape, Physics::ColliderShape::Custom);
     ASSERT_TRUE(readSettings.rigidBodyData.customColliderShapeData.has_value());
 
@@ -91,5 +95,15 @@ TEST(ModelPhysicsBodySettingsSerialization, shouldRoundTripRigidCustomColliderSe
     EXPECT_EQ(readCooked.indices[0], 0u);
     EXPECT_EQ(readCooked.indices[1], 1u);
     EXPECT_EQ(readCooked.indices[2], 2u);
+}
+
+TEST(ModelGameplayTags, shouldQueryConfiguredTags)
+{
+    Model model;
+    model.setGameplayTags({"Player", "Damageable", "Hero"});
+
+    EXPECT_TRUE(model.hasGameplayTag("Player"));
+    EXPECT_TRUE(model.hasGameplayTag("Damageable"));
+    EXPECT_FALSE(model.hasGameplayTag("Enemy"));
 }
 

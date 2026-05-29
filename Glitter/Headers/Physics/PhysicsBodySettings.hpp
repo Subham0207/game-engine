@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -84,6 +85,8 @@ namespace Physics
     {
         BodyType bodyType = BodyType::RigidBody;
         MotionType motionType = MotionType::Static;
+        std::string physicsLayer = "Default";
+        bool isSensor = false;
         RigidBodyData rigidBodyData{};
         // SoftBodyData can be added here later.
 
@@ -92,6 +95,8 @@ namespace Physics
         {
             ar & bodyType;
             ar & motionType;
+            ar & physicsLayer;
+            ar & isSensor;
             ar & rigidBodyData;
         }
     };

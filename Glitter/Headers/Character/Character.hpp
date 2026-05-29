@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include "3DModel/model.hpp"
 #include "3DModel/Animation/Animator.hpp"
 #include "Camera/Camera.hpp"
@@ -16,6 +17,8 @@
 #include <Controls/Input.hpp>
 #include <Event/EventBus.hpp>
 #include <Event/EventQueue.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
 #include <cstdint>
 #include <limits>
 #include <unordered_map>
@@ -233,6 +236,14 @@ public:
     static Character* getCharacterByCapsuleId(uint32_t capsuleCharacterId);
     void syncCapsuleCharacterLookup();
 
+    void setGameplayTags(const std::vector<std::string>& tags) { gameplayTags = tags; }
+    [[nodiscard]] const std::vector<std::string>& getGameplayTags() const { return gameplayTags; }
+    [[nodiscard]] bool hasGameplayTag(const std::string& tag) const
+    {
+        return std::find(gameplayTags.begin(), gameplayTags.end(), tag) != gameplayTags.end();
+    }
+    [[nodiscard]] bool hasCollidingCharacterWithTag(const std::string& tag) const;
+
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
     virtual void loadContent(fs::path contentFileLocation, std::istream& is) override;
@@ -256,6 +267,7 @@ private:
 
     uint32_t registeredCapsuleCharacterId = std::numeric_limits<uint32_t>::max();
     static std::unordered_map<uint32_t, Character*> capsuleCharacterLookup;
+    std::vector<std::string> gameplayTags;
 
     void unregisterCapsuleCharacterLookup();
 
@@ -274,5 +286,6 @@ private:
         ar & model_guid;
         ar & animStateMachine_guid;
         ar & skeleton_guid;
+        ar & gameplayTags;
     }
 };

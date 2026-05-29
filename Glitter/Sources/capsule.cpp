@@ -1,5 +1,7 @@
 #include "Physics/capsule.hpp"
+#include <Character/Character.hpp>
 #include <EngineState.hpp>
+#include <Physics/PhysicsLayerRegistry.hpp>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/ShapeCast.h>
@@ -141,7 +143,12 @@ void Physics::Capsule::moveBody(
     character->SetRotation(rotOffset);
 
     CharacterVirtual::ExtendedUpdateSettings eus;
-    character->ExtendedUpdate(deltaTime, kGravity, eus, {}, {}, {}, {}, temp);
+    const JPH::ObjectLayer capsuleLayer = Physics::PhysicsLayerRegistry::instance().getLayerOrDefault(getPhysicsLayerName());
+    const JPH::DefaultBroadPhaseLayerFilter broadPhaseLayerFilter = physics->physicsSystem.GetDefaultBroadPhaseLayerFilter(capsuleLayer);
+    const JPH::DefaultObjectLayerFilter objectLayerFilter = physics->physicsSystem.GetDefaultLayerFilter(capsuleLayer);
+    const JPH::BodyFilter bodyFilter;
+    const JPH::ShapeFilter shapeFilter;
+    character->ExtendedUpdate(deltaTime, kGravity, eus, broadPhaseLayerFilter, objectLayerFilter, bodyFilter, shapeFilter, temp);
 
     grounded      = character->GetGroundState() == CharacterBase::EGroundState::OnGround;
     ground_normal = character->GetGroundNormal();
@@ -188,6 +195,7 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     set = new JPH::CharacterVirtualSettings();
     set->mShape = new JPH::CapsuleShape(halfheight, radius);       // two-sphere capsule
     set->mInnerBodyShape = set->mShape;
+    set->mInnerBodyLayer = Physics::PhysicsLayerRegistry::instance().getLayerOrDefault(getPhysicsLayerName());
     set->mMaxSlopeAngle     = JPH::DegreesToRadians(55.0f);           // walkable if ≤ 55°
     set->mSupportingVolume  = JPH::Plane(JPH::Vec3::sAxisY(), -radius);
     set->mPredictiveContactDistance = 0.1f;                           // prevents snagging
@@ -207,6 +215,21 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     getCharacterVsCharacterCollisionRegistry().Add(character);
 
     listener = new MyContactListener();
+    listener->setCharacterCollisionRuleEvaluator([](const uint32_t selfCharacterId, const uint32_t otherCharacterId)
+    {
+        const Character* selfCharacter = Character::getCharacterByCapsuleId(selfCharacterId);
+        const Character* otherCharacter = Character::getCharacterByCapsuleId(otherCharacterId);
+        if (selfCharacter == nullptr || otherCharacter == nullptr ||
+            selfCharacter->capsuleCollider == nullptr || otherCharacter->capsuleCollider == nullptr)
+        {
+            return true;
+        }
+
+        const auto& layerRegistry = Physics::PhysicsLayerRegistry::instance();
+        const JPH::ObjectLayer selfLayer = layerRegistry.getLayerOrDefault(selfCharacter->capsuleCollider->getPhysicsLayerName());
+        const JPH::ObjectLayer otherLayer = layerRegistry.getLayerOrDefault(otherCharacter->capsuleCollider->getPhysicsLayerName());
+        return Physics::PhysicsLayerRulebookRegistry::instance().shouldCollide(selfLayer, otherLayer);
+    });
     character->SetListener(listener);                                  // ground callbacks
 
     auto body_id = character->GetInnerBodyID();
@@ -217,6 +240,7 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
         {
             JPH::Body &body = lock.GetBody();
             body.SetRestitution(0.0f);
+            body.SetIsSensor(getIsSensor());
         }
     }
 }

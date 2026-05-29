@@ -2,6 +2,8 @@
 #include <PhysicsSystem.hpp>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <cstdint>
+#include <functional>
+#include <utility>
 #include <unordered_set>
 
 class MyContactListener : public JPH::CharacterContactListener
@@ -23,6 +25,11 @@ public:
         return character_contacts_this_frame;
     }
 
+    void setCharacterCollisionRuleEvaluator(std::function<bool(uint32_t, uint32_t)> evaluator)
+    {
+        character_collision_rule_evaluator = std::move(evaluator);
+    }
+
     ~MyContactListener() override = default;
 
 private:
@@ -36,6 +43,20 @@ private:
     {
         if (character->GetGroundState() == JPH::CharacterBase::EGroundState::OnGround)
             has_landed_this_frame = true;
+    }
+
+    bool OnCharacterContactValidate(const JPH::CharacterVirtual *character,
+                                    const JPH::CharacterVirtual *otherCharacter,
+                                    const JPH::SubShapeID &subShape) override
+    {
+        if (!character_collision_rule_evaluator)
+        {
+            return true;
+        }
+
+        return character_collision_rule_evaluator(
+            character->GetID().GetValue(),
+            otherCharacter->GetID().GetValue());
     }
 
     void OnCharacterContactAdded(const JPH::CharacterVirtual *character,
@@ -63,4 +84,5 @@ public:
 
 private:
     std::unordered_set<uint32_t> character_contacts_this_frame;
+    std::function<bool(uint32_t, uint32_t)> character_collision_rule_evaluator;
 };

@@ -277,7 +277,11 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     }
 
     character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
+    character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
+    character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
+    character->capsuleCollider->syncTransformation();
     character->modelRelativePosition = characterPrefab.modelRelativePosition;
+    character->setGameplayTags(characterPrefab.gameplayTags);
 
     character->camera = new Camera("charactercamera");
     character->camera->cameraPos = model->GetPosition();

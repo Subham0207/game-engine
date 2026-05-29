@@ -5,6 +5,7 @@
 #include <Physics/PhysicsBodySettings.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <string>
 #include <vector>
 
 namespace Physics
@@ -35,11 +36,15 @@ namespace Physics
         void setRuntimeShape(RuntimeShape shape);
         void setMotionType(Physics::MotionType motionType);
         void setTransformOffset(const Physics::TransformOffset& offset);
+        void setPhysicsLayerName(const std::string& layerName);
+        void setIsSensor(bool sensor);
         void setBoxBaseHalfExtents(const glm::vec3& halfExtents);
         void setCustomColliderGeometry(const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices);
 
         [[nodiscard]] const Physics::TransformOffset& getTransformOffset() const { return transformOffset; }
         [[nodiscard]] Physics::MotionType getMotionType() const { return motionType; }
+        [[nodiscard]] const std::string& getPhysicsLayerName() const { return physicsLayerName; }
+        [[nodiscard]] bool getIsSensor() const { return isSensor; }
 
         void destroyBody();
 
@@ -52,6 +57,8 @@ namespace Physics
         RuntimeShape runtimeShape = RuntimeShape::Box;
         Physics::MotionType motionType = Physics::MotionType::Static;
         Physics::TransformOffset transformOffset{};
+        std::string physicsLayerName = "Default";
+        bool isSensor = false;
         glm::vec3 boxBaseHalfExtents = glm::vec3(1.0f);
         std::vector<glm::vec3> customVertices;
         std::vector<uint32_t> customIndices;

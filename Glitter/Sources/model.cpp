@@ -709,6 +709,8 @@ void Model::rebuildPhysicsObjectFromSettings()
     {
         object->setRuntimeShape(toRuntimeShape(settings.rigidBodyData.colliderShape));
         object->setTransformOffset(settings.rigidBodyData.transformationOffset);
+        object->setPhysicsLayerName(settings.physicsLayer);
+        object->setIsSensor(settings.isSensor);
 
         if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Box)
         {

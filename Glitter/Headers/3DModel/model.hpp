@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <vector>
 #include <string>
 #include "Helpers/shader.hpp"
@@ -17,6 +18,8 @@
 #include <functional>
 #include <optional>
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
 
 #include "Materials/Material.hpp"
 #include "Modals/texture.hpp"
@@ -168,6 +171,13 @@ public:
     [[nodiscard]] const std::optional<Physics::PhysicsBodySettings>& getPhysicsBodySettings() const { return physicsBodySettings; }
     bool setCustomColliderGeometryFromFile(const std::string& colliderAssetPath, std::string* outError = nullptr);
 
+    void setGameplayTags(const std::vector<std::string>& tags) { gameplayTags = tags; }
+    [[nodiscard]] const std::vector<std::string>& getGameplayTags() const { return gameplayTags; }
+    [[nodiscard]] bool hasGameplayTag(const std::string& tag) const
+    {
+        return std::find(gameplayTags.begin(), gameplayTags.end(), tag) != gameplayTags.end();
+    }
+
     void ensureStaticBoxCollider();
     void syncPhysicsColliderToModelTransform();
     [[nodiscard]] glm::vec3 computeLocalMeshHalfExtents() const;
@@ -203,6 +213,7 @@ private:
 
     Physics::PhysicsObject* physicsObject = NULL;
     std::optional<Physics::PhysicsBodySettings> physicsBodySettings = std::nullopt;
+    std::vector<std::string> gameplayTags;
 
 
     void loadModel(std::string path,
@@ -242,6 +253,7 @@ private:
         ar & modelMatrix;
         ar & directory;
         ar & physicsBodySettings;
+            ar & gameplayTags;
     }
     
 };

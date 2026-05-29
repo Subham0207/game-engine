@@ -214,6 +214,7 @@ endif ()
 add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
         Glitter/Sources/NodePositionSerialization.cpp
+        Glitter/Sources/Physics/PhysicsLayerRegistry.cpp
         Glitter/Sources/Physics/OpenGLJoltDebugRenderer.cpp
         ${RMLUI_GLFW_GL3_BACKEND_SOURCES}
         ${VENDORS_SOURCES}
