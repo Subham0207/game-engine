@@ -6,6 +6,9 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyManager.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+
+#include <utility>
 
 PhysicsSystemWrapper::PhysicsSystemWrapper()
     : tempAllocator(nullptr), jobSystem(nullptr)
@@ -61,43 +64,83 @@ void PhysicsSystemWrapper::Update(float deltaTime) {
     physicsSystem.Update(deltaTime, 1, tempAllocator, jobSystem);
 }
 
-JPH::BodyID PhysicsSystemWrapper::AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, bool dynamic) {
+JPH::BodyID PhysicsSystemWrapper::AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, JPH::EMotionType motionType) {
     JPH::BodyCreationSettings settings(
         new JPH::BoxShape(halfExtents),
         pos,
         rot,
-        dynamic ? JPH::EMotionType::Dynamic : JPH::EMotionType::Static,
+        motionType,
         0
     );
 
     JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
-    JPH::BodyID id = bi.CreateAndAddBody(settings, dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+    const JPH::EActivation activation = motionType == JPH::EMotionType::Static
+        ? JPH::EActivation::DontActivate
+        : JPH::EActivation::Activate;
+    JPH::BodyID id = bi.CreateAndAddBody(settings, activation);
     return id;
 }
 
-JPH::BodyID PhysicsSystemWrapper::AddSphere(const JPH::Vec3& pos, float radius, bool dynamic) {
+JPH::BodyID PhysicsSystemWrapper::AddSphere(const JPH::Vec3& pos, float radius, JPH::EMotionType motionType) {
     JPH::BodyCreationSettings settings(
         new JPH::SphereShape(radius),
         pos,
         JPH::Quat::sIdentity(),
-        dynamic ? JPH::EMotionType::Dynamic : JPH::EMotionType::Static,
+        motionType,
         0
     );
 
     JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
-    return bi.CreateAndAddBody(settings, dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+    const JPH::EActivation activation = motionType == JPH::EMotionType::Static
+        ? JPH::EActivation::DontActivate
+        : JPH::EActivation::Activate;
+    return bi.CreateAndAddBody(settings, activation);
 }
 
-JPH::BodyID PhysicsSystemWrapper::AddCapsule(const JPH::Vec3 &pos, const JPH::Quat &rot, float halfHeight, float radius, bool dynamic)
+JPH::BodyID PhysicsSystemWrapper::AddCapsule(const JPH::Vec3 &pos, const JPH::Quat &rot, float halfHeight, float radius, JPH::EMotionType motionType)
 {
     JPH::BodyCreationSettings settings(
         new JPH::CapsuleShape(halfHeight, radius),
         pos,
         rot,
-        JPH::EMotionType::Kinematic,
+        motionType,
         0
     );
-    return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, dynamic ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+    const JPH::EActivation activation = motionType == JPH::EMotionType::Static
+        ? JPH::EActivation::DontActivate
+        : JPH::EActivation::Activate;
+    return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, activation);
+}
+
+JPH::BodyID PhysicsSystemWrapper::AddStaticMesh(
+    const JPH::Vec3& pos,
+    const JPH::Quat& rot,
+    const JPH::VertexList& vertices,
+    const JPH::IndexedTriangleList& triangles)
+{
+    if (vertices.empty() || triangles.empty())
+    {
+        return JPH::BodyID();
+    }
+
+    JPH::VertexList meshVertices = vertices;
+    JPH::IndexedTriangleList meshTriangles = triangles;
+    JPH::MeshShapeSettings meshSettings(std::move(meshVertices), std::move(meshTriangles));
+    JPH::ShapeSettings::ShapeResult shapeResult = meshSettings.Create();
+    if (shapeResult.HasError())
+    {
+        return JPH::BodyID();
+    }
+
+    JPH::BodyCreationSettings settings(
+        shapeResult.Get(),
+        pos,
+        rot,
+        JPH::EMotionType::Static,
+        0
+    );
+
+    return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, JPH::EActivation::DontActivate);
 }
 
 JPH::Vec3 PhysicsSystemWrapper::GetBodyPosition(JPH::BodyID id) const {

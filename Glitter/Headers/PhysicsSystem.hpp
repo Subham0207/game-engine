@@ -7,10 +7,12 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 
 namespace Physics
 {
@@ -37,9 +39,10 @@ public:
     void Shutdown();
     void Update(float deltaTime);
 
-    JPH::BodyID AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, bool dynamic);
-    JPH::BodyID AddSphere(const JPH::Vec3& pos, float radius, bool dynamic);
-    JPH::BodyID AddCapsule(const JPH::Vec3& pos, const JPH::Quat& rot, float halfHeight, float radius, bool dynamic);
+    JPH::BodyID AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, JPH::EMotionType motionType);
+    JPH::BodyID AddSphere(const JPH::Vec3& pos, float radius, JPH::EMotionType motionType);
+    JPH::BodyID AddCapsule(const JPH::Vec3& pos, const JPH::Quat& rot, float halfHeight, float radius, JPH::EMotionType motionType);
+    JPH::BodyID AddStaticMesh(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::VertexList& vertices, const JPH::IndexedTriangleList& triangles);
 
     JPH::Vec3 GetBodyPosition(JPH::BodyID id) const;
     JPH::Quat GetBodyRotation(JPH::BodyID id) const;

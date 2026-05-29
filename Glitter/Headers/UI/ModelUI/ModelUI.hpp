@@ -5,6 +5,8 @@
 #ifndef GLITTER_MODELUI_HPP
 #define GLITTER_MODELUI_HPP
 #pragma once
+#include <string>
+
 #include "UI/MaterialListComponent.hpp"
 #include "UI/Shared/EditableText.hpp"
 
@@ -24,6 +26,8 @@ namespace UI
         std::shared_ptr<Model> selectedModel;
         Shared::EditableText ModelName;
         MaterialListComponent materialListComponent;
+        std::string customColliderAssetPath;
+        std::string colliderValidationMessage;
     };
 }
 

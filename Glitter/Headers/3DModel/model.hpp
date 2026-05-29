@@ -15,10 +15,12 @@
 #include <Lights/light.hpp>
 #include <Serializable.hpp>
 #include <functional>
+#include <optional>
 #include <boost/serialization/shared_ptr.hpp>
 
 #include "Materials/Material.hpp"
 #include "Modals/texture.hpp"
+#include "Physics/PhysicsBodySettings.hpp"
 #include "serializer.hpp"
 
 enum ModelType;
@@ -160,6 +162,12 @@ public:
 
     void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
     [[nodiscard]] bool hasPhysicsObject() const { return physicsObject != nullptr; }
+    void clearPhysicsObject();
+
+    void setPhysicsBodySettings(const std::optional<Physics::PhysicsBodySettings>& settings);
+    [[nodiscard]] const std::optional<Physics::PhysicsBodySettings>& getPhysicsBodySettings() const { return physicsBodySettings; }
+    bool setCustomColliderGeometryFromFile(const std::string& colliderAssetPath, std::string* outError = nullptr);
+
     void ensureStaticBoxCollider();
     void syncPhysicsColliderToModelTransform();
 
@@ -193,7 +201,7 @@ private:
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     Physics::PhysicsObject* physicsObject = NULL;
-    std::string physicsBodyType = "";
+    std::optional<Physics::PhysicsBodySettings> physicsBodySettings = std::nullopt;
 
 
     void loadModel(std::string path,
@@ -223,6 +231,8 @@ private:
     std::shared_ptr<ProjectModals::Texture> loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
 
     void calculateBoundingBox(const aiScene* scene);
+    [[nodiscard]] glm::vec3 computeLocalMeshHalfExtents() const;
+    void rebuildPhysicsObjectFromSettings();
 
     friend class boost::serialization::access;
     template<class Archive>
@@ -231,7 +241,7 @@ private:
         ar & meshes;
         ar & modelMatrix;
         ar & directory;
-        ar & physicsBodyType;
+        ar & physicsBodySettings;
     }
     
 };

@@ -3,12 +3,14 @@
 #include <iostream>
 #include <fstream>
 #include <utility>
+#include <limits>
 #include <vector>
 #include <filesystem>
 #include "Helpers/AssimpHelpers.hpp"
 #include <Helpers/vertexBoneDataHelper.hpp>
 #include "Helpers/Shared.hpp"
 #include <Modals/vertex.hpp>
+#include <assimp/postprocess.h>
 #include <stb_image.h>
 #include <stb_image_write.h>
 #include <EngineState.hpp>
@@ -26,6 +28,25 @@
 
 // using namespace std;
 namespace fs = std::filesystem;
+
+namespace
+{
+    Physics::PhysicsObject::RuntimeShape toRuntimeShape(const Physics::ColliderShape shape)
+    {
+        switch (shape)
+        {
+            case Physics::ColliderShape::Sphere:
+                return Physics::PhysicsObject::RuntimeShape::Sphere;
+            case Physics::ColliderShape::Capsule:
+                return Physics::PhysicsObject::RuntimeShape::Capsule;
+            case Physics::ColliderShape::Custom:
+                return Physics::PhysicsObject::RuntimeShape::Custom;
+            case Physics::ColliderShape::Box:
+            default:
+                return Physics::PhysicsObject::RuntimeShape::Box;
+        }
+    }
+}
 
 void Model::loadModel(
     std::string path,
@@ -451,7 +472,20 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
     {
         if(EngineState::state->isPlay)
         {
-            this->setTransformFromPhysics(physicsObject->getWorldPosition(), physicsObject->getWorldRotation());
+            glm::vec3 modelPosition = physicsObject->getWorldPosition();
+            glm::quat modelRotation = physicsObject->getWorldRotation();
+
+            if (physicsBodySettings.has_value() && physicsBodySettings->bodyType == Physics::BodyType::RigidBody)
+            {
+                const auto& offset = physicsBodySettings->rigidBodyData.transformationOffset;
+                const glm::quat offsetRotation = glm::quat(glm::radians(offset.rotation));
+                modelRotation = glm::normalize(modelRotation * glm::inverse(offsetRotation));
+
+                const glm::vec3 scaledOffsetPosition = offset.position * GetScale();
+                modelPosition = modelPosition - (modelRotation * scaledOffsetPosition);
+            }
+
+            this->setTransformFromPhysics(modelPosition, modelRotation);
         }
         else
         {
@@ -564,14 +598,41 @@ void UpdateEngineStateWithFoundTexture(aiTextureType type)
 
 void Model::attachPhysicsObject(Physics::PhysicsObject* physicsObj)
 {
-    this->physicsBodyType = "Box";
+    if (physicsObject != nullptr && physicsObject != physicsObj)
+    {
+        delete physicsObject;
+    }
+
     this->physicsObject = physicsObj;
+}
+
+void Model::clearPhysicsObject()
+{
+    if (physicsObject == nullptr)
+    {
+        return;
+    }
+
+    physicsObject->destroyBody();
+    delete physicsObject;
+    physicsObject = nullptr;
+}
+
+void Model::setPhysicsBodySettings(const std::optional<Physics::PhysicsBodySettings>& settings)
+{
+    physicsBodySettings = settings;
 }
 
 void Model::ensureStaticBoxCollider()
 {
     if (modeltype != ModelType::ACTUAL_MODEL || physicsObject != nullptr)
     {
+        return;
+    }
+
+    if (physicsBodySettings.has_value())
+    {
+        rebuildPhysicsObjectFromSettings();
         return;
     }
 
@@ -592,6 +653,148 @@ void Model::syncPhysicsColliderToModelTransform()
     {
         physicsObject->syncTransformation(GetPosition(), GetRot(), GetScale());
     }
+}
+
+glm::vec3 Model::computeLocalMeshHalfExtents() const
+{
+    glm::vec3 minBounds(std::numeric_limits<float>::max());
+    glm::vec3 maxBounds(std::numeric_limits<float>::lowest());
+    bool hasVertex = false;
+
+    for (const auto& mesh : meshes)
+    {
+        for (const auto& vertex : mesh.vertices)
+        {
+            hasVertex = true;
+            minBounds = glm::min(minBounds, vertex.Position);
+            maxBounds = glm::max(maxBounds, vertex.Position);
+        }
+    }
+
+    if (!hasVertex)
+    {
+        return glm::vec3(1.0f);
+    }
+
+    const glm::vec3 extents = (maxBounds - minBounds) * 0.5f;
+    return glm::max(extents, glm::vec3(0.01f));
+}
+
+void Model::rebuildPhysicsObjectFromSettings()
+{
+    if (!physicsBodySettings.has_value())
+    {
+        return;
+    }
+
+    if (EngineState::state == nullptr || EngineState::state->physics == nullptr)
+    {
+        return;
+    }
+
+    const auto& settings = physicsBodySettings.value();
+
+    clearPhysicsObject();
+
+    if (settings.bodyType == Physics::BodyType::SoftBody)
+    {
+        // Soft-body runtime creation is intentionally deferred.
+        return;
+    }
+
+    auto* object = new Physics::PhysicsObject(&getPhysicsSystem());
+    object->setMotionType(settings.motionType);
+
+    if (settings.bodyType == Physics::BodyType::RigidBody)
+    {
+        object->setRuntimeShape(toRuntimeShape(settings.rigidBodyData.colliderShape));
+        object->setTransformOffset(settings.rigidBodyData.transformationOffset);
+
+        if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Box)
+        {
+            object->setBoxBaseHalfExtents(computeLocalMeshHalfExtents());
+        }
+
+        if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Custom
+            && settings.rigidBodyData.customColliderShapeData.has_value())
+        {
+            const auto& customData = settings.rigidBodyData.customColliderShapeData.value();
+            object->setCustomColliderGeometry(customData.vertices, customData.indices);
+        }
+    }
+
+    attachPhysicsObject(object);
+    syncPhysicsColliderToModelTransform();
+}
+
+bool Model::setCustomColliderGeometryFromFile(const std::string& colliderAssetPath, std::string* outError)
+{
+    Assimp::Importer import;
+    const aiScene* scene = import.ReadFile(
+        colliderAssetPath,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality | aiProcess_SortByPType
+    );
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || scene->mRootNode == nullptr)
+    {
+        if (outError)
+        {
+            *outError = import.GetErrorString();
+        }
+        return false;
+    }
+
+    Physics::CustomColliderShapeData cooked{};
+
+    for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+    {
+        const aiMesh* mesh = scene->mMeshes[meshIndex];
+        if (mesh == nullptr)
+        {
+            continue;
+        }
+
+        const uint32_t baseVertex = static_cast<uint32_t>(cooked.vertices.size());
+        cooked.vertices.reserve(cooked.vertices.size() + mesh->mNumVertices);
+        for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+        {
+            const aiVector3D& v = mesh->mVertices[vertexIndex];
+            cooked.vertices.emplace_back(v.x, v.y, v.z);
+        }
+
+        for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+        {
+            const aiFace& face = mesh->mFaces[faceIndex];
+            if (face.mNumIndices != 3)
+            {
+                continue;
+            }
+
+            cooked.indices.push_back(baseVertex + face.mIndices[0]);
+            cooked.indices.push_back(baseVertex + face.mIndices[1]);
+            cooked.indices.push_back(baseVertex + face.mIndices[2]);
+        }
+    }
+
+    if (cooked.empty())
+    {
+        if (outError)
+        {
+            *outError = "Collider mesh had no valid triangles.";
+        }
+        return false;
+    }
+
+    if (!physicsBodySettings.has_value())
+    {
+        physicsBodySettings = Physics::PhysicsBodySettings{};
+    }
+
+    auto& settings = physicsBodySettings.value();
+    settings.bodyType = Physics::BodyType::RigidBody;
+    settings.rigidBodyData.colliderShape = Physics::ColliderShape::Custom;
+    settings.rigidBodyData.customColliderShapeData = cooked;
+    return true;
 }
 
 void Model::LoadA3DModel(
@@ -660,9 +863,10 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
     modeltype = ModelType::ACTUAL_MODEL;
     Model::loadFromFile(contentFile.string(), *this, material);
 
-
-    if(!physicsBodyType.empty())
-        this->attachPhysicsObject(new Physics::Box(&getPhysicsSystem(), false));
+    if (physicsBodySettings.has_value())
+    {
+        rebuildPhysicsObjectFromSettings();
+    }
 }
 
 void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material)
