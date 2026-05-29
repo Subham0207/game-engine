@@ -170,6 +170,7 @@ public:
 
     void ensureStaticBoxCollider();
     void syncPhysicsColliderToModelTransform();
+    [[nodiscard]] glm::vec3 computeLocalMeshHalfExtents() const;
 
     void static initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material);
 
@@ -231,7 +232,6 @@ private:
     std::shared_ptr<ProjectModals::Texture> loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
 
     void calculateBoundingBox(const aiScene* scene);
-    [[nodiscard]] glm::vec3 computeLocalMeshHalfExtents() const;
     void rebuildPhysicsObjectFromSettings();
 
     friend class boost::serialization::access;

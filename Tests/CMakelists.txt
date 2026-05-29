@@ -17,6 +17,8 @@ add_executable(Test
         NodeGraph/FlowScript/Compile/NodePositionSerialization.test.cpp
         NodeGraph/FlowScript/FlowScript.test.cpp
         NodeGraph/FlowScript/VisualScriptJsonSerializer.test.cpp
+        Model/Model.test.cpp
+        Windowing/ProjectManagerWindow.test.cpp
 )
 
 target_include_directories(Test PRIVATE

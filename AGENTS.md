@@ -142,3 +142,26 @@ This file documents project knowledge and coding conventions for AI coding assis
 - Static body debug colors may appear grey/light-grey from Jolt defaults; renderer remaps both to yellow for visibility.
 - Ensure level-loaded `.model` entries go through `Level::addRenderable(...)` so default static collider attachment is applied.
 
+## Session Handoff Notes (2026-05-29, PhysicsBodySettings + ProjectManager Stability)
+- Model physics config now uses `PhysicsBodySettings` (optional on `Model`) instead of legacy `physicsBodyType` string.
+- New physics settings type lives at `Glitter/Headers/Physics/PhysicsBodySettings.hpp` with:
+  - `BodyType` (`RigidBody`, `SoftBody`)
+  - `MotionType` (`Static`, `Dynamic`, `Kinematic`)
+  - `RigidBodyData` (`ColliderShape`, optional cooked `CustomColliderShapeData`, and full `TransformOffset` with position/rotation/scale)
+  - Soft-body data remains intentionally stubbed (comment placeholder only).
+- Model serialization/deserialization now persists optional `PhysicsBodySettings` (breaking-change accepted for early-stage assets).
+- `ModelUI` now exposes physics-body editing controls (enable toggle, body type, motion type, collider shape, transform offset, custom collider cooking action).
+- Custom collider workflow currently expects a separate collider mesh file path in `ModelUI`; clicking cook loads through Assimp and stores cooked geometry (vertices + triangle indices) in model settings.
+- Custom collider validation currently blocks unsupported runtime combos in UI: `ColliderShape::Custom` supports only `MotionType::Static` in current implementation.
+- Runtime rigid-body creation now maps settings to Jolt shape creation (`Box`, `Sphere`, `Capsule`, `Custom` static mesh path).
+- ProjectManager startup crash (repeating stack in `ImGui_ImplGlfw_WndProc`) was fixed by removing duplicate ImGui backend/context init in `Glitter/Sources/Windowing/ProjectManagerWindow.cpp`; `GameWindow::initWindowAndBackends(...)` is now the single init path.
+- Rigid box collider sizing was corrected to be mesh-accurate:
+  - box half extents now derive from model local mesh bounds (`computeLocalMeshHalfExtents`) and scale by world transform,
+  - avoids assuming unit-cube authoring and keeps colliders aligned on non-uniformly scaled assets.
+
+## Known Gotchas (PhysicsBodySettings)
+- Updating `PhysicsBodySettings` in `ModelUI` is serialized immediately, but runtime behavior still follows restart expectations for stable editor workflows.
+- For custom colliders, export triangulated geometry from DCC where possible; importer also requests triangulation, but explicit triangulation in source assets reduces surprises.
+- Custom collider mesh cooking stores geometry only (no source path persistence); if source mesh changes, re-cook from `ModelUI`.
+- `SoftBody` can be selected in config/UI but does not create runtime soft-body physics yet.
+
