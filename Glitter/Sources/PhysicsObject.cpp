@@ -1,6 +1,14 @@
 #include <Physics/PhysicsObject.hpp>
 #include <Physics/PhysicsLayerRegistry.hpp>
 
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include <Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+
 #include <cmath>
 
 
@@ -45,6 +53,11 @@ void Physics::PhysicsObject::setPhysicsLayerName(const std::string& layerName)
 void Physics::PhysicsObject::setIsSensor(const bool sensor)
 {
     isSensor = sensor;
+}
+
+void Physics::PhysicsObject::setDynamicsProperties(const RuntimeDynamicsProperties& properties)
+{
+    dynamicsProperties = properties;
 }
 
 void Physics::PhysicsObject::setOwnerRenderable(Renderable* owner, const std::string& instanceId)
@@ -109,20 +122,22 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
     physics->UnregisterBodyOwner(physicsId);
     physics->RemoveBody(physicsId);
 
+    JPH::RefConst<JPH::Shape> bodyShape;
+
     switch (runtimeShape)
     {
         case RuntimeShape::Sphere:
         {
             const float maxScale = std::max(worldScale.x, std::max(worldScale.y, worldScale.z));
             const float radius = std::max(0.05f, maxScale * 0.5f);
-            physicsId = physics->AddSphere(jphPosition, radius, joltMotionType, objectLayer, isSensor);
+            bodyShape = new JPH::SphereShape(radius);
             break;
         }
         case RuntimeShape::Capsule:
         {
             const float radius = std::max(0.05f, std::min(worldScale.x, worldScale.z) * 0.5f);
             const float halfHeight = std::max(0.05f, (worldScale.y * 0.5f) - radius);
-            physicsId = physics->AddCapsule(jphPosition, jphRotation, halfHeight, radius, joltMotionType, objectLayer, isSensor);
+            bodyShape = new JPH::CapsuleShape(halfHeight, radius);
             break;
         }
         case RuntimeShape::Custom:
@@ -130,7 +145,7 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
             if (joltMotionType != JPH::EMotionType::Static || customVertices.empty() || customIndices.size() < 3)
             {
                 physicsId = JPH::BodyID();
-                break;
+                return;
             }
 
             JPH::VertexList joltVertices;
@@ -148,21 +163,99 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
                 joltTriangles.push_back(JPH::IndexedTriangle(customIndices[i], customIndices[i + 1], customIndices[i + 2], 0));
             }
 
-            physicsId = physics->AddStaticMesh(jphPosition, jphRotation, joltVertices, joltTriangles, objectLayer, isSensor);
+            JPH::MeshShapeSettings meshSettings(std::move(joltVertices), std::move(joltTriangles));
+            JPH::ShapeSettings::ShapeResult shapeResult = meshSettings.Create();
+            if (shapeResult.HasError())
+            {
+                physicsId = JPH::BodyID();
+                return;
+            }
+
+            bodyShape = shapeResult.Get();
+            break;
+        }
+        case RuntimeShape::ConvexHull:
+        {
+            if (customVertices.empty())
+            {
+                physicsId = JPH::BodyID();
+                return;
+            }
+
+            JPH::Array<JPH::Vec3> hullPoints;
+            hullPoints.reserve(customVertices.size());
+            for (const auto& v : customVertices)
+            {
+                const glm::vec3 scaled = v * worldScale;
+                hullPoints.emplace_back(scaled.x, scaled.y, scaled.z);
+            }
+
+            JPH::ConvexHullShapeSettings hullSettings(hullPoints);
+            JPH::ShapeSettings::ShapeResult shapeResult = hullSettings.Create();
+            if (shapeResult.HasError())
+            {
+                physicsId = JPH::BodyID();
+                return;
+            }
+
+            bodyShape = shapeResult.Get();
+
+            // Convex hull COM is computed from geometry and is often not at model origin.
+            // Recenter so render transform and physics body align across orientations.
+            const JPH::Vec3 hullCenterOfMass = bodyShape->GetCenterOfMass();
+            if (hullCenterOfMass.LengthSq() > 1.0e-8f)
+            {
+                bodyShape = new JPH::OffsetCenterOfMassShape(bodyShape, -hullCenterOfMass);
+            }
             break;
         }
         case RuntimeShape::Box:
         default:
         {
-            JPH::Vec3 jphHalfExtents(
+            const JPH::Vec3 jphHalfExtents(
                 std::max(0.05f, std::abs(boxBaseHalfExtents.x * worldScale.x)),
                 std::max(0.05f, std::abs(boxBaseHalfExtents.y * worldScale.y)),
                 std::max(0.05f, std::abs(boxBaseHalfExtents.z * worldScale.z))
             );
-            physicsId = physics->AddBox(jphPosition, jphRotation, jphHalfExtents, joltMotionType, objectLayer, isSensor);
+            bodyShape = new JPH::BoxShape(jphHalfExtents);
             break;
         }
     }
+
+    if (bodyShape == nullptr)
+    {
+        physicsId = JPH::BodyID();
+        return;
+    }
+
+    if (glm::length(dynamicsProperties.centerOfMassOffset) > 0.0001f)
+    {
+        const JPH::Vec3 comOffset(
+            dynamicsProperties.centerOfMassOffset.x,
+            dynamicsProperties.centerOfMassOffset.y,
+            dynamicsProperties.centerOfMassOffset.z);
+        bodyShape = new JPH::OffsetCenterOfMassShape(bodyShape, comOffset);
+    }
+
+    JPH::BodyCreationSettings bodySettings(
+        bodyShape,
+        jphPosition,
+        jphRotation,
+        joltMotionType,
+        objectLayer);
+    bodySettings.mIsSensor = isSensor;
+    bodySettings.mFriction = dynamicsProperties.friction;
+    bodySettings.mRestitution = dynamicsProperties.restitution;
+    bodySettings.mLinearDamping = dynamicsProperties.linearDamping;
+    bodySettings.mAngularDamping = dynamicsProperties.angularDamping;
+
+    if (dynamicsProperties.overrideMass && joltMotionType == JPH::EMotionType::Dynamic)
+    {
+        bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+        bodySettings.mMassPropertiesOverride.mMass = std::max(0.001f, dynamicsProperties.mass);
+    }
+
+    physicsId = physics->AddBody(bodySettings);
 
     if (physics != nullptr)
     {

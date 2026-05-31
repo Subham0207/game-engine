@@ -17,7 +17,7 @@ namespace
 {
     const char* kBodyTypeLabels[] = {"Rigid body", "Soft body"};
     const char* kMotionTypeLabels[] = {"Static", "Dynamic", "Kinematic"};
-    const char* kColliderShapeLabels[] = {"Box", "Sphere", "Capsule", "Custom"};
+    const char* kColliderShapeLabels[] = {"Box", "Sphere", "Capsule", "Custom", "Convex Hull"};
 
     std::vector<std::string> parseTagsCsv(const std::string& csv)
     {
@@ -106,17 +106,20 @@ void UI::ModelUI::draw()
             if (hasPhysicsBody)
             {
                 auto settings = selectedModel->getPhysicsBodySettings().value_or(Physics::PhysicsBodySettings{});
+                bool settingsChanged = false;
 
                 int bodyTypeIndex = static_cast<int>(settings.bodyType);
                 if (ImGui::Combo("Body Type", &bodyTypeIndex, kBodyTypeLabels, IM_ARRAYSIZE(kBodyTypeLabels)))
                 {
                     settings.bodyType = static_cast<Physics::BodyType>(bodyTypeIndex);
+                    settingsChanged = true;
                 }
 
                 int motionTypeIndex = static_cast<int>(settings.motionType);
                 if (ImGui::Combo("Motion Type", &motionTypeIndex, kMotionTypeLabels, IM_ARRAYSIZE(kMotionTypeLabels)))
                 {
                     settings.motionType = static_cast<Physics::MotionType>(motionTypeIndex);
+                    settingsChanged = true;
                 }
 
                 auto& layerRegistry = Physics::PhysicsLayerRegistry::instance();
@@ -124,6 +127,7 @@ void UI::ModelUI::draw()
                 if (std::find(layerNames.begin(), layerNames.end(), settings.physicsLayer) == layerNames.end())
                 {
                     settings.physicsLayer = layerNames.empty() ? "Default" : layerNames.front();
+                    settingsChanged = true;
                 }
 
                 std::vector<const char*> layerNamePtrs;
@@ -145,9 +149,13 @@ void UI::ModelUI::draw()
                 if (!layerNamePtrs.empty() && ImGui::Combo("Physics Layer", &selectedLayerIndex, layerNamePtrs.data(), static_cast<int>(layerNamePtrs.size())))
                 {
                     settings.physicsLayer = layerNames[static_cast<size_t>(selectedLayerIndex)];
+                    settingsChanged = true;
                 }
 
-                ImGui::Checkbox("Is Sensor (Trigger)", &settings.isSensor);
+                if (ImGui::Checkbox("Is Sensor (Trigger)", &settings.isSensor))
+                {
+                    settingsChanged = true;
+                }
 
                 if (settings.bodyType == Physics::BodyType::RigidBody)
                 {
@@ -155,16 +163,38 @@ void UI::ModelUI::draw()
                     if (ImGui::Combo("Collider Shape", &colliderShapeIndex, kColliderShapeLabels, IM_ARRAYSIZE(kColliderShapeLabels)))
                     {
                         settings.rigidBodyData.colliderShape = static_cast<Physics::ColliderShape>(colliderShapeIndex);
+                        settingsChanged = true;
                     }
 
                     ImGui::SeparatorText("Transformation Offset");
-                    ImGui::DragFloat3("Offset Position", &settings.rigidBodyData.transformationOffset.position.x, 0.05f);
-                    ImGui::DragFloat3("Offset Rotation", &settings.rigidBodyData.transformationOffset.rotation.x, 0.5f);
-                    ImGui::DragFloat3("Offset Scale", &settings.rigidBodyData.transformationOffset.scale.x, 0.05f, 0.01f, 1000.0f);
+                    settingsChanged |= ImGui::DragFloat3("Offset Position", &settings.rigidBodyData.transformationOffset.position.x, 0.05f);
+                    settingsChanged |= ImGui::DragFloat3("Offset Rotation", &settings.rigidBodyData.transformationOffset.rotation.x, 0.5f);
+                    settingsChanged |= ImGui::DragFloat3("Offset Scale", &settings.rigidBodyData.transformationOffset.scale.x, 0.05f, 0.01f, 1000.0f);
 
-                    if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Custom)
+                    ImGui::SeparatorText("Dynamics");
+                    if (ImGui::Checkbox("Override Mass", &settings.rigidBodyData.overrideMass))
                     {
-                        if (settings.motionType != Physics::MotionType::Static)
+                        settingsChanged = true;
+                    }
+                    if (settings.rigidBodyData.overrideMass)
+                    {
+                        settingsChanged |= ImGui::DragFloat("Mass", &settings.rigidBodyData.mass, 0.1f, 0.001f, 100000.0f);
+                    }
+                    settingsChanged |= ImGui::DragFloat3("Center of Mass Offset", &settings.rigidBodyData.centerOfMassOffset.x, 0.01f);
+
+                    ImGui::SeparatorText("Surface Material");
+                    settingsChanged |= ImGui::DragFloat("Friction", &settings.rigidBodyData.friction, 0.01f, 0.0f, 10.0f);
+                    settingsChanged |= ImGui::DragFloat("Restitution", &settings.rigidBodyData.restitution, 0.01f, 0.0f, 1.0f);
+
+                    ImGui::SeparatorText("Environmental Resistance");
+                    settingsChanged |= ImGui::DragFloat("Linear Damping", &settings.rigidBodyData.linearDamping, 0.01f, 0.0f, 10.0f);
+                    settingsChanged |= ImGui::DragFloat("Angular Damping", &settings.rigidBodyData.angularDamping, 0.01f, 0.0f, 10.0f);
+
+                    const bool isTriangleMeshCollider = settings.rigidBodyData.colliderShape == Physics::ColliderShape::Custom;
+                    const bool isConvexHullCollider = settings.rigidBodyData.colliderShape == Physics::ColliderShape::ConvexHull;
+                    if (isTriangleMeshCollider || isConvexHullCollider)
+                    {
+                        if (isTriangleMeshCollider && settings.motionType != Physics::MotionType::Static)
                         {
                             colliderValidationMessage = "Custom collider supports only Static motion type.";
                         }
@@ -182,7 +212,7 @@ void UI::ModelUI::draw()
                         }
                         if (ImGui::Button("Cook Custom Collider Geometry"))
                         {
-                            if (settings.motionType != Physics::MotionType::Static)
+                            if (isTriangleMeshCollider && settings.motionType != Physics::MotionType::Static)
                             {
                                 colliderValidationMessage = "Switch motion type to Static before cooking custom geometry.";
                             }
@@ -197,6 +227,7 @@ void UI::ModelUI::draw()
                                 {
                                     colliderValidationMessage = "Custom collider geometry cooked successfully.";
                                     settings = selectedModel->getPhysicsBodySettings().value_or(settings);
+                                    settingsChanged = true;
                                 }
                             }
                         }
@@ -208,8 +239,10 @@ void UI::ModelUI::draw()
                     }
                 }
 
-                selectedModel->setPhysicsBodySettings(settings);
-                ImGui::TextWrapped("Physics body settings are serialized, but collider runtime rebuild requires engine restart.");
+                if (settingsChanged)
+                {
+                    selectedModel->setPhysicsBodySettings(settings);
+                }
             }
         }
 

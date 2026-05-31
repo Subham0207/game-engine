@@ -12,6 +12,17 @@ class Renderable;
 
 namespace Physics
 {
+    struct RuntimeDynamicsProperties
+    {
+        float mass = 1.0f;
+        bool overrideMass = false;
+        glm::vec3 centerOfMassOffset = glm::vec3(0.0f);
+        float friction = 0.2f;
+        float restitution = 0.0f;
+        float linearDamping = 0.05f;
+        float angularDamping = 0.05f;
+    };
+
     class PhysicsObject {
     public:
         enum class RuntimeShape
@@ -19,7 +30,8 @@ namespace Physics
             Box,
             Sphere,
             Capsule,
-            Custom
+            Custom,
+            ConvexHull
         };
 
         PhysicsObject() = default;
@@ -40,6 +52,7 @@ namespace Physics
         void setTransformOffset(const Physics::TransformOffset& offset);
         void setPhysicsLayerName(const std::string& layerName);
         void setIsSensor(bool sensor);
+        void setDynamicsProperties(const RuntimeDynamicsProperties& properties);
         void setOwnerRenderable(Renderable* owner, const std::string& ownerInstanceId);
         void setBoxBaseHalfExtents(const glm::vec3& halfExtents);
         void setCustomColliderGeometry(const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices);
@@ -64,6 +77,7 @@ namespace Physics
         Physics::TransformOffset transformOffset{};
         std::string physicsLayerName = "Default";
         bool isSensor = false;
+        RuntimeDynamicsProperties dynamicsProperties{};
         glm::vec3 boxBaseHalfExtents = glm::vec3(1.0f);
         std::vector<glm::vec3> customVertices;
         std::vector<uint32_t> customIndices;

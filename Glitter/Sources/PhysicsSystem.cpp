@@ -139,6 +139,15 @@ void PhysicsSystemWrapper::Update(float deltaTime) {
     finalizePhysicsEventsForFrame();
 }
 
+JPH::BodyID PhysicsSystemWrapper::AddBody(const JPH::BodyCreationSettings& settings)
+{
+    JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
+    const JPH::EActivation activation = settings.mMotionType == JPH::EMotionType::Static
+        ? JPH::EActivation::DontActivate
+        : JPH::EActivation::Activate;
+    return bi.CreateAndAddBody(settings, activation);
+}
+
 JPH::BodyID PhysicsSystemWrapper::AddBox(
     const JPH::Vec3& pos,
     const JPH::Quat& rot,
@@ -155,12 +164,7 @@ JPH::BodyID PhysicsSystemWrapper::AddBox(
     );
     settings.mIsSensor = isSensor;
 
-    JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
-    const JPH::EActivation activation = motionType == JPH::EMotionType::Static
-        ? JPH::EActivation::DontActivate
-        : JPH::EActivation::Activate;
-    JPH::BodyID id = bi.CreateAndAddBody(settings, activation);
-    return id;
+    return AddBody(settings);
 }
 
 JPH::BodyID PhysicsSystemWrapper::AddSphere(
@@ -178,11 +182,7 @@ JPH::BodyID PhysicsSystemWrapper::AddSphere(
     );
     settings.mIsSensor = isSensor;
 
-    JPH::BodyInterface& bi = physicsSystem.GetBodyInterface();
-    const JPH::EActivation activation = motionType == JPH::EMotionType::Static
-        ? JPH::EActivation::DontActivate
-        : JPH::EActivation::Activate;
-    return bi.CreateAndAddBody(settings, activation);
+    return AddBody(settings);
 }
 
 JPH::BodyID PhysicsSystemWrapper::AddCapsule(
@@ -202,10 +202,7 @@ JPH::BodyID PhysicsSystemWrapper::AddCapsule(
         objectLayer
     );
     settings.mIsSensor = isSensor;
-    const JPH::EActivation activation = motionType == JPH::EMotionType::Static
-        ? JPH::EActivation::DontActivate
-        : JPH::EActivation::Activate;
-    return physicsSystem.GetBodyInterface().CreateAndAddBody(settings, activation);
+    return AddBody(settings);
 }
 
 JPH::BodyID PhysicsSystemWrapper::AddStaticMesh(

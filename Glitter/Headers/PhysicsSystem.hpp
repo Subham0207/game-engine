@@ -3,6 +3,7 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/Body/BodyID.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
@@ -63,6 +64,7 @@ public:
     void Shutdown();
     void Update(float deltaTime);
 
+    JPH::BodyID AddBody(const JPH::BodyCreationSettings& settings);
     JPH::BodyID AddBox(const JPH::Vec3& pos, const JPH::Quat& rot, const JPH::Vec3& halfExtents, JPH::EMotionType motionType, JPH::ObjectLayer objectLayer, bool isSensor);
     JPH::BodyID AddSphere(const JPH::Vec3& pos, float radius, JPH::EMotionType motionType, JPH::ObjectLayer objectLayer, bool isSensor);
     JPH::BodyID AddCapsule(const JPH::Vec3& pos, const JPH::Quat& rot, float halfHeight, float radius, JPH::EMotionType motionType, JPH::ObjectLayer objectLayer, bool isSensor);

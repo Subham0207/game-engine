@@ -16,6 +16,7 @@
 #include <EngineState.hpp>
 #include "ImGuizmo.h"
 #include <Physics/box.hpp>
+#include <Physics/PhysicsObject.hpp>
 #include <Modals/3DModelType.hpp>
 
 #include "boost/uuid/random_generator.hpp"
@@ -39,6 +40,8 @@ namespace
                 return Physics::PhysicsObject::RuntimeShape::Sphere;
             case Physics::ColliderShape::Capsule:
                 return Physics::PhysicsObject::RuntimeShape::Capsule;
+            case Physics::ColliderShape::ConvexHull:
+                return Physics::PhysicsObject::RuntimeShape::ConvexHull;
             case Physics::ColliderShape::Custom:
                 return Physics::PhysicsObject::RuntimeShape::Custom;
             case Physics::ColliderShape::Box:
@@ -625,6 +628,15 @@ void Model::clearPhysicsObject()
 void Model::setPhysicsBodySettings(const std::optional<Physics::PhysicsBodySettings>& settings)
 {
     physicsBodySettings = settings;
+
+    if (physicsBodySettings.has_value())
+    {
+        rebuildPhysicsObjectFromSettings();
+    }
+    else
+    {
+        clearPhysicsObject();
+    }
 }
 
 void Model::ensureStaticBoxCollider()
@@ -724,8 +736,18 @@ void Model::rebuildPhysicsObjectFromSettings()
 
     if (settings.bodyType == Physics::BodyType::RigidBody)
     {
+        Physics::RuntimeDynamicsProperties runtimeProperties{};
+        runtimeProperties.mass = settings.rigidBodyData.mass;
+        runtimeProperties.overrideMass = settings.rigidBodyData.overrideMass;
+        runtimeProperties.centerOfMassOffset = settings.rigidBodyData.centerOfMassOffset;
+        runtimeProperties.friction = settings.rigidBodyData.friction;
+        runtimeProperties.restitution = settings.rigidBodyData.restitution;
+        runtimeProperties.linearDamping = settings.rigidBodyData.linearDamping;
+        runtimeProperties.angularDamping = settings.rigidBodyData.angularDamping;
+
         object->setRuntimeShape(toRuntimeShape(settings.rigidBodyData.colliderShape));
         object->setTransformOffset(settings.rigidBodyData.transformationOffset);
+        object->setDynamicsProperties(runtimeProperties);
         object->setPhysicsLayerName(settings.physicsLayer);
         object->setIsSensor(settings.isSensor);
 
@@ -734,7 +756,8 @@ void Model::rebuildPhysicsObjectFromSettings()
             object->setBoxBaseHalfExtents(computeLocalMeshHalfExtents());
         }
 
-        if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Custom
+        if ((settings.rigidBodyData.colliderShape == Physics::ColliderShape::Custom
+             || settings.rigidBodyData.colliderShape == Physics::ColliderShape::ConvexHull)
             && settings.rigidBodyData.customColliderShapeData.has_value())
         {
             const auto& customData = settings.rigidBodyData.customColliderShapeData.value();
@@ -811,7 +834,6 @@ bool Model::setCustomColliderGeometryFromFile(const std::string& colliderAssetPa
 
     auto& settings = physicsBodySettings.value();
     settings.bodyType = Physics::BodyType::RigidBody;
-    settings.rigidBodyData.colliderShape = Physics::ColliderShape::Custom;
     settings.rigidBodyData.customColliderShapeData = cooked;
     return true;
 }

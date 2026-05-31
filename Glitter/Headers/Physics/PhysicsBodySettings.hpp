@@ -29,7 +29,8 @@ namespace Physics
         Box = 0,
         Sphere = 1,
         Capsule = 2,
-        Custom = 3
+        Custom = 3,
+        ConvexHull = 4
     };
 
     struct TransformOffset
@@ -71,6 +72,13 @@ namespace Physics
         ColliderShape colliderShape = ColliderShape::Box;
         std::optional<CustomColliderShapeData> customColliderShapeData = std::nullopt;
         TransformOffset transformationOffset{};
+        float mass = 1.0f;
+        bool overrideMass = false;
+        glm::vec3 centerOfMassOffset = glm::vec3(0.0f);
+        float friction = 0.2f;
+        float restitution = 0.0f;
+        float linearDamping = 0.05f;
+        float angularDamping = 0.05f;
 
         template <class Archive>
         void serialize(Archive& ar, const unsigned int /*version*/)
@@ -78,6 +86,13 @@ namespace Physics
             ar & colliderShape;
             ar & customColliderShapeData;
             ar & transformationOffset;
+            ar & mass;
+            ar & overrideMass;
+            ar & centerOfMassOffset;
+            ar & friction;
+            ar & restitution;
+            ar & linearDamping;
+            ar & angularDamping;
         }
     };
 
