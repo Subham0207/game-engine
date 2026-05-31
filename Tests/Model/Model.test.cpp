@@ -107,3 +107,15 @@ TEST(ModelGameplayTags, shouldQueryConfiguredTags)
     EXPECT_FALSE(model.hasGameplayTag("Enemy"));
 }
 
+TEST(ModelGameplayTags, shouldReplacePreviousTagsWhenTagsAreReset)
+{
+    Model model;
+    model.setGameplayTags({"Player", "Damageable"});
+    model.setGameplayTags({"Enemy"});
+
+    EXPECT_FALSE(model.hasGameplayTag("Player"));
+    EXPECT_FALSE(model.hasGameplayTag("Damageable"));
+    EXPECT_TRUE(model.hasGameplayTag("Enemy"));
+    EXPECT_EQ(model.GetGameplayTags().size(), 1u);
+}
+

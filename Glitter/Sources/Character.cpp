@@ -82,37 +82,6 @@ Character* Character::getCharacterByCapsuleId(uint32_t capsuleCharacterId)
     return found->second;
 }
 
-std::vector<Character*> Character::getCollidingCharacters() const
-{
-    std::vector<Character*> collidingCharacters;
-    const auto collidingIds = getCollidingCharacterCapsuleIds();
-    collidingCharacters.reserve(collidingIds.size());
-
-    for (const uint32_t capsuleId : collidingIds)
-    {
-        Character* character = Character::getCharacterByCapsuleId(capsuleId);
-        if (character != nullptr && character != this)
-        {
-            collidingCharacters.push_back(character);
-        }
-    }
-
-    return collidingCharacters;
-}
-
-bool Character::hasCollidingCharacterWithTag(const std::string& tag) const
-{
-    const auto collidingCharacters = getCollidingCharacters();
-    for (const auto* character : collidingCharacters)
-    {
-        if (character != nullptr && character->hasGameplayTag(tag))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 std::vector<Renderable*> Character::GetOverlappingSensors() const
 {

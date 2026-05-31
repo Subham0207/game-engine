@@ -207,23 +207,6 @@ public:
     void setMoveSpeed(const float& x){movementSpeed = x;}
     float& getMoveSpeed(){return movementSpeed;}
 
-    [[nodiscard]] bool hasCharacterCapsuleCollision() const
-    {
-        return capsuleCollider != nullptr && capsuleCollider->hasCharacterCollision();
-    }
-
-    [[nodiscard]] std::vector<uint32_t> getCollidingCharacterCapsuleIds() const
-    {
-        if (capsuleCollider == nullptr)
-        {
-            return {};
-        }
-
-        return capsuleCollider->getCollidingCharacterIds();
-    }
-
-    [[nodiscard]] std::vector<Character*> getCollidingCharacters() const;
-
     [[nodiscard]] uint32_t getCapsuleCharacterId() const
     {
         if (capsuleCollider == nullptr)
@@ -249,7 +232,6 @@ public:
     {
         return gameplayTagSet.find(tag) != gameplayTagSet.end();
     }
-    [[nodiscard]] bool hasCollidingCharacterWithTag(const std::string& tag) const;
     [[nodiscard]] std::vector<Renderable*> GetOverlappingSensors() const override;
 
 protected:

@@ -82,7 +82,7 @@ private:
 };
 
 PhysicsSystemWrapper::PhysicsSystemWrapper()
-    : tempAllocator(nullptr), jobSystem(nullptr)
+    : tempAllocator(nullptr), jobSystem(nullptr), eventQueue(nullptr)
 {
 }
 
@@ -303,6 +303,11 @@ void PhysicsSystemWrapper::UnregisterBodyOwner(const JPH::BodyID bodyID)
     bodyOwners.erase(bodyID.GetIndexAndSequenceNumber());
 }
 
+void PhysicsSystemWrapper::setEventQueue(EventQueue* queue)
+{
+    eventQueue = queue;
+}
+
 const PhysicsSystemWrapper::BodyOwnerEntry* PhysicsSystemWrapper::findBodyOwner(const JPH::BodyID bodyID) const
 {
     const auto found = bodyOwners.find(bodyID.GetIndexAndSequenceNumber());
@@ -427,11 +432,7 @@ void PhysicsSystemWrapper::finalizePhysicsEventsForFrame()
 {
     pruneDestroyedInstanceEntries();
 
-    EventQueue* queue = nullptr;
-    if (EngineState::state != nullptr && EngineState::state->activeLevel != nullptr)
-    {
-        queue = EngineState::state->activeLevel->eventQueue;
-    }
+    EventQueue* queue = eventQueue;
 
     if (queue != nullptr)
     {

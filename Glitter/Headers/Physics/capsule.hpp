@@ -40,8 +40,6 @@ namespace Physics
         void Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
             const JPH::RVec3 &spawn, float halfheight = 0.8f, float radius = 0.3f);
 
-        [[nodiscard]] bool hasCharacterCollision() const;
-        [[nodiscard]] std::vector<uint32_t> getCollidingCharacterIds() const;
         [[nodiscard]] uint32_t getCharacterId() const;
 
         glm::vec3 position;

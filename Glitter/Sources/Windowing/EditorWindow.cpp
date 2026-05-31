@@ -51,6 +51,7 @@ void EditorWindow::init()
     lvl->setInputHandler(mInputHandler.get());
     lvl->setEventQueue(mQueue.get());
     lvl->setEventBus(mBus.get());
+    getPhysicsSystem().setEventQueue(mQueue.get());
 
     lvl->loadMainLevelOfCurrentProject();
 

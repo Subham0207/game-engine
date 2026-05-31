@@ -9,6 +9,7 @@ FetchContent_MakeAvailable(googletest)
 # Add the test executable and link it to the GlitterLib library
 add_executable(Test
         test.cpp
+        Character/Character.test.cpp
         NodeGraph/NodeGraph.test.cpp
         NodeGraph/StateMachineJsonExporter.test.cpp
         NodeGraph/FlowScript/Compile/Compiler.test.cpp
@@ -19,6 +20,7 @@ add_executable(Test
         NodeGraph/FlowScript/VisualScriptJsonSerializer.test.cpp
         Model/Model.test.cpp
         Physics/PhysicsLayerRegistry.test.cpp
+        Physics/PhysicsSystem.test.cpp
         Windowing/ProjectManagerWindow.test.cpp
 )
 

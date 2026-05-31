@@ -26,6 +26,7 @@ namespace Physics
 
 class Renderable;
 class PhysicsBodyContactListener;
+class EventQueue;
 
 class BroadPhaseLayerInterfaceImpl : public JPH::BroadPhaseLayerInterface {
     public:
@@ -75,6 +76,7 @@ public:
 
     void RegisterBodyOwner(JPH::BodyID bodyID, Renderable* renderable, const std::string& instanceId, bool isSensor);
     void UnregisterBodyOwner(JPH::BodyID bodyID);
+    void setEventQueue(EventQueue* queue);
     [[nodiscard]] std::vector<Renderable*> GetOverlappingSensorsFor(const std::string& instanceId) const;
 
     struct BodyOwnerEntry
@@ -149,4 +151,5 @@ private:
     std::unordered_set<InstancePairKey, InstancePairKeyHasher> sensorPairsThisFrame;
     std::unordered_set<InstancePairKey, InstancePairKeyHasher> sensorPairsPreviousFrame;
     std::unordered_map<std::string, std::unordered_set<std::string>> currentSensorOverlapsByInstance;
+    EventQueue* eventQueue = nullptr;
 };

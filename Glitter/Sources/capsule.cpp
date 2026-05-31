@@ -1,8 +1,6 @@
 #include "Physics/capsule.hpp"
 #include <Character/Character.hpp>
 #include <EngineState.hpp>
-#include <Event/Event.hpp>
-#include <Event/EventQueue.hpp>
 #include <Physics/PhysicsLayerRegistry.hpp>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
@@ -173,41 +171,28 @@ void Physics::Capsule::moveBody(
     }
 
     // CharacterVirtual collisions don't flow through the rigid-body contact listener,
-    // so we emit body-collision events directly from the character listener path.
-    if (EngineState::state != nullptr && EngineState::state->activeLevel != nullptr &&
-        EngineState::state->activeLevel->eventQueue != nullptr)
+    // so forward them to PhysicsSystem's collision recording path.
+    if (physics != nullptr && character != nullptr)
     {
-        EventQueue* queue = EngineState::state->activeLevel->eventQueue;
-        Character* selfCharacter = Character::getCharacterByCapsuleId(getCharacterId());
-        if (selfCharacter != nullptr)
+        const uint32_t selfCharacterId = getCharacterId();
+        if (selfCharacterId != std::numeric_limits<uint32_t>::max())
         {
-            const std::string& selfInstanceId = selfCharacter->getInstanceId();
+            const JPH::BodyID selfBodyId = character->GetInnerBodyID();
             for (const auto& [otherCapsuleId, points] : listener->getCharacterContactPoints())
             {
+                if (otherCapsuleId == std::numeric_limits<uint32_t>::max() || selfCharacterId > otherCapsuleId)
+                {
+                    continue;
+                }
+
                 Character* otherCharacter = Character::getCharacterByCapsuleId(otherCapsuleId);
-                if (otherCharacter == nullptr)
+                if (otherCharacter == nullptr || otherCharacter->capsuleCollider == nullptr ||
+                    otherCharacter->capsuleCollider->character == nullptr)
                 {
                     continue;
                 }
 
-                const std::string& otherInstanceId = otherCharacter->getInstanceId();
-                if (otherInstanceId.empty() || selfInstanceId.empty() || selfInstanceId == otherInstanceId)
-                {
-                    continue;
-                }
-
-                // Emit exactly one event per pair by canonicalizing to instance-id order.
-                if (selfInstanceId > otherInstanceId)
-                {
-                    continue;
-                }
-
-                queue->push<BodiesCollidedEvent>(
-                    selfCharacter,
-                    otherCharacter,
-                    selfInstanceId,
-                    otherInstanceId,
-                    points);
+                physics->recordBodyCollision(selfBodyId, otherCharacter->capsuleCollider->character->GetInnerBodyID(), points);
             }
         }
     }
@@ -345,21 +330,6 @@ void Physics::Capsule::PhysicsUpdate()
     assert(!glm::any(glm::isnan(transformglm)) && "Jolt Character Position is NaN!");
 }
 
-bool Physics::Capsule::hasCharacterCollision() const
-{
-    return listener != nullptr && listener->hasCharacterContacts();
-}
-
-std::vector<uint32_t> Physics::Capsule::getCollidingCharacterIds() const
-{
-    if (listener == nullptr)
-    {
-        return {};
-    }
-
-    const auto& ids = listener->getCharacterContactIds();
-    return std::vector<uint32_t>(ids.begin(), ids.end());
-}
 
 uint32_t Physics::Capsule::getCharacterId() const
 {
