@@ -9,6 +9,7 @@
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
+#include <algorithm>
 #include <limits>
 using CastShapeClosestHitCollisionCollector = JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector>;
 
@@ -238,7 +239,7 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     set->mMaxSlopeAngle     = JPH::DegreesToRadians(55.0f);           // walkable if ≤ 55°
     set->mSupportingVolume  = JPH::Plane(JPH::Vec3::sAxisY(), -radius);
     set->mPredictiveContactDistance = 0.1f;                           // prevents snagging
-    set->mMass              = 80.0f;
+    set->mMass              = std::max(0.001f, characterMass);
     // If you need the character to show up in regular overlap queries,
     // give it an “inner” rigid body:
     // set->mInnerBodyShape = set->mShape;   // (optional)
@@ -282,7 +283,8 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
         if (lock.Succeeded())
         {
             JPH::Body &body = lock.GetBody();
-            body.SetRestitution(0.0f);
+            body.SetFriction(std::max(0.0f, characterFriction));
+            body.SetRestitution(std::max(0.0f, characterRestitution));
             body.SetIsSensor(getIsSensor());
         }
     }

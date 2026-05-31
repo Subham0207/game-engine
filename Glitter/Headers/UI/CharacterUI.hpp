@@ -16,6 +16,9 @@ namespace UI
         float capsuleRadius;
         int selectedCapsulePhysicsLayerIndex;
         bool capsuleIsSensor;
+        float capsuleMass;
+        float capsuleFriction;
+        float capsuleRestitution;
         glm::vec3 modelScale;
 
         int selectedSkeletonIndex;

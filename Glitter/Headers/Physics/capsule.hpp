@@ -42,6 +42,13 @@ namespace Physics
 
         [[nodiscard]] uint32_t getCharacterId() const;
 
+        void setCharacterMass(const float mass) { characterMass = mass; }
+        void setCharacterFriction(const float friction) { characterFriction = friction; }
+        void setCharacterRestitution(const float restitution) { characterRestitution = restitution; }
+        [[nodiscard]] float getCharacterMass() const { return characterMass; }
+        [[nodiscard]] float getCharacterFriction() const { return characterFriction; }
+        [[nodiscard]] float getCharacterRestitution() const { return characterRestitution; }
+
         glm::vec3 position;
         glm::quat rotation;
         glm::vec3 scale;
@@ -63,6 +70,9 @@ namespace Physics
         bool grounded      = false;
         bool landed        = false;
         JPH::Vec3 ground_normal = JPH::Vec3::sAxisY();
+        float characterMass = 80.0f;
+        float characterFriction = 0.2f;
+        float characterRestitution = 0.0f;
 
     private:
         friend class boost::serialization::access;

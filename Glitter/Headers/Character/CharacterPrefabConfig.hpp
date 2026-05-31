@@ -19,6 +19,9 @@ struct CharacterPrefabConfig {
     float capsuleRadius = 0.0f;
     std::string capsulePhysicsLayer = "Default";
     bool capsuleIsSensor = false;
+    float capsuleMass = 80.0f;
+    float capsuleFriction = 0.2f;
+    float capsuleRestitution = 0.0f;
     glm::vec3 modelScale{1.0f};
     std::vector<std::string> gameplayTags;
 
