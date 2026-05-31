@@ -52,5 +52,8 @@ private:
 template<> inline EventType EventBus::eventTypeOf<MouseMoveEvent>() { return EventType::MouseMove; }
 template<> inline EventType EventBus::eventTypeOf<HUDUpdateEvent>() { return EventType::HUDUpdate; }
 template<> inline EventType EventBus::eventTypeOf<ActivateHUDEvent>() { return EventType::ActivateHUD; }
+template<> inline EventType EventBus::eventTypeOf<BodiesCollidedEvent>() { return EventType::BodiesCollided; }
+template<> inline EventType EventBus::eventTypeOf<SensorsEnteredEvent>() { return EventType::SensorsEntered; }
+template<> inline EventType EventBus::eventTypeOf<SensorsExitedEvent>() { return EventType::SensorsExited; }
 
 #endif //GLITTER_EVENTBUS_HPP

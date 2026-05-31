@@ -7,8 +7,11 @@
 
 #pragma once
 #include <cstdint>
+#include <vector>
 #include <string>
 #include <utility>
+
+#include <glm/glm.hpp>
 
 #include "GLFW/glfw3.h"
 
@@ -18,8 +21,13 @@ enum class EventType : uint32_t {
     Key,
     WindowResize,
     HUDUpdate,
-    ActivateHUD
+    ActivateHUD,
+    BodiesCollided,
+    SensorsEntered,
+    SensorsExited
 };
+
+class Renderable;
 
 enum class HUDUpdateOperation : uint32_t
 {
@@ -68,6 +76,69 @@ struct ActivateHUDEvent final : Event {
     {}
 
     EventType type() const override { return EventType::ActivateHUD; }
+};
+
+struct BodiesCollidedEvent final : Event {
+    Renderable* bodyA = nullptr;
+    Renderable* bodyB = nullptr;
+    std::string bodyAInstanceId;
+    std::string bodyBInstanceId;
+    std::vector<glm::vec3> contactPoints;
+
+    BodiesCollidedEvent(
+        Renderable* bodyA,
+        Renderable* bodyB,
+        std::string bodyAInstanceId,
+        std::string bodyBInstanceId,
+        std::vector<glm::vec3> contactPoints)
+        : bodyA(bodyA),
+          bodyB(bodyB),
+          bodyAInstanceId(std::move(bodyAInstanceId)),
+          bodyBInstanceId(std::move(bodyBInstanceId)),
+          contactPoints(std::move(contactPoints))
+    {}
+
+    EventType type() const override { return EventType::BodiesCollided; }
+};
+
+struct SensorsEnteredEvent final : Event {
+    Renderable* sensorOwner = nullptr;
+    Renderable* otherBody = nullptr;
+    std::string sensorOwnerInstanceId;
+    std::string otherBodyInstanceId;
+
+    SensorsEnteredEvent(
+        Renderable* sensorOwner,
+        Renderable* otherBody,
+        std::string sensorOwnerInstanceId,
+        std::string otherBodyInstanceId)
+        : sensorOwner(sensorOwner),
+          otherBody(otherBody),
+          sensorOwnerInstanceId(std::move(sensorOwnerInstanceId)),
+          otherBodyInstanceId(std::move(otherBodyInstanceId))
+    {}
+
+    EventType type() const override { return EventType::SensorsEntered; }
+};
+
+struct SensorsExitedEvent final : Event {
+    Renderable* sensorOwner = nullptr;
+    Renderable* otherBody = nullptr;
+    std::string sensorOwnerInstanceId;
+    std::string otherBodyInstanceId;
+
+    SensorsExitedEvent(
+        Renderable* sensorOwner,
+        Renderable* otherBody,
+        std::string sensorOwnerInstanceId,
+        std::string otherBodyInstanceId)
+        : sensorOwner(sensorOwner),
+          otherBody(otherBody),
+          sensorOwnerInstanceId(std::move(sensorOwnerInstanceId)),
+          otherBodyInstanceId(std::move(otherBodyInstanceId))
+    {}
+
+    EventType type() const override { return EventType::SensorsExited; }
 };
 
 #endif //GLITTER_EVENT_HPP

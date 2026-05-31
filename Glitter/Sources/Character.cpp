@@ -44,6 +44,8 @@ Character::Character(std::string filepath): Serializable(){
     controller = playerController;
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
+    capsuleCollider->setOwnerRenderable(this, getInstanceId());
+    capsuleCollider->syncTransformation();
 
     modelRelativePosition = glm::vec3(0.0f);
 
@@ -110,6 +112,18 @@ bool Character::hasCollidingCharacterWithTag(const std::string& tag) const
     }
 
     return false;
+}
+
+std::vector<Renderable*> Character::GetOverlappingSensors() const
+{
+    auto* self = const_cast<Character*>(this);
+    return getPhysicsSystem().GetOverlappingSensorsFor(self->getInstanceId());
+}
+
+void Character::syncGameplayTagSet()
+{
+    gameplayTagSet.clear();
+    gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
 }
 
 void Character::syncCapsuleCharacterLookup()
@@ -204,6 +218,7 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
 
     if (character->capsuleCollider != nullptr)
     {
+        character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
         character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
         character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
         character->capsuleCollider->syncTransformation();
@@ -422,6 +437,7 @@ void Character::deleteStateMachine()
 void Character::loadContent(fs::path contentFile, std::istream& is)
 {
     Character::loadFromFile(contentFile.string(), *this);
+    syncGameplayTagSet();
     auto model_guid = this->model_guid;
     auto skeleton_guid = this->skeleton_guid;
     auto stateMachine_guid = this->animStateMachine_guid;
@@ -465,6 +481,8 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //Create new capsule collider
     this->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), radius, halfHeight, true, true);
+    this->capsuleCollider->setOwnerRenderable(this, getInstanceId());
+    this->capsuleCollider->syncTransformation();
     syncCapsuleCharacterLookup();
 
     //Create new camera

@@ -604,6 +604,10 @@ void Model::attachPhysicsObject(Physics::PhysicsObject* physicsObj)
     }
 
     this->physicsObject = physicsObj;
+    if (this->physicsObject != nullptr)
+    {
+        this->physicsObject->setOwnerRenderable(this, getInstanceId());
+    }
 }
 
 void Model::clearPhysicsObject()
@@ -651,8 +655,21 @@ void Model::syncPhysicsColliderToModelTransform()
 {
     if (this->physicsObject)
     {
+        physicsObject->setOwnerRenderable(this, getInstanceId());
         physicsObject->syncTransformation(GetPosition(), GetRot(), GetScale());
     }
+}
+
+std::vector<Renderable*> Model::GetOverlappingSensors() const
+{
+    auto* self = const_cast<Model*>(this);
+    return getPhysicsSystem().GetOverlappingSensorsFor(self->getInstanceId());
+}
+
+void Model::syncGameplayTagSet()
+{
+    gameplayTagSet.clear();
+    gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
 }
 
 glm::vec3 Model::computeLocalMeshHalfExtents() const
@@ -864,6 +881,7 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
 
     modeltype = ModelType::ACTUAL_MODEL;
     Model::loadFromFile(contentFile.string(), *this, material);
+    syncGameplayTagSet();
 
     if (physicsBodySettings.has_value())
     {

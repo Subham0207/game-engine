@@ -47,6 +47,12 @@ void Physics::PhysicsObject::setIsSensor(const bool sensor)
     isSensor = sensor;
 }
 
+void Physics::PhysicsObject::setOwnerRenderable(Renderable* owner, const std::string& instanceId)
+{
+    ownerRenderable = owner;
+    ownerInstanceId = instanceId;
+}
+
 void Physics::PhysicsObject::setBoxBaseHalfExtents(const glm::vec3& halfExtents)
 {
     boxBaseHalfExtents = glm::max(halfExtents, glm::vec3(0.01f));
@@ -62,6 +68,7 @@ void Physics::PhysicsObject::destroyBody()
 {
     if (physics)
     {
+        physics->UnregisterBodyOwner(physicsId);
         physics->RemoveBody(physicsId);
     }
 }
@@ -99,6 +106,7 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
     const JPH::EMotionType joltMotionType = motionTypeToJolt(motionType);
     const JPH::ObjectLayer objectLayer = Physics::PhysicsLayerRegistry::instance().getLayerOrDefault(physicsLayerName);
 
+    physics->UnregisterBodyOwner(physicsId);
     physics->RemoveBody(physicsId);
 
     switch (runtimeShape)
@@ -154,6 +162,11 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
             physicsId = physics->AddBox(jphPosition, jphRotation, jphHalfExtents, joltMotionType, objectLayer, isSensor);
             break;
         }
+    }
+
+    if (physics != nullptr)
+    {
+        physics->RegisterBodyOwner(physicsId, ownerRenderable, ownerInstanceId, isSensor);
     }
 }
 

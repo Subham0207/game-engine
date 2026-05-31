@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <limits>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "CharacterPrefabConfig.hpp"
 #include "Controls/Controller.hpp"
@@ -236,13 +237,20 @@ public:
     static Character* getCharacterByCapsuleId(uint32_t capsuleCharacterId);
     void syncCapsuleCharacterLookup();
 
-    void setGameplayTags(const std::vector<std::string>& tags) { gameplayTags = tags; }
+    void setGameplayTags(const std::vector<std::string>& tags)
+    {
+        gameplayTags = tags;
+        gameplayTagSet.clear();
+        gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
+    }
     [[nodiscard]] const std::vector<std::string>& getGameplayTags() const { return gameplayTags; }
+    [[nodiscard]] const std::unordered_set<std::string>& GetGameplayTags() const override { return gameplayTagSet; }
     [[nodiscard]] bool hasGameplayTag(const std::string& tag) const
     {
-        return std::find(gameplayTags.begin(), gameplayTags.end(), tag) != gameplayTags.end();
+        return gameplayTagSet.find(tag) != gameplayTagSet.end();
     }
     [[nodiscard]] bool hasCollidingCharacterWithTag(const std::string& tag) const;
+    [[nodiscard]] std::vector<Renderable*> GetOverlappingSensors() const override;
 
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
@@ -268,8 +276,10 @@ private:
     uint32_t registeredCapsuleCharacterId = std::numeric_limits<uint32_t>::max();
     static std::unordered_map<uint32_t, Character*> capsuleCharacterLookup;
     std::vector<std::string> gameplayTags;
+    std::unordered_set<std::string> gameplayTagSet;
 
     void unregisterCapsuleCharacterLookup();
+    void syncGameplayTagSet();
 
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const;
     void uploadBoneMatricesToGPU() const;

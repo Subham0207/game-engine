@@ -28,6 +28,11 @@ void Level::addRenderable(const shared_ptr<Renderable>& renderable)
     modelTransformations.push_back(&renderable->getModelMatrix());
     renderables.push_back(renderable);
 
+    if (const auto serializable = std::dynamic_pointer_cast<Serializable>(renderable))
+    {
+        instanceIdToSerializableMap[serializable->getInstanceId()] = serializable;
+    }
+
     if (auto model = std::dynamic_pointer_cast<Model>(renderable))
     {
         model->ensureStaticBoxCollider();
@@ -97,6 +102,11 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 character->load(path, id);
                 character->setModelMatrix(M);
                 character->setInstanceId(instanceId);
+                if (character->capsuleCollider != nullptr)
+                {
+                    character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
+                    character->capsuleCollider->syncTransformation();
+                }
                 this->renderables.push_back(character);
                 instanceIdToSerializableMap[instanceId] = character;
             }
@@ -277,6 +287,7 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
     }
 
     character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
+    character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
     character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
     character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
     character->capsuleCollider->syncTransformation();

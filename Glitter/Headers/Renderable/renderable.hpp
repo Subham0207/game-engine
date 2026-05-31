@@ -5,6 +5,7 @@
 #include<3DModel/mesh.hpp>
 #include<Camera/Camera.hpp>
 #include <Modals/vertex.hpp>
+#include <unordered_set>
 enum ModelType;
 
 class Renderable {
@@ -30,6 +31,13 @@ public:
     virtual ModelType getModelType() = 0;
     virtual void setIsSelected(bool isSelected) = 0;
     virtual bool getIsSelected() = 0;
+
+    virtual std::vector<Renderable*> GetOverlappingSensors() const { return {}; }
+    virtual const std::unordered_set<std::string>& GetGameplayTags() const
+    {
+        static const std::unordered_set<std::string> emptyTags;
+        return emptyTags;
+    }
 
 
     virtual std::string GetGuid() = 0;

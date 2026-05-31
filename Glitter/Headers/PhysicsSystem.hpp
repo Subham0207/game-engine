@@ -12,6 +12,9 @@
 #include <Jolt/Core/TempAllocator.h>
 #include <glm/glm.hpp>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "Physics/PhysicsLayerRegistry.hpp"
@@ -20,6 +23,9 @@ namespace Physics
 {
     class OpenGLJoltDebugRenderer;
 }
+
+class Renderable;
+class PhysicsBodyContactListener;
 
 class BroadPhaseLayerInterfaceImpl : public JPH::BroadPhaseLayerInterface {
     public:
@@ -66,9 +72,81 @@ public:
     JPH::BodyInterface& GetPhysicsBodyInterface();
     void RemoveBody(JPH::BodyID bodyID);
     void DrawDebugBodies(const glm::mat4& viewProjection, const glm::vec3& cameraPosition);
+
+    void RegisterBodyOwner(JPH::BodyID bodyID, Renderable* renderable, const std::string& instanceId, bool isSensor);
+    void UnregisterBodyOwner(JPH::BodyID bodyID);
+    [[nodiscard]] std::vector<Renderable*> GetOverlappingSensorsFor(const std::string& instanceId) const;
+
+    struct BodyOwnerEntry
+    {
+        Renderable* renderable = nullptr;
+        std::string instanceId;
+        bool isSensor = false;
+    };
+
+    [[nodiscard]] const BodyOwnerEntry* findBodyOwner(JPH::BodyID bodyID) const;
+
+    void recordBodyCollision(
+        JPH::BodyID bodyA,
+        JPH::BodyID bodyB,
+        const std::vector<glm::vec3>& contactPoints);
+    void recordSensorOverlap(JPH::BodyID bodyA, JPH::BodyID bodyB);
+    void finalizePhysicsEventsForFrame();
+
     JPH::PhysicsSystem physicsSystem;
 private:
+    struct BodyPairKey
+    {
+        uint32_t first = 0;
+        uint32_t second = 0;
+
+        bool operator==(const BodyPairKey& rhs) const
+        {
+            return first == rhs.first && second == rhs.second;
+        }
+    };
+
+    struct BodyPairKeyHasher
+    {
+        size_t operator()(const BodyPairKey& key) const noexcept
+        {
+            return (static_cast<size_t>(key.first) << 32u) ^ static_cast<size_t>(key.second);
+        }
+    };
+
+    struct InstancePairKey
+    {
+        std::string first;
+        std::string second;
+
+        bool operator==(const InstancePairKey& rhs) const
+        {
+            return first == rhs.first && second == rhs.second;
+        }
+    };
+
+    struct InstancePairKeyHasher
+    {
+        size_t operator()(const InstancePairKey& key) const noexcept
+        {
+            return std::hash<std::string>{}(key.first) ^ (std::hash<std::string>{}(key.second) << 1u);
+        }
+    };
+
+    static BodyPairKey makeBodyPairKey(JPH::BodyID bodyA, JPH::BodyID bodyB);
+    static InstancePairKey makeInstancePairKey(const std::string& instanceA, const std::string& instanceB);
+    void pruneDestroyedInstanceEntries();
+    [[nodiscard]] bool isInstanceAlive(const std::string& instanceId) const;
+    [[nodiscard]] Renderable* resolveRenderableByInstanceId(const std::string& instanceId) const;
+
     JPH::TempAllocatorImpl* tempAllocator;
     JPH::JobSystemThreadPool* jobSystem;
     std::unique_ptr<Physics::OpenGLJoltDebugRenderer> debugRenderer;
+    std::unique_ptr<PhysicsBodyContactListener> bodyContactListener;
+
+    std::unordered_map<uint32_t, BodyOwnerEntry> bodyOwners;
+    std::unordered_map<BodyPairKey, std::vector<glm::vec3>, BodyPairKeyHasher> bodyCollisionPointsByPair;
+    std::unordered_set<InstancePairKey, InstancePairKeyHasher> sensorPairsThisFrame;
+    std::unordered_set<InstancePairKey, InstancePairKeyHasher> sensorPairsPreviousFrame;
+    std::unordered_map<std::string, std::unordered_set<std::string>> currentSensorOverlapsByInstance;
 };

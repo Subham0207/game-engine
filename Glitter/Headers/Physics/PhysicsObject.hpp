@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+class Renderable;
+
 namespace Physics
 {
     class PhysicsObject {
@@ -38,6 +40,7 @@ namespace Physics
         void setTransformOffset(const Physics::TransformOffset& offset);
         void setPhysicsLayerName(const std::string& layerName);
         void setIsSensor(bool sensor);
+        void setOwnerRenderable(Renderable* owner, const std::string& ownerInstanceId);
         void setBoxBaseHalfExtents(const glm::vec3& halfExtents);
         void setCustomColliderGeometry(const std::vector<glm::vec3>& vertices, const std::vector<uint32_t>& indices);
 
@@ -45,6 +48,8 @@ namespace Physics
         [[nodiscard]] Physics::MotionType getMotionType() const { return motionType; }
         [[nodiscard]] const std::string& getPhysicsLayerName() const { return physicsLayerName; }
         [[nodiscard]] bool getIsSensor() const { return isSensor; }
+        [[nodiscard]] Renderable* getOwnerRenderable() const { return ownerRenderable; }
+        [[nodiscard]] const std::string& getOwnerInstanceId() const { return ownerInstanceId; }
 
         void destroyBody();
 
@@ -62,5 +67,7 @@ namespace Physics
         glm::vec3 boxBaseHalfExtents = glm::vec3(1.0f);
         std::vector<glm::vec3> customVertices;
         std::vector<uint32_t> customIndices;
+        Renderable* ownerRenderable = nullptr;
+        std::string ownerInstanceId;
     };
 }

@@ -104,7 +104,36 @@ namespace Engine
             // Accessing nested values using the dot notation
             character.stateMachineGuid = root.get<std::string>("statemachine_guid");
             character.controllerClassId = root.get<std::string>("playerController.classId");
-            character.gameplayTags = parseTagsCsv(root.get<std::string>("gameplayTagsCsv", ""));
+
+            // Backward compatible gameplay-tag load path:
+            // - preferred: gameplayTagsCsv (new)
+            // - fallback: gameplayTags (legacy string csv)
+            // - fallback: gameplayTags array (legacy list)
+            character.gameplayTags.clear();
+            const std::string tagsCsv = root.get<std::string>("gameplayTagsCsv", "");
+            if (!tagsCsv.empty())
+            {
+                character.gameplayTags = parseTagsCsv(tagsCsv);
+            }
+            else
+            {
+                const std::string legacyTagsCsv = root.get<std::string>("gameplayTags", "");
+                if (!legacyTagsCsv.empty())
+                {
+                    character.gameplayTags = parseTagsCsv(legacyTagsCsv);
+                }
+                else if (const auto tagsNode = root.get_child_optional("gameplayTags"))
+                {
+                    for (const auto& tagNode : *tagsNode)
+                    {
+                        const std::string tag = tagNode.second.get_value<std::string>("");
+                        if (!tag.empty())
+                        {
+                            character.gameplayTags.push_back(tag);
+                        }
+                    }
+                }
+            }
         } catch (const bs::json_parser_error& e) {
             std::cerr << "Error parsing JSON: " << e.what() << std::endl;
         } catch (const bs::ptree_error& e) {

@@ -1,6 +1,8 @@
 #include "Physics/capsule.hpp"
 #include <Character/Character.hpp>
 #include <EngineState.hpp>
+#include <Event/Event.hpp>
+#include <Event/EventQueue.hpp>
 #include <Physics/PhysicsLayerRegistry.hpp>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
@@ -50,6 +52,10 @@ Physics::Capsule::~Capsule()
 {
     if (character)
     {
+        if (physics)
+        {
+            physics->UnregisterBodyOwner(character->GetInnerBodyID());
+        }
         character->SetListener(nullptr);
         getCharacterVsCharacterCollisionRegistry().Remove(character);
         delete character;
@@ -79,6 +85,10 @@ void Physics::Capsule::syncTransformation()
     else
     {
         if (character) {
+            if (physics)
+            {
+                physics->UnregisterBodyOwner(character->GetInnerBodyID());
+            }
             character->SetListener(nullptr);
             getCharacterVsCharacterCollisionRegistry().Remove(character);
             delete character;
@@ -161,6 +171,46 @@ void Physics::Capsule::moveBody(
         character->SetLinearVelocity(JPH::Vec3::sZero());
         assert(false && "Jolt Character went NaN!");
     }
+
+    // CharacterVirtual collisions don't flow through the rigid-body contact listener,
+    // so we emit body-collision events directly from the character listener path.
+    if (EngineState::state != nullptr && EngineState::state->activeLevel != nullptr &&
+        EngineState::state->activeLevel->eventQueue != nullptr)
+    {
+        EventQueue* queue = EngineState::state->activeLevel->eventQueue;
+        Character* selfCharacter = Character::getCharacterByCapsuleId(getCharacterId());
+        if (selfCharacter != nullptr)
+        {
+            const std::string& selfInstanceId = selfCharacter->getInstanceId();
+            for (const auto& [otherCapsuleId, points] : listener->getCharacterContactPoints())
+            {
+                Character* otherCharacter = Character::getCharacterByCapsuleId(otherCapsuleId);
+                if (otherCharacter == nullptr)
+                {
+                    continue;
+                }
+
+                const std::string& otherInstanceId = otherCharacter->getInstanceId();
+                if (otherInstanceId.empty() || selfInstanceId.empty() || selfInstanceId == otherInstanceId)
+                {
+                    continue;
+                }
+
+                // Emit exactly one event per pair by canonicalizing to instance-id order.
+                if (selfInstanceId > otherInstanceId)
+                {
+                    continue;
+                }
+
+                queue->push<BodiesCollidedEvent>(
+                    selfCharacter,
+                    otherCharacter,
+                    selfInstanceId,
+                    otherInstanceId,
+                    points);
+            }
+        }
+    }
 }
 
 void Physics::Capsule::tick()
@@ -176,6 +226,10 @@ void Physics::Capsule::reInit(float radius, float halfheight)
     auto jphPosition = character->GetPosition();
 
     if (character) {
+        if (physics)
+        {
+            physics->UnregisterBodyOwner(character->GetInnerBodyID());
+        }
         character->SetListener(nullptr);
         getCharacterVsCharacterCollisionRegistry().Remove(character);
         delete character;
@@ -233,6 +287,10 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     character->SetListener(listener);                                  // ground callbacks
 
     auto body_id = character->GetInnerBodyID();
+    if (physics)
+    {
+        physics->RegisterBodyOwner(body_id, getOwnerRenderable(), getOwnerInstanceId(), getIsSensor());
+    }
     auto &lock_interface = physics->physicsSystem.GetBodyLockInterface();
     {
         JPH::BodyLockWrite lock(lock_interface, character->GetInnerBodyID());
