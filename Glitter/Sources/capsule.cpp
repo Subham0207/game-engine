@@ -240,6 +240,7 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     set->mSupportingVolume  = JPH::Plane(JPH::Vec3::sAxisY(), -radius);
     set->mPredictiveContactDistance = 0.1f;                           // prevents snagging
     set->mMass              = std::max(0.001f, characterMass);
+    set->mMaxStrength       = std::max(0.0f, characterMaxStrength);
     // If you need the character to show up in regular overlap queries,
     // give it an “inner” rigid body:
     // set->mInnerBodyShape = set->mShape;   // (optional)

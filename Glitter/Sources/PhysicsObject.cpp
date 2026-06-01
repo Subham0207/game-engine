@@ -128,15 +128,22 @@ void Physics::PhysicsObject::syncTransformation(const glm::vec3& position, const
     {
         case RuntimeShape::Sphere:
         {
-            const float maxScale = std::max(worldScale.x, std::max(worldScale.y, worldScale.z));
-            const float radius = std::max(0.05f, maxScale * 0.5f);
+            const float baseRadius = std::max(
+                0.01f,
+                std::max(boxBaseHalfExtents.x, std::max(boxBaseHalfExtents.y, boxBaseHalfExtents.z)));
+            const float maxScale = std::max(std::abs(worldScale.x), std::max(std::abs(worldScale.y), std::abs(worldScale.z)));
+            const float radius = std::max(0.05f, baseRadius * maxScale);
             bodyShape = new JPH::SphereShape(radius);
             break;
         }
         case RuntimeShape::Capsule:
         {
-            const float radius = std::max(0.05f, std::min(worldScale.x, worldScale.z) * 0.5f);
-            const float halfHeight = std::max(0.05f, (worldScale.y * 0.5f) - radius);
+            const float baseRadius = std::max(0.01f, std::min(boxBaseHalfExtents.x, boxBaseHalfExtents.z));
+            const float baseHalfHeight = std::max(0.01f, boxBaseHalfExtents.y - baseRadius);
+            const float radiusScale = std::min(std::abs(worldScale.x), std::abs(worldScale.z));
+            const float halfHeightScale = std::abs(worldScale.y);
+            const float radius = std::max(0.05f, baseRadius * radiusScale);
+            const float halfHeight = std::max(0.05f, baseHalfHeight * halfHeightScale);
             bodyShape = new JPH::CapsuleShape(halfHeight, radius);
             break;
         }

@@ -751,7 +751,9 @@ void Model::rebuildPhysicsObjectFromSettings()
         object->setPhysicsLayerName(settings.physicsLayer);
         object->setIsSensor(settings.isSensor);
 
-        if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Box)
+        if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Box
+            || settings.rigidBodyData.colliderShape == Physics::ColliderShape::Sphere
+            || settings.rigidBodyData.colliderShape == Physics::ColliderShape::Capsule)
         {
             object->setBoxBaseHalfExtents(computeLocalMeshHalfExtents());
         }

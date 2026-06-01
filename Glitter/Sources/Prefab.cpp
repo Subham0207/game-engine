@@ -100,6 +100,7 @@ namespace Engine
             character.capsulePhysicsLayer = root.get<std::string>("capsule.physicsLayer", "Default");
             character.capsuleIsSensor = root.get<bool>("capsule.isSensor", false);
             character.capsuleMass = root.get<float>("capsule.mass", 80.0f);
+            character.capsuleMaxStrength = root.get<float>("capsule.maxStrength", 100.0f);
             character.capsuleFriction = root.get<float>("capsule.friction", 0.2f);
             character.capsuleRestitution = root.get<float>("capsule.restitution", 0.0f);
 
@@ -217,6 +218,7 @@ namespace Engine
         root.put("capsule.physicsLayer", character.capsulePhysicsLayer);
         root.put("capsule.isSensor", character.capsuleIsSensor);
         root.put("capsule.mass", character.capsuleMass);
+        root.put("capsule.maxStrength", character.capsuleMaxStrength);
         root.put("capsule.friction", character.capsuleFriction);
         root.put("capsule.restitution", character.capsuleRestitution);
 

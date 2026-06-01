@@ -191,6 +191,7 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
         character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
         character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
         character->capsuleCollider->setCharacterMass(characterPrefab.capsuleMass);
+        character->capsuleCollider->setCharacterMaxStrength(characterPrefab.capsuleMaxStrength);
         character->capsuleCollider->setCharacterFriction(characterPrefab.capsuleFriction);
         character->capsuleCollider->setCharacterRestitution(characterPrefab.capsuleRestitution);
         character->capsuleCollider->syncTransformation();

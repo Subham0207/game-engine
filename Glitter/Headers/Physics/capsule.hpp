@@ -43,9 +43,11 @@ namespace Physics
         [[nodiscard]] uint32_t getCharacterId() const;
 
         void setCharacterMass(const float mass) { characterMass = mass; }
+        void setCharacterMaxStrength(const float maxStrength) { characterMaxStrength = maxStrength; }
         void setCharacterFriction(const float friction) { characterFriction = friction; }
         void setCharacterRestitution(const float restitution) { characterRestitution = restitution; }
         [[nodiscard]] float getCharacterMass() const { return characterMass; }
+        [[nodiscard]] float getCharacterMaxStrength() const { return characterMaxStrength; }
         [[nodiscard]] float getCharacterFriction() const { return characterFriction; }
         [[nodiscard]] float getCharacterRestitution() const { return characterRestitution; }
 
@@ -71,6 +73,7 @@ namespace Physics
         bool landed        = false;
         JPH::Vec3 ground_normal = JPH::Vec3::sAxisY();
         float characterMass = 80.0f;
+        float characterMaxStrength = 100.0f;
         float characterFriction = 0.2f;
         float characterRestitution = 0.0f;
 

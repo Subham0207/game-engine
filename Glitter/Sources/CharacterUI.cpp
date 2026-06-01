@@ -98,6 +98,7 @@ void UI::CharacterUI::start(CharacterPrefabConfig& characterPrefab, std::string 
     characterConfigUIModel.capsuleRadius = characterPrefab.capsuleRadius;
     characterConfigUIModel.capsuleIsSensor = characterPrefab.capsuleIsSensor;
     characterConfigUIModel.capsuleMass = characterPrefab.capsuleMass;
+    characterConfigUIModel.capsuleMaxStrength = characterPrefab.capsuleMaxStrength;
     characterConfigUIModel.capsuleFriction = characterPrefab.capsuleFriction;
     characterConfigUIModel.capsuleRestitution = characterPrefab.capsuleRestitution;
     characterConfigUIModel.modelScale = characterPrefab.modelScale;
@@ -214,6 +215,7 @@ void UI::CharacterUI::draw()
         }
         ImGui::Checkbox("Capsule Is Sensor", &characterConfigUIModel.capsuleIsSensor);
         ImGui::DragFloat("Capsule Mass", &characterConfigUIModel.capsuleMass, 1.0f, 0.001f, 10000.0f);
+        ImGui::DragFloat("Capsule Max Strength", &characterConfigUIModel.capsuleMaxStrength, 1.0f, 0.0f, 100000.0f);
         ImGui::DragFloat("Capsule Friction", &characterConfigUIModel.capsuleFriction, 0.01f, 0.0f, 10.0f);
         ImGui::DragFloat("Capsule Restitution", &characterConfigUIModel.capsuleRestitution, 0.01f, 0.0f, 1.0f);
 
@@ -287,6 +289,7 @@ void UI::CharacterUI::draw()
             }
             characterPrefabConfig->capsuleIsSensor = characterConfigUIModel.capsuleIsSensor;
             characterPrefabConfig->capsuleMass = std::max(0.001f, characterConfigUIModel.capsuleMass);
+            characterPrefabConfig->capsuleMaxStrength = std::max(0.0f, characterConfigUIModel.capsuleMaxStrength);
             characterPrefabConfig->capsuleFriction = std::max(0.0f, characterConfigUIModel.capsuleFriction);
             characterPrefabConfig->capsuleRestitution = std::max(0.0f, std::min(1.0f, characterConfigUIModel.capsuleRestitution));
 
