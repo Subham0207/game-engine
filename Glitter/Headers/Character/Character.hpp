@@ -41,7 +41,7 @@ public:
 
     std::string GetClassId() const override { return "Character"; }
 
-    Model* model;
+    std::shared_ptr<Model> model;
     std::string model_guid;
 
     Animator* animator;

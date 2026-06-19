@@ -87,8 +87,7 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
             if(extension ==  ".model")
             {
-                auto model = std::make_shared<Model>();
-                model->load(path, id);
+                auto model = Model::loadWithClassFactory(path, id);
                 model->setModelMatrix(M);
                 model->setInstanceId(instanceId);
                 auto filename = contentFilePath.stem().filename().string();
@@ -247,15 +246,14 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
 
     character->animator = new Animator();
 
-    auto model = new Model();
     auto modelParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.modelGuid]).parent_path();
+    auto model = Model::loadWithClassFactory(modelParentPath, characterPrefab.modelGuid);
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/pbr.vert";
     auto fragPath = engineFSPath / "Shaders/pbr.frag";
     //auto material = std::make_shared<Materials::Material>("material",vertPath.string(), fragPath.string());
 
-    model->load(modelParentPath, characterPrefab.modelGuid);
     character->model = model;
 
     auto skeleton = new Skeleton::Skeleton();

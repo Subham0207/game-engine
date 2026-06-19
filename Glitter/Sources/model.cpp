@@ -1,5 +1,6 @@
 #pragma once
 #include "3DModel/model.hpp"
+#include "GenericFactory.hpp"
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -18,6 +19,8 @@
 #include <Physics/box.hpp>
 #include <Physics/PhysicsObject.hpp>
 #include <Modals/3DModelType.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "boost/uuid/random_generator.hpp"
 #include "boost/uuid/uuid.hpp"
@@ -29,6 +32,7 @@
 
 // using namespace std;
 namespace fs = std::filesystem;
+namespace bs = boost::property_tree;
 
 namespace
 {
@@ -496,6 +500,23 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
         }
 
     }
+
+    if (EngineState::state->isPlay)
+    {
+        if (!started)
+        {
+            onStart();
+            started = true;
+        }
+        else
+        {
+            onTick(deltaTime);
+        }
+    }
+    else
+    {
+        started = false;
+    }
 }
 
 void Model::bindCubeMapTextures(CubeMap *cubeMap)
@@ -592,6 +613,55 @@ void Model::loadFromFile(const std::string &filename, Model &model, std::shared_
 
     std::cout << "Starting loading mesh data" << std::endl;
     Model::initOnGPU(&model, material);
+}
+
+std::shared_ptr<Model> Model::loadWithClassFactory(const fs::path& assetRoot, const std::string& filename)
+{
+    const fs::path projectRoot = fs::path(EngineState::state->currentActiveProjectDirectory);
+    const fs::path metaFile = projectRoot / assetRoot / (filename + ".meta.json");
+    std::string discoveredClassId = "None";
+
+    try
+    {
+        bs::ptree meta;
+        bs::read_json(metaFile.string(), meta);
+        const fs::path contentRel = meta.get<std::string>("content.relative_path");
+        const fs::path contentFile = projectRoot / assetRoot / contentRel;
+
+        auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+        auto vertPath = engineFSPath / "Shaders/pbr.vert";
+        auto fragPath = engineFSPath / "Shaders/pbr.frag";
+        auto material = std::make_shared<Materials::Material>("Material", vertPath.string(), fragPath.string());
+
+        Model baseLoadedModel;
+        baseLoadedModel.modeltype = ModelType::ACTUAL_MODEL;
+        Model::loadFromFile(contentFile.string(), baseLoadedModel, material);
+
+        if (!baseLoadedModel.classId.empty())
+        {
+            discoveredClassId = baseLoadedModel.classId;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "[MODEL][loadWithClassFactory] Failed class probe for " << filename
+                  << ": " << e.what() << std::endl;
+    }
+
+    std::shared_ptr<Model> model = nullptr;
+    if (discoveredClassId != "None")
+    {
+        model = ModelFactory::Create(discoveredClassId);
+    }
+
+    if (model == nullptr)
+    {
+        model = std::make_shared<Model>();
+    }
+
+    fs::path mutableAssetRoot = assetRoot;
+    model->load(mutableAssetRoot, filename);
+    return model;
 }
 
 void UpdateEngineStateWithFoundTexture(aiTextureType type)
@@ -840,6 +910,16 @@ bool Model::setCustomColliderGeometryFromFile(const std::string& colliderAssetPa
     return true;
 }
 
+void Model::MoveBody(const glm::vec3& position, const float deltaTime) const
+{
+    physicsObject->MoveBody(position, deltaTime);
+}
+
+void Model::MoveBody(const glm::vec3& position, const glm::quat& rotation, const float deltaTime) const
+{
+    physicsObject->MoveBody(position, rotation, deltaTime);
+}
+
 void Model::LoadA3DModel(
     const aiScene* scene,
     bool isSkinned,
@@ -902,9 +982,13 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
     auto vertPath = engineFSPath / "Shaders/pbr.vert";
     auto fragPath = engineFSPath / "Shaders/pbr.frag";
     auto material = std::make_shared<Materials::Material>("Material",vertPath.string(), fragPath.string());
-
+    clearPhysicsObject();
     modeltype = ModelType::ACTUAL_MODEL;
     Model::loadFromFile(contentFile.string(), *this, material);
+    if (classId.empty())
+    {
+        classId = "None";
+    }
     syncGameplayTagSet();
 
     if (physicsBodySettings.has_value())

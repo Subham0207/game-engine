@@ -290,3 +290,22 @@ glm::quat Physics::PhysicsObject::getWorldRotation() const
         static_cast<float>(rotation.GetZ())
     );
 }
+
+void Physics::PhysicsObject::MoveBody(const glm::vec3& position, const float deltaTime) const
+{
+    //TODO: Maybe add motion type == kinematic check
+    physics->GetPhysicsBodyInterface().MoveKinematic(
+        physicsId,
+        JPH::Vec3(position.x, position.y, position.z),
+        physics->GetBodyRotation(physicsId),
+        deltaTime);
+}
+
+void Physics::PhysicsObject::MoveBody(const glm::vec3& position, const glm::quat& rotation, const float deltaTime) const
+{
+    physics->GetPhysicsBodyInterface().MoveKinematic(
+        physicsId,
+        JPH::Vec3(position.x, position.y, position.z),
+        JPH::Quat(rotation.x, rotation.y, rotation.z, rotation.w),
+        deltaTime);
+}

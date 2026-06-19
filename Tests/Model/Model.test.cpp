@@ -168,3 +168,22 @@ TEST(ModelPhysicsBodySettingsSerialization, shouldRoundTripConvexHullColliderSel
     EXPECT_EQ(readSettings.rigidBodyData.customColliderShapeData->vertices.size(), 4u);
 }
 
+TEST(ModelClassIdSerialization, shouldRoundTripClassIdForVersion1Archive)
+{
+    Model writeModel;
+    writeModel.classId = "CustomGameplayModel";
+
+    std::stringstream buffer;
+    {
+        boost::archive::text_oarchive oa(buffer);
+        oa << writeModel;
+    }
+
+    Model readModel;
+    {
+        boost::archive::text_iarchive ia(buffer);
+        ia >> readModel;
+    }
+
+    EXPECT_EQ(readModel.classId, "CustomGameplayModel");
+}

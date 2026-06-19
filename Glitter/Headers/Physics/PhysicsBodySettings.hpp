@@ -102,6 +102,7 @@ namespace Physics
         MotionType motionType = MotionType::Static;
         std::string physicsLayer = "Default";
         bool isSensor = false;
+        // Later on add mAllowDynamicOrKinematic
         RigidBodyData rigidBodyData{};
         // SoftBodyData can be added here later.
 

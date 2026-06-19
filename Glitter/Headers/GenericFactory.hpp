@@ -11,6 +11,7 @@
 #include <string>
 
 class Character;
+class Model;
 namespace Controls
 {
     class StateMachine;
@@ -43,6 +44,7 @@ private:
 //This is the factory responsible to create any derived class's objects, that are defined in a project.
 //Make sure you register the derived class so the engine knows about it.
 using CharacterFactory = GenericFactory<Character>;
+using ModelFactory = GenericFactory<Model>;
 using StateMachineFactory = GenericFactory<Controls::StateMachine>;
 using ControllerFactory = GenericFactory<Controls::Controller>;
 

@@ -30,7 +30,7 @@ Character::Character(std::string filepath): Serializable(){
         Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
     };
 
-    model = new Model(
+    model = std::make_shared<Model>(
         filepath,
         EngineState::state->engineInstalledDirectory,
         &skeleton->m_BoneInfoMap,
@@ -64,7 +64,6 @@ Character::~Character()
 {
     unregisterCapsuleCharacterLookup();
     EngineState::state->playerControllers.clear();
-    delete model;
     delete animator;
     delete skeleton;
     delete capsuleCollider;
@@ -163,10 +162,8 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
     auto filesMap = getEngineRegistryFilesMap();
     if (const auto it = filesMap.find(characterPrefab.modelGuid); it != filesMap.end())
     {
-        auto model = new Model();
         auto modelParentPath = fs::path(filesMap[characterPrefab.modelGuid]).parent_path();
-        model->load(modelParentPath, characterPrefab.modelGuid);
-        character->model = model;
+        character->model = Model::loadWithClassFactory(modelParentPath, characterPrefab.modelGuid);
         character->model_guid = characterPrefab.modelGuid;
     }
     if (const auto it = filesMap.find(characterPrefab.skeletonGuid); it != filesMap.end())
@@ -419,14 +416,13 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //load model
     auto model_location = fs::path(filesMap[model_guid]);
-    auto model = new Model();
+    auto model = Model::loadWithClassFactory(model_location.parent_path(), model_guid);
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertShaderPath = engineFSPath / "Shaders/pbr.vert";
     auto fragShaderPath = engineFSPath / "Shaders/pbr.frag";
     auto material = std::make_shared<Materials::Material>("material", vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
     //TODO: how to use this material and still be able to assign materialInstances to meshes.
-    model->load(model_location.parent_path(), model_guid);
     this->model = model;
 
     //create new animator

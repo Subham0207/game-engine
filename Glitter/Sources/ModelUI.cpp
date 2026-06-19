@@ -5,9 +5,11 @@
 #include "../Headers/UI/ModelUI/ModelUI.hpp"
 
 #include "EngineState.hpp"
+#include "GenericFactory.hpp"
 #include "imgui.h"
 #include "3DModel/model.hpp"
 #include "Physics/PhysicsLayerRegistry.hpp"
+#include "UI/Shared/ComboUI.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -65,6 +67,31 @@ UI::ModelUI::~ModelUI()
 void UI::ModelUI::start(const std::shared_ptr<Model>& model)
 {
     selectedModel = model;
+    registeredModelClassNames.clear();
+    selectedModelClassIndex = 0;
+    if (selectedModel != nullptr)
+    {
+        if (selectedModel->classId.empty())
+        {
+            selectedModel->classId = "None";
+        }
+
+        int index = 0;
+        for (const auto& [className, creator] : ModelFactory::GetTable())
+        {
+            if (className == selectedModel->classId)
+            {
+                selectedModelClassIndex = index + 1;
+            }
+            registeredModelClassNames.emplace_back(className);
+            index += 1;
+        }
+
+        if (selectedModelClassIndex == 0 && selectedModel->classId != "None")
+        {
+            selectedModel->classId = "None";
+        }
+    }
     materialListComponent.startMaterialsList();
     showUI = true;
 }
@@ -80,6 +107,26 @@ void UI::ModelUI::draw()
 
         if (selectedModel != nullptr)
         {
+            if (UI::Shared::comboUI("Choose Model Class", selectedModelClassIndex, registeredModelClassNames))
+            {
+                if (selectedModelClassIndex <= 0)
+                {
+                    selectedModel->classId = "None";
+                }
+                else
+                {
+                    const int selectedClassIndex = selectedModelClassIndex - 1;
+                    if (selectedClassIndex >= 0 && selectedClassIndex < static_cast<int>(registeredModelClassNames.size()))
+                    {
+                        selectedModel->classId = registeredModelClassNames[static_cast<size_t>(selectedClassIndex)];
+                    }
+                    else
+                    {
+                        selectedModel->classId = "None";
+                    }
+                }
+            }
+
             char tagsBuffer[512]{};
             const std::string tagsCsv = toTagsCsv(selectedModel->getGameplayTags());
             const size_t tagsCopyCount = std::min(tagsCsv.size(), sizeof(tagsBuffer) - 1);

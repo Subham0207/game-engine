@@ -69,6 +69,9 @@ namespace Physics
         [[nodiscard]] glm::vec3 getWorldPosition() const;
         [[nodiscard]] glm::quat getWorldRotation() const;
 
+        void MoveBody(const glm::vec3& position, float deltaTime) const;
+        void MoveBody(const glm::vec3& position, const glm::quat& rotation, float deltaTime) const;
+
         PhysicsSystemWrapper* physics;
         JPH::BodyID physicsId;
     private:
