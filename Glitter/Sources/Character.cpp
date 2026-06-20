@@ -306,14 +306,17 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
 
     if(EngineState::state->isPlay)
     {
-        if (!started)
+        if (this->camera && this->capsuleCollider)
         {
-            this->onStart();
-            started = true;
-        }
-        else
-        {
-            this->onTick();
+            if (!started)
+            {
+                this->onStart();
+                started = true;
+            }
+            else
+            {
+                this->onTick();
+            }
         }
 
         if(controller)

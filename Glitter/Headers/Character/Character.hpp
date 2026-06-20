@@ -106,7 +106,7 @@ public:
     std::shared_ptr<Controls::StateMachine> animStateMachine;
     std::string animStateMachine_guid;
 
-    Physics::Capsule* capsuleCollider;
+    Physics::Capsule* capsuleCollider = nullptr;
     glm::vec3 modelRelativePosition;
 
     //Deprecated
@@ -187,7 +187,7 @@ public:
         rotationOffset = rotation_offset;
     }
 
-    Camera* camera;
+    Camera* camera = nullptr;
     float smoothAngle(float current, float target, float t);
 
     const std::string typeName() const override {return "character"; }

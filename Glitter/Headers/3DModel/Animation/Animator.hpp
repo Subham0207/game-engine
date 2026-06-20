@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include <map>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 #include "assimp/scene.h"
 #include "assimp/Importer.hpp"
 #include "Animation.hpp"
@@ -139,7 +141,8 @@ public:
 			}	
 			else
 			{
-				m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
+				if (isAnimationPlaying)
+					m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
 				if (m_LoopCurrentAnimation)
 				{
 					m_ElapsedTime = m_CurrentTime;
@@ -202,13 +205,41 @@ public:
 		m_LoopCurrentAnimation = shouldLoop;
 	}
 
+	void SetCurrentTimeSeconds(float seconds)
+	{
+		if (m_CurrentAnimation == nullptr)
+			return;
+
+		const float ticksPerSecond = glm::max(1.0f, m_CurrentAnimation->GetTicksPerSecond());
+		const float duration = m_CurrentAnimation->GetDuration();
+		const float targetTicks = glm::max(0.0f, seconds) * ticksPerSecond;
+		if (m_LoopCurrentAnimation && duration > 0.0f)
+			m_CurrentTime = fmod(targetTicks, duration);
+		else
+			m_CurrentTime = glm::clamp(targetTicks, 0.0f, duration);
+		m_ElapsedTime = m_CurrentTime;
+	}
+
+	float GetCurrentTimeSeconds() const
+	{
+		if (m_CurrentAnimation == nullptr)
+			return 0.0f;
+
+		const float ticksPerSecond = glm::max(1.0f, m_CurrentAnimation->GetTicksPerSecond());
+		return m_CurrentTime / ticksPerSecond;
+	}
+
+	void SetPlaying(const bool isPlaying)
+	{
+		isAnimationPlaying = isPlaying;
+	}
+
 	void PlayAnimation(Animation* pAnimation)
 	{
 		if(pAnimation)
 		{
 			m_CurrentAnimation = pAnimation;
-			// m_CurrentTime = 0.0f;
-			isAnimationPlaying = true;
+			SetPlaying(true);
 			blendSelection = NULL;
 		}
 	}

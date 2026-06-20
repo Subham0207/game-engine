@@ -219,7 +219,11 @@ void Level::createACopyForRenderableAt(int index)
     }
 }
 
-shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 transform, std::string instanceId)
+shared_ptr<Character> Level::spawnCharacter(
+    fs::path actualFilePath,
+    glm::mat4 transform,
+    std::string instanceId,
+    const bool enableGameplaySystems)
 {
     CharacterPrefabConfig characterPrefab;
     Engine::Prefab::readCharacterPrefab(actualFilePath, characterPrefab);
@@ -243,6 +247,8 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
         character->setInstanceId(std::move(instanceId));
     }
     character->setScale(characterPrefab.modelScale);
+    character->capsuleCollider = nullptr;
+    character->camera = nullptr;
 
     character->animator = new Animator();
 
@@ -272,34 +278,41 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
         std::cout << "[LEVEL][SpawnCharacter]: Statemachine guid is empty" << std::endl;
     }
 
-    //TODO: make this playerController a scriptable file.
-    character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);
-    if (auto playerController = std::dynamic_pointer_cast<Controls::PlayerController>(character->controller))
+    if (enableGameplaySystems)
     {
-        EngineState::state->playerControllers.push_back(playerController);
-        playerController->setCharacter(character);
-    }
-    if (auto ai = std::dynamic_pointer_cast<AI::AI>(character->controller))
-    {
-        addAI(ai);
+        //TODO: make this playerController a scriptable file.
+        character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);
+        if (auto playerController = std::dynamic_pointer_cast<Controls::PlayerController>(character->controller))
+        {
+            EngineState::state->playerControllers.push_back(playerController);
+            playerController->setCharacter(character);
+        }
+        if (auto ai = std::dynamic_pointer_cast<AI::AI>(character->controller))
+        {
+            addAI(ai);
+        }
+
+        character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
+        character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
+        character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
+        character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
+        character->capsuleCollider->syncTransformation();
     }
 
-    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
-    character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
-    character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
-    character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
-    character->capsuleCollider->syncTransformation();
     character->modelRelativePosition = characterPrefab.modelRelativePosition;
     character->setGameplayTags(characterPrefab.gameplayTags);
 
-    character->camera = new Camera("charactercamera");
-    character->camera->cameraPos = model->GetPosition();
-    float pitchAngle = 0.3f;
-    glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
-    glm::quat newRot = pitchQuat * model->GetRot();
-    character->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
-    character->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
-    cameras.push_back(character->camera);
+    if (enableGameplaySystems)
+    {
+        character->camera = new Camera("charactercamera");
+        character->camera->cameraPos = model->GetPosition();
+        float pitchAngle = 0.3f;
+        glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
+        glm::quat newRot = pitchQuat * model->GetRot();
+        character->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
+        character->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
+        cameras.push_back(character->camera);
+    }
 
     addRenderable(character);
 
