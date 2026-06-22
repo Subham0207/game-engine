@@ -48,6 +48,10 @@ class NodeGraph
         [[nodiscard]] std::vector<StateMachineLink>& getStateLinks() { return stateLinks; }
         [[nodiscard]] NodeGraphRenderContext& getRenderContext() { return renderCtx; }
 
+        // Deletes nodes by id from both regular node-graph and state-machine node sets,
+        // and also removes links attached to those deleted nodes.
+        void deleteNodesByIds(const std::vector<int>& nodeIds);
+
         void clearNodes();
         void clearNodeGraphLinks();
         void clearComments();

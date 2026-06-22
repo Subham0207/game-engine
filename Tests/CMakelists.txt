@@ -9,13 +9,39 @@ FetchContent_MakeAvailable(googletest)
 # Add the test executable and link it to the GlitterLib library
 add_executable(Test
         test.cpp
-        NodeGraph/FlowScript/Compile/compiler.cpp)
+        Character/Character.test.cpp
+        Animation/Animation.test.cpp
+        Animation/Animator.test.cpp
+        NodeGraph/NodeGraph.test.cpp
+        NodeGraph/StateMachineJsonExporter.test.cpp
+        NodeGraph/FlowScript/Compile/Compiler.test.cpp
+        NodeGraph/FlowScript/Compile/Ast.test.cpp
+        NodeGraph/FlowScript/Compile/LuaTranspiler.test.cpp
+        NodeGraph/FlowScript/Compile/NodePositionSerialization.test.cpp
+        NodeGraph/FlowScript/FlowScript.test.cpp
+        NodeGraph/FlowScript/VisualScriptJsonSerializer.test.cpp
+        Model/Model.test.cpp
+        Physics/PhysicsLayerRegistry.test.cpp
+        Physics/PhysicsSystem.test.cpp
+        Windowing/ProjectManagerWindow.test.cpp
+)
 
 target_include_directories(Test PRIVATE
         ${CMAKE_SOURCE_DIR}/Glitter/Vendor/assimp/include
 )
 
-target_link_libraries(Test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GlitterLib)
+target_link_libraries(Test PRIVATE
+        GTest::gtest
+        GTest::gtest_main
+        GTest::gmock
+        GlitterLib
+)
+
+# Copy the Lua DLL to the test output directory
+add_custom_command(TARGET Test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${LUA_DLL}"
+        "$<TARGET_FILE_DIR:Test>/")
 
 # Add test target
 add_test(NAME GlitterTests COMMAND Test)

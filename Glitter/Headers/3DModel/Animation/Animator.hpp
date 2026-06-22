@@ -3,11 +3,17 @@
 #include <glm/glm.hpp>
 #include <map>
 #include <vector>
+#include <algorithm>
+#include <cmath>
+#include <array>
+#include <optional>
+#include <unordered_set>
 #include "assimp/scene.h"
 #include "assimp/Importer.hpp"
 #include "Animation.hpp"
 #include <Helpers/vertexBoneDataHelper.hpp>
 #include <Controls/BlendSpace2D.hpp>
+#include <Event/EventQueue.hpp>
 
 class Animator
 {
@@ -33,6 +39,8 @@ public:
 		{
 			m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
 			m_FinalBoneMatricesLocal.push_back(glm::mat4(1.0f));
+			for (auto& sourcePose : m_BlendSourceBoneMatricesLocal)
+				sourcePose.push_back(glm::mat4(1.0f));
 		}
 	}
 
@@ -57,6 +65,10 @@ public:
 		if(blendSelection)
 		{
 			currentPlayedType = 0;
+			const float previousTime1 = currentTime1;
+			const float previousTime2 = currentTime2;
+			const float previousTime3 = currentTime3;
+			const float previousTime4 = currentTime4;
 
 			HandlePlayedTypeForTransition();
 
@@ -98,11 +110,13 @@ public:
 					bonePositions,
 					bones,
 					globalInverseTransform);
+				handleBlendspaceRegionEvents(previousTime1, previousTime2, previousTime3, previousTime4);
 			}
 		}
 		else if (m_CurrentAnimation)
 		{
 			currentPlayedType = 1;
+			const float previousTime = m_CurrentTime;
 
 			HandlePlayedTypeForTransition();
 
@@ -139,7 +153,8 @@ public:
 			}	
 			else
 			{
-				m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
+				if (isAnimationPlaying)
+					m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * m_DeltaTime;
 				if (m_LoopCurrentAnimation)
 				{
 					m_ElapsedTime = m_CurrentTime;
@@ -162,6 +177,8 @@ public:
 					bones,
 					globalInverseTransform,
 					m_CurrentTime);
+				const bool wrapped = m_LoopCurrentAnimation && m_CurrentAnimation->GetDuration() > 0.0f && m_CurrentTime < previousTime;
+				handleAnimationRegionEvents(previousTime, m_CurrentTime, wrapped, m_CurrentAnimation);
 			}
 		}
 		else
@@ -179,6 +196,30 @@ public:
 
 		lastPlayedType = currentPlayedType;
 	}
+
+	void setAnimationEventQueue(AnimationEventQueue* queue)
+	{
+		animationEventQueue = queue;
+	}
+
+	static std::vector<AnimationRuntimeEvent> CollectRegionBoundaryEvents(
+		const std::vector<AnimationRegion>& regions,
+		float previousTime,
+		float currentTime,
+		float duration,
+		bool wrapped
+	);
+
+	static float ComputeAverageLocalPoseError(
+		const std::vector<glm::mat4>& sourcePoseLocal,
+		const std::vector<glm::mat4>& blendedPoseLocal
+	);
+
+	static std::optional<size_t> SelectBestPoseMatchIndex(
+		const std::vector<std::vector<glm::mat4>>& candidatePosesLocal,
+		const std::vector<glm::mat4>& blendedPoseLocal,
+		float threshold
+	);
 
 	void onPoseTransitionInProgress(
 		const std::shared_ptr<AssimpNodeData> node,
@@ -202,13 +243,41 @@ public:
 		m_LoopCurrentAnimation = shouldLoop;
 	}
 
+	void SetCurrentTimeSeconds(float seconds)
+	{
+		if (m_CurrentAnimation == nullptr)
+			return;
+
+		const float ticksPerSecond = glm::max(1.0f, m_CurrentAnimation->GetTicksPerSecond());
+		const float duration = m_CurrentAnimation->GetDuration();
+		const float targetTicks = glm::max(0.0f, seconds) * ticksPerSecond;
+		if (m_LoopCurrentAnimation && duration > 0.0f)
+			m_CurrentTime = fmod(targetTicks, duration);
+		else
+			m_CurrentTime = glm::clamp(targetTicks, 0.0f, duration);
+		m_ElapsedTime = m_CurrentTime;
+	}
+
+	float GetCurrentTimeSeconds() const
+	{
+		if (m_CurrentAnimation == nullptr)
+			return 0.0f;
+
+		const float ticksPerSecond = glm::max(1.0f, m_CurrentAnimation->GetTicksPerSecond());
+		return m_CurrentTime / ticksPerSecond;
+	}
+
+	void SetPlaying(const bool isPlaying)
+	{
+		isAnimationPlaying = isPlaying;
+	}
+
 	void PlayAnimation(Animation* pAnimation)
 	{
 		if(pAnimation)
 		{
 			m_CurrentAnimation = pAnimation;
-			// m_CurrentTime = 0.0f;
-			isAnimationPlaying = true;
+			SetPlaying(true);
 			blendSelection = NULL;
 		}
 	}
@@ -321,6 +390,7 @@ public:
 	}
 
 	bool isAnimationPlaying = false;
+	AnimationEventQueue* animationEventQueue = nullptr;
 
 	std::vector<glm::mat4> *transitionSourcePose;
 	std::vector<glm::mat4> *transitionDestinationPose;
@@ -350,8 +420,20 @@ public:
 	std::map<std::pair<int,int>, Animation3D::TimeWarpCurve*> timewarpmap; // pair{index of blendpoint, index of point blendpoint} like 1->3
 	
 private:
+	struct BlendRegionCandidate
+	{
+		AnimationRuntimeEvent event;
+		int sourceIndex = 0;
+	};
+
+	void handleAnimationRegionEvents(float previousTime, float currentTime, bool wrapped, Animation* animation);
+	void handleBlendspaceRegionEvents(float previousTime1, float previousTime2, float previousTime3, float previousTime4);
+	void enqueueAnimationEvent(const AnimationRuntimeEvent& event);
+	glm::mat4 calculateBoneLocalTransform(Bone* bone, float time, const glm::mat4& bindPoseTransform) const;
+
 	std::vector<glm::mat4> m_FinalBoneMatrices; // this is in world space
 	std::vector<glm::mat4> m_FinalBoneMatricesLocal; // this is in bone's local space.
+	std::array<std::vector<glm::mat4>, 4> m_BlendSourceBoneMatricesLocal;
 	float m_DeltaTime;
 	float maxDuration;
 	float m_startTime;

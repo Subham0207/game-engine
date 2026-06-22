@@ -14,6 +14,7 @@ ProjectAsset::UIState::UIState()
     propretiesPanel = new UI::PropertiesPanel();
     ai = nullptr;
     renderNavMesh = false;
+    renderPhysicsDebug = true;
     ai_ui_state = new UI::AI_UI();
     materialManagerUI = new UI::MaterialManagerUI();
     materialInstanceEditorUI = new UI::MaterialInstanceEditor();

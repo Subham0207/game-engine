@@ -5,6 +5,7 @@
 #include "../Headers/NodeGraph/StateMachineJsonExporter.hpp"
 
 #include <algorithm>
+#include <filesystem>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -247,8 +248,10 @@ namespace StateMachineJsonExporter
             appendVec2(json, l->fromOffsetGrid);
             json += ", \"to_offset_grid\": ";
             appendVec2(json, l->toOffsetGrid);
-            json += ", \"condition\": \"";
-            json += escapeJson(l->condition);
+            json += ", \"flow_script_path\": \"";
+            json += escapeJson(l->flowScriptPath);
+            json += "\", \"lua_script_path\": \"";
+            json += escapeJson(l->luaScriptPath);
             json += "\" }";
             if (i + 1 < reachableLinks.size())
                 json += ",";
@@ -261,14 +264,24 @@ namespace StateMachineJsonExporter
     }
 
     bool DeserializeChainJson(const std::string& filePath,
-                          std::vector<StateMachineNode>& outNodes,
-                          std::vector<StateMachineLink>& outLinks,
-                          int& activeRootNodeId)
+                              std::vector<StateMachineNode>& outNodes,
+                              std::vector<StateMachineLink>& outLinks,
+                              int& activeRootNodeId)
     {
-        std::ifstream file(filePath);
+        const std::filesystem::path fsPath(filePath);
+        std::error_code fsError;
+        const auto absolutePath = std::filesystem::absolute(fsPath, fsError);
+        const bool pathExists = std::filesystem::exists(fsPath, fsError);
+        const bool isRegularFile = std::filesystem::is_regular_file(fsPath, fsError);
+
+        std::ifstream file(fsPath, std::ios::binary);
         if (!file.is_open())
         {
-            std::cout << "Failed to open file: " << filePath << std::endl;
+            std::cout << "Failed to open file: " << filePath
+                      << " | absolute: " << absolutePath.string()
+                      << " | exists: " << (pathExists ? "true" : "false")
+                      << " | is_regular_file: " << (isRegularFile ? "true" : "false")
+                      << std::endl;
             return false;
         }
 
@@ -392,8 +405,11 @@ namespace StateMachineJsonExporter
                     if (auto f = t.find("to_offset_grid"); f != t.end())
                         link.toOffsetGrid = ParseVec2(f->value());
 
-                    if (auto f = t.find("condition"); f != t.end())
-                        link.condition = json::value_to<std::string>(f->value());
+                    if (auto f = t.find("flow_script_path"); f != t.end() && f->value().is_string())
+                        link.flowScriptPath = json::value_to<std::string>(f->value());
+
+                    if (auto f = t.find("lua_script_path"); f != t.end() && f->value().is_string())
+                        link.luaScriptPath = json::value_to<std::string>(f->value());
 
                     outLinks.push_back(std::move(link));
                 }

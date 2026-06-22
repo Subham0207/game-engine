@@ -1,12 +1,26 @@
 #include "Physics/capsule.hpp"
+#include <Character/Character.hpp>
 #include <EngineState.hpp>
+#include <Physics/PhysicsLayerRegistry.hpp>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/ShapeCast.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
+#include <algorithm>
+#include <limits>
 using CastShapeClosestHitCollisionCollector = JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector>;
+
+namespace
+{
+    JPH::CharacterVsCharacterCollisionSimple& getCharacterVsCharacterCollisionRegistry()
+    {
+        static JPH::CharacterVsCharacterCollisionSimple registry;
+        return registry;
+    }
+}
 
 Physics::Capsule::Capsule
     (PhysicsSystemWrapper *physics,
@@ -18,10 +32,7 @@ Physics::Capsule::Capsule
     glm::quat rotation,
     glm::vec3 scale) : PhysicsObject(
         physics,
-        nullptr,
-        nullptr,
         isDynamic,
-        shouldAddToLevel,
         position,
         rotation,
         scale
@@ -30,24 +41,40 @@ Physics::Capsule::Capsule
     set = nullptr;
     this->mRadius = radius;
     this->mHalfHeight = halfHeight;
-    addCustomModel("", "");
 
     JPH::Vec3 jphPosition(position.x, position.y, position.z);
     CreateCharacterVirtualPhysics(&physics->physicsSystem,
     jphPosition, halfHeight, radius);
 }
 
+Physics::Capsule::~Capsule()
+{
+    if (character)
+    {
+        if (physics)
+        {
+            physics->UnregisterBodyOwner(character->GetInnerBodyID());
+        }
+        character->SetListener(nullptr);
+        getCharacterVsCharacterCollisionRegistry().Remove(character);
+        delete character;
+        character = nullptr;
+    }
+
+    if (set)
+    {
+        set->Release();
+        set = nullptr;
+    }
+
+    delete listener;
+    listener = nullptr;
+}
+
 void Physics::Capsule::syncTransformation()
 {
-    //Get capsule dimensions from the 3d mesh
-    auto position = model->GetPosition();
-    auto rotation = model->GetRot();
-
-    glm::quat glmRot = glm::normalize(rotation);
-    JPH::Quat jphRotation(glmRot.x, glmRot.y, glmRot.z, glmRot.w);
-
-    // Convert glm::vec3 to JPH::Vec3
-    JPH::Vec3 jphPosition(position.x, position.y, position.z);
+    const auto worldPosition = getWorldPosition();
+    JPH::Vec3 jphPosition(worldPosition.x, worldPosition.y, worldPosition.z);
 
     if(!set)
     {
@@ -57,8 +84,14 @@ void Physics::Capsule::syncTransformation()
     else
     {
         if (character) {
+            if (physics)
+            {
+                physics->UnregisterBodyOwner(character->GetInnerBodyID());
+            }
             character->SetListener(nullptr);
-            character = nullptr;            
+            getCharacterVsCharacterCollisionRegistry().Remove(character);
+            delete character;
+            character = nullptr;
         }
         set->Release();
         delete listener;
@@ -66,12 +99,6 @@ void Physics::Capsule::syncTransformation()
             jphPosition, mHalfHeight, mRadius);
 
     }
-}
-void Physics::Capsule::addCustomModel(std::string modelPath, std::string engineRootPath)
-{
-    capsule = std::make_shared<CapsuleColliderModel>(mRadius, mHalfHeight);
-    getActiveLevel().addRenderable(capsule);
-    model = capsule->model;
 }
 
 void Physics::Capsule::moveBody(
@@ -85,6 +112,7 @@ void Physics::Capsule::moveBody(
 {
     using namespace JPH;
     TempAllocatorImpl temp(64 * 1024);
+    listener->beginFrame();
 
     // Choose sane units (meters). Tune from here if your world is scaled.
     const Vec3 kGravity = Vec3(0.0f, -9.81f, 0.0f);
@@ -124,7 +152,12 @@ void Physics::Capsule::moveBody(
     character->SetRotation(rotOffset);
 
     CharacterVirtual::ExtendedUpdateSettings eus;
-    character->ExtendedUpdate(deltaTime, kGravity, eus, {}, {}, {}, {}, temp);
+    const JPH::ObjectLayer capsuleLayer = Physics::PhysicsLayerRegistry::instance().getLayerOrDefault(getPhysicsLayerName());
+    const JPH::DefaultBroadPhaseLayerFilter broadPhaseLayerFilter = physics->physicsSystem.GetDefaultBroadPhaseLayerFilter(capsuleLayer);
+    const JPH::DefaultObjectLayerFilter objectLayerFilter = physics->physicsSystem.GetDefaultLayerFilter(capsuleLayer);
+    const JPH::BodyFilter bodyFilter;
+    const JPH::ShapeFilter shapeFilter;
+    character->ExtendedUpdate(deltaTime, kGravity, eus, broadPhaseLayerFilter, objectLayerFilter, bodyFilter, shapeFilter, temp);
 
     grounded      = character->GetGroundState() == CharacterBase::EGroundState::OnGround;
     ground_normal = character->GetGroundNormal();
@@ -137,25 +170,55 @@ void Physics::Capsule::moveBody(
         character->SetLinearVelocity(JPH::Vec3::sZero());
         assert(false && "Jolt Character went NaN!");
     }
+
+    // CharacterVirtual collisions don't flow through the rigid-body contact listener,
+    // so forward them to PhysicsSystem's collision recording path.
+    if (physics != nullptr && character != nullptr)
+    {
+        const uint32_t selfCharacterId = getCharacterId();
+        if (selfCharacterId != std::numeric_limits<uint32_t>::max())
+        {
+            const JPH::BodyID selfBodyId = character->GetInnerBodyID();
+            for (const auto& [otherCapsuleId, points] : listener->getCharacterContactPoints())
+            {
+                if (otherCapsuleId == std::numeric_limits<uint32_t>::max() || selfCharacterId > otherCapsuleId)
+                {
+                    continue;
+                }
+
+                Character* otherCharacter = Character::getCharacterByCapsuleId(otherCapsuleId);
+                if (otherCharacter == nullptr || otherCharacter->capsuleCollider == nullptr ||
+                    otherCharacter->capsuleCollider->character == nullptr)
+                {
+                    continue;
+                }
+
+                physics->recordBodyCollision(selfBodyId, otherCharacter->capsuleCollider->character->GetInnerBodyID(), points);
+            }
+        }
+    }
 }
 
 void Physics::Capsule::tick()
 {
-    model->setModelMatrix(getWorldTransformation());
 }
 
 void Physics::Capsule::reInit(float radius, float halfheight)
 {
-    //The reinit does not happen during play; So we only need to update the Model geometry and not collider.
+    // Rebuild the CharacterVirtual shape with the new dimensions.
     this->mRadius = radius;
     this->mHalfHeight = halfheight;
-    capsule->reGenerateCapsuleColliderMesh(radius, halfheight);
-    model = capsule->model;
 
     auto jphPosition = character->GetPosition();
 
     if (character) {
+        if (physics)
+        {
+            physics->UnregisterBodyOwner(character->GetInnerBodyID());
+        }
         character->SetListener(nullptr);
+        getCharacterVsCharacterCollisionRegistry().Remove(character);
+        delete character;
         character = nullptr;
     }
     set->Release();
@@ -171,10 +234,13 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
     // --- Build the settings ------------------------------------------------
     set = new JPH::CharacterVirtualSettings();
     set->mShape = new JPH::CapsuleShape(halfheight, radius);       // two-sphere capsule
+    set->mInnerBodyShape = set->mShape;
+    set->mInnerBodyLayer = Physics::PhysicsLayerRegistry::instance().getLayerOrDefault(getPhysicsLayerName());
     set->mMaxSlopeAngle     = JPH::DegreesToRadians(55.0f);           // walkable if ≤ 55°
     set->mSupportingVolume  = JPH::Plane(JPH::Vec3::sAxisY(), -radius);
     set->mPredictiveContactDistance = 0.1f;                           // prevents snagging
-    set->mMass              = 80.0f;
+    set->mMass              = std::max(0.001f, characterMass);
+    set->mMaxStrength       = std::max(0.0f, characterMaxStrength);
     // If you need the character to show up in regular overlap queries,
     // give it an “inner” rigid body:
     // set->mInnerBodyShape = set->mShape;   // (optional)
@@ -185,17 +251,42 @@ void Physics::Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
                                             JPH::Quat::sIdentity(),
                                             /*userData*/0, system);
 
+    //To enable character vs character collision. And now during Extended update Jolt detects other characters.
+    character->SetCharacterVsCharacterCollision(&getCharacterVsCharacterCollisionRegistry());
+    getCharacterVsCharacterCollisionRegistry().Add(character);
+
     listener = new MyContactListener();
+    listener->setCharacterCollisionRuleEvaluator([](const uint32_t selfCharacterId, const uint32_t otherCharacterId)
+    {
+        const Character* selfCharacter = Character::getCharacterByCapsuleId(selfCharacterId);
+        const Character* otherCharacter = Character::getCharacterByCapsuleId(otherCharacterId);
+        if (selfCharacter == nullptr || otherCharacter == nullptr ||
+            selfCharacter->capsuleCollider == nullptr || otherCharacter->capsuleCollider == nullptr)
+        {
+            return true;
+        }
+
+        const auto& layerRegistry = Physics::PhysicsLayerRegistry::instance();
+        const JPH::ObjectLayer selfLayer = layerRegistry.getLayerOrDefault(selfCharacter->capsuleCollider->getPhysicsLayerName());
+        const JPH::ObjectLayer otherLayer = layerRegistry.getLayerOrDefault(otherCharacter->capsuleCollider->getPhysicsLayerName());
+        return Physics::PhysicsLayerRulebookRegistry::instance().shouldCollide(selfLayer, otherLayer);
+    });
     character->SetListener(listener);                                  // ground callbacks
 
     auto body_id = character->GetInnerBodyID();
+    if (physics)
+    {
+        physics->RegisterBodyOwner(body_id, getOwnerRenderable(), getOwnerInstanceId(), getIsSensor());
+    }
     auto &lock_interface = physics->physicsSystem.GetBodyLockInterface();
     {
         JPH::BodyLockWrite lock(lock_interface, character->GetInnerBodyID());
         if (lock.Succeeded())
         {
             JPH::Body &body = lock.GetBody();
-            body.SetRestitution(0.0f);
+            body.SetFriction(std::max(0.0f, characterFriction));
+            body.SetRestitution(std::max(0.0f, characterRestitution));
+            body.SetIsSensor(getIsSensor());
         }
     }
 }
@@ -237,20 +328,19 @@ void Physics::Capsule::setWorldRotation(glm::quat rotation)
 
 void Physics::Capsule::PhysicsUpdate()
 {
-    auto transform = character->GetPosition();
-    auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
-
+    const auto transform = character->GetPosition();
+    const auto transformglm = glm::vec3(static_cast<float>(transform.GetX()), static_cast<float>(transform.GetY()), static_cast<float>(transform.GetZ()));
     assert(!glm::any(glm::isnan(transformglm)) && "Jolt Character Position is NaN!");
-
-    auto rotation = character->GetRotation();
-    auto rotationglm = glm::quat(
-                        static_cast<float>(rotation.GetW()),
-                        static_cast<float>(rotation.GetX()),
-                        static_cast<float>(rotation.GetY()),
-                        static_cast<float>(rotation.GetZ())
-                    );
-
-    assert(!glm::any(glm::isnan(glm::vec4(rotationglm.x, rotationglm.y, rotationglm.z, rotationglm.w)))
-           && "Jolt Character Rotation is NaN!");
-    model->setTransformFromPhysics(transformglm, rotationglm);
 }
+
+
+uint32_t Physics::Capsule::getCharacterId() const
+{
+    if (character == nullptr)
+    {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    return character->GetID().GetValue();
+}
+

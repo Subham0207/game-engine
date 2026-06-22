@@ -5,11 +5,19 @@
 #include "../Headers/NodeGraph/FlowScript/StatemachineFlowScript.hpp"
 
 #include <NodeGraph/Views/NodeGraphNodesView.hpp>
+#include <NodeGraph/Components/NodeGraphNodes/Keywords/Function.hpp>
+
+#include <EngineState.hpp>
+#include <Helpers/Shared.hpp>
 
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <regex>
 #include <sstream>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 namespace
 {
@@ -17,12 +25,27 @@ namespace
         "return function(t)\n"
         "    return false\n"
         "end";
+
+    std::string makeRelativeToProject(const fs::path& absolutePath)
+    {
+        if (!EngineState::state)
+            return absolutePath.string();
+
+        const fs::path projectDir = EngineState::state->currentActiveProjectDirectory;
+        if (projectDir.empty())
+            return absolutePath.string();
+
+        std::error_code ec;
+        const fs::path relative = fs::relative(absolutePath, projectDir, ec);
+        if (ec || relative.empty())
+            return absolutePath.string();
+
+        return relative.string();
+    }
 }
 
-StatemachineFlowScript::StatemachineFlowScript():
-selectedLink(nullptr), showUI(false)
+StatemachineFlowScript::StatemachineFlowScript(): selectedLink(nullptr), showUI(false)
 {
-
 }
 
 const std::string& StatemachineFlowScript::defaultConditionChunk()
@@ -39,49 +62,72 @@ std::string StatemachineFlowScript::trimCopy(const std::string& value)
     return value.substr(begin, end - begin + 1);
 }
 
-std::string StatemachineFlowScript::unwrapConditionChunk(const std::string& storedCondition)
+std::string StatemachineFlowScript::readTextFile(const std::filesystem::path& path)
 {
-    const std::string trimmed = trimCopy(storedCondition);
-    if (trimmed.empty())
-        return "local node_0 = function(t)\n    return false\nend\n";
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open())
+        return "";
 
-    if (trimmed.rfind("return function(", 0) != 0)
-        return storedCondition;
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
 
-    std::istringstream stream(storedCondition);
-    std::string line;
-    std::vector<std::string> lines;
-    while (std::getline(stream, line))
-        lines.push_back(line);
+bool StatemachineFlowScript::writeTextFile(const std::filesystem::path& path, const std::string& content)
+{
+    std::error_code ec;
+    fs::create_directories(path.parent_path(), ec);
 
-    if (lines.size() < 3)
-        return "local node_0 = function(t)\n    return false\nend\n";
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    if (!file.is_open())
+        return false;
 
-    // Remove outer wrapper line (return function(...)) and final end.
-    std::vector<std::string> body(lines.begin() + 1, lines.end() - 1);
+    file << content;
+    return true;
+}
 
-    // Drop wrapper tail return if present (e.g. return node_6(t)).
-    for (int i = static_cast<int>(body.size()) - 1; i >= 0; --i)
+std::filesystem::path StatemachineFlowScript::resolveScriptPath(const std::string& storedPath) const
+{
+    fs::path p(storedPath);
+    if (p.is_absolute())
+        return p;
+
+    if (EngineState::state)
     {
-        const std::string stripped = trimCopy(body[i]);
-        if (stripped.empty())
-            continue;
-        if (stripped.rfind("return ", 0) == 0)
-            body.erase(body.begin() + i);
-        break;
+        const fs::path projectDir = EngineState::state->currentActiveProjectDirectory;
+        if (!projectDir.empty())
+            return projectDir / p;
     }
 
-    std::ostringstream out;
-    for (const auto& bodyLine : body)
+    return p;
+}
+
+void StatemachineFlowScript::ensureSelectedLinkScriptPaths() const
+{
+    if (!selectedLink)
+        return;
+
+    const bool needsFlowPath = selectedLink->flowScriptPath.empty();
+    const bool needsLuaPath = selectedLink->luaScriptPath.empty();
+    if (!needsFlowPath && !needsLuaPath)
+        return;
+
+    fs::path baseDir = "Assets/FlowScripts";
+    if (EngineState::state)
     {
-        out << bodyLine << "\n";
+        const fs::path projectDir = EngineState::state->currentActiveProjectDirectory;
+        if (!projectDir.empty())
+            baseDir = projectDir / "Assets" / "FlowScripts";
     }
 
-    const std::string unwrappedBody = trimCopy(out.str());
-    if (unwrappedBody.empty())
-        return "local node_0 = function(t)\n    return false\nend\n";
+    const std::string fileStem = Shared::uuid();
+    const fs::path flowAbsolutePath = baseDir / (fileStem + ".flowscript");
+    const fs::path luaAbsolutePath = baseDir / (fileStem + ".lua");
 
-    return out.str();
+    if (needsFlowPath)
+        selectedLink->flowScriptPath = makeRelativeToProject(flowAbsolutePath);
+    if (needsLuaPath)
+        selectedLink->luaScriptPath = makeRelativeToProject(luaAbsolutePath);
 }
 
 void StatemachineFlowScript::ensureContextNode()
@@ -114,7 +160,6 @@ void StatemachineFlowScript::ensureContextInputConnection()
 
         if (!functionNode && node->type() == NodeTypes::Function)
             functionNode = node.get();
-
         if (!contextNode && node->name() == "GenericType(t)")
             contextNode = node.get();
     }
@@ -146,6 +191,7 @@ std::string StatemachineFlowScript::wrapCompiledEditorScript(const std::string& 
     std::vector<std::string> bodyLines;
     std::string entryFunctionName;
     const std::regex functionDeclRegex(R"(^\s*local\s+(node_\d+)\s*=\s*function\s*\()", std::regex::ECMAScript);
+    const std::regex transpiledFunctionDeclRegex(R"(^\s*function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\()", std::regex::ECMAScript);
 
     while (std::getline(stream, line))
     {
@@ -157,6 +203,8 @@ std::string StatemachineFlowScript::wrapCompiledEditorScript(const std::string& 
 
         std::smatch match;
         if (std::regex_search(line, match, functionDeclRegex) && match.size() > 1)
+            entryFunctionName = match[1].str();
+        else if (std::regex_search(line, match, transpiledFunctionDeclRegex) && match.size() > 1)
             entryFunctionName = match[1].str();
 
         bodyLines.push_back(line);
@@ -185,37 +233,56 @@ void StatemachineFlowScript::setSelectedLink(StateMachineLink* link)
     if (!selectedLink)
         return;
 
-    if (selectedLink->condition.empty())
-        selectedLink->condition = defaultConditionChunk();
+    ensureSelectedLinkScriptPaths();
 
-    std::string editorSource = unwrapConditionChunk(selectedLink->condition);
-    setCompiledLua(editorSource);
-    try
+    const fs::path flowScriptPath = resolveScriptPath(selectedLink->flowScriptPath);
+    bool loadedFlowGraph = false;
+    if (!flowScriptPath.empty())
+        loadedFlowGraph = loadVisualScriptFromFile(flowScriptPath);
+
+    if (!loadedFlowGraph)
     {
-        deCompile(editorSource);
-    }
-    catch (const std::exception&)
-    {
-        // Legacy/invalid snippets should still open with a usable starter graph.
         clearScript();
-        editorSource = "local node_0 = function(t)\n    return false\nend\n";
-        setCompiledLua(editorSource);
-        deCompile(editorSource);
+        if (auto* nodeView = views.findView<NodeGraphNodesView>())
+        {
+            NodeGraphNode* functionNode = nodeView->addFunctionNode(nodes, {"t"}, ImVec2(120.0f, 120.0f));
+            if (auto* functionKeywordNode = dynamic_cast<NodeGraphComponents::Node::Keywords::Function*>(functionNode))
+                functionKeywordNode->functionName = "condition";
+
+            const size_t returnNodeIndex = nodes.size();
+            nodeView->addNode(nodes, NodeTypes::Return, ImVec2(420.0f, 120.0f));
+            NodeGraphNode* returnNode = returnNodeIndex < nodes.size() ? nodes[returnNodeIndex].get() : nullptr;
+
+            const size_t boolNodeIndex = nodes.size();
+            nodeView->addNode(nodes, NodeTypes::Boolean, ImVec2(420.0f, 260.0f));
+            NodeGraphNode* falseNode = boolNodeIndex < nodes.size() ? nodes[boolNodeIndex].get() : nullptr;
+
+            if (functionNode && returnNode && functionNode->hasExecOutput() && returnNode->hasExecInput())
+                nodeView->addLink(nodeGraphLinks, functionNode->getExecOutput()->getId(), returnNode->getExecInput()->getId());
+
+            if (falseNode && !falseNode->outputs().empty() && returnNode && !returnNode->inputs().empty())
+                nodeView->addLink(nodeGraphLinks, falseNode->outputs()[0].getId(), returnNode->inputs()[0].getId());
+        }
+
+        setCompiledLua(defaultConditionChunk());
     }
+
+    const fs::path luaScriptPath = resolveScriptPath(selectedLink->luaScriptPath);
+    if (!luaScriptPath.empty())
+        setCompiledLua(readTextFile(luaScriptPath));
+
     ensureContextNode();
     ensureContextInputConnection();
 }
 
 void StatemachineFlowScript::draw()
 {
-    if (!showUI || !selectedLink) return;
+    if (!showUI || !selectedLink)
+        return;
 
     ImGui::Begin("Statemachine flow script", &showUI);
-
     ImGui::TextUnformatted("Flow script");
-
     drawUIEmbedded();
-
     ImGui::End();
 }
 
@@ -225,8 +292,81 @@ const std::string& StatemachineFlowScript::compile()
     auto& luaCode = getCompiledLua();
     if (selectedLink)
     {
-        selectedLink->condition = wrapCompiledEditorScript(luaCode);
+        ensureSelectedLinkScriptPaths();
+
+        const fs::path flowPath = resolveScriptPath(selectedLink->flowScriptPath);
+        if (!flowPath.empty())
+            saveVisualScriptToFile(flowPath);
+
+        const fs::path luaPath = resolveScriptPath(selectedLink->luaScriptPath);
+        if (!luaPath.empty())
+            writeTextFile(luaPath, wrapCompiledEditorScript(luaCode));
     }
     return luaCode;
+}
+
+bool StatemachineFlowScript::canSaveVisualScriptAsset() const
+{
+    return selectedLink != nullptr;
+}
+
+bool StatemachineFlowScript::saveVisualScriptAsset()
+{
+    if (!selectedLink)
+    {
+        appendLuaLog("[FLOWSCRIPT] Save failed: no selected transition link.");
+        return false;
+    }
+
+    ensureSelectedLinkScriptPaths();
+    const fs::path flowPath = resolveScriptPath(selectedLink->flowScriptPath);
+    if (flowPath.empty())
+    {
+        appendLuaLog("[FLOWSCRIPT] Save failed: flowScriptPath is empty.");
+        return false;
+    }
+
+    const bool saved = saveVisualScriptToFile(flowPath);
+    std::cout << "[FLOWSCRIPT] Saved: " << flowPath.string() << std::endl;
+    if (saved)
+        appendLuaLog("[FLOWSCRIPT] Saved visual script: " + flowPath.string());
+    else
+        appendLuaLog("[FLOWSCRIPT] Save failed for: " + flowPath.string());
+
+    return saved;
+}
+
+void StatemachineFlowScript::compileAll(std::vector<StateMachineLink>& links)
+{
+    StateMachineLink* previousSelection = selectedLink;
+    const bool previousShowUi = showUI;
+
+    int compiledCount = 0;
+    int failedCount = 0;
+
+    for (auto& link : links)
+    {
+        setSelectedLink(&link);
+        compile();
+
+        if (getCompileDiagnostics().empty())
+            ++compiledCount;
+        else
+            ++failedCount;
+    }
+
+    if (previousSelection)
+    {
+        setSelectedLink(previousSelection);
+    }
+    else
+    {
+        selectedLink = nullptr;
+        showUI = previousShowUi;
+        clearScript();
+    }
+
+    (void)compiledCount;
+    (void)failedCount;
 }
 

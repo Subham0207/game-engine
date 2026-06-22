@@ -47,6 +47,8 @@ public:
 
     std::vector<NodeAttribute>& inputs() { return inputAttributes; }
     std::vector<NodeAttribute>& outputs() { return outputAttributes; }
+    [[nodiscard]] const std::vector<NodeAttribute>& inputs() const { return inputAttributes; }
+    [[nodiscard]] const std::vector<NodeAttribute>& outputs() const { return outputAttributes; }
 
     void setupExecInput(int& nextInputPinId, const std::string& name = "")
     {
@@ -61,8 +63,11 @@ public:
     bool hasExecInput() const { return executionFlowIn != nullptr; }
     bool hasExecOutput() const { return executionFlowOut != nullptr; }
 
-    NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
-    NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
+    [[nodiscard]] NodeAttribute* getExecInput() const { return executionFlowIn.get(); }
+    [[nodiscard]] NodeAttribute* getExecOutput() const { return executionFlowOut.get(); }
+
+    [[nodiscard]] int getExecInputId() const { return executionFlowIn ? executionFlowIn->getId() : -1; }
+    [[nodiscard]] int getExecOutputId() const { return executionFlowOut ? executionFlowOut->getId(): -1; }
 
     virtual NodeTypes type() = 0;
 

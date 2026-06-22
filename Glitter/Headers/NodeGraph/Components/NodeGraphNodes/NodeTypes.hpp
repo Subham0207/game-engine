@@ -8,6 +8,10 @@ enum class NodeTypes
 {
     Add,
     Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    LessThan,
     GreaterThan,
     EqualsTo,
     NotEqualsTo,
@@ -15,6 +19,8 @@ enum class NodeTypes
     Integer,
     Boolean,
     Generic,
+    VariableDeclaration,
+    GetVariable,
 
     Function,
     Print,

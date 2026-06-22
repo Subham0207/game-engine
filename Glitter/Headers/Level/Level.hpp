@@ -52,15 +52,15 @@ class Level: public Serializable{
 
         void loadMainLevelOfCurrentProject();
 
-        void addRenderable(const shared_ptr<Renderable>& renderable){
-            modelFilePaths.push_back(renderable->getName());
-            modelTransformations.push_back(&renderable->getModelMatrix());
-            renderables.push_back(renderable);
-        }
+        void addRenderable(const shared_ptr<Renderable>& renderable);
 
         void createACopyForRenderableAt(int index);
 
-        shared_ptr<Character> spawnCharacter(fs::path filepath, glm::mat4 transform = glm::identity<glm::mat4>(), std::string instanceId = "");
+        shared_ptr<Character> spawnCharacter(
+            fs::path filepath,
+            glm::mat4 transform = glm::identity<glm::mat4>(),
+            std::string instanceId = "",
+            bool enableGameplaySystems = true);
         void spawnAI(fs::path filepath, std::string instanceId = "");
 
         void addAI(std::shared_ptr<AI::AI> ai);

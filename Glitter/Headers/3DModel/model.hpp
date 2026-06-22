@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <vector>
 #include <string>
 #include "Helpers/shader.hpp"
@@ -15,10 +16,16 @@
 #include <Lights/light.hpp>
 #include <Serializable.hpp>
 #include <functional>
+#include <optional>
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
+#include <unordered_set>
 
 #include "Materials/Material.hpp"
 #include "Modals/texture.hpp"
+#include "Physics/PhysicsBodySettings.hpp"
 #include "serializer.hpp"
 
 enum ModelType;
@@ -39,6 +46,14 @@ public:
         std::function<void(Assimp::Importer* import, const aiScene*)> onModelComponentsLoad = nullptr);
 
     std::string GetClassId() const override { return "Model"; }
+
+    virtual void onTick(float deltaTime){};
+    virtual void onStart(){};
+    virtual void onDestroy(){};
+
+    //Only Applies to Physics body of Kinematics Motion type. Call it inside tick
+    void MoveBody(const glm::vec3& position, float deltaTime) const;
+    void MoveBody(const glm::vec3& position, const glm::quat& rotation, float deltaTime) const;
 
     // This can load 3d model file example: warrior.fbx;
     void LoadA3DModel(
@@ -157,10 +172,33 @@ public:
     void static saveSerializedModel(std::string filename, Model &model);
 
     void static loadFromFile(const std::string &filename, Model &model, std::shared_ptr<Materials::Material>& material);
+    static std::shared_ptr<Model> loadWithClassFactory(const fs::path& assetRoot, const std::string& filename);
 
     void attachPhysicsObject(Physics::PhysicsObject* physicsObj);
-    void syncTransformationToPhysicsEntity() override;
-    void physicsUpdate() override;
+    [[nodiscard]] bool hasPhysicsObject() const { return physicsObject != nullptr; }
+    void clearPhysicsObject();
+
+    void setPhysicsBodySettings(const std::optional<Physics::PhysicsBodySettings>& settings);
+    [[nodiscard]] const std::optional<Physics::PhysicsBodySettings>& getPhysicsBodySettings() const { return physicsBodySettings; }
+    bool setCustomColliderGeometryFromFile(const std::string& colliderAssetPath, std::string* outError = nullptr);
+
+    void setGameplayTags(const std::vector<std::string>& tags)
+    {
+        gameplayTags = tags;
+        gameplayTagSet.clear();
+        gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
+    }
+    [[nodiscard]] const std::vector<std::string>& getGameplayTags() const { return gameplayTags; }
+    [[nodiscard]] const std::unordered_set<std::string>& GetGameplayTags() const override { return gameplayTagSet; }
+    [[nodiscard]] bool hasGameplayTag(const std::string& tag) const
+    {
+        return gameplayTagSet.find(tag) != gameplayTagSet.end();
+    }
+    [[nodiscard]] std::vector<Renderable*> GetOverlappingSensors() const override;
+
+    void ensureStaticBoxCollider();
+    void syncPhysicsColliderToModelTransform();
+    [[nodiscard]] glm::vec3 computeLocalMeshHalfExtents() const;
 
     void static initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material);
 
@@ -183,16 +221,20 @@ public:
 
     std::vector<Mesh> meshes;
     
+    std::string classId = "None";
     std::string filename;
     std::vector<std::shared_ptr<Materials::IMaterial>> materials;
     std::vector<std::shared_ptr<ProjectModals::Texture>> textureIds;
 private:
+    bool started = false;
     std::string directory;
     aiAABB* boundingBox;
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     Physics::PhysicsObject* physicsObject = NULL;
-    std::string physicsBodyType = "";
+    std::optional<Physics::PhysicsBodySettings> physicsBodySettings = std::nullopt;
+    std::vector<std::string> gameplayTags;
+    std::unordered_set<std::string> gameplayTagSet;
 
 
     void loadModel(std::string path,
@@ -222,6 +264,8 @@ private:
     std::shared_ptr<ProjectModals::Texture> loadEmbeddedTexture(const aiTexture* texture, aiTextureType textureType);
 
     void calculateBoundingBox(const aiScene* scene);
+    void rebuildPhysicsObjectFromSettings();
+    void syncGameplayTagSet();
 
     friend class boost::serialization::access;
     template<class Archive>
@@ -230,9 +274,18 @@ private:
         ar & meshes;
         ar & modelMatrix;
         ar & directory;
-        ar & physicsBodyType;
+        ar & physicsBodySettings;
+        ar & gameplayTags;
+        if (version >= 1)
+        {
+            ar & classId;
+        }
+        else if (Archive::is_loading::value)
+        {
+            classId = "None";
+        }
     }
     
 };
 
-// BOOST_CLASS_VERSION(ModelType, 0);
+BOOST_CLASS_VERSION(Model, 1);

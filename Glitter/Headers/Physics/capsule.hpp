@@ -1,9 +1,11 @@
 #pragma once
 #include <PhysicsSystem.hpp>
 #include <Physics/PhysicsObject.hpp>
-#include <3DModel/capsulecolliderMesh.hpp>
 #include <glm/glm.hpp>
 #include <Physics/MyContactListener.hpp>
+#include <boost/serialization/access.hpp>
+#include <cstdint>
+#include <vector>
 namespace Physics
 {
     class Capsule: public PhysicsObject {
@@ -19,18 +21,13 @@ namespace Physics
             glm::quat rotation = glm::quat(),
             glm::vec3 scale = glm::vec3(1.0f)
         );
-        ~Capsule()
-        {
-        }
+        ~Capsule();
         float mRadius;
         float mHalfHeight;
 
         void tick();
-        std::shared_ptr<CapsuleColliderModel> capsule;
         void reInit(float radius, float halfheight);
-        void syncTransformation() override;
-        //TODO: Look for a better solution for engineRootPath
-        void addCustomModel(std::string modelPath, std::string engineRootPath) override;
+        void syncTransformation();
         void moveBody(
             float deltaTime,
             glm::vec3 moveOffset,
@@ -42,6 +39,17 @@ namespace Physics
         void PhysicsUpdate() override;
         void Capsule::CreateCharacterVirtualPhysics(JPH::PhysicsSystem *system,
             const JPH::RVec3 &spawn, float halfheight = 0.8f, float radius = 0.3f);
+
+        [[nodiscard]] uint32_t getCharacterId() const;
+
+        void setCharacterMass(const float mass) { characterMass = mass; }
+        void setCharacterMaxStrength(const float maxStrength) { characterMaxStrength = maxStrength; }
+        void setCharacterFriction(const float friction) { characterFriction = friction; }
+        void setCharacterRestitution(const float restitution) { characterRestitution = restitution; }
+        [[nodiscard]] float getCharacterMass() const { return characterMass; }
+        [[nodiscard]] float getCharacterMaxStrength() const { return characterMaxStrength; }
+        [[nodiscard]] float getCharacterFriction() const { return characterFriction; }
+        [[nodiscard]] float getCharacterRestitution() const { return characterRestitution; }
 
         glm::vec3 position;
         glm::quat rotation;
@@ -64,6 +72,10 @@ namespace Physics
         bool grounded      = false;
         bool landed        = false;
         JPH::Vec3 ground_normal = JPH::Vec3::sAxisY();
+        float characterMass = 80.0f;
+        float characterMaxStrength = 100.0f;
+        float characterFriction = 0.2f;
+        float characterRestitution = 0.0f;
 
     private:
         friend class boost::serialization::access;

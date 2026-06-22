@@ -147,6 +147,46 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(recast)
 
+set(RMLUI_SAMPLES OFF CACHE BOOL "" FORCE)
+set(RMLUI_TESTS OFF CACHE BOOL "" FORCE)
+set(RMLUI_SHELL ON CACHE BOOL "" FORCE)
+set(RMLUI_FONT_ENGINE "freetype" CACHE STRING "" FORCE)
+
+# Use vendored FreeType so packaging/link behavior is consistent across engine and consumers.
+set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+        freetype
+        GIT_REPOSITORY https://github.com/freetype/freetype.git
+        GIT_TAG VER-2-13-3
+)
+FetchContent_MakeAvailable(freetype)
+
+if (TARGET freetype AND NOT TARGET Freetype::Freetype)
+    add_library(Freetype::Freetype ALIAS freetype)
+endif()
+
+FetchContent_Declare(
+        rmlui
+        GIT_REPOSITORY https://github.com/mikke89/RmlUi.git
+        GIT_TAG 6.0
+)
+
+FetchContent_MakeAvailable(rmlui)
+
+set(RMLUI_GLFW_GL3_BACKEND_SOURCES
+        ${rmlui_SOURCE_DIR}/Backends/RmlUi_Platform_GLFW.cpp
+        ${rmlui_SOURCE_DIR}/Backends/RmlUi_Renderer_GL3.cpp
+        ${rmlui_SOURCE_DIR}/Backends/RmlUi_Backend_GLFW_GL3.cpp
+)
+
+set_source_files_properties(${RMLUI_GLFW_GL3_BACKEND_SOURCES} PROPERTIES
+        COMPILE_DEFINITIONS "GL_TRUE=1;RMLUI_GL3_CUSTOM_LOADER=<glad/glad.h>"
+)
+
+if (TARGET rmlui_backend_GLFW_GL3)
+    target_compile_definitions(rmlui_backend_GLFW_GL3 INTERFACE GL_TRUE=1)
+endif()
+
 FetchContent_GetProperties(recast)
 if (NOT recast_POPULATED)
     FetchContent_Populate(recast)
@@ -173,6 +213,10 @@ endif ()
 
 add_library(GlitterLib STATIC
         ${PROJECT_SOURCES}
+        Glitter/Sources/NodePositionSerialization.cpp
+        Glitter/Sources/Physics/PhysicsLayerRegistry.cpp
+        Glitter/Sources/Physics/OpenGLJoltDebugRenderer.cpp
+        ${RMLUI_GLFW_GL3_BACKEND_SOURCES}
         ${VENDORS_SOURCES}
         ${IMGUI_IMPL_SOURCES}
         ${IMGUIZMO_IMPL_SOURCES}
@@ -223,6 +267,11 @@ target_include_directories(GlitterLib
 
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
             $<INSTALL_INTERFACE:include/Glitter>
+
+        PRIVATE
+            ${rmlui_SOURCE_DIR}/Include
+            ${rmlui_SOURCE_DIR}/Backends
+            ${CMAKE_SOURCE_DIR}/Glitter/Vendor/glad/include
 )
 
 if (ENGINE_WITH_TRACY)
@@ -249,6 +298,7 @@ target_link_libraries(GlitterLib
             Detour
             DetourCrowd
             DetourTileCache
+            RmlUi::RmlUi
 )
 
 if (ENGINE_WITH_TRACY)
@@ -275,6 +325,10 @@ target_link_libraries(Editor PRIVATE GlitterLib)
 add_executable(StateMachineTool ${CMAKE_SOURCE_DIR}/Glitter/stateMachineMain.cpp)
 
 target_link_libraries(StateMachineTool PRIVATE GlitterLib)
+
+add_executable(AnimationEditorTool ${CMAKE_SOURCE_DIR}/Glitter/animationEditorMain.cpp)
+
+target_link_libraries(AnimationEditorTool PRIVATE GlitterLib)
 
 add_executable(ProjectManager ${CMAKE_SOURCE_DIR}/Glitter/projectMangerMain.cpp)
 
@@ -313,8 +367,19 @@ include(CMakePackageConfigHelpers)
 
 set(GLITTER_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/Glitter")
 
+set(GLITTER_EXPORT_TARGETS
+        GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd DetourTileCache sol2
+        rmlui rmlui_core rmlui_debugger
+)
+
+set(GLITTER_PACKAGE_BUNDLES_FREETYPE OFF)
+if (TARGET freetype)
+    list(APPEND GLITTER_EXPORT_TARGETS freetype)
+    set(GLITTER_PACKAGE_BUNDLES_FREETYPE ON)
+endif()
+
 # UNIFIED INSTALL TARGETS (Only call this ONCE per target)
-install(TARGETS GlitterLib assimp zlibstatic glfw Jolt Recast Detour DetourCrowd DetourTileCache sol2
+install(TARGETS ${GLITTER_EXPORT_TARGETS}
         EXPORT GlitterTargets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -336,6 +401,9 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/stb/" DESTINATION "${CMAKE
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imgui/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imgui")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imguizmo/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imguizmo")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Glitter/Vendor/imnodes/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Glitter/Vendor/imnodes" FILES_MATCHING PATTERN "*.h")
+if (TARGET freetype)
+    install(DIRECTORY "${freetype_SOURCE_DIR}/include/" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/freetype2")
+endif()
 
 # Install Bundled Dependencies
 install(FILES "${LUA_LIBRARY}" DESTINATION "${CMAKE_INSTALL_LIBDIR}")
@@ -361,6 +429,10 @@ set(BOOST_ROOT "${PACKAGE_PREFIX_DIR}")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_NO_SYSTEM_PATHS ON)
 find_dependency(Boost 1.89.0 REQUIRED COMPONENTS serialization json)
+
+if (NOT @GLITTER_PACKAGE_BUNDLES_FREETYPE@)
+    find_dependency(Freetype REQUIRED)
+endif()
 
 if (NOT TARGET Lua::Lua)
     add_library(Lua::Lua SHARED IMPORTED)
@@ -389,7 +461,7 @@ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersi
 install(EXPORT GlitterTargets FILE GlitterTargets.cmake NAMESPACE Glitter:: DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/GlitterConfigVersion.cmake" DESTINATION "${GLITTER_INSTALL_CMAKEDIR}")
 
-install(TARGETS ProjectManager StateMachineTool
+install(TARGETS ProjectManager StateMachineTool AnimationEditorTool
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 set_target_properties(GlitterLib PROPERTIES EXPORT_NAME Glitter)

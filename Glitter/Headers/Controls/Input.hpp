@@ -4,6 +4,11 @@
 #include "Camera/Camera.hpp"
 #include "Event/InputContext.hpp"
 
+namespace Rml
+{
+	class Context;
+}
+
 class GLFWWindow;
 class InputHandler
 {
@@ -51,9 +56,26 @@ private:
 // correct current context before forwarding events.
 struct WindowInputUserData
 {
+	using KeyCallback = bool (*)(GLFWwindow* window, int key, int scancode, int action, int mods);
+	using CharCallback = bool (*)(GLFWwindow* window, unsigned int c);
+	using CursorEnterCallback = bool (*)(GLFWwindow* window, int entered);
+	using CursorPosCallback = bool (*)(GLFWwindow* window, double xpos, double ypos);
+	using MouseButtonCallback = bool (*)(GLFWwindow* window, int button, int action, int mods);
+	using ScrollCallback = bool (*)(GLFWwindow* window, double xoffset, double yoffset);
+	using FramebufferSizeCallback = void (*)(GLFWwindow* window, int width, int height);
+
 	InputHandler* handler = nullptr;
 	InputContext* ctx = nullptr;
 	ImGuiContext* imguiCtx = nullptr;
 	ImNodesContext* imnodesCtx = nullptr;
+	Rml::Context* rmlContext = nullptr;
+	int rmlModifierState = 0;
+	KeyCallback onKey = nullptr;
+	CharCallback onChar = nullptr;
+	CursorEnterCallback onCursorEnter = nullptr;
+	CursorPosCallback onCursorPos = nullptr;
+	MouseButtonCallback onMouseButton = nullptr;
+	ScrollCallback onScroll = nullptr;
+	FramebufferSizeCallback onFramebufferSize = nullptr;
 };
 

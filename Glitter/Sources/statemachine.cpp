@@ -5,6 +5,23 @@
 #include <NodeGraph/StateMachineJsonExporter.hpp>
 
 #include <unordered_map>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+
+namespace
+{
+    std::string ReadTextFile(const std::filesystem::path& path)
+    {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open())
+            return "";
+
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
+}
 
 Controls::ToStateWhenCondition::ToStateWhenCondition(std::shared_ptr<State> state, std::string condition)
 {
@@ -245,7 +262,29 @@ void Controls::StateMachine::LoadSMfile(std::string filename)
         if (fromIt == statesById.end() || toIt == statesById.end())
             continue;
 
-        fromIt->second->toStateWhenCondition.emplace_back(toIt->second, link.condition);
+        std::string transitionConditionSource = "return function(t) return false end";
+        if (!link.luaScriptPath.empty())
+        {
+            std::filesystem::path luaPath(link.luaScriptPath);
+            if (!luaPath.is_absolute())
+            {
+                if (EngineState::state && !EngineState::state->currentActiveProjectDirectory.empty())
+                    luaPath = std::filesystem::path(EngineState::state->currentActiveProjectDirectory) / luaPath;
+                else
+                    luaPath = std::filesystem::path(filename).parent_path() / luaPath;
+            }
+
+            std::string loadedSource = ReadTextFile(luaPath);
+            if (loadedSource.empty())
+            {
+                const std::filesystem::path fallback = std::filesystem::path(filename).parent_path() / std::filesystem::path(link.luaScriptPath);
+                loadedSource = ReadTextFile(fallback);
+            }
+            if (!loadedSource.empty())
+                transitionConditionSource = loadedSource;
+        }
+
+        fromIt->second->toStateWhenCondition.emplace_back(toIt->second, transitionConditionSource);
     }
 
     auto rootIt = statesById.find(rootNodeId);
@@ -343,8 +382,7 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
         if (auto it = filesMap.find(state->animationGuid); it != filesMap.end()) {
             auto p = fs::path(it->second);
             auto parent = p.parent_path();
-            state->animation = new Animation();
-            state->animation->load(parent, state->animationGuid);
+            state->animation = Animation::loadAnimation(state->animationGuid);
         } else {
             std::cerr << "[StateMachine] No file for animationGuid " << state->animationGuid << "\n";
         }

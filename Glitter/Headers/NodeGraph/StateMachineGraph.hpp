@@ -8,6 +8,7 @@
 #include "NodeGraph.hpp"
 #include "StateMachineJsonExporter.hpp"
 #include "Views/StateMachineView.hpp"
+#include "NodeGraph/FlowScript/StatemachineFlowScript.hpp"
 #include "Helpers/Shared.hpp"
 #include "EngineState.hpp"
 #include <filesystem>
@@ -70,6 +71,14 @@ public:
 
                 if (!hasActive)
                     ImGui::EndDisabled();
+
+                if (self->mFlowScriptRef)
+                {
+                    if (ImGui::SmallButton("Compile All"))
+                        self->mFlowScriptRef->compileAll(ctx.stateLinks);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+                        ImGui::SetTooltip("Compiles all transition FlowScript files to Lua artifacts");
+                }
 
                 ImGui::EndGroup();
             },

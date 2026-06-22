@@ -1,20 +1,26 @@
 #pragma once
 #include "3DModel/model.hpp"
+#include "GenericFactory.hpp"
 #include <iostream>
 #include <fstream>
 #include <utility>
+#include <limits>
 #include <vector>
 #include <filesystem>
 #include "Helpers/AssimpHelpers.hpp"
 #include <Helpers/vertexBoneDataHelper.hpp>
 #include "Helpers/Shared.hpp"
 #include <Modals/vertex.hpp>
+#include <assimp/postprocess.h>
 #include <stb_image.h>
 #include <stb_image_write.h>
 #include <EngineState.hpp>
 #include "ImGuizmo.h"
 #include <Physics/box.hpp>
+#include <Physics/PhysicsObject.hpp>
 #include <Modals/3DModelType.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "boost/uuid/random_generator.hpp"
 #include "boost/uuid/uuid.hpp"
@@ -26,6 +32,28 @@
 
 // using namespace std;
 namespace fs = std::filesystem;
+namespace bs = boost::property_tree;
+
+namespace
+{
+    Physics::PhysicsObject::RuntimeShape toRuntimeShape(const Physics::ColliderShape shape)
+    {
+        switch (shape)
+        {
+            case Physics::ColliderShape::Sphere:
+                return Physics::PhysicsObject::RuntimeShape::Sphere;
+            case Physics::ColliderShape::Capsule:
+                return Physics::PhysicsObject::RuntimeShape::Capsule;
+            case Physics::ColliderShape::ConvexHull:
+                return Physics::PhysicsObject::RuntimeShape::ConvexHull;
+            case Physics::ColliderShape::Custom:
+                return Physics::PhysicsObject::RuntimeShape::Custom;
+            case Physics::ColliderShape::Box:
+            default:
+                return Physics::PhysicsObject::RuntimeShape::Box;
+        }
+    }
+}
 
 void Model::loadModel(
     std::string path,
@@ -451,15 +479,43 @@ void Model::draw(float deltaTime, Camera* camera, Lights* lights, CubeMap* cubeM
     {
         if(EngineState::state->isPlay)
         {
-            this->setTransformFromPhysics(physicsObject->model->GetPosition(), physicsObject->model->GetRot());
+            glm::vec3 modelPosition = physicsObject->getWorldPosition();
+            glm::quat modelRotation = physicsObject->getWorldRotation();
+
+            if (physicsBodySettings.has_value() && physicsBodySettings->bodyType == Physics::BodyType::RigidBody)
+            {
+                const auto& offset = physicsBodySettings->rigidBodyData.transformationOffset;
+                const glm::quat offsetRotation = glm::quat(glm::radians(offset.rotation));
+                modelRotation = glm::normalize(modelRotation * glm::inverse(offsetRotation));
+
+                const glm::vec3 scaledOffsetPosition = offset.position * GetScale();
+                modelPosition = modelPosition - (modelRotation * scaledOffsetPosition);
+            }
+
+            this->setTransformFromPhysics(modelPosition, modelRotation);
         }
         else
         {
-            auto pos = GetPosition();
-            auto rot = GetRot();
-            physicsObject->model->setTransformFromPhysics(pos, rot);
+            syncPhysicsColliderToModelTransform();
         }
 
+    }
+
+    if (EngineState::state->isPlay)
+    {
+        if (!started)
+        {
+            onStart();
+            started = true;
+        }
+        else
+        {
+            onTick(deltaTime);
+        }
+    }
+    else
+    {
+        started = false;
     }
 }
 
@@ -559,6 +615,55 @@ void Model::loadFromFile(const std::string &filename, Model &model, std::shared_
     Model::initOnGPU(&model, material);
 }
 
+std::shared_ptr<Model> Model::loadWithClassFactory(const fs::path& assetRoot, const std::string& filename)
+{
+    const fs::path projectRoot = fs::path(EngineState::state->currentActiveProjectDirectory);
+    const fs::path metaFile = projectRoot / assetRoot / (filename + ".meta.json");
+    std::string discoveredClassId = "None";
+
+    try
+    {
+        bs::ptree meta;
+        bs::read_json(metaFile.string(), meta);
+        const fs::path contentRel = meta.get<std::string>("content.relative_path");
+        const fs::path contentFile = projectRoot / assetRoot / contentRel;
+
+        auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
+        auto vertPath = engineFSPath / "Shaders/pbr.vert";
+        auto fragPath = engineFSPath / "Shaders/pbr.frag";
+        auto material = std::make_shared<Materials::Material>("Material", vertPath.string(), fragPath.string());
+
+        Model baseLoadedModel;
+        baseLoadedModel.modeltype = ModelType::ACTUAL_MODEL;
+        Model::loadFromFile(contentFile.string(), baseLoadedModel, material);
+
+        if (!baseLoadedModel.classId.empty())
+        {
+            discoveredClassId = baseLoadedModel.classId;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "[MODEL][loadWithClassFactory] Failed class probe for " << filename
+                  << ": " << e.what() << std::endl;
+    }
+
+    std::shared_ptr<Model> model = nullptr;
+    if (discoveredClassId != "None")
+    {
+        model = ModelFactory::Create(discoveredClassId);
+    }
+
+    if (model == nullptr)
+    {
+        model = std::make_shared<Model>();
+    }
+
+    fs::path mutableAssetRoot = assetRoot;
+    model->load(mutableAssetRoot, filename);
+    return model;
+}
+
 void UpdateEngineStateWithFoundTexture(aiTextureType type)
 {
 
@@ -566,23 +671,253 @@ void UpdateEngineStateWithFoundTexture(aiTextureType type)
 
 void Model::attachPhysicsObject(Physics::PhysicsObject* physicsObj)
 {
-    this->physicsBodyType = "Box";
-    this->physicsObject = physicsObj;
-}
-
-void Model::syncTransformationToPhysicsEntity()
-{
-    if(this->physicsObject)
+    if (physicsObject != nullptr && physicsObject != physicsObj)
     {
-        physicsObject->model->setModelMatrix(getModelMatrix());
-        physicsObject->syncTransformation();
+        delete physicsObject;
+    }
+
+    this->physicsObject = physicsObj;
+    if (this->physicsObject != nullptr)
+    {
+        this->physicsObject->setOwnerRenderable(this, getInstanceId());
     }
 }
 
-void Model::physicsUpdate()
+void Model::clearPhysicsObject()
 {
-    if(this->physicsObject)
-    physicsObject->PhysicsUpdate();
+    if (physicsObject == nullptr)
+    {
+        return;
+    }
+
+    physicsObject->destroyBody();
+    delete physicsObject;
+    physicsObject = nullptr;
+}
+
+void Model::setPhysicsBodySettings(const std::optional<Physics::PhysicsBodySettings>& settings)
+{
+    physicsBodySettings = settings;
+
+    if (physicsBodySettings.has_value())
+    {
+        rebuildPhysicsObjectFromSettings();
+    }
+    else
+    {
+        clearPhysicsObject();
+    }
+}
+
+void Model::ensureStaticBoxCollider()
+{
+    if (modeltype != ModelType::ACTUAL_MODEL || physicsObject != nullptr)
+    {
+        return;
+    }
+
+    if (physicsBodySettings.has_value())
+    {
+        rebuildPhysicsObjectFromSettings();
+        return;
+    }
+
+    if (EngineState::state == nullptr || EngineState::state->physics == nullptr)
+    {
+        return;
+    }
+
+    attachPhysicsObject(new Physics::Box(
+        &getPhysicsSystem(),
+        false
+    ));
+}
+
+void Model::syncPhysicsColliderToModelTransform()
+{
+    if (this->physicsObject)
+    {
+        physicsObject->setOwnerRenderable(this, getInstanceId());
+        physicsObject->syncTransformation(GetPosition(), GetRot(), GetScale());
+    }
+}
+
+std::vector<Renderable*> Model::GetOverlappingSensors() const
+{
+    auto* self = const_cast<Model*>(this);
+    return getPhysicsSystem().GetOverlappingSensorsFor(self->getInstanceId());
+}
+
+void Model::syncGameplayTagSet()
+{
+    gameplayTagSet.clear();
+    gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
+}
+
+glm::vec3 Model::computeLocalMeshHalfExtents() const
+{
+    glm::vec3 minBounds(std::numeric_limits<float>::max());
+    glm::vec3 maxBounds(std::numeric_limits<float>::lowest());
+    bool hasVertex = false;
+
+    for (const auto& mesh : meshes)
+    {
+        for (const auto& vertex : mesh.vertices)
+        {
+            hasVertex = true;
+            minBounds = glm::min(minBounds, vertex.Position);
+            maxBounds = glm::max(maxBounds, vertex.Position);
+        }
+    }
+
+    if (!hasVertex)
+    {
+        return glm::vec3(1.0f);
+    }
+
+    const glm::vec3 extents = (maxBounds - minBounds) * 0.5f;
+    return glm::max(extents, glm::vec3(0.01f));
+}
+
+void Model::rebuildPhysicsObjectFromSettings()
+{
+    if (!physicsBodySettings.has_value())
+    {
+        return;
+    }
+
+    if (EngineState::state == nullptr || EngineState::state->physics == nullptr)
+    {
+        return;
+    }
+
+    const auto& settings = physicsBodySettings.value();
+
+    clearPhysicsObject();
+
+    if (settings.bodyType == Physics::BodyType::SoftBody)
+    {
+        // Soft-body runtime creation is intentionally deferred.
+        return;
+    }
+
+    auto* object = new Physics::PhysicsObject(&getPhysicsSystem());
+    object->setMotionType(settings.motionType);
+
+    if (settings.bodyType == Physics::BodyType::RigidBody)
+    {
+        Physics::RuntimeDynamicsProperties runtimeProperties{};
+        runtimeProperties.mass = settings.rigidBodyData.mass;
+        runtimeProperties.overrideMass = settings.rigidBodyData.overrideMass;
+        runtimeProperties.centerOfMassOffset = settings.rigidBodyData.centerOfMassOffset;
+        runtimeProperties.friction = settings.rigidBodyData.friction;
+        runtimeProperties.restitution = settings.rigidBodyData.restitution;
+        runtimeProperties.linearDamping = settings.rigidBodyData.linearDamping;
+        runtimeProperties.angularDamping = settings.rigidBodyData.angularDamping;
+
+        object->setRuntimeShape(toRuntimeShape(settings.rigidBodyData.colliderShape));
+        object->setTransformOffset(settings.rigidBodyData.transformationOffset);
+        object->setDynamicsProperties(runtimeProperties);
+        object->setPhysicsLayerName(settings.physicsLayer);
+        object->setIsSensor(settings.isSensor);
+
+        if (settings.rigidBodyData.colliderShape == Physics::ColliderShape::Box
+            || settings.rigidBodyData.colliderShape == Physics::ColliderShape::Sphere
+            || settings.rigidBodyData.colliderShape == Physics::ColliderShape::Capsule)
+        {
+            object->setBoxBaseHalfExtents(computeLocalMeshHalfExtents());
+        }
+
+        if ((settings.rigidBodyData.colliderShape == Physics::ColliderShape::Custom
+             || settings.rigidBodyData.colliderShape == Physics::ColliderShape::ConvexHull)
+            && settings.rigidBodyData.customColliderShapeData.has_value())
+        {
+            const auto& customData = settings.rigidBodyData.customColliderShapeData.value();
+            object->setCustomColliderGeometry(customData.vertices, customData.indices);
+        }
+    }
+
+    attachPhysicsObject(object);
+    syncPhysicsColliderToModelTransform();
+}
+
+bool Model::setCustomColliderGeometryFromFile(const std::string& colliderAssetPath, std::string* outError)
+{
+    Assimp::Importer import;
+    const aiScene* scene = import.ReadFile(
+        colliderAssetPath,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ImproveCacheLocality | aiProcess_SortByPType
+    );
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || scene->mRootNode == nullptr)
+    {
+        if (outError)
+        {
+            *outError = import.GetErrorString();
+        }
+        return false;
+    }
+
+    Physics::CustomColliderShapeData cooked{};
+
+    for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; ++meshIndex)
+    {
+        const aiMesh* mesh = scene->mMeshes[meshIndex];
+        if (mesh == nullptr)
+        {
+            continue;
+        }
+
+        const uint32_t baseVertex = static_cast<uint32_t>(cooked.vertices.size());
+        cooked.vertices.reserve(cooked.vertices.size() + mesh->mNumVertices);
+        for (unsigned int vertexIndex = 0; vertexIndex < mesh->mNumVertices; ++vertexIndex)
+        {
+            const aiVector3D& v = mesh->mVertices[vertexIndex];
+            cooked.vertices.emplace_back(v.x, v.y, v.z);
+        }
+
+        for (unsigned int faceIndex = 0; faceIndex < mesh->mNumFaces; ++faceIndex)
+        {
+            const aiFace& face = mesh->mFaces[faceIndex];
+            if (face.mNumIndices != 3)
+            {
+                continue;
+            }
+
+            cooked.indices.push_back(baseVertex + face.mIndices[0]);
+            cooked.indices.push_back(baseVertex + face.mIndices[1]);
+            cooked.indices.push_back(baseVertex + face.mIndices[2]);
+        }
+    }
+
+    if (cooked.empty())
+    {
+        if (outError)
+        {
+            *outError = "Collider mesh had no valid triangles.";
+        }
+        return false;
+    }
+
+    if (!physicsBodySettings.has_value())
+    {
+        physicsBodySettings = Physics::PhysicsBodySettings{};
+    }
+
+    auto& settings = physicsBodySettings.value();
+    settings.bodyType = Physics::BodyType::RigidBody;
+    settings.rigidBodyData.customColliderShapeData = cooked;
+    return true;
+}
+
+void Model::MoveBody(const glm::vec3& position, const float deltaTime) const
+{
+    physicsObject->MoveBody(position, deltaTime);
+}
+
+void Model::MoveBody(const glm::vec3& position, const glm::quat& rotation, const float deltaTime) const
+{
+    physicsObject->MoveBody(position, rotation, deltaTime);
 }
 
 void Model::LoadA3DModel(
@@ -647,13 +982,19 @@ void Model::loadContent(fs::path contentFile, std::istream& is)
     auto vertPath = engineFSPath / "Shaders/pbr.vert";
     auto fragPath = engineFSPath / "Shaders/pbr.frag";
     auto material = std::make_shared<Materials::Material>("Material",vertPath.string(), fragPath.string());
-
+    clearPhysicsObject();
     modeltype = ModelType::ACTUAL_MODEL;
     Model::loadFromFile(contentFile.string(), *this, material);
+    if (classId.empty())
+    {
+        classId = "None";
+    }
+    syncGameplayTagSet();
 
-
-    if(!physicsBodyType.empty())
-        this->attachPhysicsObject(new Physics::Box(EngineState::state->engineInstalledDirectory.c_str(),&getPhysicsSystem(), false, true));
+    if (physicsBodySettings.has_value())
+    {
+        rebuildPhysicsObjectFromSettings();
+    }
 }
 
 void Model::initOnGPU(Model* model, std::shared_ptr<Materials::Material>& material)

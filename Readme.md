@@ -77,5 +77,11 @@ Use these flags in cmake settings. i.e. set generator to vs 2022 and google test
 
 `cmake --build E:\OpenGL\game-engine\cmake-build-debug-visual-studio --target install --config Debug --prefix E:/opengl/Bins/glitterEngineBincmake`
 
+`
+cmake --build "E:\OpenGL\game-engine\cmake-build-debug-visual-studio" --config Debug --target Test
+$env:PATH = "E:\OpenGL\game-engine\cmake-build-debug-visual-studio\Debug;" + $env:PATH
+ctest --test-dir "E:\OpenGL\game-engine\cmake-build-debug-visual-studio" -C Debug --output-on-failure
+`
+
 vs code can find cpp file while debugging. ( so able to read pdb file correctly while clion cannot.)
 the opened cpp file had include errors. so it probably cannot find them.

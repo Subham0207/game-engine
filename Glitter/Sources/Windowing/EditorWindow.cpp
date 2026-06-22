@@ -18,7 +18,9 @@
 #include "NodeGraph/NodeGraph.hpp"
 #include "RenderPipeline/PostProcess.hpp"
 #include "Camera/FlyCam.hpp"
+#include "Event/Event.hpp"
 #include <UI/PropertiesPanel.hpp>
+#include "UI/Hud/HudSystem.hpp"
 #include <Profiler.hpp>
 
 EditorWindow::~EditorWindow() = default;
@@ -49,6 +51,7 @@ void EditorWindow::init()
     lvl->setInputHandler(mInputHandler.get());
     lvl->setEventQueue(mQueue.get());
     lvl->setEventBus(mBus.get());
+    getPhysicsSystem().setEventQueue(mQueue.get());
 
     lvl->loadMainLevelOfCurrentProject();
 
@@ -71,6 +74,41 @@ void EditorWindow::init()
     mSceneViewport = std::make_unique<SceneViewport>();
     mSceneViewport->init(mWindow, mLights.get());
     EngineState::state->postProcess = mSceneViewport->getPostProcess();
+
+    mHudSystem = std::make_unique<UI::Hud::HudSystem>();
+
+    const fs::path engineHudDir = engineFSPath / "EngineAssets" / "UI";
+    const fs::path engineHudRml = engineHudDir / "hud.rml";
+    const fs::path engineHudRcss = engineHudDir / "hud.rcss";
+
+    const fs::path projectHudDir = fs::path(EngineState::state->currentActiveProjectDirectory) / "Assets" / "HUD";
+    const fs::path projectHudRml = projectHudDir / "hud.rml";
+    const fs::path projectHudRcss = projectHudDir / "hud.rcss";
+
+    if ((fs::exists(engineHudRml) && !fs::exists(projectHudRml)) || (fs::exists(engineHudRcss) && !fs::exists(projectHudRcss)))
+    {
+        std::error_code ec;
+        fs::create_directories(projectHudDir, ec);
+        if (fs::exists(engineHudRml) && !fs::exists(projectHudRml))
+            fs::copy_file(engineHudRml, projectHudRml, fs::copy_options::overwrite_existing, ec);
+        if (fs::exists(engineHudRcss) && !fs::exists(projectHudRcss))
+            fs::copy_file(engineHudRcss, projectHudRcss, fs::copy_options::overwrite_existing, ec);
+    }
+
+    const fs::path hudDocumentPath = fs::exists(projectHudRml) ? projectHudRml : engineHudRml;
+    std::cout << "[HUD] Project HUD rml: " << projectHudRml << " exists=" << fs::exists(projectHudRml) << std::endl;
+    std::cout << "[HUD] Project HUD rcss: " << projectHudRcss << " exists=" << fs::exists(projectHudRcss) << std::endl;
+    std::cout << "[HUD] Engine HUD rml: " << engineHudRml << " exists=" << fs::exists(engineHudRml) << std::endl;
+    std::cout << "[HUD] Resolved HUD document: " << hudDocumentPath << std::endl;
+
+    const bool hudInitialized = mHudSystem->init(mWindow, mScreenWidth, mScreenHeight, mBus.get());
+    if (hudInitialized)
+    {
+        mHudSystem->discoverHudDocuments(projectHudDir);
+
+        if (mQueue)
+            mQueue->push<ActivateHUDEvent>("hud");
+    }
 }
 
 void EditorWindow::tickImpl()
@@ -101,25 +139,13 @@ void EditorWindow::tickImpl()
                     mInputHandler->m_Camera = activeCamera;
             }
 
-        if (getPhysicsSystem().isFirstPhysicsEnabledFrame == true)
-        {
-            getPhysicsSystem().isFirstPhysicsEnabledFrame = false;
-            for (int i = 0; i < lvlrenderables.size(); i++)
-                lvlrenderables.at(i)->syncTransformationToPhysicsEntity();
-        }
-        else
-        {
-            getPhysicsSystem().Update(deltaTime);
-            for (int i = 0; i < lvlrenderables.size(); i++)
-                lvlrenderables.at(i)->physicsUpdate();
-        }
+        getPhysicsSystem().Update(deltaTime);
     }
     else
     {
         if (mInputHandler)
             //When play is stopped make the EditorCamera active.
             mInputHandler->m_Camera = activeLevel.cameras[0];
-        getPhysicsSystem().isFirstPhysicsEnabledFrame = true;
     }
 
     for (auto& i : mLights->pointLights)
@@ -190,6 +216,12 @@ void EditorWindow::tickImpl()
                     mLights.get(),
                     mSkyBox.get(),
                     mDeltaTime);
+
+                if (getUIState().renderPhysicsDebug && !EngineState::state->isPlay)
+                {
+                    const auto viewProjection = activeCamera->projectionMatrix() * activeCamera->viewMatrix();
+                    getPhysicsSystem().DrawDebugBodies(viewProjection, activeCamera->cameraPos);
+                }
             }
         }
     }
@@ -223,6 +255,10 @@ void EditorWindow::tickImpl()
         ZoneScopedN("ImGuiRender");
         ImGui::Render();
     }
+    // Draw HUD before ImGui so editor widgets stay interactive on top.
+    if (mHudSystem && EngineState::state->isPlay)
+        mHudSystem->tick(mScreenWidth, mScreenHeight);
+
     {
         ZoneScopedN("ImGuiRenderDrawData");
         {
@@ -230,6 +266,7 @@ void EditorWindow::tickImpl()
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
     }
+
 
     glfwSwapBuffers(mWindow);
 
@@ -247,6 +284,12 @@ void EditorWindow::shutdown()
     if (!mWindow) return;
 
     makeCurrent();
+
+    if (mHudSystem)
+    {
+        mHudSystem->shutdown();
+        mHudSystem.reset();
+    }
 
     // Shutdown this window's isolated backends + contexts.
     setImguiCurrent();

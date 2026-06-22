@@ -31,6 +31,11 @@ namespace
     {
         auto* ud = GetWindowInputUserData(window);
         if (!ud) return;
+
+        ud->rmlModifierState = mods;
+        if (ud->onKey && ud->onKey(window, key, scancode, action, mods))
+            return;
+
         EnsureImguiForWindow(ud);
         ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     }
@@ -39,8 +44,21 @@ namespace
     {
         auto* ud = GetWindowInputUserData(window);
         if (!ud) return;
+
+        if (ud->onChar && ud->onChar(window, c))
+            return;
+
         EnsureImguiForWindow(ud);
         ImGui_ImplGlfw_CharCallback(window, c);
+    }
+
+    static void cursor_enter_callback(GLFWwindow* window, int entered)
+    {
+        auto* ud = GetWindowInputUserData(window);
+        if (!ud) return;
+
+        if (ud->onCursorEnter && ud->onCursorEnter(window, entered))
+            return;
     }
 
     static void window_focus_callback(GLFWwindow* window, int focused)
@@ -124,6 +142,7 @@ void InputHandler::handleEditorInput(float deltaTime,InputContext& inputCtx)
     // Forward keyboard/text/focus events to ImGui (install_callbacks=false)
     glfwSetKeyCallback(m_Window, key_callback);
     glfwSetCharCallback(m_Window, char_callback);
+    glfwSetCursorEnterCallback(m_Window, cursor_enter_callback);
     glfwSetWindowFocusCallback(m_Window, window_focus_callback);
 
 }
@@ -169,6 +188,9 @@ void InputHandler::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
     EnsureImguiForWindow(ud);
 
+    if (ud->onCursorPos && ud->onCursorPos(window, xpos, ypos))
+        return;
+
     // First forward mouse move to ImGui (we use install_callbacks=false)
     ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 
@@ -206,6 +228,9 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
     auto* handler = ud->handler;
 
     EnsureImguiForWindow(ud);
+
+    if (ud->onMouseButton && ud->onMouseButton(window, button, action, mods))
+        return;
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -258,6 +283,9 @@ void InputHandler::scroll_callback(GLFWwindow *window, double xoffset, double yo
     auto* handler = ud->handler;
 
     EnsureImguiForWindow(ud);
+
+    if (ud->onScroll && ud->onScroll(window, xoffset, yoffset))
+        return;
 
     // Forward to ImGui first (install_callbacks=false)
     ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);

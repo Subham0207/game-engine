@@ -32,24 +32,8 @@ void ProjectManagerWindow::init()
 	if (!mWindow)
 		return;
 
-	// Create isolated contexts/backends for this window.
-	mImguiContext = Shared::createImguiContext();
-	mImNodesContext = Shared::createImNodesContext();
-	setImguiCurrent();
-	ImNodes::SetCurrentContext(mImNodesContext);
-	Shared::initImguiBackendForWindow(mWindow);
-
-	// Attach contexts for per-window callback routing.
-	{
-		auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(mWindow));
-		if (!ud)
-		{
-			ud = new WindowInputUserData();
-			glfwSetWindowUserPointer(mWindow, ud);
-		}
-		ud->imguiCtx = mImguiContext;
-		ud->imnodesCtx = mImNodesContext;
-	}
+	// GameWindow::initWindowAndBackends() already creates per-window ImGui/ImNodes contexts
+	// and initializes backends exactly once. Re-initializing here can break WndProc chaining.
 
 
 	//TODO: Below can be moved to using mScreenWidth, mScreenHeight.

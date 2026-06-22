@@ -35,6 +35,13 @@ struct AssimpNodeData
     }
 };
 
+struct AnimationRegion
+{
+	std::string name;
+	float startTime = 0.0f;
+	float endTime = 0.0f;
+};
+
 class Animation: public Serializable
 {
 public:
@@ -83,9 +90,12 @@ public:
 	inline float GetTicksPerSecond() { return m_TicksPerSecond; }
 	inline float GetDuration() { return m_Duration;}
 	inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
+	void loadRegionsFromMeta();
+	bool saveRegionsToMeta();
 
 	std::string animationName;
 	bool hasMissingBones;
+	std::vector<AnimationRegion> regions;
 
 	void readSkeletalAnimationData(
 	const aiAnimation* animation)

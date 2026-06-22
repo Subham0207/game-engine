@@ -1,6 +1,10 @@
 #include <3DModel/Animation/Animator.hpp>
 #include <EngineState.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <limits>
 
 void Animator::HandlePlayedTypeForTransition()
 {
@@ -172,8 +176,12 @@ void Animator::CalculateBoneTransformBlended(
     std::vector<Bone> &bones, glm::mat4 &globalInverseTransform)
 {
     std::string nodeName = node->name;
-    
-    glm::mat4 nodeTransform = node->transformation;
+    const glm::mat4 bindPoseTransform = node->transformation;
+    glm::mat4 nodeTransform = bindPoseTransform;
+    Bone* boneBL = nullptr;
+    Bone* boneBR = nullptr;
+    Bone* boneTL = nullptr;
+    Bone* boneTR = nullptr;
 
     if(blendSelection->bottomLeft || blendSelection->bottomRight || blendSelection->topLeft || blendSelection->topRight)
     {
@@ -193,10 +201,10 @@ void Animator::CalculateBoneTransformBlended(
         currentTime4 = timewarpcurveBL_TR->evaluate(currentTime1);
         //Now we time warped all the animations based on 1 one's timing.
 
-        Bone* boneBL = blendSelection->bottomLeft && blendSelection->bottomLeft->animation ? blendSelection->bottomLeft->animation->FindBone(nodeName) : nullptr;
-        Bone* boneBR = blendSelection->bottomRight && blendSelection->bottomRight->animation ? blendSelection->bottomRight->animation->FindBone(nodeName): nullptr;
-        Bone* boneTL = blendSelection->topLeft && blendSelection->topLeft->animation ? blendSelection->topLeft->animation->FindBone(nodeName): nullptr;
-        Bone* boneTR = blendSelection->topRight && blendSelection->topRight->animation ? blendSelection->topRight->animation->FindBone(nodeName): nullptr;
+        boneBL = blendSelection->bottomLeft && blendSelection->bottomLeft->animation ? blendSelection->bottomLeft->animation->FindBone(nodeName) : nullptr;
+        boneBR = blendSelection->bottomRight && blendSelection->bottomRight->animation ? blendSelection->bottomRight->animation->FindBone(nodeName): nullptr;
+        boneTL = blendSelection->topLeft && blendSelection->topLeft->animation ? blendSelection->topLeft->animation->FindBone(nodeName): nullptr;
+        boneTR = blendSelection->topRight && blendSelection->topRight->animation ? blendSelection->topRight->animation->FindBone(nodeName): nullptr;
         nodeTransform = calculateLocalInterpolatedtransformForBone(
             boneTL,
             boneTR,
@@ -206,7 +214,7 @@ void Animator::CalculateBoneTransformBlended(
             blendSelection->topRightBlendFactor,
             blendSelection->bottomLeftBlendFactor,
             blendSelection->bottomRightBlendFactor,
-            nodeTransform
+            bindPoseTransform
         );
     }
 
@@ -219,6 +227,10 @@ void Animator::CalculateBoneTransformBlended(
         glm::mat4 offset = boneInfoMap[nodeName].offset;
         m_FinalBoneMatrices[index] = globalInverseTransform * globalTransformation * offset;
         m_FinalBoneMatricesLocal[index] = nodeTransform;
+        m_BlendSourceBoneMatricesLocal[0][index] = calculateBoneLocalTransform(boneBL, currentTime1, bindPoseTransform);
+        m_BlendSourceBoneMatricesLocal[1][index] = calculateBoneLocalTransform(boneBR, currentTime2, bindPoseTransform);
+        m_BlendSourceBoneMatricesLocal[2][index] = calculateBoneLocalTransform(boneTL, currentTime3, bindPoseTransform);
+        m_BlendSourceBoneMatricesLocal[3][index] = calculateBoneLocalTransform(boneTR, currentTime4, bindPoseTransform);
 
         glm::vec3 currentBonePosition = glm::vec3(globalTransformation * glm::vec4(0, 0, 0, 1));
         glm::vec3 parentBonePosition = glm::vec3(parentTransform * glm::vec4(0, 0, 0, 1));
@@ -354,4 +366,203 @@ void Animator::setAnimationTime()
        currentTime4 += blendSelection->topRight->animation->GetTicksPerSecond() * m_DeltaTime;
        currentTime4 = fmod(currentTime4, blendSelection->topRight->animation->GetDuration());
     }
+}
+
+namespace
+{
+    struct RegionBoundaryCrossing
+    {
+        float boundaryTime = 0.0f;
+        AnimationRuntimeEvent event;
+    };
+}
+
+std::vector<AnimationRuntimeEvent> Animator::CollectRegionBoundaryEvents(
+    const std::vector<AnimationRegion>& regions,
+    float previousTime,
+    float currentTime,
+    float duration,
+    bool wrapped)
+{
+    if (duration <= 0.0f)
+        return {};
+
+    std::vector<AnimationRuntimeEvent> events;
+    const auto collectSegmentCrossings = [&events, &regions](float segmentStart, float segmentEnd)
+    {
+        if (segmentEnd < segmentStart)
+            return;
+
+        std::vector<RegionBoundaryCrossing> segmentCrossings;
+        for (const auto& region : regions)
+        {
+            if (region.startTime > segmentStart && region.startTime <= segmentEnd)
+                segmentCrossings.push_back({region.startTime, {AnimEventType::RegionEnter, region.name}});
+
+            if (region.endTime > segmentStart && region.endTime <= segmentEnd)
+                segmentCrossings.push_back({region.endTime, {AnimEventType::RegionExit, region.name}});
+        }
+
+        std::stable_sort(
+            segmentCrossings.begin(),
+            segmentCrossings.end(),
+            [](const RegionBoundaryCrossing& lhs, const RegionBoundaryCrossing& rhs)
+            {
+                return lhs.boundaryTime < rhs.boundaryTime;
+            });
+
+        for (const auto& crossing : segmentCrossings)
+            events.push_back(crossing.event);
+    };
+
+    if (wrapped)
+    {
+        collectSegmentCrossings(previousTime, duration);
+        collectSegmentCrossings(0.0f, currentTime);
+    }
+    else
+    {
+        collectSegmentCrossings(previousTime, currentTime);
+    }
+
+    return events;
+}
+
+float Animator::ComputeAverageLocalPoseError(
+    const std::vector<glm::mat4>& sourcePoseLocal,
+    const std::vector<glm::mat4>& blendedPoseLocal)
+{
+    const size_t count = std::min(sourcePoseLocal.size(), blendedPoseLocal.size());
+    if (count == 0)
+        return 1.0f;
+
+    float totalError = 0.0f;
+    for (size_t i = 0; i < count; ++i)
+    {
+        glm::vec3 sourceScale(1.0f), blendedScale(1.0f), sourceTranslation(0.0f), blendedTranslation(0.0f), skew(0.0f);
+        glm::vec4 perspective(0.0f);
+        glm::quat sourceRotation = glm::identity<glm::quat>();
+        glm::quat blendedRotation = glm::identity<glm::quat>();
+        glm::decompose(sourcePoseLocal[i], sourceScale, sourceRotation, sourceTranslation, skew, perspective);
+        glm::decompose(blendedPoseLocal[i], blendedScale, blendedRotation, blendedTranslation, skew, perspective);
+
+        if (glm::length(sourceRotation) < 1e-5f)
+            sourceRotation = glm::identity<glm::quat>();
+        if (glm::length(blendedRotation) < 1e-5f)
+            blendedRotation = glm::identity<glm::quat>();
+
+        sourceRotation = glm::normalize(sourceRotation);
+        blendedRotation = glm::normalize(blendedRotation);
+
+        const float translationError = glm::clamp(glm::length(sourceTranslation - blendedTranslation), 0.0f, 1.0f);
+        const float scaleError = glm::clamp(glm::length(sourceScale - blendedScale), 0.0f, 1.0f);
+        const float rotationAngle = glm::abs(glm::angle(sourceRotation * glm::inverse(blendedRotation)));
+        const float rotationError = glm::clamp(rotationAngle / glm::pi<float>(), 0.0f, 1.0f);
+        totalError += (translationError + scaleError + rotationError) / 3.0f;
+    }
+
+    return totalError / static_cast<float>(count);
+}
+
+std::optional<size_t> Animator::SelectBestPoseMatchIndex(
+    const std::vector<std::vector<glm::mat4>>& candidatePosesLocal,
+    const std::vector<glm::mat4>& blendedPoseLocal,
+    float threshold)
+{
+    std::optional<size_t> bestIndex;
+    float bestError = std::numeric_limits<float>::max();
+    for (size_t i = 0; i < candidatePosesLocal.size(); ++i)
+    {
+        const float error = ComputeAverageLocalPoseError(candidatePosesLocal[i], blendedPoseLocal);
+        if (error < bestError)
+        {
+            bestError = error;
+            bestIndex = i;
+        }
+    }
+
+    if (!bestIndex.has_value() || bestError > threshold)
+        return std::nullopt;
+    return bestIndex;
+}
+
+void Animator::handleAnimationRegionEvents(float previousTime, float currentTime, bool wrapped, Animation* animation)
+{
+    if (animation == nullptr || animation->regions.empty())
+        return;
+
+    const auto events = CollectRegionBoundaryEvents(
+        animation->regions,
+        previousTime,
+        currentTime,
+        animation->GetDuration(),
+        wrapped);
+
+    for (const auto& event : events)
+        enqueueAnimationEvent(event);
+}
+
+void Animator::handleBlendspaceRegionEvents(float previousTime1, float previousTime2, float previousTime3, float previousTime4)
+{
+    if (blendSelection == nullptr)
+        return;
+
+    std::vector<BlendRegionCandidate> candidates;
+    auto collectCandidates = [&](int sourceIndex, Animation* animation, float previousTime, float currentTime)
+    {
+        if (animation == nullptr || animation->regions.empty())
+            return;
+
+        const bool wrapped = animation->GetDuration() > 0.0f && currentTime < previousTime;
+        const auto events = CollectRegionBoundaryEvents(
+            animation->regions,
+            previousTime,
+            currentTime,
+            animation->GetDuration(),
+            wrapped);
+
+        for (const auto& event : events)
+            candidates.push_back({event, sourceIndex});
+    };
+
+    collectCandidates(0, blendSelection->bottomLeft ? blendSelection->bottomLeft->animation : nullptr, previousTime1, currentTime1);
+    collectCandidates(1, blendSelection->bottomRight ? blendSelection->bottomRight->animation : nullptr, previousTime2, currentTime2);
+    collectCandidates(2, blendSelection->topLeft ? blendSelection->topLeft->animation : nullptr, previousTime3, currentTime3);
+    collectCandidates(3, blendSelection->topRight ? blendSelection->topRight->animation : nullptr, previousTime4, currentTime4);
+
+    if (candidates.empty())
+        return;
+
+    std::vector<std::vector<glm::mat4>> candidatePoses;
+    candidatePoses.reserve(candidates.size());
+    for (const auto& candidate : candidates)
+        candidatePoses.push_back(m_BlendSourceBoneMatricesLocal[candidate.sourceIndex]);
+
+    const auto selectedIndex = SelectBestPoseMatchIndex(candidatePoses, m_FinalBoneMatricesLocal, 0.10f);
+    if (!selectedIndex.has_value())
+        return;
+
+    enqueueAnimationEvent(candidates[*selectedIndex].event);
+}
+
+void Animator::enqueueAnimationEvent(const AnimationRuntimeEvent& event)
+{
+    if (animationEventQueue == nullptr)
+        return;
+
+    animationEventQueue->push(event.type, event.regionName);
+}
+
+glm::mat4 Animator::calculateBoneLocalTransform(Bone* bone, float time, const glm::mat4& bindPoseTransform) const
+{
+    if (bone == nullptr)
+        return bindPoseTransform;
+
+    const glm::vec3 position = bone->InterpolatePositionVec(time);
+    const glm::vec3 scale = bone->InterpolateScalingVec(time);
+    const glm::quat rotation = bone->InterpolateRotationInQuat(time);
+
+    return glm::translate(glm::mat4(1.0f), position)
+        * glm::mat4_cast(rotation)
+        * glm::scale(glm::mat4(1.0f), scale);
 }

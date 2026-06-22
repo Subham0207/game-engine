@@ -33,12 +33,11 @@ namespace StateMachineJsonExporter
                                const std::vector<StateMachineLink>& links,
                                int rootNodeId);
 
-    // Loads legacy files that may not include node metadata keys by keeping defaults
-    // from StateMachineNode (None + empty guid/axis names).
+    // Loads state machine graph JSON authored by the editor.
     bool DeserializeChainJson(const std::string& filepath,
-                          std::vector<StateMachineNode>& outNodes,
-                          std::vector<StateMachineLink>& outLinks,
-                          int& activeRootNodeId);
+                              std::vector<StateMachineNode>& outNodes,
+                              std::vector<StateMachineLink>& outLinks,
+                              int& activeRootNodeId);
 }
 
 #endif // GLITTER_STATEMACHINEJSONEXPORTER_HPP

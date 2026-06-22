@@ -9,6 +9,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imnodes.h>
+#include "Controls/Input.hpp"
 
 #include "Profiler.hpp"
 #include "boost/uuid/random_generator.hpp"
@@ -224,6 +225,10 @@ GLFWwindow* Shared::initAWindow(
 void Shared::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     // Adjust viewport when the window is resized
     glViewport(0, 0, width, height);
+
+    auto* ud = static_cast<WindowInputUserData*>(glfwGetWindowUserPointer(window));
+    if (ud && ud->onFramebufferSize)
+        ud->onFramebufferSize(window, width, height);
 }
 
 void Shared::initImguiBackend(

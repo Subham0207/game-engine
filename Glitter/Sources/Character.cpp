@@ -8,12 +8,16 @@
 
 #include "GenericFactory.hpp"
 #include <Profiler.hpp>
+#include <limits>
 namespace fs = std::filesystem;
+
+std::unordered_map<uint32_t, Character*> Character::capsuleCharacterLookup{};
 
 Character::Character(std::string filepath): Serializable(){
     filename = fs::path(filepath).filename().string();
 
     animator = new Animator();
+    animator->setAnimationEventQueue(animationEventQueue.get());
     skeleton = new Skeleton::Skeleton();
     skeleton->setup(filename);
 
@@ -27,7 +31,7 @@ Character::Character(std::string filepath): Serializable(){
         Helpers::resolveBoneHierarchy(scene->mRootNode, -1, skeleton->m_BoneInfoMap, skeleton->m_Bones);
     };
 
-    model = new Model(
+    model = std::make_shared<Model>(
         filepath,
         EngineState::state->engineInstalledDirectory,
         &skeleton->m_BoneInfoMap,
@@ -41,6 +45,8 @@ Character::Character(std::string filepath): Serializable(){
     controller = playerController;
 
     capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),0.5, 1.0f, true, true);
+    capsuleCollider->setOwnerRenderable(this, getInstanceId());
+    capsuleCollider->syncTransformation();
 
     modelRelativePosition = glm::vec3(0.0f);
 
@@ -52,16 +58,84 @@ Character::Character(std::string filepath): Serializable(){
     this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
     this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
     getActiveLevel().cameras.push_back(camera);
+    syncCapsuleCharacterLookup();
 };
 
 Character::~Character()
 {
+    unregisterCapsuleCharacterLookup();
     EngineState::state->playerControllers.clear();
-    delete model;
     delete animator;
     delete skeleton;
     delete capsuleCollider;
     delete camera;
+}
+
+Character* Character::getCharacterByCapsuleId(uint32_t capsuleCharacterId)
+{
+    const auto found = capsuleCharacterLookup.find(capsuleCharacterId);
+    if (found == capsuleCharacterLookup.end())
+    {
+        return nullptr;
+    }
+
+    return found->second;
+}
+
+
+std::vector<Renderable*> Character::GetOverlappingSensors() const
+{
+    auto* self = const_cast<Character*>(this);
+    return getPhysicsSystem().GetOverlappingSensorsFor(self->getInstanceId());
+}
+
+void Character::syncGameplayTagSet()
+{
+    gameplayTagSet.clear();
+    gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
+}
+
+void Character::syncCapsuleCharacterLookup()
+{
+    const auto invalidId = std::numeric_limits<uint32_t>::max();
+    if (capsuleCollider == nullptr)
+    {
+        unregisterCapsuleCharacterLookup();
+        return;
+    }
+
+    const uint32_t newId = capsuleCollider->getCharacterId();
+    if (newId == invalidId)
+    {
+        unregisterCapsuleCharacterLookup();
+        return;
+    }
+
+    if (registeredCapsuleCharacterId == newId)
+    {
+        return;
+    }
+
+    unregisterCapsuleCharacterLookup();
+    capsuleCharacterLookup[newId] = this;
+    registeredCapsuleCharacterId = newId;
+}
+
+void Character::unregisterCapsuleCharacterLookup()
+{
+    const auto invalidId = std::numeric_limits<uint32_t>::max();
+    if (registeredCapsuleCharacterId == invalidId)
+    {
+        return;
+    }
+
+    const auto found = capsuleCharacterLookup.find(registeredCapsuleCharacterId);
+    if (found != capsuleCharacterLookup.end() && found->second == this)
+    {
+        capsuleCharacterLookup.erase(found);
+    }
+
+    registeredCapsuleCharacterId = invalidId;
 }
 
 void Character::saveToFile(std::string filename, Character &character)
@@ -89,10 +163,8 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
     auto filesMap = getEngineRegistryFilesMap();
     if (const auto it = filesMap.find(characterPrefab.modelGuid); it != filesMap.end())
     {
-        auto model = new Model();
         auto modelParentPath = fs::path(filesMap[characterPrefab.modelGuid]).parent_path();
-        model->load(modelParentPath, characterPrefab.modelGuid);
-        character->model = model;
+        character->model = Model::loadWithClassFactory(modelParentPath, characterPrefab.modelGuid);
         character->model_guid = characterPrefab.modelGuid;
     }
     if (const auto it = filesMap.find(characterPrefab.skeletonGuid); it != filesMap.end())
@@ -110,6 +182,19 @@ void Character::loadPrefabIntoActiveLevel(const CharacterPrefabConfig& character
         statemachine->LoadSMfile(statemachinePath);
         character->animStateMachine = statemachine;
     }
+
+    if (character->capsuleCollider != nullptr)
+    {
+        character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
+        character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
+        character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
+        character->capsuleCollider->setCharacterMass(characterPrefab.capsuleMass);
+        character->capsuleCollider->setCharacterMaxStrength(characterPrefab.capsuleMaxStrength);
+        character->capsuleCollider->setCharacterFriction(characterPrefab.capsuleFriction);
+        character->capsuleCollider->setCharacterRestitution(characterPrefab.capsuleRestitution);
+        character->capsuleCollider->syncTransformation();
+    }
+    character->setGameplayTags(characterPrefab.gameplayTags);
 
     getActiveLevel().renderables.emplace_back(character);
 }
@@ -189,6 +274,7 @@ glm::value_ptr(projMatrix), getUIState().whichTransformActive, ImGuizmo::MODE::W
 void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *cubeMap)
 {
     ZoneScopedN("CharacterDraw");
+    syncCapsuleCharacterLookup();
     uploadBoneMatricesToGPU();
 
     if(model)
@@ -221,14 +307,18 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
 
     if(EngineState::state->isPlay)
     {
-        if (!started)
+        if (this->camera && this->capsuleCollider)
         {
-            this->onStart();
-            started = true;
-        }
-        else
-        {
-            this->onTick();
+            if (!started)
+            {
+                this->onStart();
+                started = true;
+            }
+            else
+            {
+                dispatchPendingAnimationEvents();
+                this->onTick();
+            }
         }
 
         if(controller)
@@ -290,17 +380,6 @@ void Character::uploadBoneMatricesToGPU() const
 
 }
 
-void Character::physicsUpdate()
-{
-}
-
-void Character::syncTransformationToPhysicsEntity()
-{
-    //The capsule mesh will be attached to the character so when character moves that mesh updates
-    //that should be enough to update the physics collider correctly
-    // capsuleCollider->syncTransformation();
-}
-
 
 void Character::saveContent(fs::path contentFile, std::ostream& os)
 {
@@ -333,6 +412,7 @@ void Character::deleteStateMachine()
 void Character::loadContent(fs::path contentFile, std::istream& is)
 {
     Character::loadFromFile(contentFile.string(), *this);
+    syncGameplayTagSet();
     auto model_guid = this->model_guid;
     auto skeleton_guid = this->skeleton_guid;
     auto stateMachine_guid = this->animStateMachine_guid;
@@ -341,18 +421,18 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //load model
     auto model_location = fs::path(filesMap[model_guid]);
-    auto model = new Model();
+    auto model = Model::loadWithClassFactory(model_location.parent_path(), model_guid);
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertShaderPath = engineFSPath / "Shaders/pbr.vert";
     auto fragShaderPath = engineFSPath / "Shaders/pbr.frag";
     auto material = std::make_shared<Materials::Material>("material", vertShaderPath.u8string().c_str(),fragShaderPath.u8string().c_str());
     //TODO: how to use this material and still be able to assign materialInstances to meshes.
-    model->load(model_location.parent_path(), model_guid);
     this->model = model;
 
     //create new animator
     this->animator = new Animator();
+    this->animator->setAnimationEventQueue(animationEventQueue.get());
 
     //load skeleton
     auto skeleton_Location = fs::path(filesMap[skeleton_guid]);
@@ -376,6 +456,9 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //Create new capsule collider
     this->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(), radius, halfHeight, true, true);
+    this->capsuleCollider->setOwnerRenderable(this, getInstanceId());
+    this->capsuleCollider->syncTransformation();
+    syncCapsuleCharacterLookup();
 
     //Create new camera
     camera = new Camera("charactercamera");
@@ -387,6 +470,17 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
     this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
     getActiveLevel().cameras.push_back(camera);
+}
+
+void Character::dispatchPendingAnimationEvents()
+{
+    if (!animationEventQueue || !animationEventBus)
+        return;
+
+    animationEventQueue->drain([this](const AnimationRuntimeEvent& event)
+    {
+        animationEventBus->dispatch(event);
+    });
 }
 
 float Character::smoothAngle(float current, float target, float t)

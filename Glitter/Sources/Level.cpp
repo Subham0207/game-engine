@@ -22,6 +22,24 @@ Level::Level(): Serializable()
     AIs = std::vector<std::shared_ptr<AI::AI>>();
 }
 
+void Level::addRenderable(const shared_ptr<Renderable>& renderable)
+{
+    modelFilePaths.push_back(renderable->getName());
+    modelTransformations.push_back(&renderable->getModelMatrix());
+    renderables.push_back(renderable);
+
+    if (const auto serializable = std::dynamic_pointer_cast<Serializable>(renderable))
+    {
+        instanceIdToSerializableMap[serializable->getInstanceId()] = serializable;
+    }
+
+    if (auto model = std::dynamic_pointer_cast<Model>(renderable))
+    {
+        model->ensureStaticBoxCollider();
+        model->syncPhysicsColliderToModelTransform();
+    }
+}
+
 void Level::loadMainLevelOfCurrentProject()
 {
     // read the project.manifest file and find which level is entry point.
@@ -69,13 +87,12 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
 
             if(extension ==  ".model")
             {
-                auto model = std::make_shared<Model>();
-                model->load(path, id);
+                auto model = Model::loadWithClassFactory(path, id);
                 model->setModelMatrix(M);
                 model->setInstanceId(instanceId);
                 auto filename = contentFilePath.stem().filename().string();
                 model->setFileName(filename);
-                this->renderables.push_back(model);
+                addRenderable(model);
                 instanceIdToSerializableMap[instanceId] = model;
             }
             if(extension ==  ".character")
@@ -84,6 +101,11 @@ void Level::loadContent(fs::path contentFile, std::istream& is)
                 character->load(path, id);
                 character->setModelMatrix(M);
                 character->setInstanceId(instanceId);
+                if (character->capsuleCollider != nullptr)
+                {
+                    character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
+                    character->capsuleCollider->syncTransformation();
+                }
                 this->renderables.push_back(character);
                 instanceIdToSerializableMap[instanceId] = character;
             }
@@ -197,7 +219,11 @@ void Level::createACopyForRenderableAt(int index)
     }
 }
 
-shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 transform, std::string instanceId)
+shared_ptr<Character> Level::spawnCharacter(
+    fs::path actualFilePath,
+    glm::mat4 transform,
+    std::string instanceId,
+    const bool enableGameplaySystems)
 {
     CharacterPrefabConfig characterPrefab;
     Engine::Prefab::readCharacterPrefab(actualFilePath, characterPrefab);
@@ -221,18 +247,20 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
         character->setInstanceId(std::move(instanceId));
     }
     character->setScale(characterPrefab.modelScale);
+    character->capsuleCollider = nullptr;
+    character->camera = nullptr;
 
     character->animator = new Animator();
+    character->animator->setAnimationEventQueue(character->animationEventQueue.get());
 
-    auto model = new Model();
     auto modelParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.modelGuid]).parent_path();
+    auto model = Model::loadWithClassFactory(modelParentPath, characterPrefab.modelGuid);
 
     auto engineFSPath = fs::path(EngineState::state->engineInstalledDirectory);
     auto vertPath = engineFSPath / "Shaders/pbr.vert";
     auto fragPath = engineFSPath / "Shaders/pbr.frag";
     //auto material = std::make_shared<Materials::Material>("material",vertPath.string(), fragPath.string());
 
-    model->load(modelParentPath, characterPrefab.modelGuid);
     character->model = model;
 
     auto skeleton = new Skeleton::Skeleton();
@@ -251,29 +279,41 @@ shared_ptr<Character> Level::spawnCharacter(fs::path actualFilePath, glm::mat4 t
         std::cout << "[LEVEL][SpawnCharacter]: Statemachine guid is empty" << std::endl;
     }
 
-    //TODO: make this playerController a scriptable file.
-    character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);
-    if (auto playerController = std::dynamic_pointer_cast<Controls::PlayerController>(character->controller))
+    if (enableGameplaySystems)
     {
-        EngineState::state->playerControllers.push_back(playerController);
-        playerController->setCharacter(character);
-    }
-    if (auto ai = std::dynamic_pointer_cast<AI::AI>(character->controller))
-    {
-        addAI(ai);
+        //TODO: make this playerController a scriptable file.
+        character->controller = ControllerFactory::Create(characterPrefab.controllerClassId);
+        if (auto playerController = std::dynamic_pointer_cast<Controls::PlayerController>(character->controller))
+        {
+            EngineState::state->playerControllers.push_back(playerController);
+            playerController->setCharacter(character);
+        }
+        if (auto ai = std::dynamic_pointer_cast<AI::AI>(character->controller))
+        {
+            addAI(ai);
+        }
+
+        character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
+        character->capsuleCollider->setOwnerRenderable(character.get(), character->getInstanceId());
+        character->capsuleCollider->setPhysicsLayerName(characterPrefab.capsulePhysicsLayer);
+        character->capsuleCollider->setIsSensor(characterPrefab.capsuleIsSensor);
+        character->capsuleCollider->syncTransformation();
     }
 
-    character->capsuleCollider = new Physics::Capsule(&getPhysicsSystem(),characterPrefab.capsuleRadius, characterPrefab.capsuleHalfHeight, true, true);
     character->modelRelativePosition = characterPrefab.modelRelativePosition;
+    character->setGameplayTags(characterPrefab.gameplayTags);
 
-    character->camera = new Camera("charactercamera");
-    character->camera->cameraPos = model->GetPosition();
-    float pitchAngle = 0.3f;
-    glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
-    glm::quat newRot = pitchQuat * model->GetRot();
-    character->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
-    character->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
-    cameras.push_back(character->camera);
+    if (enableGameplaySystems)
+    {
+        character->camera = new Camera("charactercamera");
+        character->camera->cameraPos = model->GetPosition();
+        float pitchAngle = 0.3f;
+        glm::quat pitchQuat = glm::angleAxis(pitchAngle, glm::vec3(1, 0, 0));
+        glm::quat newRot = pitchQuat * model->GetRot();
+        character->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
+        character->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
+        cameras.push_back(character->camera);
+    }
 
     addRenderable(character);
 

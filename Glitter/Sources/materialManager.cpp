@@ -204,7 +204,7 @@ void UI::MaterialManagerUI::drawMaterialsList()
         auto renderable = getActiveLevel().renderables[selectedRenderableIndex];
         if (auto character = std::dynamic_pointer_cast<Character>(renderable))
         {
-            selectedModel = character->model;
+            selectedModel = character->model.get();
         }
         if (auto model = std::dynamic_pointer_cast<Model>(renderable))
         {
@@ -224,7 +224,7 @@ void UI::MaterialManagerUI::ManageMaterialsOfModel()
             auto renderable = getActiveLevel().renderables[getUIState().selectedRenderableIndex];
             if (auto character = std::dynamic_pointer_cast<Character>(renderable))
             {
-                materialsFoundInModel(character->model);
+                materialsFoundInModel(character->model.get());
             }
             if (auto model = std::dynamic_pointer_cast<Model>(renderable))
             {

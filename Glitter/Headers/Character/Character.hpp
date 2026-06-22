@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include "3DModel/model.hpp"
 #include "3DModel/Animation/Animator.hpp"
 #include "Camera/Camera.hpp"
@@ -16,6 +17,12 @@
 #include <Controls/Input.hpp>
 #include <Event/EventBus.hpp>
 #include <Event/EventQueue.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <cstdint>
+#include <limits>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "CharacterPrefabConfig.hpp"
 #include "Controls/Controller.hpp"
@@ -34,10 +41,10 @@ public:
 
     std::string GetClassId() const override { return "Character"; }
 
-    Model* model;
+    std::shared_ptr<Model> model;
     std::string model_guid;
 
-    Animator* animator;
+    Animator* animator = nullptr;
     std::string filename;
 
     virtual void onStart(){};
@@ -91,7 +98,7 @@ public:
         return model->getMaterials();
     }
 
-    Skeleton::Skeleton* skeleton;
+    Skeleton::Skeleton* skeleton = nullptr;
     std::string skeleton_guid;
     
     std::shared_ptr<Controls::Controller> controller;
@@ -99,14 +106,11 @@ public:
     std::shared_ptr<Controls::StateMachine> animStateMachine;
     std::string animStateMachine_guid;
 
-    Physics::Capsule* capsuleCollider;
+    Physics::Capsule* capsuleCollider = nullptr;
     glm::vec3 modelRelativePosition;
 
     //Deprecated
     glm::vec3 capsuleColliderPosRelative;
-
-    void physicsUpdate() override;
-    void syncTransformationToPhysicsEntity() override;
     float cameraHeight = 7;
     float cameraDistance = 16;
 
@@ -183,7 +187,7 @@ public:
         rotationOffset = rotation_offset;
     }
 
-    Camera* camera;
+    Camera* camera = nullptr;
     float smoothAngle(float current, float target, float t);
 
     const std::string typeName() const override {return "character"; }
@@ -193,15 +197,45 @@ public:
     InputHandler* inputHandler = nullptr;
     EventQueue* eventQueue = nullptr;
     EventBus* eventBus = nullptr;
+    std::shared_ptr<AnimationEventQueue> animationEventQueue = std::make_shared<AnimationEventQueue>();
+    std::shared_ptr<AnimationEventBus> animationEventBus = std::make_shared<AnimationEventBus>();
 
     void setInputHandler(InputHandler* handler) { inputHandler = handler; }
     void setEventQueue(EventQueue* q) { eventQueue = q; }
     void setEventBus(EventBus* b) { eventBus = b; }
+    void dispatchPendingAnimationEvents();
 
     void setIsJumping(const bool& x){isJumping = x;}
     bool getIsJumping(){return isJumping;}
     void setMoveSpeed(const float& x){movementSpeed = x;}
     float& getMoveSpeed(){return movementSpeed;}
+
+    [[nodiscard]] uint32_t getCapsuleCharacterId() const
+    {
+        if (capsuleCollider == nullptr)
+        {
+            return std::numeric_limits<uint32_t>::max();
+        }
+
+        return capsuleCollider->getCharacterId();
+    }
+
+    static Character* getCharacterByCapsuleId(uint32_t capsuleCharacterId);
+    void syncCapsuleCharacterLookup();
+
+    void setGameplayTags(const std::vector<std::string>& tags)
+    {
+        gameplayTags = tags;
+        gameplayTagSet.clear();
+        gameplayTagSet.insert(gameplayTags.begin(), gameplayTags.end());
+    }
+    [[nodiscard]] const std::vector<std::string>& getGameplayTags() const { return gameplayTags; }
+    [[nodiscard]] const std::unordered_set<std::string>& GetGameplayTags() const override { return gameplayTagSet; }
+    [[nodiscard]] bool hasGameplayTag(const std::string& tag) const
+    {
+        return gameplayTagSet.find(tag) != gameplayTagSet.end();
+    }
+    [[nodiscard]] std::vector<Renderable*> GetOverlappingSensors() const override;
 
 protected:
     virtual void saveContent(fs::path contentFileLocation, std::ostream& os) override;
@@ -224,6 +258,14 @@ private:
 
     bool started = false;
 
+    uint32_t registeredCapsuleCharacterId = std::numeric_limits<uint32_t>::max();
+    static std::unordered_map<uint32_t, Character*> capsuleCharacterLookup;
+    std::vector<std::string> gameplayTags;
+    std::unordered_set<std::string> gameplayTagSet;
+
+    void unregisterCapsuleCharacterLookup();
+    void syncGameplayTagSet();
+
     void setFinalBoneMatrix(int boneIndex, glm::mat4 transform) const;
     void uploadBoneMatricesToGPU() const;
 
@@ -239,5 +281,6 @@ private:
         ar & model_guid;
         ar & animStateMachine_guid;
         ar & skeleton_guid;
+        ar & gameplayTags;
     }
 };
