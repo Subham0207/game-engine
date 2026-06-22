@@ -245,9 +245,7 @@ void BlendSpace2D::loadContent(fs::path contentFile, std::istream& is)
     for (size_t i = 0; i < this->blendPoints.size(); i++)
     {
         auto animationGuid = blendPoints[i].animationGuid;
-        auto animationLocation = fs::path(filesMap[animationGuid]);
-        blendPoints[i].animation = new Animation();
-        blendPoints[i].animation->load(animationLocation.parent_path(), animationGuid);
+        blendPoints[i].animation = Animation::loadAnimation(animationGuid);
     }
     
 }

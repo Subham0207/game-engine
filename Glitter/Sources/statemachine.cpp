@@ -382,8 +382,7 @@ void Controls::StateMachine::dfsLoad(const std::shared_ptr<State>& state,
         if (auto it = filesMap.find(state->animationGuid); it != filesMap.end()) {
             auto p = fs::path(it->second);
             auto parent = p.parent_path();
-            state->animation = new Animation();
-            state->animation->load(parent, state->animationGuid);
+            state->animation = Animation::loadAnimation(state->animationGuid);
         } else {
             std::cerr << "[StateMachine] No file for animationGuid " << state->animationGuid << "\n";
         }

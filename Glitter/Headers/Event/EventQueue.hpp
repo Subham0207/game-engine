@@ -43,5 +43,41 @@ private:
     std::queue<std::unique_ptr<Event>> m_q;
 };
 
+class AnimationEventQueue
+{
+public:
+    void push(AnimEventType type, std::string regionName)
+    {
+        std::lock_guard<std::mutex> lock(m_mtx);
+        m_q.push(AnimationRuntimeEvent{type, std::move(regionName)});
+    }
+
+    template<AnimEventType Type>
+    void push(std::string regionName)
+    {
+        push(Type, std::move(regionName));
+    }
+
+    template<typename F>
+    void drain(F&& fn)
+    {
+        std::queue<AnimationRuntimeEvent> local;
+        {
+            std::lock_guard<std::mutex> lock(m_mtx);
+            std::swap(local, m_q);
+        }
+
+        while (!local.empty())
+        {
+            fn(local.front());
+            local.pop();
+        }
+    }
+
+private:
+    std::mutex m_mtx;
+    std::queue<AnimationRuntimeEvent> m_q;
+};
+
 
 #endif //GLITTER_EVENTQUEUE_HPP

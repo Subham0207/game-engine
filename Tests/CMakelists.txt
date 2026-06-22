@@ -11,6 +11,7 @@ add_executable(Test
         test.cpp
         Character/Character.test.cpp
         Animation/Animation.test.cpp
+        Animation/Animator.test.cpp
         NodeGraph/NodeGraph.test.cpp
         NodeGraph/StateMachineJsonExporter.test.cpp
         NodeGraph/FlowScript/Compile/Compiler.test.cpp

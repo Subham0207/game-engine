@@ -251,6 +251,7 @@ shared_ptr<Character> Level::spawnCharacter(
     character->camera = nullptr;
 
     character->animator = new Animator();
+    character->animator->setAnimationEventQueue(character->animationEventQueue.get());
 
     auto modelParentPath = fs::path(getEngineRegistryFilesMap()[characterPrefab.modelGuid]).parent_path();
     auto model = Model::loadWithClassFactory(modelParentPath, characterPrefab.modelGuid);

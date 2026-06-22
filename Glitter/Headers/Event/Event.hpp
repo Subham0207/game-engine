@@ -27,6 +27,12 @@ enum class EventType : uint32_t {
     SensorsExited
 };
 
+enum class AnimEventType : uint32_t
+{
+    RegionEnter,
+    RegionExit
+};
+
 class Renderable;
 
 enum class HUDUpdateOperation : uint32_t
@@ -39,6 +45,12 @@ struct Event {
     virtual ~Event() = default;
     virtual EventType type() const = 0;
     bool handled = false; // optional
+};
+
+struct AnimationRuntimeEvent
+{
+    AnimEventType type = AnimEventType::RegionEnter;
+    std::string regionName;
 };
 
 struct MouseMoveEvent final : Event {

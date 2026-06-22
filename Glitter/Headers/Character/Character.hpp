@@ -44,7 +44,7 @@ public:
     std::shared_ptr<Model> model;
     std::string model_guid;
 
-    Animator* animator;
+    Animator* animator = nullptr;
     std::string filename;
 
     virtual void onStart(){};
@@ -98,7 +98,7 @@ public:
         return model->getMaterials();
     }
 
-    Skeleton::Skeleton* skeleton;
+    Skeleton::Skeleton* skeleton = nullptr;
     std::string skeleton_guid;
     
     std::shared_ptr<Controls::Controller> controller;
@@ -197,10 +197,13 @@ public:
     InputHandler* inputHandler = nullptr;
     EventQueue* eventQueue = nullptr;
     EventBus* eventBus = nullptr;
+    std::shared_ptr<AnimationEventQueue> animationEventQueue = std::make_shared<AnimationEventQueue>();
+    std::shared_ptr<AnimationEventBus> animationEventBus = std::make_shared<AnimationEventBus>();
 
     void setInputHandler(InputHandler* handler) { inputHandler = handler; }
     void setEventQueue(EventQueue* q) { eventQueue = q; }
     void setEventBus(EventBus* b) { eventBus = b; }
+    void dispatchPendingAnimationEvents();
 
     void setIsJumping(const bool& x){isJumping = x;}
     bool getIsJumping(){return isJumping;}

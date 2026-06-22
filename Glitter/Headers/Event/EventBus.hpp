@@ -56,4 +56,31 @@ template<> inline EventType EventBus::eventTypeOf<BodiesCollidedEvent>() { retur
 template<> inline EventType EventBus::eventTypeOf<SensorsEnteredEvent>() { return EventType::SensorsEntered; }
 template<> inline EventType EventBus::eventTypeOf<SensorsExitedEvent>() { return EventType::SensorsExited; }
 
+class AnimationEventBus
+{
+public:
+    template<AnimEventType Type>
+    using Fn = std::function<void(const std::string&)>;
+
+    template<AnimEventType Type>
+    void subscribe(Fn<Type> fn)
+    {
+        m_handlers[Type].push_back(std::move(fn));
+    }
+
+    void dispatch(const AnimationRuntimeEvent& event) const
+    {
+        auto it = m_handlers.find(event.type);
+        if (it == m_handlers.end())
+            return;
+
+        for (const auto& handler : it->second)
+            handler(event.regionName);
+    }
+
+private:
+    using Handler = std::function<void(const std::string&)>;
+    std::unordered_map<AnimEventType, std::vector<Handler>> m_handlers;
+};
+
 #endif //GLITTER_EVENTBUS_HPP

@@ -17,6 +17,7 @@ Character::Character(std::string filepath): Serializable(){
     filename = fs::path(filepath).filename().string();
 
     animator = new Animator();
+    animator->setAnimationEventQueue(animationEventQueue.get());
     skeleton = new Skeleton::Skeleton();
     skeleton->setup(filename);
 
@@ -315,6 +316,7 @@ void Character::draw(float deltaTime, Camera *camera, Lights *lights, CubeMap *c
             }
             else
             {
+                dispatchPendingAnimationEvents();
                 this->onTick();
             }
         }
@@ -430,6 +432,7 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
 
     //create new animator
     this->animator = new Animator();
+    this->animator->setAnimationEventQueue(animationEventQueue.get());
 
     //load skeleton
     auto skeleton_Location = fs::path(filesMap[skeleton_guid]);
@@ -467,6 +470,17 @@ void Character::loadContent(fs::path contentFile, std::istream& is)
     this->camera->cameraFront = glm::rotate(newRot, glm::vec3(0.0f, 0.0f, 1.0f));
     this->camera->cameraUp = glm::rotate(newRot, glm::vec3(0.0f, 1.0f, 0.0f));
     getActiveLevel().cameras.push_back(camera);
+}
+
+void Character::dispatchPendingAnimationEvents()
+{
+    if (!animationEventQueue || !animationEventBus)
+        return;
+
+    animationEventQueue->drain([this](const AnimationRuntimeEvent& event)
+    {
+        animationEventBus->dispatch(event);
+    });
 }
 
 float Character::smoothAngle(float current, float target, float t)
